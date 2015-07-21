@@ -18,9 +18,9 @@ Contents:
    :maxdepth: 2
 
    address
-   bip38
    base58
-   rpc
+   bip38
+   client
    paperwallet
    transactions
 
