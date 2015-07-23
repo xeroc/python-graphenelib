@@ -12,78 +12,75 @@ import time
 #import graphenelib.address as address
 #from graphenelib.base58 import base58decode,base58encode,base58CheckEncode,base58CheckDecode,btsBase58CheckEncode,btsBase58CheckDecode
 
-object_type                        = {}
-object_type["null"]                = 0
-object_type["base"]                = 1
-object_type["key"]                 = 2
-object_type["account"]             = 3
-object_type["asset"]               = 4
-object_type["force_settlement"]    = 5
-object_type["delegate"]            = 6
-object_type["witness"]             = 7
-object_type["limit_order"]         = 8
-object_type["short_order"]         = 9
-object_type["call_order"]          = 10
-object_type["custom"]              = 11
-object_type["proposal"]            = 12
-object_type["operation_history"]   = 13
-object_type["withdraw_permission"] = 14
-object_type["bond_offer"]          = 15
-object_type["bond"]                = 16
-object_type["file"]                = 17
-object_type["OBJECT_TYPE_COUNT"]   = 18
-
-operations = {}
-operations["transfer"]                    = 0
-operations["limit_order_create"]          = 1
-operations["short_order_create"]          = 2
-operations["limit_order_cancel"]          = 3
-operations["short_order_cancel"]          = 4
-operations["call_order_update"]           = 5
-operations["key_create"]                  = 6
-operations["account_create"]              = 7
-operations["account_update"]              = 8
-operations["account_whitelist"]           = 9
-operations["account_transfer"]            = 10
-operations["asset_create"]                = 11
-operations["asset_update"]                = 12
-operations["asset_update_bitasset"]       = 13
-operations["asset_update_feed_producers"] = 14
-operations["asset_issue"]                 = 15
-operations["asset_burn"]                  = 16
-operations["asset_fund_fee_pool"]         = 17
-operations["asset_settle"]                = 18
-operations["asset_global_settle"]         = 19
-operations["asset_publish_feed"]          = 20
-operations["delegate_create"]             = 21
-operations["witness_create"]              = 22
-operations["witness_withdraw_pay"]        = 23
-operations["proposal_create"]             = 24
-operations["proposal_update"]             = 25
-operations["proposal_delete"]             = 26
-operations["withdraw_permission_create"]  = 27
-operations["withdraw_permission_update"]  = 28
-operations["withdraw_permission_claim"]   = 29
-operations["withdraw_permission_delete"]  = 30
-operations["fill_order"]                  = 31
-operations["global_parameters_update"]    = 32
-operations["file_write"]                  = 33
-operations["vesting_balance_create"]      = 34
-operations["vesting_balance_withdraw"]    = 35
-operations["bond_create_offer"]           = 36
-operations["bond_cancel_offer"]           = 37
-operations["bond_accept_offer"]           = 38
-operations["bond_claim_collateral"]       = 39
-operations["worker_create"]               = 40
-operations["custom"]                      = 41
-
 reserved_spaces = {}
 reserved_spaces["relative_protocol_ids"] = 0
 reserved_spaces["protocol_ids"]          = 1
 reserved_spaces["implementation_ids"]    = 2
-reserved_spaces["RESERVE_SPACES_COUNT"]  = 3
 
-chainid        = "75c11a81b7670bbaa721cc603eadb2313756f94a3bcbb9928e9101432701ac5f"
+object_type                        = {}
+object_type["null"]                = 0
+object_type["base"]                = 1
+object_type["account"]             = 2
+object_type["asset"]               = 3
+object_type["force_settlement"]    = 4
+object_type["committee_member"]    = 5
+object_type["witness"]             = 6
+object_type["limit_order"]         = 7
+object_type["call_order"]          = 8
+object_type["custom"]              = 9
+object_type["proposal"]            = 10
+object_type["operation_history"]   = 11
+object_type["withdraw_permission"] = 12
+object_type["vesting_balance"]     = 13
+object_type["worker"]              = 14
+object_type["balance"]             = 15
+object_type["OBJECT_TYPE_COUNT"]   = 16
+
+vote_type = {}
+vote_type["committee"] = 0
+vote_type["witness"]   = 1
+vote_type["worker"]    = 2
+
+operations = {}
+operations["transfer"]                                  = 0
+operations["limit_order_create"]                        = 1
+operations["short_order_create"]                        = 2
+operations["call_order_update"]                         = 3
+operations["fill_order"]                                = 4
+operations["account_create"]                            = 5
+operations["account_update"]                            = 6
+operations["account_whitelist"]                         = 7
+operations["account_upgrade"]                           = 8
+operations["account_transfer"]                          = 9
+operations["asset_create"]                              = 10
+operations["asset_update"]                              = 11
+operations["asset_update_bitasset"]                     = 12
+operations["asset_update_feed_producers"]               = 13
+operations["asset_issue"]                               = 14
+operations["asset_reserve"]                             = 15
+operations["asset_fund_fee_pool"]                       = 16
+operations["asset_settle"]                              = 17
+operations["asset_global_settle"]                       = 18
+operations["asset_publish_feed"]                        = 19
+operations["witness_create"]                            = 20
+operations["proposal_create"]                           = 21
+operations["proposal_update"]                           = 22
+operations["proposal_delete"]                           = 23
+operations["withdraw_permission_create"]                = 24
+operations["withdraw_permission_update"]                = 25
+operations["withdraw_permission_claim"]                 = 26
+operations["withdraw_permission_delete"]                = 27
+operations["committee_member_create"]                   = 28
+operations["committee_member_update_global_parameters"] = 29
+operations["vesting_balance_create"]                    = 30
+operations["vesting_balance_withdraw"]                  = 31
+operations["worker_create"]                             = 32
+operations["custom"]                                    = 33
+operations["assert"]                                    = 34
+operations["balance_claim"]                             = 35
+operations["override_transfer"]                         = 36
+
+chainid        = "<not-defined-yet>"
 PREFIX         = "BTS"
 
 ## Variable encodings
@@ -156,74 +153,75 @@ def JsonObj(data):
 # P 	void* 	integer 	  	(5), (3)
 
 # Graphene objects
-from collections import OrderedDict as oDict
+from collections import OrderedDict
 class GrapheneObject(object) :
-    def __init__(self, **kwargs):
-        self.data = oDict()
-        for name, value in kwargs.items():
-            self.data[name] = value
+    def __init__(self, data):
+        self.data = data 
     def __bytes__(self):
         b = b""
-        for d in self.data.values() :
-            if isinstance(d,str) :
-                 b += bytes(d,'utf-8')
+        for name, value in self.data.items():
+            if isinstance(value, str) :
+                 b += bytes(value,'utf-8')
             else :
-                 b += bytes(d)
+                 b += bytes(value)
         return b
     def __json__(self) :
-        d = {}
+        d = {} ## JSON output is *not* ordered
         for name, value in self.data.items():
             if isinstance(value, GrapheneObject) :
-                d[ name ] = value.__json__()
+                d.update( { name : value.__json__() } )
             else :
-                d[ name ] = str(value)
-        return d
+                d.update( { name : str(value) } )
+        return OrderedDict(d)
     def __str__(self) :
         return json.dumps(self.__json__())
 
 class Protocol_id_type() :
-    def __init__(self, _type, _object) :
+    def __init__(self, _type, instance) :
         self._type   = _type
-        self._object = Id(_object)
-        self.Id      = "%d.%d.%d"%(reserved_spaces["protocol_ids"],object_type[_type],_object)
-        #super().__init__(**{'id':self.Id})
+        self.space   = reserved_spaces["protocol_ids"]
+        self.obj     = object_type[_type]
+        self.instance = Id(instance)
+        self.Id      = "%d.%d.%d"%(self.space,self.obj,instance)
     def __bytes__(self):
-        return bytes(self._object)
+        return bytes(self.instance)  # only yield instance
     def __str__(self) :
         return self.Id
 
 class Asset(GrapheneObject) :
     def __init__(self, _amount, _asset):
-        super().__init__(**{'amount':Uint64(_amount), 'asset_id':_asset})
+        super().__init__(OrderedDict([
+                       ('amount',   Uint64(_amount)),
+                       ('asset_id', _asset)
+                    ]))
 
 class Memo(GrapheneObject) :
     def __init__(self, _from, _to, _nonce, _message):
-        super().__init__(**{'from':_from, 'to':_to, 'nonce':Uint64(_nonce), 'message':_message})
+        super().__init__(OrderedDict([
+                       ('from',    _from),
+                       ('to',      _to),
+                       ('nonce',   Uint64(_nonce)),
+                       ('message', _message)
+                     ]))
 
 class Transfer(GrapheneObject) :
     def __init__(self, _fee, _from, _to, _amount, _memo):
-        super().__init__(**{'fee':_fee, 'from':_from, 'to':_to, 'amount':_amount, 'memo':_memo})
+        super().__init__(OrderedDict([
+                      ('fee'    , _fee),
+                      ('from'   , _from),
+                      ('to'     , _to),
+                      ('amount' , _amount),
+                      ('memo'   , _memo)
+                    ]))
 
 asset_id = Protocol_id_type("asset", 15)
 fee      = Asset(10, asset_id)
 amount   = Asset(1000000, asset_id)
-_from    = Protocol_id_type("key", 8)
-to       = Protocol_id_type("key", 10)
-memo     = Memo(_from,to,1244,b"Foobar")
+_from    = Protocol_id_type("account", 8)
+to       = Protocol_id_type("account", 10)
+memo     = Memo(_from, to, 1244, b"Foobar")
 transfer = Transfer(fee, _from, to, amount, memo)
 
-
-print(bytes(asset_id))
-print(bytes(fee     ))
-print(bytes(amount  ))
-print(bytes(_from   ))
-print(bytes(to      ))
-print(bytes(memo    ))
-print(bytes(transfer))
-
-
-
-
 print(json.dumps(json.loads(str(transfer)),indent=4))
-
 print(hexlify(bytes(transfer)))
+print(b"0a000000000000000f080a40420f00000000000f080adc04000000000000466f6f626172")
