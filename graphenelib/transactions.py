@@ -8,6 +8,7 @@ import math
 import struct
 import sys
 import time
+from address import PublicKey, Address
 
 #import graphenelib.address as address
 #from graphenelib.base58 import base58decode,base58encode,base58CheckEncode,base58CheckDecode,btsBase58CheckEncode,btsBase58CheckDecode
@@ -114,15 +115,78 @@ def variable_buffer( s ) :
     return varint(len(s)) + s
 
 # Variable types
+class Uint8() :
+    def __init__(self,d)  : self.data = d
+    def __bytes__(self)   : return struct.pack("<B",self.data)
+    def __str__(self)     : return '%d' % self.data
+class Uint16() :
+    def __init__(self,d)  : self.data = d
+    def __bytes__(self)   : return struct.pack("<H",self.data)
+    def __str__(self)     : return '%d' % self.data
+class Uint32() :
+    def __init__(self,d)  : self.data = d
+    def __bytes__(self)   : return struct.pack("<I",self.data)
+    def __str__(self)     : return '%d' % self.data
+class Uint64() :
+    def __init__(self,d)  : self.data = d
+    def __bytes__(self)   : return struct.pack("<Q",self.data)
+    def __str__(self)     : return '%d' % self.data
 class Varint32() :
     def __init__(self,d)  : self.data = d
     def __bytes__(self)   : return varint(self.data)
     def __str__(self)     : return '%d' % self.data
-
-class Uint64(object) :
+class Int64():
     def __init__(self,d)  : self.data = d
-    def __bytes__(self)   : return struct.pack("<Q",self.data)
+    def __bytes__(self)   : return struct.pack("<q",self.data)
     def __str__(self)     : return '%d' % self.data
+class String():
+    def __init__(self,d)  : self.data = d
+    def __bytes__(self)   : return varint(len(self.data)) + bytes(self.data,'utf-8')
+    def __str__(self)     : return '%d' % str(self.data)
+class Bytes():
+    def __init__(self,d,length=None) :
+        self.data   = d; 
+        if length :
+            self.length = length
+        else :
+            self.length = len(self.data)
+    def __bytes__(self)   : return varint(self.length) + bytes(self.data, 'utf-8')
+    def __str__(self)     : return str(self.data)
+class Void():
+    def __init__(self,d)  : raise NotImplementedError
+    def __bytes__(self)   : raise NotImplementedError
+    def __str__(self)     : raise NotImplementedError
+class Array():
+    def __init__(self,d)  : self.data = d;
+    def __bytes__(self)   : return varint(len(self.data)) + b"".join([bytes(a) for a in self.data])
+    def __str__(self)     : return {}.update([str(a) for a in self.data])
+
+class Bool(Uint8): # Bool = Uint8 / FIXME verify?!
+    def __init__(self,d) : 
+        super().__init__(d)
+class Time_point_sec(Uint32): # Time_point_sec = Uint32 / FIXME iso string!
+    def __init__(self,d) : 
+        super().__init__(d)
+class Set(Array): # Set = Array
+    def __init__(self,d) : 
+        super().__init__(d)
+
+class Fixed_array():
+    def __init__(self,d)  : raise NotImplementedError
+    def __bytes__(self)   : raise NotImplementedError
+    def __str__(self)     : raise NotImplementedError
+class Optional():
+    def __init__(self,d)  : self.data = d
+    def __bytes__(self)   : return struct.pack("<B",1) + bytes(self.data) if self.data else struct.pack("<B",0)
+    def __str__(self)     : return str(self.data) if self.data else ''
+class Static_variant():
+    def __init__(self,d,type_id)  : self.data = d; self.type_id = type_id
+    def __bytes__(self)   : return varint(self.type_id) + bytes(self.data)
+    def __str__(self)     : return { self._type_id : str(self.data) }
+class Map():
+    def __init__(self,d)  : raise NotImplementedError
+    def __bytes__(self)   : raise NotImplementedError
+    def __str__(self)     : raise NotImplementedError
 
 class Id():
     def __init__(self,d)  : self.data = Varint32(d)
@@ -131,26 +195,6 @@ class Id():
 
 def JsonObj(data):
     return json.loads(str(data))
-
-# Format 	  C Type 	Python type 	Standard size 	Notes
-# x 	pad byte 	no value 	  	 
-# c 	char 	string of length 1 	1 	 
-# b 	signed char 	integer 	1 	(3)
-# B 	unsigned char 	integer 	1 	(3)
-# ? 	_Bool 	bool 	1 	(1)
-# h 	short 	integer 	2 	(3)
-# H 	unsigned short 	integer 	2 	(3)
-# i 	int 	integer 	4 	(3)
-# I 	unsigned int 	integer 	4 	(3)
-# l 	long 	integer 	4 	(3)
-# L 	unsigned long 	integer 	4 	(3)
-# q 	long long 	integer 	8 	(2), (3)
-# Q 	unsigned long long 	integer 	8 	(2), (3)
-# f 	float 	float 	4 	(4)
-# d 	double 	float 	8 	(4)
-# s 	char[] 	string 	  	 
-# p 	char[] 	string 	  	 
-# P 	void* 	integer 	  	(5), (3)
 
 # Graphene objects
 from collections import OrderedDict
@@ -170,11 +214,19 @@ class GrapheneObject(object) :
         for name, value in self.data.items():
             if isinstance(value, GrapheneObject) :
                 d.update( { name : value.__json__() } )
+            elif isinstance(value, Optional) :
+                d.update( { name : json.loads(str(value)) } )
             else :
                 d.update( { name : str(value) } )
         return OrderedDict(d)
     def __str__(self) :
         return json.dumps(self.__json__())
+
+class Object_id_type():
+    pass
+
+class Vote_id():
+    pass
 
 class Protocol_id_type() :
     def __init__(self, _type, instance) :
@@ -189,39 +241,54 @@ class Protocol_id_type() :
         return self.Id
 
 class Asset(GrapheneObject) :
-    def __init__(self, _amount, _asset):
+    def __init__(self, _amount, _asset_id):
         super().__init__(OrderedDict([
                        ('amount',   Uint64(_amount)),
-                       ('asset_id', _asset)
+                       ('asset_id', Protocol_id_type("asset",_asset_id) )
                     ]))
 
 class Memo(GrapheneObject) :
     def __init__(self, _from, _to, _nonce, _message):
         super().__init__(OrderedDict([
-                       ('from',    _from),
-                       ('to',      _to),
+                       ('from',    PublicKey(_from, prefix="BTS")),
+                       ('to',      PublicKey(_to, prefix="BTS")),
                        ('nonce',   Uint64(_nonce)),
-                       ('message', _message)
+                       ('message', Bytes(_message))
                      ]))
 
 class Transfer(GrapheneObject) :
-    def __init__(self, _fee, _from, _to, _amount, _memo):
+    def __init__(self, _feeObj, _from, _to, _amountObj, _memo=None):
         super().__init__(OrderedDict([
-                      ('fee'    , _fee),
-                      ('from'   , _from),
-                      ('to'     , _to),
-                      ('amount' , _amount),
-                      ('memo'   , _memo)
-                    ]))
+                      ('fee'       , _feeObj),
+                      ('from'      , Protocol_id_type("account",_from)),
+                      ('to'        , Protocol_id_type("account",_to)),
+                      ('amount'    , _amountObj),
+                      ('memo'      , Optional(_memo))
+                    ]))  ## FIXME missing future_extensions
 
-asset_id = Protocol_id_type("asset", 15)
-fee      = Asset(10, asset_id)
-amount   = Asset(1000000, asset_id)
-_from    = Protocol_id_type("account", 8)
-to       = Protocol_id_type("account", 10)
-memo     = Memo(_from, to, 1244, b"Foobar")
-transfer = Transfer(fee, _from, to, amount, memo)
+class Transaction(GrapheneObject) :
+    def __init__(self, refNum, refPrefix, expiration, operations):
+        super().__init__(OrderedDict([
+                      ('ref_block_num', Uint16(refNum)),
+                      ('ref_block_prefix', Uint32(refPrefix)),
+                      ('expiration', Time_point_sec(expiration)),
+                      ('operations', Array(operations))
+                    ]))  ## FIXME missing future_extensions
+
+class Signed_Transaction(GrapheneObject) :
+    def __init__(self, refNum, refPrefix, expiration, operations):
+        super().__init__(OrderedDict([
+                      ('ref_block_num', Uint16(refNum)),
+                      ('ref_block_prefix', Uint32(refPrefix)),
+                      ('expiration', Time_point_sec(expiration)),
+                      ('operations', Array(operations)),
+                      ('signatures', Array([ Bytes(s,65) for s in signatures]))
+                    ]))  ## FIXME missing future_extensions
+
+fee      = Asset(10, 15)
+amount   = Asset(1000000, 15)
+memo     = Memo("BTS774RSm2rJuktBbv9BUh7hj7WHsSXjviW16yy21qmtp7YAzK87L", "BTS774RSm2rJuktBbv9BUh7hj7WHsSXjviW16yy21qmtp7YAzK87L", 1244, "Foobar")
+transfer = Transfer(fee, 8, 10, amount, memo)
 
 print(json.dumps(json.loads(str(transfer)),indent=4))
 print(hexlify(bytes(transfer)))
-print(b"0a000000000000000f080a40420f00000000000f080adc04000000000000466f6f626172")
