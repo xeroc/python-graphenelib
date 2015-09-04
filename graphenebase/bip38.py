@@ -4,10 +4,10 @@ from Crypto.Cipher import AES
 import scrypt
 import hashlib
 from binascii import hexlify, unhexlify
-from graphenelib.address import PrivateKey, PublicKey, Address
-from graphenelib.base58 import ripemd160,Base58,base58encode,base58decode
 import unittest
 import sys
+from .address import PrivateKey, PublicKey, Address
+from .base58 import ripemd160,Base58,base58encode,base58decode
 
 """
 This class and the methods require python3

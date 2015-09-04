@@ -2,6 +2,7 @@ from math import log10
 
 class market :
     def __init__(self, client) :
+        raise Exception("This code is not tested. Don't use it!")
         self.client = client ## pass rpc commands to the client
 
     def get_asset_id(self, asset):

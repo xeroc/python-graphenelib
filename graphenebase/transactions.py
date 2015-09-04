@@ -8,7 +8,7 @@ import math
 import struct
 import sys
 import time
-from address import PublicKey, Address
+from .address import PublicKey, Address
 
 #import graphenelib.address as address
 #from graphenelib.base58 import base58decode,base58encode,base58CheckEncode,base58CheckDecode,btsBase58CheckEncode,btsBase58CheckDecode
@@ -285,10 +285,11 @@ class Signed_Transaction(GrapheneObject) :
                       ('signatures', Array([ Bytes(s,65) for s in signatures]))
                     ]))  ## FIXME missing future_extensions
 
-fee      = Asset(10, 15)
-amount   = Asset(1000000, 15)
-memo     = Memo("BTS774RSm2rJuktBbv9BUh7hj7WHsSXjviW16yy21qmtp7YAzK87L", "BTS774RSm2rJuktBbv9BUh7hj7WHsSXjviW16yy21qmtp7YAzK87L", 1244, "Foobar")
-transfer = Transfer(fee, 8, 10, amount, memo)
+if __name__ == '__main__':
+    fee      = Asset(10, 15)
+    amount   = Asset(1000000, 15)
+    memo     = Memo("BTS774RSm2rJuktBbv9BUh7hj7WHsSXjviW16yy21qmtp7YAzK87L", "BTS774RSm2rJuktBbv9BUh7hj7WHsSXjviW16yy21qmtp7YAzK87L", 1244, "Foobar")
+    transfer = Transfer(fee, 8, 10, amount, memo)
 
-print(json.dumps(json.loads(str(transfer)),indent=4))
-print(hexlify(bytes(transfer)))
+    print(json.dumps(json.loads(str(transfer)),indent=4))
+    print(hexlify(bytes(transfer)))

@@ -1,7 +1,7 @@
 import ecdsa
 import hashlib
 from binascii import hexlify,unhexlify
-from graphenelib.base58 import ripemd160,Base58
+from .base58 import ripemd160,Base58
 import unittest
 import sys
 
