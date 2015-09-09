@@ -1,2 +1,4 @@
 __all__ = ['grapheneapi']
-from .grapheneapi import WitnessClient, WalletClient
+from .graphenewsprotocol import GrapheneWebsocketProtocol
+from .grapheneapi import GrapheneAPI
+from .graphenews import GrapheneWebsocket
