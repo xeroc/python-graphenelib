@@ -27,6 +27,7 @@ class GrapheneAPI(object) :
         self.port = port
         self.username = username
         self.password = password
+        self.headers  = {'content-type': 'application/json'}
         
     """ Manual execute a command on API
     """
@@ -52,7 +53,7 @@ class GrapheneAPI(object) :
             raise ValueError("Client returned invalid format. Expected JSON!")
         except RPCError as err:
             raise err
-        if len(ret["result"]) > 1 :
+        if isinstance(ret["result"], bool) or len(ret["result"]) > 1 :
             return ret["result"]
         else :
             return ret["result"][0]
