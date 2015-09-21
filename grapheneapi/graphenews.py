@@ -19,7 +19,6 @@ class GrapheneWebsocket(GrapheneAPI):
         self.password = password
         self.host     = host
         self.port     = port
-        self.headers  = {'content-type': 'application/json'}
         self.proto    = proto
         self.proto.username = self.username
         self.proto.password = self.password
