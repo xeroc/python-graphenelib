@@ -11,10 +11,10 @@ except ImportError:
 from grapheneapi import GrapheneAPI, GrapheneWebsocketProtocol
 
 class GrapheneWebsocket(GrapheneAPI):
+
     """ Constructor takes host, port, and login credentials 
     """
     def __init__(self, host, port, username, password, proto=GrapheneWebsocketProtocol) :
-        super().__init__()
         self.username = username
         self.password = password
         self.host     = host
@@ -23,6 +23,9 @@ class GrapheneWebsocket(GrapheneAPI):
         self.proto    = proto
         self.proto.username = self.username
         self.proto.password = self.password
+
+        ## initialize API (overwrites __getattr__()
+        super().__init__(host, port, username, password)
 
     """ Get an object_id by name
     """
@@ -71,6 +74,21 @@ class GrapheneWebsocket(GrapheneAPI):
         self.factory          = WebSocketClientFactory("ws://{}:{:d}".format(self.host, self.port), debug=False)
         self.factory.protocol = self.proto
 
+    """ Store Objects in protocol memory
+    """
+    def getObject(self, oid) :
+        if not (oid in self.proto.objectMap ):
+            data = self.get_objects([oid]) 
+            if len(data) == 1 :
+                self.proto.objectMap[oid] = data[0]
+            else :
+                self.proto.objectMap[oid] = data
+        data = self.proto.objectMap[oid]
+        if len(data) == 1 :
+            return data[0]
+        else :
+            return data
+            
     """ Run websocket forever and wait for events
     """
     def run_forever(self) :

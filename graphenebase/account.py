@@ -11,13 +11,13 @@ This class and the methods require python3
 assert sys.version_info[0] == 3, "graphenelib requires python3"
 
 class Address(object):
-    def __init__(self,address=None,pubkey=None):
+    def __init__(self,address=None,pubkey=None,prefix="BTS"):
         if pubkey is not None :
-            self._pubkey  = Base58(pubkey)
+            self._pubkey  = Base58(pubkey,prefix=prefix)
             self._address = None
         elif address is not None :
             self._pubkey  = None
-            self._address = Base58(address)
+            self._address = Base58(address,prefix=prefix)
         else :
             raise Exception("Address has to be initialized by either the pubkey or the address.")
 
@@ -63,8 +63,35 @@ class Address(object):
 class PublicKey(Address):
     def __init__(self,pk,prefix=None):
         self._pk     = Base58(pk,prefix=prefix)
-        self.address = Address(pubkey=pk)
+        self.address = Address(pubkey=pk, prefix=prefix)
         self.pubkey = self._pk
+
+    def _derive_y_from_x(self, x, is_even):
+        curve = ecdsa.SECP256k1.curve
+        # The curve equation over F_p is:
+        #   y^2 = x^3 + ax + b
+        a, b, p = curve.a(), curve.b(), curve.p()
+        alpha = (pow(x, 3, p) + a * x + b) % p
+        beta = ecdsa.numbertheory.square_root_mod_prime(alpha, p)
+        if (beta%2) != is_even :
+            beta = p - beta
+        return beta
+
+    def unCompressed(self):
+        public_key = repr(self._pk)
+        prefix = public_key[0:2]
+        if prefix == "04":
+            return public_key
+        assert prefix == "02" or prefix == "03"
+        x = int(public_key[2:],16)
+        y = self._derive_y_from_x(x, (prefix == "02"))
+        key = '04' + '%064x' % x + '%064x' % y
+        return key
+
+    def point(self) : 
+        string = unhexlify(self.unCompressed())
+        return ecdsa.VerifyingKey.from_string(string[1:], curve=ecdsa.SECP256k1).pubkey.point
+
     """
     Returns hex value of object
     """
@@ -249,7 +276,6 @@ class Testcases(unittest.TestCase) :
                             '6e5cc4653d46e690c709ed9e0570a2c75a286ad7c1bc69a648aae6855d919d3e',
                             'b84abd64d66ee1dd614230ebbe9d9c6d66d78d93927c395196666762e9ad69d8'
                         ])
-
 
 def keyinfo(private_key) :
     print("-"*80)

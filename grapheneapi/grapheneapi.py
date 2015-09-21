@@ -22,8 +22,12 @@ class RPCConnection(Exception) :
     pass
 
 class GrapheneAPI(object) :
-    def __init__(self):
-        pass
+    def __init__(self, host, port, username, password):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        
     """ Manual execute a command on API
     """
     def rpcexec(self,payload) :
@@ -48,7 +52,10 @@ class GrapheneAPI(object) :
             raise ValueError("Client returned invalid format. Expected JSON!")
         except RPCError as err:
             raise err
-        return ret["result"] # Return only the result
+        if len(ret["result"]) > 1 :
+            return ret["result"]
+        else :
+            return ret["result"][0]
 
     """
     Meta: Map all methods to RPC calls and pass through the arguments and result

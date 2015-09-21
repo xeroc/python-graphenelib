@@ -6,7 +6,7 @@ import hashlib
 from binascii import hexlify, unhexlify
 import unittest
 import sys
-from .address import PrivateKey, PublicKey, Address
+from .account import PrivateKey, PublicKey, Address
 from .base58 import ripemd160,Base58,base58encode,base58decode
 
 """

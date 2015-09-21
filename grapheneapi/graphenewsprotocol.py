@@ -40,7 +40,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def _login(self) :
         self.wsexec([1,"login",[self.username,self.password]])
 
-    def getObject(self, oid, callback, *args) :
+    def getObjectcb(self, oid, callback, *args) :
         if oid in self.objectMap :
             callback(self.objectMap[oid])
         else : 
@@ -58,15 +58,18 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def subscribe_to_objects(self, *args) :
         handles = []
         for handle in self.database_callbacks :
-            handles.append(partial(self.getObject, handle, None))
+            handles.append(partial(self.getObjectcb, handle, None))
             self.database_callbacks_ids.update({handle : self.database_callbacks[handle]})
         self.request_id += 1
         self.wsexec([self.api_ids["database"],"set_subscribe_callback", [self.request_id,False]], handles)
 
     def dispatchNotice(self, notice) :
-        oid = notice["id"];
-        if oid in self.database_callbacks_ids :
-            self.database_callbacks_ids[oid](self, notice)
+        try :
+            oid = notice["id"];
+            if oid in self.database_callbacks_ids :
+                self.database_callbacks_ids[oid](self,notice)
+        except Exception as e :
+            print('Error dispatching notice: %s' % str(e))
 
     ################
     # Websocket API
@@ -86,9 +89,16 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                              self.subscribe_to_objects
                             ])
 
+        """ Register with history
+        """
+        self.wsexec([1,"history",[]], [
+                             partial(self._set_api_id, "history"),
+                            ])
+
     def onMessage(self, payload, isBinary):
         res = json.loads(payload.decode('utf8'))
         #print("Server: " + json.dumps(res,indent=1))
+        #print("Server: " + str(res))
         if "error" not in res :
             """ Resolve answers from RPC calls
             """
@@ -109,13 +119,18 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                 """
                 if res["method"] == "notice" :
                     for notice in res["params"][1][0]:
-                        self.setObject(notice["id"], notice)
-                        self.dispatchNotice( notice )
+                        if "id" in notice :
+                            self.setObject(notice["id"], notice)
+                            self.dispatchNotice( notice )
+                        else :
+                            #print("Warning: Received a notice without id: " + str(notice));
+                            pass # FIXME: get this object id
         else :
             print("Error! ", res)
 
-    def connection_lost(self) :
-        pass
+    def connection_lost(self, err) :
+        self.onClose(0, 0, "connection_lost")
 
     def onClose(self, wasClean, code, reason):
         print("WebSocket connection closed: {0}".format(reason))
+        sys.exit(1)
