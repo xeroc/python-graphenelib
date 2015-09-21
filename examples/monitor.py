@@ -1,6 +1,6 @@
 import sys
 import json
-from grapheneapi import GrapheneWebsocket, GrapheneWebsocketProtocol, GrapheneAPI
+from grapheneapi import GrapheneWebsocket, GrapheneWebsocketProtocol
 from graphenebase import Memo, PrivateKey, PublicKey
 
 """ Account id to monitor """
