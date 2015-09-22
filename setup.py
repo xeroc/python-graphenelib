@@ -16,8 +16,8 @@ setup(
 
       packages=["grapheneapi",
                 "graphenebase",
-                #"grapheneextra",
-                #"graphenemarket"
+                "grapheneextra",
+                "graphenemarket"
                 ],
       package_data={
           'extra'  :  [ 'paperwallet/BitAssets/*', 
