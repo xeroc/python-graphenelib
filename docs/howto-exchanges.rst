@@ -39,17 +39,19 @@ blocks that the delayed witness node will be behind the real blockchain.
 Network Setup for this Tutorial
 -------------------------------
 
-In the following, we will setup and use the following network. 
+In the following, we will setup and use the following network:::
 
     P2P network <-> trusted witness node <-> delayed witness <-> API
-
-Note that, for our monitoring script, we will only interface with the delayed witness.
 
 For the trusted witness node, the default settings can be used, while for the
 delaed witness node we will need to provide the IP address and port of the
 p2p-endpoint from the trusted witness node. The delayed witness node will need
 to open a RPC/Websocket port (to the local network!) so that we can interface
 using RPC-JSON calls.
+
+Note that, for our monitoring script, we will only interface with the delayed
+witness.
+
 
 Interfacing via RPC and Websockets
 ----------------------------------
@@ -66,12 +68,13 @@ In order to access the websocket functionalities, we can extend the
          api.connect()
          api.run_forever()
 
-This example will not do anything.
+This example opens up a Websocket connection with localhost on port 8090 with
+empty username and passwords and will not do anything.
 
 Subscribing to Account Changes
 ------------------------------
 
-Let's subscribe to modifications and have it printed out on screen
+Let's subscribe to modifications and have it printed out on screen:
 
 .. code-block:: python
 
@@ -79,6 +82,9 @@ Let's subscribe to modifications and have it printed out on screen
      api.setObjectCallbacks({ "2.6.69491" : print })
      api.connect()
      api.run_forever()
+
+The example subscribes to modifications of the object "2.6.69491" and will call
+`print` with the notification as parameter.
 
 Hooking Up
 ----------
@@ -90,15 +96,19 @@ access API-1:
 * API-0: `api.info()`, `api.get_*()`, ...
 * API-1: `api.ws_exec([call], callback)`
 
-To do so, we extend the default websockets protocol with 
+To do so, we extend the default `GrapheneWebsocketProtocol` protocol with 
 
 .. code-block:: python
 
     class GrapheneMonitor(GrapheneWebsocketProtocol) :
         def __init__(self) :
             super().__init__()
+        def do_something(self, data) :
+            pass
+        def do_something_else(self, data) :
+            pass
 
-and ..
+We make use of this class when connecting to the witness node:
 
 .. code-block:: python
 
@@ -121,6 +131,9 @@ As an example, we can have notifications for all incoming transactions for any a
         def onAccountUpdate(self, data) :
             # Get Operation ID that modifies our balance
             opID         = api.getObject(data["most_recent_op"])["operation_id"]
+            # self.api_ids["history"] has been defined by the
+            # GrapheneWebsocketProtocol and contains the request-id for
+            # history_api calls
             self.wsexec([self.api_ids["history"], 
                          "get_account_history",
                          [self.account_id, self.last_op, 100, "1.11.0"]
@@ -131,7 +144,7 @@ As an example, we can have notifications for all incoming transactions for any a
             for operation in operations[::-1] :
                 opID         = operation["id"]
                 block        = operation["block_num"]
-                op           = operation["op"][1]
+                op           = operation["op"][1] # [0] contains the operation_type (0: transfers)
 
                 # Get assets involved in Fee and Transfer
                 fee_asset    = api.getObject(op["fee"]["asset_id"])
@@ -153,10 +166,16 @@ As an example, we can have notifications for all incoming transactions for any a
                           amount_amount, amount_asset["symbol"]))
 
     if __name__ == '__main__':
+        """ Account id to monitor """
+        accountID = "2.6.69585"
+        """ Last operation ID that you have registered in your backend """
+        last_op = "1.11.11482"
+        """ RPC settings """
         host     = "localhost"
         port     = 8090
         user     = ""
         password = ""
+        """ Connection """
         protocol = GrapheneMonitor
         protocol.last_op = last_op ## last operation logged
         protocol.account_id = "1.2.%s" % accountID.split(".")[2]  ## account to monitor
@@ -171,7 +190,11 @@ need the memo private key.
 Decoding the Memo
 -----------------
 
-The memo public key can be obtained from the account settings or via command line:::
+In Graphene, memos are usually encrypted using a distinct memo key. That way,
+exposing the memo private key will only expose transaction memos (for that key)
+and not compromise any funds. It is thus safe to store the memo private key in
+3rd party services and scripts. The memo public key can be obtained from the
+account settings or via command line:::
 
     get_account myaccount
 
@@ -186,14 +209,14 @@ The encrypted memo can be decoded with:
 .. code-block:: python
 
     from graphenebase import Memo, PrivateKey, PublicKey
-
     memo_wif_key = "<wif-key>"
     """ PubKey Prefix
         Productive network: BTS
         Testnetwork: GPH """
-    prefix = "GPH"
-    #prefix = "BTS"
+    #prefix = "GPH"
+    prefix = "BTS"
 
+    memo    = {...} # take from the transfer operation
     privkey = PrivateKey(memo_wif_key)
     pubkey  = PublicKey(memo["from"], prefix=prefix)
     memomsg = Memo.decode_memo(privkey, pubkey, memo["nonce"], memo["message"])
@@ -201,4 +224,4 @@ The encrypted memo can be decoded with:
 Complete Example
 ----------------
 
-A full example is provided as `monnitor.py` in the `examples/` directory.
+A full example is provided as `monitor.py` in the `examples/` directory.
