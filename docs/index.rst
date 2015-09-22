@@ -17,12 +17,26 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+General
+-------
+   graphene
+   graphene-objects
+   graphene-api
+   graphene-ws
+   witness
+   wallet
+
+Python Libraries
+----------------
+   installation
    address
    base58
-   bip38
-   client
-   paperwallet
-   transactions
+   rpc
+   memo
+
+Examples
+--------
+   scripts-monitor
 
 Indices and tables
 ==================
@@ -30,4 +44,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
