@@ -1,6 +1,6 @@
 import sys
 import json
-from grapheneapi import GrapheneWebsocket, GrapheneWebsocketProtocol, GrapheneAPI
+from grapheneapi import GrapheneWebsocket, GrapheneWebsocketProtocol
 from graphenebase import Memo, PrivateKey, PublicKey
 
 """ Account id to monitor """
@@ -56,9 +56,9 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
 
             # Decode the memo
             memo         = op["memo"]
-            privkey      = PrivateKey(memo_wif_key)
-            pubkey       = PublicKey(memo["from"], prefix=prefix)
             try : # if possible
+                privkey = PrivateKey(memo_wif_key)
+                pubkey  = PublicKey(memo["from"], prefix=prefix)
                 memomsg = Memo.decode_memo(privkey, pubkey, memo["nonce"], memo["message"])
             except Exception as e: # if not possible
                 memomsg = "--cannot decode-- (%s)" % str(e)
