@@ -16,14 +16,7 @@ setup(
 
       packages=["grapheneapi",
                 "graphenebase",
-                "grapheneextra",
-                "graphenemarket"
                 ],
-      package_data={
-          'extra'  :  [ 'paperwallet/BitAssets/*', 
-                        'paperwallet/designs/*',
-                      ],
-          },
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
                    'Programming Language :: Python :: 3',
