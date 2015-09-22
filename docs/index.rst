@@ -12,13 +12,11 @@
 Welcome to python-graphenelib's documentation!
 ===============================================
 
-Contents:
-
+General
+-------
 .. toctree::
    :maxdepth: 2
 
-General
--------
    graphene
    graphene-objects
    graphene-api
@@ -28,6 +26,9 @@ General
 
 Python Libraries
 ----------------
+.. toctree::
+   :maxdepth: 2
+
    installation
    address
    base58
@@ -36,7 +37,17 @@ Python Libraries
 
 Examples
 --------
+.. toctree::
+   :maxdepth: 2
+
    scripts-monitor
+
+Howto
+-----
+.. toctree::
+   :maxdepth: 2
+
+   howto-exchanges
 
 Indices and tables
 ==================
