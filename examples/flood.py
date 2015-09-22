@@ -1,12 +1,12 @@
 import time
 import json
-from grapheneapi import WalletClient
+from grapheneapi import GrapheneAPI
 
 blockinterval    = 5
 numbertxperblock = 15
 
 if __name__ == '__main__':
-    client = WalletClient("localhost", 8092, "", "")
+    client = GrapheneAPI("localhost", 8092, "", "")
     while True :
         for i in range(0,numbertxperblock) :
             print(i)
