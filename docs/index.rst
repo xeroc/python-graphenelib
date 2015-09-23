@@ -12,10 +12,21 @@
 Welcome to python-graphenelib's documentation!
 ===============================================
 
+Graphene is a blockchain technology (i.e. software) that allows for fast
+transactions and decentralized trading of assets as well as customized on-chain
+smart contracts.
+
+In practice, Graphene is only a concept implementation and does not directly
+have its own public blockchain.
+
+The first public blockchain to use the Graphene technology is *BitShares 2.0*.
+However, this library should be able to interface with any other Graphene-based
+blockchain, too.
+
 General
 -------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    graphene
    graphene-objects
@@ -24,10 +35,10 @@ General
    witness
    wallet
 
-Python Libraries
+Python-Graphene Libraries
 ----------------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    installation
    address
@@ -38,14 +49,14 @@ Python Libraries
 Examples
 --------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    scripts-monitor
 
 Howto
 -----
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    howto-exchanges
 
