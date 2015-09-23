@@ -202,11 +202,10 @@ def fetch_from_wallet(rpc):
   assets[asset] = rpc.get_asset(asset)
 
   ## feeds for asset
-  result = rpc.get_bitasset_data(asset)
-  asset_data = rpc.get_asset(asset)
+  #result = rpc.get_bitasset_data(asset)
   price_median_blockchain[asset] = 0.0
-  price_median_blockchain[asset] = float(result["current_feed"]["settlement_price"]["base"]["amount"]/result["current_feed"]["settlement_price"]["quote"]["amount"]*(10**(5-asset_data["precision"]))) ### FIXME (is this really 'base')
-  print(asset+" median_blockchain %f\n"%price_median_blockchain[asset])
+  price_median_blockchain[asset] = float(assets[asset]["options"]["core_exchange_rate"]["quote"]["amount"]/assets[asset]["options"]["core_exchange_rate"]["base"]["amount"]*(10**(5-assets[asset]["precision"]))) ### FIXME (is this really 'base')
+  print("\n"+asset+" median_blockchain %f"%price_median_blockchain[asset])
 
 ## ----------------------------------------------------------------------------
 ## Send the new feeds!
@@ -424,13 +423,14 @@ if __name__ == "__main__":
                         }, 
                         "base": {
                           "asset_id": assets[asset]["id"], 
-                          "amount": core_price
+                          #"amount": core_price
+                          "amount": int(core_price * 0.95) # 5% discount
                         }
                       }, 
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": assets[asset]["id"], 
-                          "amount": int(core_price * 1.05) # 5% extra
+                          "amount": core_price
                         }, 
                         "base": {
                           "asset_id": "1.3.0",
