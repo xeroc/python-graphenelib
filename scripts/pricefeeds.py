@@ -413,13 +413,14 @@ if __name__ == "__main__":
  for asset in asset_list_publish :
     if len(price[asset][core_symbol]) > 0 :
         if price_in_bts_weighted[asset] > 0.0:
-            print(price_in_bts_weighted[asset])
-            core_price = int(price_in_bts_weighted[asset]*(1e8))
+            print(asset+" %f"%price_in_bts_weighted[asset])
+            print(asset+" precision %s"%assets[asset]["precision"])
+            core_price = int(price_in_bts_weighted[asset]*(1e4) * (10**assets[asset]["precision"]))
             price_feed = {
                       "settlement_price": {
                         "quote": {
                           "asset_id": "1.3.0",
-                          "amount": int(1e9)
+                          "amount": int(1e9) # 1e4 * (10**5) = 10000 CORE
                         }, 
                         "base": {
                           "asset_id": assets[asset]["id"], 
