@@ -42,6 +42,8 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
             block        = operation["block_num"]
             op           = operation["op"][1]
 
+            if operation["op"][0] != 0 : continue ## skip non transfer operations
+
             # Get assets involved in Fee and Transfer
             fee_asset    = api.getObject(op["fee"]["asset_id"])
             amount_asset = api.getObject(op["amount"]["asset_id"])
