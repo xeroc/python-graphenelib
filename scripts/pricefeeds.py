@@ -203,8 +203,10 @@ def fetch_from_wallet(rpc):
 
   ## feeds for asset
   result = rpc.get_bitasset_data(asset)
+  asset_data = rpc.get_asset(asset)
   price_median_blockchain[asset] = 0.0
-  price_median_blockchain[asset] = float(result["current_feed"]["settlement_price"]["base"]["amount"]) ### FIXME (is this really 'base')
+  price_median_blockchain[asset] = float(result["current_feed"]["settlement_price"]["base"]["amount"]/result["current_feed"]["settlement_price"]["quote"]["amount"]*(10**(5-asset_data["precision"]))) ### FIXME (is this really 'base')
+  print(asset+" median_blockchain %f\n"%price_median_blockchain[asset])
 
 ## ----------------------------------------------------------------------------
 ## Send the new feeds!
@@ -238,18 +240,25 @@ def get_btsprice():
     for idx in range(0, len(price[base][core_symbol])) :
      price[quote][core_symbol].append( (float(price[base][core_symbol][idx] /ratio)))
      volume[quote][core_symbol].append((float(volume[base][core_symbol][idx]/ratio)))
+     #print("price["+quote+"]["+core_symbol+"]=%s"%(price[quote][core_symbol]))
+     #print("volume["+quote+"]["+core_symbol+"]=%s"%volume[quote][core_symbol])
+
+ #print("*****************************************************************************************")
 
  for base in _bases :
   for quote in asset_list_publish :
    for ratio in price[ base ][ quote ] :
     for idx in range(0, len(price[base][core_symbol])) :
-     price[core_symbol][quote].append( (float(price[base][core_symbol][idx] /ratio)))
-     volume[core_symbol][quote].append((float(volume[base][core_symbol][idx]/ratio)))
+     price[quote][core_symbol].append( (float(price[base][core_symbol][idx] /ratio)))
+     volume[quote][core_symbol].append((float(volume[base][core_symbol][idx]/ratio)))
+     #print("price["+quote+"]["+core_symbol+"]=%s"%(price[quote][core_symbol]))
+     #print("volume["+quote+"]["+core_symbol+"]=%s"%volume[quote][core_symbol])
 
  for asset in asset_list_publish :
   ### Median
   try :
-   price_in_bts_weighted[asset] = statistics.median(price[core_symbol][asset])
+   price_in_bts_weighted[asset] = statistics.median(price[asset][core_symbol])
+   print(asset+" price_in_bts_weighted %f\n"%price_in_bts_weighted[asset])
   except Exception as e:
    print("Error in asset %s: %s" %(asset, str(e)))
 
@@ -283,10 +292,11 @@ def print_stats() :
  t.float_format['% change (blockchain)'] = ".5"
  #t.align['BTC']            = "r"
  for asset in asset_list_publish :
-    if len(price[core_symbol][asset]) < 1 : continue # empty asset
-    age                     = (str(datetime.utcnow()-oldtime[asset]))
+    if len(price[asset][core_symbol]) < 1 : continue # empty asset
+    age                     = "x"
+    #age                     = (str(datetime.utcnow()-oldtime[asset]))
     weighted_external_price = price_in_bts_weighted[asset]
-    prices_from_exchanges   = price[core_symbol][asset]
+    prices_from_exchanges   = price[asset][core_symbol]
     price_from_blockchain   = price_median_blockchain[asset]
     ## Stats
     mean_exchanges          = statistics.mean(prices_from_exchanges)
@@ -333,7 +343,7 @@ if __name__ == "__main__":
  #                }
 
  _all_bts_assets = ["CNY", "BTC", "EUR", "USD"]
- _bases =["CNY", "USD", "BTC"]
+ _bases =["CNY", "USD", "BTC", "EUR"]
  _yahoo_base  = ["USD","EUR", "CNY"]
  _yahoo_quote = ["EUR", "USD", "CNY"]
  _yahoo_indices = {}
@@ -402,15 +412,15 @@ if __name__ == "__main__":
  ## Only publish given feeds ##################################################
  asset_list_final = []
  for asset in asset_list_publish :
-    if len(price[core_symbol][asset]) > 0 :
+    if len(price[asset][core_symbol]) > 0 :
         if price_in_bts_weighted[asset] > 0.0:
             print(price_in_bts_weighted[asset])
-            core_price = int(price_in_bts_weighted[asset]*(1e5))
+            core_price = int(price_in_bts_weighted[asset]*(1e8))
             price_feed = {
                       "settlement_price": {
                         "quote": {
                           "asset_id": "1.3.0",
-                          "amount": int(1e5)
+                          "amount": int(1e9)
                         }, 
                         "base": {
                           "asset_id": assets[asset]["id"], 
@@ -424,7 +434,7 @@ if __name__ == "__main__":
                         }, 
                         "base": {
                           "asset_id": "1.3.0",
-                          "amount": int(1e5)
+                          "amount": int(1e9)
                         }
                       }
                     }
@@ -433,7 +443,7 @@ if __name__ == "__main__":
  print(json.dumps(asset_list_final,indent=4))
  
  ## Print some stats ##########################################################
- #print_stats()
+ print_stats()
  
  ## Check publish rules and publich feeds #####################################
  if publish_rule() :
