@@ -11,6 +11,7 @@ import numpy as num
 import sys
 import config
 import threading
+import fractions
 from prettytable import PrettyTable
 from math        import fabs
 from pprint      import pprint
@@ -178,6 +179,7 @@ def fetch_from_yahoo():
     for i,a in enumerate(_yahoo_quote) :
      if float(yahooprices[i]) > 0 :
       price[base][ bts_yahoo_map(a) ].append(float(yahooprices[i]))
+      volume[base][ bts_yahoo_map(a) ].append(float(1))
 
    # indices
    yahooAssets = ",".join(_yahoo_indices.keys())
@@ -189,22 +191,40 @@ def fetch_from_yahoo():
     if float(yahooprices[i]) > 0 :
      #price[ list(_yahoo_indices.values())[i] ][ bts_yahoo_map(a) ].append(float(yahooprices[i]))
      price[ core_symbol ][ bts_yahoo_map(a) ].append(1/float(yahooprices[i]))
+     volume[ core_symbol ][ bts_yahoo_map(a) ].append(1.0)
 
   except Exception as e:
     sys.exit("\nError fetching results from yahoo! {0}".format(str(e)))
+
+def fetch_bitcoinaverage():
+   global price, volume
+   url="https://api.bitcoinaverage.com/ticker/"
+   availableAssets = [ "USD", "EUR" ]
+   for coin in availableAssets :
+    response = requests.get(url=url+coin, headers=_request_headers, timeout=3)
+    result = response.json()
+    price[coin][ "BTC" ].append(float(result["last"]))
+    volume[coin][ "BTC" ].append(float(result["total_vol"]))
 
 ## ----------------------------------------------------------------------------
 ## Fetch current feeds, assets and feeds of assets from wallet
 ## ----------------------------------------------------------------------------
 def fetch_from_wallet(rpc):
  ## asset definition - mainly for precision
- for asset in asset_list_publish :
-  assets[asset] = rpc.get_asset(asset)
+ for asset in asset_list_publish + ["1.3.0"]:
+  a = rpc.get_asset(asset)
+  assets[ asset ] = a  # resolve SYMBOL
+  assets[ a["id"] ] = a # resolve id
 
+ for asset in asset_list_publish :
   ## feeds for asset
   result = rpc.get_bitasset_data(asset)
   price_median_blockchain[asset] = 0.0
-  price_median_blockchain[asset] = float(result["current_feed"]["settlement_price"]["base"]["amount"]) ### FIXME (is this really 'base')
+  base  = result["current_feed"]["settlement_price"]["base"]
+  quote = result["current_feed"]["settlement_price"]["quote"]
+  base_precision  = assets[  base["asset_id"] ]["precision"]
+  quote_precision = assets[ quote["asset_id"] ]["precision"]
+  price_median_blockchain[asset] = float(int(base["amount"])/int(quote["amount"])*(10**(base_precision-quote_precision)))
 
 ## ----------------------------------------------------------------------------
 ## Send the new feeds!
@@ -230,21 +250,29 @@ def update_feed(rpc, myassets):
 ## calculate feed prices in BTS for all assets given the exchange prices in USD,CNY,BTC,...
 ## ----------------------------------------------------------------------------
 def get_btsprice():
+ # Invert pairs
+ for base in _bases :
+  for quote in _bases :
+   if base == quote : continue
+   for idx in range(0, len(price[base][quote])) :
+     price[quote][base].append( (float(1/price[base][quote][idx] )))
+     volume[quote][base].append((float(1/volume[base][quote][idx])))
+
  # derive BTS prices for all _base assets
  for base in _bases :
   for quote in _bases :
    if base == quote : continue
    for ratio in price[base][quote] :
-    for idx in range(0, len(price[base][core_symbol])) :
-     price[quote][core_symbol].append( (float(price[base][core_symbol][idx] /ratio)))
-     volume[quote][core_symbol].append((float(volume[base][core_symbol][idx]/ratio)))
+    for idx in range(0, len(price[base]["BTS"])) :
+     price[quote]["BTS"].append( (float(price[base]["BTS"][idx] /ratio)))
+     volume[quote]["BTS"].append((float(volume[base]["BTS"][idx]/ratio)))
 
  for base in _bases :
   for quote in asset_list_publish :
    for ratio in price[ base ][ quote ] :
-    for idx in range(0, len(price[base][core_symbol])) :
-     price[core_symbol][quote].append( (float(price[base][core_symbol][idx] /ratio)))
-     volume[core_symbol][quote].append((float(volume[base][core_symbol][idx]/ratio)))
+    for idx in range(0, len(price[base]["BTS"])) :
+     price["BTS"][quote].append( (float(price[base]["BTS"][idx] /ratio)))
+     volume["BTS"][quote].append((float(volume[base]["BTS"][idx]/ratio)))
 
  for asset in asset_list_publish :
   ### Median
@@ -252,7 +280,6 @@ def get_btsprice():
    price_in_bts_weighted[asset] = statistics.median(price[core_symbol][asset])
   except Exception as e:
    print("Error in asset %s: %s" %(asset, str(e)))
-
 
   ### Mean
   #price_in_bts_weighted[asset] = statistics.mean(price[core_symbol][asset])
@@ -333,9 +360,9 @@ if __name__ == "__main__":
  #                }
 
  _all_bts_assets = ["CNY", "BTC", "EUR", "USD"]
- _bases =["CNY", "USD", "BTC"]
+ _bases =["CNY", "USD", "BTC", "EUR"]
  _yahoo_base  = ["USD","EUR", "CNY"]
- _yahoo_quote = ["EUR", "USD", "CNY"]
+ _yahoo_quote = ["USD","EUR", "CNY"]
  _yahoo_indices = {}
  _bts_yahoo_map = {
       "XAU"       : "GOLD",
@@ -377,16 +404,17 @@ if __name__ == "__main__":
 
  ## rpc variables about bts rpc ###############################################
  rpc = GrapheneAPI(config.host, config.port, config.user, config.passwd)
+ fetch_from_wallet(rpc)
 
  ## Get prices and stats ######################################################
  mythreads = {}
- mythreads["wallet"]   = threading.Thread(target = fetch_from_wallet,args = (rpc,))
  mythreads["yahoo"]    = threading.Thread(target = fetch_from_yahoo)
  mythreads["yunbi"]    = threading.Thread(target = fetch_from_yunbi)
  mythreads["btc38"]    = threading.Thread(target = fetch_from_btc38)
- mythreads["bter"]     = threading.Thread(target = fetch_from_bter)
+ #mythreads["bter"]     = threading.Thread(target = fetch_from_bter)
  mythreads["poloniex"] = threading.Thread(target = fetch_from_poloniex)
  mythreads["bittrex"]  = threading.Thread(target = fetch_from_bittrex)
+ mythreads["btcavg"]   = threading.Thread(target = fetch_bitcoinaverage)
  
  print("[Starting Threads]: ", end="",flush=True)
  for t in mythreads :
@@ -395,7 +423,7 @@ if __name__ == "__main__":
  for t in mythreads :
   mythreads[t].join() # Will wait for a thread until it finishes its task.
   print(".", end="",flush=True)
- 
+
  ## Determine bts price ######################################################
  get_btsprice()
 
@@ -404,33 +432,36 @@ if __name__ == "__main__":
  for asset in asset_list_publish :
     if len(price[core_symbol][asset]) > 0 :
         if price_in_bts_weighted[asset] > 0.0:
-            print(price_in_bts_weighted[asset])
-            core_price = int(price_in_bts_weighted[asset]*(1e5))
+            quote_precision = assets[asset]["precision"]
+            base_precision  = assets["1.3.0"]["precision"] ## FIXME CORE/BTS
+            core_price = price_in_bts_weighted[asset] * 10**(quote_precision-base_precision)
+            core_price = fractions.Fraction.from_float(core_price).limit_denominator(100000)
+            denominator = core_price.denominator
+            numerator   = core_price.numerator
+            
             price_feed = {
                       "settlement_price": {
                         "quote": {
                           "asset_id": "1.3.0",
-                          "amount": int(1e5)
+                          "amount": numerator
                         }, 
                         "base": {
                           "asset_id": assets[asset]["id"], 
-                          "amount": core_price
+                          "amount": denominator
                         }
                       }, 
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": assets[asset]["id"], 
-                          "amount": int(core_price * 1.05) # 5% extra
+                          "amount": int(denominator * 1.05) # 5% extra
                         }, 
                         "base": {
                           "asset_id": "1.3.0",
-                          "amount": int(1e5)
+                          "amount": numerator
                         }
                       }
                     }
             asset_list_final.append([ asset, price_feed ])
-
- print(json.dumps(asset_list_final,indent=4))
  
  ## Print some stats ##########################################################
  #print_stats()
