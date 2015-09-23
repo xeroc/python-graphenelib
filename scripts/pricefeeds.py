@@ -423,8 +423,8 @@ if __name__ == "__main__":
                         }, 
                         "base": {
                           "asset_id": assets[asset]["id"], 
-                          #"amount": core_price
-                          "amount": int(core_price * 1.05) # 5% extra
+                          "amount": core_price
+                          #"amount": int(core_price * 1.05) # 5% extra
                         }
                       }, 
                       "core_exchange_rate": {
