@@ -10,13 +10,13 @@ accountID = "2.6.69585"
 memo_wif_key = "<wif-key>"
 
 """ Last operation ID that you have registered in your backend """
-last_op = "1.11.11482"
+last_op = "1.11.0"
 
 """ PubKey Prefix
     Productive network: BTS
     Testnetwork: GPH """
-prefix = "GPH"
-#prefix = "BTS"
+#prefix = "GPH"
+prefix = "BTS"
 
 """ Callback on event
     This function will be triggered on a notification of the witness.
