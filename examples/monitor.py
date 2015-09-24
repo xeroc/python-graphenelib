@@ -3,6 +3,12 @@ import json
 from grapheneapi import GrapheneWebsocket, GrapheneWebsocketProtocol
 from graphenebase import Memo, PrivateKey, PublicKey
 
+""" RPC connection settings """
+host     = "localhost"
+port     = 8090
+user     = ""
+password = ""
+
 """ Account id to monitor """
 accountID = "2.6.69585"
 
@@ -74,13 +80,6 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
                       memomsg))
 
 if __name__ == '__main__':
-
-    ## RPC connections
-    host     = "localhost"
-    port     = 8090
-    user     = ""
-    password = ""
-
     ## Monitor definitions
     protocol = GrapheneMonitor
     protocol.last_op = last_op ## last operation logged

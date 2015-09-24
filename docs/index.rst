@@ -28,7 +28,6 @@ General
 .. toctree::
    :maxdepth: 1
 
-   graphene
    graphene-objects
    graphene-api
    graphene-ws
@@ -36,7 +35,7 @@ General
    wallet
 
 Python-Graphene Libraries
-----------------
+-------------------------
 .. toctree::
    :maxdepth: 1
 
@@ -59,6 +58,7 @@ Howto
    :maxdepth: 1
 
    howto-exchanges
+   howto-exchanges-detailed
 
 Indices and tables
 ==================
