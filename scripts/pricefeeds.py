@@ -443,21 +443,21 @@ if __name__ == "__main__":
                       "settlement_price": {
                         "quote": {
                           "asset_id": "1.3.0",
-                          "amount": numerator
+                          "amount": denominator
                         }, 
                         "base": {
                           "asset_id": assets[asset]["id"], 
-                          "amount": denominator
+                          "amount": numerator
                         }
                       }, 
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": assets[asset]["id"], 
-                          "amount": int(denominator * 1.05) # 5% extra
+                          "amount": numerator
                         }, 
                         "base": {
                           "asset_id": "1.3.0",
-                          "amount": numerator
+                          "amount": int(denominator * 1.05) # 5% extra
                         }
                       }
                     }
