@@ -41,7 +41,7 @@ _________________
 Setup a delayed node with `10` blocks delay (number of confirmations) and
 connect to the trusted node:::
 
-    ./programs/witness_node/witness_node --trusted-node="<internal-trusted-node-ip>:8090" --delay-block-count=10 --rpc-endpoint="<local-ip>:8090"
+    ./programs/delayed_node/delayed_node --trusted-node="<internal-trusted-node-ip>:8090" --delay-block-count=10 --rpc-endpoint="<local-ip>:8090"
 
 Hence,
 
