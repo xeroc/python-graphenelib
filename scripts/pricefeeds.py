@@ -204,7 +204,11 @@ def fetch_from_wallet(rpc):
   ## feeds for asset
   #result = rpc.get_bitasset_data(asset)
   price_median_blockchain[asset] = 0.0
-  price_median_blockchain[asset] = float(assets[asset]["options"]["core_exchange_rate"]["quote"]["amount"]/float(assets[asset]["options"]["core_exchange_rate"]["base"]["amount"])*(10**(5-assets[asset]["precision"]))) ### FIXME (is this really 'base')
+  try:
+   price_median_blockchain[asset] = float(assets[asset]["options"]["core_exchange_rate"]["quote"]["amount"]/float(assets[asset]["options"]["core_exchange_rate"]["base"]["amount"])*(10**(5-assets[asset]["precision"]))) ### FIXME (is this really 'base')
+  except Exception as e:
+   print("\nError calculating price_median_blockchain! ({0})\n".format(str(e)))
+
   print("\n"+asset+" median_blockchain %f"%price_median_blockchain[asset])
 
 ## ----------------------------------------------------------------------------
