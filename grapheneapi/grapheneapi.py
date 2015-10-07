@@ -53,10 +53,10 @@ class GrapheneAPI(object) :
             raise ValueError("Client returned invalid format. Expected JSON!")
         except RPCError as err:
             raise err
-        if isinstance(ret["result"], bool) or len(ret["result"]) > 1 :
-            return ret["result"]
-        else :
+        if isinstance(ret["result"], list) and len(ret["result"]) == 1:
             return ret["result"][0]
+        else :
+            return ret["result"]
 
     """
     Meta: Map all methods to RPC calls and pass through the arguments and result
