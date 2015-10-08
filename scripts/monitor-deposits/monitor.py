@@ -2,21 +2,7 @@ import sys
 import json
 from grapheneapi import GrapheneWebsocket, GrapheneWebsocketProtocol
 from graphenebase import Memo, PrivateKey, PublicKey
-
-""" RPC connection settings """
-host     = "localhost"
-port     = 8090
-user     = ""
-password = ""
-
-""" Account id to monitor """
-accountID = "2.6.69585"
-
-""" Memo Key of the receiving account """
-memo_wif_key = "<wif-key>"
-
-""" Last operation ID that you have registered in your backend """
-last_op = "1.11.0"
+import config
 
 """ PubKey Prefix
     Productive network: BTS
@@ -63,7 +49,7 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
             # Decode the memo
             memo         = op["memo"]
             try : # if possible
-                privkey = PrivateKey(memo_wif_key)
+                privkey = PrivateKey(config.memo_wif_key)
                 pubkey  = PublicKey(memo["from"], prefix=prefix)
                 memomsg = Memo.decode_memo(privkey, pubkey, memo["nonce"], memo["message"])
             except Exception as e: # if not possible
@@ -80,14 +66,14 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
 if __name__ == '__main__':
     ## Monitor definitions
     protocol = GrapheneMonitor
-    protocol.last_op = last_op ## last operation logged
-    protocol.account_id = "1.2.%s" % accountID.split(".")[2]  ## account to monitor
+    protocol.last_op = config.last_op ## last operation logged
+    protocol.account_id = "1.2.%s" % config.accountID.split(".")[2]  ## account to monitor
 
     ## Open Up Graphene Websocket API
-    api      = GrapheneWebsocket(host, port, user, password, protocol)
+    api      = GrapheneWebsocket(config.host, config.port, config.user, config.password, protocol)
 
     ## Set Callback for object changes
-    api.setObjectCallbacks({accountID : protocol.onAccountUpdate})
+    api.setObjectCallbacks({config.accountID : protocol.onAccountUpdate})
 
     ## Run the Websocket connection continuously
     api.connect()

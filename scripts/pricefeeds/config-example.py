@@ -6,7 +6,6 @@ port   = 8092
 user   = ""
 passwd = ""
 unlock = ""
-wallet = ""
 
 ################################################################################
 ## Delegate Feed Publish Parameters

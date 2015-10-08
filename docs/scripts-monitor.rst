@@ -1,5 +1,6 @@
+*******************
 Monitoring Accounts
-===================
+*******************
 
 To monitor accounts, we recommend to either use the `get_full_accounts` call or
 to enable notifications manually in order to fetch the current state of an
@@ -7,7 +8,7 @@ account and *automatically* subscribe to future account updates including
 balance update.
 
 Example Notifications
----------------------
+#####################
 
 A notification after a transaction would take the form:::
 
@@ -34,7 +35,7 @@ contain several (independent) operations, monitoring an account may only
 require to investigate *operations* that change the account.
 
 Implementation Details
-----------------------
+######################
 
 In order to access the websocket functionalities, we can extend the
 `GrapheneWebsocketProtocol` class. 
