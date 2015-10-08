@@ -45,12 +45,13 @@ Python-Graphene Libraries
    rpc
    memo
 
-Examples
+Scripts
 --------
 .. toctree::
    :maxdepth: 1
 
    scripts-monitor
+   pricefeed
 
 Howto
 -----
