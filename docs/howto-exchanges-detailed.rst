@@ -16,7 +16,7 @@ following articles:
    rpc
 
 .. note:: This tutorial explains the inner workings of the monitoring script
-          provided as `monitor.py` in the `examples/` directory.
+          provided as `monitor.py` in the `scripts/monitor-despoits` directory.
 
 Network and Client Configuration
 --------------------------------
