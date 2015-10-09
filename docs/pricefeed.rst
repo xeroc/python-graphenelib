@@ -65,18 +65,19 @@ Running
 
 1. unlock your wallet
 2. ``python3 pricefeeds.py``
+3. You will be asked to provide confirmation of the prices!
 
-Cronjon
-#######
+.. Cronjon
+   #######
 
-Since the script fetches its data from other exchanges that may throttle your
-polling frequency, and you may want to run the feed script regularily, we
-recommend to setup your ``cron``-job as follows:
+.. Since the script fetches its data from other exchanges that may throttle your
+   polling frequency, and you may want to run the feed script regularily, we
+   recommend to setup your ``cron``-job as follows:
 
-.. code-block:: cron
+..   .. code-block:: cron
 
-   */2 * * * * /home/<user>/<path>/scripts/pricefeed/pricefeeds.py >> /home/<user>/feed-update.log
+..      */2 * * * * /home/<user>/<path>/scripts/pricefeed/pricefeeds.py >> /home/<user>/feed-update.log
 
-This will execute the script twice per hour and append the log into
-``feed-update.log`` in your home directory.
+..   This will execute the script twice per hour and append the log into
+   ``feed-update.log`` in your home directory.
 
