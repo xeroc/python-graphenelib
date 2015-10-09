@@ -546,7 +546,7 @@ if __name__ == "__main__":
  print_stats()
  
  ## Check publish rules and publich feeds #####################################
- if publish_rule() :
+ if publish_rule() and rpc._confirm("Are you SURE you would like to publish this feed?") :
   print("Update required! Forcing now!")
   update_feed(rpc,asset_list_final)
  else :
