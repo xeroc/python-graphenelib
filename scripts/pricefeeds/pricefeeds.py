@@ -531,12 +531,12 @@ if __name__ == "__main__":
                       }, 
                       "core_exchange_rate": {
                         "quote": {
-                          "asset_id": assets[asset]["id"], 
-                          "amount": numerator
-                        }, 
-                        "base": {
                           "asset_id": "1.3.0",
                           "amount": int(denominator * config.core_exchange_factor)
+                        }, 
+                        "base": {
+                          "asset_id": assets[asset]["id"], 
+                          "amount": numerator
                         }
                       }
                     }
