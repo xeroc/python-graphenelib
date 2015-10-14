@@ -486,12 +486,12 @@ if __name__ == "__main__":
  ## Get prices and stats ######################################################
  mythreads = {}
  mythreads["yahoo"]    = threading.Thread(target = fetch_from_yahoo)
- mythreads["yunbi"]    = threading.Thread(target = fetch_from_yunbi)
- mythreads["btc38"]    = threading.Thread(target = fetch_from_btc38)
- mythreads["bter"]     = threading.Thread(target = fetch_from_bter)
- mythreads["poloniex"] = threading.Thread(target = fetch_from_poloniex)
- mythreads["bittrex"]  = threading.Thread(target = fetch_from_bittrex)
- mythreads["btcavg"]   = threading.Thread(target = fetch_bitcoinaverage)
+ if config.enable_yunbi    :  mythreads["yunbi"]    = threading.Thread(target = fetch_from_yunbi)
+ if config.enable_btc38    :  mythreads["btc38"]    = threading.Thread(target = fetch_from_btc38)
+ if config.enable_bter     :  mythreads["bter"]     = threading.Thread(target = fetch_from_bter)
+ if config.enable_poloniex :  mythreads["poloniex"] = threading.Thread(target = fetch_from_poloniex)
+ if config.enable_bittrex  :  mythreads["bittrex"]  = threading.Thread(target = fetch_from_bittrex)
+ if config.enable_btcavg   :  mythreads["btcavg"]   = threading.Thread(target = fetch_bitcoinaverage)
  
  print("[Starting Threads]: ", end="",flush=True)
  for t in mythreads :
