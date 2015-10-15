@@ -7,6 +7,7 @@ from grapheneapi import GrapheneWebsocket, GrapheneWebsocketProtocol
 import time
 import config
 import subprocess
+from time import gmtime, strftime
 
 
 rpc = GrapheneWebsocket("localhost", 8092, "", "")
@@ -85,6 +86,26 @@ def resync():
     print("waiting...")
     time.sleep(10)
 
+### testing running feed schedule through script
+#def checkTime(lastHour):
+#    hour = strftime("%H", gmtime())
+#   minute = strftime("%M", gmtime())
+#    hour = int(hour)
+#    minute = int(minute)
+#    if minute % 42 == 0:
+#        if lastHour == 23:
+#            if hour == 0:
+#                subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
+#                subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed_script])
+#                return hour
+#        elif hour > lastHour:
+#            subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
+#            subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed_script])
+#            return hour
+#        else:
+#            return lastHour
+#    else:
+#        return lastHour
 
 closeScreens()
 openScreens()
@@ -97,6 +118,8 @@ witness = rpc.get_witness(config.witnessname)
 lastblock = witness["last_confirmed_block_num"]
 emergency = False
 replay = 0
+crash = 0
+lastHour = 0
 
 while True:
     try:
@@ -149,8 +172,10 @@ while True:
             print(config.witnessname + " missed a block.  total missed = " + str(missed) + " recent missed = " + str(recentmissed))
             lastblock = witness["last_confirmed_block_num"]
         else:
+#            lastHour = checkTime(lastHour)
             waitAndNotify()
             replay = watch(replay)
+### if you are having issue try commenting out the try line and everything below the except line to prevent auto restart
     except:
         if crash > 2:
             crash = watch(crash)
