@@ -1,12 +1,14 @@
 ### this is very experimental code, it has barely been tested and I don't really even know what I am doing.
 ### Use it with caution and at your own risk.  It seriously might not work right.
-
+### It will kill any running instance of witness_node and relaunch witness_node in a new screen named witness
+### there is a delay between launching the witness_node and launching the cli_wallet.  This is to give your witness node enough time to open up and get ready to accept the connection
+### from your cli_wallet.  It is currently set to 3 minutes for a --replay and 5 minutes for a --resync.  You can modify these wait times on lines 27 and 82 of switch.py
 
 # the name of your witness as string
 witnessname = "dele-puppy"
 
 # the password of your wallet as string
-wallet_password = "puppiesRkewl"
+wallet_password = "puppiesRkewl" # not really my password.  Just left in so people can see how it should look.
 
 # the public keys you would like to switch between must have at least two.  Can list the same key twice if needed
 publickeys = ("BTS6v1yYVgrvrMV8XsThUT6f7YtyoSxYaec1qcthbA6sU9Xtps7fi","BTS73UhnE6uD8Axdp3cU8EmvjjaFuiAAPRwARqrgRY1vZkJLFYo4u","BTS5gH5wokGkbhcZZpxLEc884xNby3HAkiEo39bMXZ4b2AvNuSWni")
