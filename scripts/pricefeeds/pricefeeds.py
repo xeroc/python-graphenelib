@@ -529,6 +529,8 @@ if __name__ == "__main__":
                           "amount": numerator
                         }
                       },
+                      "maintenance_collateral_ratio": config.maintenance_collateral_ratio,
+                      "maximum_short_squeeze_ratio": config.maximum_short_squeeze_ratio,
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": "1.3.0",
