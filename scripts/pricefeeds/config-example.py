@@ -26,7 +26,7 @@ change_min               = 0.5
 enable_yunbi             = True
 enable_btc38             = True
 enable_bter              = False
-enable_polonie           = True
+enable_poloniex           = True
 enable_bittrex           = True
 enable_btcavg            = True
 
