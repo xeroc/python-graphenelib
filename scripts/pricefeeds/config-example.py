@@ -18,6 +18,8 @@ maxAgeFeedInSeconds      = 60*60 # 1hour
 ################################################################################
 discount                 = 0.995
 core_exchange_factor     = 1.05 # 5% surplus if paying fees in bitassets
+maintenance_collateral_ratio = 1750 #Call when collateral only pays off 175% the debt
+maximum_short_squeeze_ratio      = 1100 # Stop calling when collateral only pays off 110% of the debt
 
 minValidAssetPriceInBTC  = 0.00001
 change_min               = 0.5
