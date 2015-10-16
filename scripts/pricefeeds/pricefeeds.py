@@ -66,7 +66,7 @@ def publish_rule():
  for asset in asset_list_publish :
   ## Define REAL_PRICE
   realPrice = statistics.median( price["BTS"][asset] )
-  ## Rules 
+  ## Rules
   if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
         print("Feeds for %s too old! Force updating!" % asset)
         return True
@@ -205,7 +205,7 @@ def fetch_from_bittrex():
     mObj    = re.match( 'BTC-(.*)', coin[ "MarketName" ] )
     altcoin = mObj.group(1)
     coinmap=altcoin
-    if altcoin=="BTSX" : 
+    if altcoin=="BTSX" :
      coinmap=core_symbol
     if float(coin["Last"]) > config.minValidAssetPriceInBTC:
      price["BTC"][ coinmap ].append(float(coin["Last"]))
@@ -396,7 +396,7 @@ def print_stats() :
     median_exchanges        = statistics.median(prices_from_exchanges)
     if cur_feed == 0 :               change_my              = -1
     else :                           change_my              = ((weighted_external_price - cur_feed)/cur_feed)*100
-    if price_from_blockchain == 0 :  
+    if price_from_blockchain == 0 :
      change_blockchain      = -1
      price_from_blockchain  = -1
     else :
@@ -469,7 +469,7 @@ if __name__ == "__main__":
  for base in _bases  + [core_symbol]:
   price[base]            = {}
   volume[base]           = {}
-  for asset in _all_bts_assets + [core_symbol]: 
+  for asset in _all_bts_assets + [core_symbol]:
    price[base][asset]    = []
    volume[base][asset]   = []
 
@@ -492,7 +492,7 @@ if __name__ == "__main__":
  if config.enable_poloniex :  mythreads["poloniex"] = threading.Thread(target = fetch_from_poloniex)
  if config.enable_bittrex  :  mythreads["bittrex"]  = threading.Thread(target = fetch_from_bittrex)
  if config.enable_btcavg   :  mythreads["btcavg"]   = threading.Thread(target = fetch_bitcoinaverage)
- 
+
  print("[Starting Threads]: ", end="",flush=True)
  for t in mythreads :
   print("(%s)"%t, end="",flush=True)
@@ -523,28 +523,28 @@ if __name__ == "__main__":
                         "quote": {
                           "asset_id": "1.3.0",
                           "amount": denominator
-                        }, 
+                        },
                         "base": {
-                          "asset_id": assets[asset]["id"], 
+                          "asset_id": assets[asset]["id"],
                           "amount": numerator
                         }
-                      }, 
+                      },
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": "1.3.0",
                           "amount": int(denominator * config.core_exchange_factor)
-                        }, 
+                        },
                         "base": {
-                          "asset_id": assets[asset]["id"], 
+                          "asset_id": assets[asset]["id"],
                           "amount": numerator
                         }
                       }
                     }
             asset_list_final.append([ asset, price_feed ])
- 
+
  ## Print some stats ##########################################################
  print_stats()
- 
+
  ## Check publish rules and publich feeds #####################################
  if publish_rule() and rpc._confirm("Are you SURE you would like to publish this feed?") :
   print("Update required! Forcing now!")
