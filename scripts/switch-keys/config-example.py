@@ -37,3 +37,6 @@ path_to_cli_wallet = "/home/user/src/bitshares-2/programs/cli_wallet/cli_wallet"
 path_to_wallet_json = "/home/user/src/bitshares-2/programs/cli_wallet/wallet.json"
 
 
+path_to_price_feed_script = "/home/user/src/python-graphenelib/scripts/pricefeeds/pricefeeds.py"
+
+feed_script_time = 42
