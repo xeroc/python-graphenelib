@@ -110,7 +110,7 @@ def checkTime():
 
 recentmissed = 0
 emergency = False
-replay = 3
+replay = 0
 crash = 0
 lastHour = 0
 closeScreens()
