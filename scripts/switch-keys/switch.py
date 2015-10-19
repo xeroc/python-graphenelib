@@ -16,10 +16,14 @@ rpc = GrapheneWebsocket("localhost", 8092, "", "")
 
 def closeScreens():
     print("closing wallet")
+    time.sleep(15) #adding this to give some time to ctrl-c before --resync if desired
     subprocess.call(["screen","-S","wallet","-p","0","-X","quit"])
+    time.sleep(2)
     print("closing witness")
     subprocess.call(["screen","-S","witness","-p","0","-X","quit"])
+    time.sleep(2)
     subprocess.call(["pkill","witness_node"])
+    time.sleep(2)
 
 def openScreens():
     print("opening witness")
@@ -58,16 +62,18 @@ def waitAndNotify():
     participation = info["participation"]
     print(str(block) + "     " + str(age) + "     " + str(participation) + "      replay = " + str(replay) + "      crash = " + str(crash))
 
-def watch(num):
+def watch(tries):
     if float(info()) < 50:
-        if num > 2:
+        if tries > 2:
             closeScreens()
-            resysnc()
+            resync()
             print("unlocking wallet")
             rpc.unlock(config.wallet_password)
             print("wallet unlocked")
             time.sleep(30)
-            return 0
+            tries = 0
+            return tries
+
         else:
             closeScreens()
             openScreens()
@@ -75,8 +81,8 @@ def watch(num):
             rpc.unlock(config.wallet_password)
             print("wallet unlocked")
             time.sleep(30)
-            num += 1
-            return num
+            tries += 1
+            return tries
     else:
         return 0
 
@@ -92,20 +98,21 @@ def resync():
     time.sleep(10)
 
 ### testing running feed schedule through script
-#def checkTime():
-#    hour = strftime("%H", gmtime())
-#    minute = strftime("%M", gmtime())
-#    hour = int(hour)
-#    minute = int(minute)
-#    if minute % 60 == config.price_feed_time:
-#        subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
-#        subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed_script])
-#        time.sleep(60)
+def checkTime():
+    minute = strftime("%M", gmtime())
+    minute = int(minute)
+    if minute % 60 == config.feed_script_time:
+        subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
+        subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed$
+        time.sleep(60)
+
+
 
 recentmissed = 0
 emergency = False
-replay = 0
+replay = 3
 crash = 0
+lastHour = 0
 closeScreens()
 openScreens()
 print("unlocking wallet")
@@ -166,10 +173,11 @@ while True:
             print(config.witnessname + " missed a block.  total missed = " + str(missed) + " recent missed = " + str(recentmissed))
             lastblock = witness["last_confirmed_block_num"]
         else:
-#            checkTime()
+#            lastHour = checkTime(lastHour)
             waitAndNotify()
-            replay = watch(replay)
-### if you are having issue try commenting out the try line and everything below the except line to prevent auto restart
+            tries = replay
+            replay = watch(tries)
+### if you are having issue try commenting out the try line (126) and everything below the except line to prevent auto restart
     except:
         try:
             if crash > 2:
@@ -223,5 +231,7 @@ while True:
                     resync()
                     print("unlocking wallet")
                     rpc.unlock(config.wallet_password)
+
+
 
 
