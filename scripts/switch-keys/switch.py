@@ -103,7 +103,7 @@ def checkTime():
     minute = int(minute)
     if minute % 60 == config.feed_script_time:
         subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
-        subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed$
+        subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed])
         time.sleep(60)
 
 
