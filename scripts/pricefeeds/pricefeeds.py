@@ -257,6 +257,7 @@ def fetch_bitcoinaverage():
 def fetch_from_wallet(rpc):
  print("Fetching data from wallet...")
  ## Get my Witness
+ global myWitness
  myWitness = rpc.get_witness(config.delegate_name)
  witnessId = myWitness["witness_account"]
 
@@ -316,11 +317,20 @@ def update_feed(rpc, feeds):
  print("publishing feeds for delegate: %s"%config.delegate_name)
  handle = rpc.begin_builder_transaction();
  for feed in feeds :
-  rpc.add_operation_to_builder_transaction(handle, [19, feed]) # id 19 corresponds to price feed update operation
+  # id 19 corresponds to price feed update operation
+  rpc.add_operation_to_builder_transaction(handle, 
+        [19, {
+                "asset_id"  : feed[0],
+                "feed"      : feed[1],
+                "publisher" : myWitness["witness_account"],
+             }])
+
+ # Set fee
+ rpc.set_fees_on_builder_transaction(handle, "1.3.0")
 
  # Signing and Broadcast
  signedTx = rpc.sign_builder_transaction(handle, True)
- #print(json.dumps(signedTx,indent=4));
+ print(json.dumps(signedTx,indent=4));
 
  if wallet_was_unlocked :
   print( "Relocking wallet" )
@@ -516,12 +526,15 @@ if __name__ == "__main__":
         if price_in_bts_weighted[asset] > 0.0:
             quote_precision = assets[asset]["precision"]
             base_precision  = assets["1.3.0"]["precision"] ## core asset
-            core_price = price_in_bts_weighted[asset] * 10**(quote_precision-base_precision)
-            core_price = fractions.Fraction.from_float(core_price).limit_denominator(100000)
-            denominator = core_price.denominator
-            numerator   = core_price.numerator
+            core_price      = price_in_bts_weighted[asset] * 10**(quote_precision-base_precision)
+            core_price      = fractions.Fraction.from_float(core_price).limit_denominator(100000)
+            denominator     = core_price.denominator
+            numerator       = core_price.numerator
 
             assert assets[asset]["symbol"] is not asset
+
+            #if denominator == 0 or numerator == 0 or int(denominator * config.core_exchange_factor) :
+            #        continue
 
             price_feed = {
                       "settlement_price": {
@@ -547,7 +560,7 @@ if __name__ == "__main__":
                         }
                       }
                     }
-            price_feeds.append(price_feed)
+            price_feeds.append([assets[asset]["id"], price_feed])
 
  ## Print some stats ##########################################################
  print_stats()
