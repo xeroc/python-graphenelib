@@ -21,6 +21,7 @@ core_exchange_factor         = 0.95   # 5% discount if paying fees in bitassets
 maintenance_collateral_ratio = 1750   # Call when collateral only pays off 175% the debt
 maximum_short_squeeze_ratio  = 1100   # Stop calling when collateral only pays off 110% of the debt
 change_min                   = 0.5    # Percentage of price change to force an update
+minValidAssetPriceInBTC      = 0.00001# minimum valid price for BTS in BTC
 
 ## Enable exchanges
 enable_yunbi             = True
