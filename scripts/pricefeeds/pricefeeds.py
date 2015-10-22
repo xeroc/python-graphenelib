@@ -305,7 +305,7 @@ def fetch_from_wallet(rpc):
 ## ----------------------------------------------------------------------------
 ## Send the new feeds!
 ## ----------------------------------------------------------------------------
-def update_feed(rpc, myassets):
+def update_feed(rpc, feeds):
  wallet_was_unlocked = False
 
  if rpc.is_locked() :
@@ -314,8 +314,13 @@ def update_feed(rpc, myassets):
   ret = rpc.unlock(config.unlock)
 
  print("publishing feeds for delegate: %s"%config.delegate_name)
- for a in myassets :
-  result = rpc.publish_asset_feed(config.delegate_name, a[0], a[1], True) # True: sign+broadcast
+ handle = rpc.begin_builder_transaction();
+ for feed in feeds :
+  rpc.add_operation_to_builder_transaction(handle, [19, feed]) # id 19 corresponds to price feed update operation
+
+ # Signing and Broadcast
+ signedTx = rpc.sign_builder_transaction(handle, True)
+ #print(json.dumps(signedTx,indent=4));
 
  if wallet_was_unlocked :
   print( "Relocking wallet" )
@@ -505,7 +510,7 @@ if __name__ == "__main__":
  derive_prices()
 
  ## Only publish given feeds ##################################################
- asset_list_final = []
+ price_feeds = []
  for asset in asset_list_publish :
     if len(price[core_symbol][asset]) > 0 :
         if price_in_bts_weighted[asset] > 0.0:
@@ -542,7 +547,7 @@ if __name__ == "__main__":
                         }
                       }
                     }
-            asset_list_final.append([ asset, price_feed ])
+            price_feeds.append(price_feed)
 
  ## Print some stats ##########################################################
  print_stats()
@@ -550,6 +555,6 @@ if __name__ == "__main__":
  ## Check publish rules and publich feeds #####################################
  if publish_rule() and rpc._confirm("Are you SURE you would like to publish this feed?") :
   print("Update required! Forcing now!")
-  update_feed(rpc,asset_list_final)
+  update_feed(rpc,price_feeds)
  else :
   print("no update required")
