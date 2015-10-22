@@ -14,7 +14,7 @@ for the library).
 
     apt-get install python3 python3-pip python-autobahn
     pip3 install requests --upgrade
-    pip3 install numpy prettytable autobahn
+    pip3 install numpy prettytable autobahn crypto
 
 Cli Wallet
 ##########
