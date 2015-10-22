@@ -566,8 +566,17 @@ if __name__ == "__main__":
  print_stats()
 
  ## Check publish rules and publich feeds #####################################
- if publish_rule() and rpc._confirm("Are you SURE you would like to publish this feed?") :
-  print("Update required! Forcing now!")
-  update_feed(rpc,price_feeds)
+ publish = False
+ if publish_rule() :
+
+  if config.ask_confirmation :
+   if rpc._confirm("Are you SURE you would like to publish this feed?") :
+    publish = True
+  else :
+    publish = True
+
+  if publish :
+   print("Update required! Forcing now!")
+   update_feed(rpc,price_feeds)
  else :
   print("no update required")
