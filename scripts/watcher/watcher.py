@@ -13,7 +13,7 @@ from time import gmtime, strftime
 rpc = GrapheneWebsocket("localhost", 8092, "", "")
 
 def unlockWallet():
-    if config.feed_script_active = True:
+    if config.feed_script_active == True:
         print("unlocking wallet")
         rpc.unlock(config.wallet_password)
         time.sleep(10)
