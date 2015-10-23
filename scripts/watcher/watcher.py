@@ -12,7 +12,11 @@ from time import gmtime, strftime
 
 rpc = GrapheneWebsocket("localhost", 8092, "", "")
 
-
+def unlockWallet():
+    if config.feed_script_active = True:
+        print("unlocking wallet")
+        rpc.unlock(config.wallet_password)
+        time.sleep(10)
 
 def closeScreens():
     print("closing wallet")
@@ -54,19 +58,13 @@ def watch(tries):
         if tries > 2:
             closeScreens()
             resync()
-            print("unlocking wallet")
-            rpc.unlock(config.wallet_password)
-            print("wallet unlocked")
-            time.sleep(30)
+            unlockWallet()
             tries = 0
             return tries
         else:
             closeScreens()
             openScreens()
-            print("unlocking wallet")
-            rpc.unlock(config.wallet_password)
-            print("wallet unlocked")
-            time.sleep(30)
+            unlockWallet()
             tries += 1
             return tries
     else:
@@ -99,8 +97,7 @@ replay = 0
 crash = 0
 closeScreens()
 openScreens()
-print("unlocking wallet")
-rpc.unlock(config.wallet_password)
+unlockWallet()
 
 
 
@@ -117,53 +114,44 @@ while True:
                 crash = 0
                 closeScreens()
                 resync()
-                print("unlocking wallet")
-                rpc.unlock(config.wallet_password)
-                print("wallet unlocked")
+                unlockWallet()
             else:
                 crash += 1
                 print("error.  restarting.")
                 closeScreens()
                 openScreens()
-                print("unlocking wallet")
-                rpc.unlock(config.wallet_password)
-                print("wallet unlocked")
+                unlockWallet()
         except:
             try:
                 if crash > 2:
                     crash = 0
                     closeScreen()
                     resync()
-                    print("unlocking wallet")
-                    rpc.unlock(config.wallet_password)
+                    unlockWallet()
                 else:
                     crash += 1
                     print("error... restarting")
                     closeScreens()
                     openScreens()
-                    print("unlocking wallet")
-                    rpc.unlock(config.wallet_password)
+                    unlockWallet()
             except:
                 try:
                     if crash > 2:
                         crash = 0
                         closeScreens()
                         resync()
-                        print("unlocking wallet")
-                        rpc.unlock(config.wallet_password)
+                        unlockWallet()
                     else:
                         crash += 1
                         print("error.  restarting.")
                         closeScreens()
                         openScreens()
-                        print("unlocking wallet")
-                        rpc.unlock(config.wallet_password)
+                        unlockWallet()
                 except:
                     crash = 0
                     closeScreens()
                     resync()
-                    print("unlocking wallet")
-                    rpc.unlock(config.wallet_password)
+                    unlockWallet()
 
 
 
