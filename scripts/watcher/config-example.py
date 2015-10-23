@@ -22,3 +22,5 @@ path_to_feed_script = "/home/user/src/python-graphenelib/scripts/pricefeeds/pric
 
 # the minute of each hour that you would like the feed script triggered.
 feed_script_time = 42
+
+feed_script_active = False
