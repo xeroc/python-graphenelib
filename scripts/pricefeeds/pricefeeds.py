@@ -66,7 +66,7 @@ def publish_rule():
  for asset in asset_list_publish :
   ## Define REAL_PRICE
   realPrice = statistics.median( price["BTS"][asset] )
-  ## Rules 
+  ## Rules
   if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
         print("Feeds for %s too old! Force updating!" % asset)
         return True
@@ -205,7 +205,7 @@ def fetch_from_bittrex():
     mObj    = re.match( 'BTC-(.*)', coin[ "MarketName" ] )
     altcoin = mObj.group(1)
     coinmap=altcoin
-    if altcoin=="BTSX" : 
+    if altcoin=="BTSX" :
      coinmap=core_symbol
     if float(coin["Last"]) > config.minValidAssetPriceInBTC:
      price["BTC"][ coinmap ].append(float(coin["Last"]))
@@ -257,6 +257,7 @@ def fetch_bitcoinaverage():
 def fetch_from_wallet(rpc):
  print("Fetching data from wallet...")
  ## Get my Witness
+ global myWitness
  myWitness = rpc.get_witness(config.delegate_name)
  witnessId = myWitness["witness_account"]
 
@@ -305,7 +306,7 @@ def fetch_from_wallet(rpc):
 ## ----------------------------------------------------------------------------
 ## Send the new feeds!
 ## ----------------------------------------------------------------------------
-def update_feed(rpc, myassets):
+def update_feed(rpc, feeds):
  wallet_was_unlocked = False
 
  if rpc.is_locked() :
@@ -314,8 +315,22 @@ def update_feed(rpc, myassets):
   ret = rpc.unlock(config.unlock)
 
  print("publishing feeds for delegate: %s"%config.delegate_name)
- for a in myassets :
-  result = rpc.publish_asset_feed(config.delegate_name, a[0], a[1], True) # True: sign+broadcast
+ handle = rpc.begin_builder_transaction();
+ for feed in feeds :
+  # id 19 corresponds to price feed update operation
+  rpc.add_operation_to_builder_transaction(handle, 
+        [19, {
+                "asset_id"  : feed[0],
+                "feed"      : feed[1],
+                "publisher" : myWitness["witness_account"],
+             }])
+
+ # Set fee
+ rpc.set_fees_on_builder_transaction(handle, "1.3.0")
+
+ # Signing and Broadcast
+ signedTx = rpc.sign_builder_transaction(handle, True)
+ print(json.dumps(signedTx,indent=4));
 
  if wallet_was_unlocked :
   print( "Relocking wallet" )
@@ -396,7 +411,7 @@ def print_stats() :
     median_exchanges        = statistics.median(prices_from_exchanges)
     if cur_feed == 0 :               change_my              = -1
     else :                           change_my              = ((weighted_external_price - cur_feed)/cur_feed)*100
-    if price_from_blockchain == 0 :  
+    if price_from_blockchain == 0 :
      change_blockchain      = -1
      price_from_blockchain  = -1
     else :
@@ -469,7 +484,7 @@ if __name__ == "__main__":
  for base in _bases  + [core_symbol]:
   price[base]            = {}
   volume[base]           = {}
-  for asset in _all_bts_assets + [core_symbol]: 
+  for asset in _all_bts_assets + [core_symbol]:
    price[base][asset]    = []
    volume[base][asset]   = []
 
@@ -492,7 +507,7 @@ if __name__ == "__main__":
  if config.enable_poloniex :  mythreads["poloniex"] = threading.Thread(target = fetch_from_poloniex)
  if config.enable_bittrex  :  mythreads["bittrex"]  = threading.Thread(target = fetch_from_bittrex)
  if config.enable_btcavg   :  mythreads["btcavg"]   = threading.Thread(target = fetch_bitcoinaverage)
- 
+
  print("[Starting Threads]: ", end="",flush=True)
  for t in mythreads :
   print("(%s)"%t, end="",flush=True)
@@ -505,49 +520,63 @@ if __name__ == "__main__":
  derive_prices()
 
  ## Only publish given feeds ##################################################
- asset_list_final = []
+ price_feeds = []
  for asset in asset_list_publish :
     if len(price[core_symbol][asset]) > 0 :
         if price_in_bts_weighted[asset] > 0.0:
             quote_precision = assets[asset]["precision"]
             base_precision  = assets["1.3.0"]["precision"] ## core asset
-            core_price = price_in_bts_weighted[asset] * 10**(quote_precision-base_precision)
-            core_price = fractions.Fraction.from_float(core_price).limit_denominator(100000)
-            denominator = core_price.denominator
-            numerator   = core_price.numerator
+            core_price      = price_in_bts_weighted[asset] * 10**(quote_precision-base_precision)
+            core_price      = fractions.Fraction.from_float(core_price).limit_denominator(100000)
+            denominator     = core_price.denominator
+            numerator       = core_price.numerator
 
             assert assets[asset]["symbol"] is not asset
+
+            #if denominator == 0 or numerator == 0 or int(denominator * config.core_exchange_factor) :
+            #        continue
 
             price_feed = {
                       "settlement_price": {
                         "quote": {
                           "asset_id": "1.3.0",
                           "amount": denominator
-                        }, 
+                        },
                         "base": {
-                          "asset_id": assets[asset]["id"], 
+                          "asset_id": assets[asset]["id"],
                           "amount": numerator
                         }
-                      }, 
+                      },
+                      "maintenance_collateral_ratio": config.maintenance_collateral_ratio,
+                      "maximum_short_squeeze_ratio": config.maximum_short_squeeze_ratio,
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": "1.3.0",
                           "amount": int(denominator * config.core_exchange_factor)
-                        }, 
+                        },
                         "base": {
-                          "asset_id": assets[asset]["id"], 
+                          "asset_id": assets[asset]["id"],
                           "amount": numerator
                         }
                       }
                     }
-            asset_list_final.append([ asset, price_feed ])
- 
+            price_feeds.append([assets[asset]["id"], price_feed])
+
  ## Print some stats ##########################################################
  print_stats()
- 
+
  ## Check publish rules and publich feeds #####################################
- if publish_rule() and rpc._confirm("Are you SURE you would like to publish this feed?") :
-  print("Update required! Forcing now!")
-  update_feed(rpc,asset_list_final)
+ publish = False
+ if publish_rule() :
+
+  if config.ask_confirmation :
+   if rpc._confirm("Are you SURE you would like to publish this feed?") :
+    publish = True
+  else :
+    publish = True
+
+  if publish :
+   print("Update required! Forcing now!")
+   update_feed(rpc,price_feeds)
  else :
   print("no update required")

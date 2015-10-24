@@ -3,6 +3,7 @@ import sys
 import json
 import asyncio
 from functools import partial
+import ssl
 
 try :
     from autobahn.asyncio.websocket import WebSocketClientFactory
@@ -15,16 +16,22 @@ class GrapheneWebsocket(GrapheneAPI):
     """ Constructor takes host, port, and login credentials 
     """
     def __init__(self, host, port, username, password, proto=GrapheneWebsocketProtocol) :
+        ## initialize API (overwrites __getattr__()
+        super().__init__(host, port, username, password)
+
         self.username = username
         self.password = password
-        self.host     = host
+        hostparts = host.split("/")
+        if len(hostparts)==1 :
+            self.host     = hostparts[0]
+            self.ssl      = False
+        else :
+            self.host     = hostparts[2]
+            self.ssl      = (hostparts[0] == "wss:")
         self.port     = port
         self.proto    = proto
         self.proto.username = self.username
         self.proto.password = self.password
-
-        ## initialize API (overwrites __getattr__()
-        super().__init__(host, port, username, password)
 
     """ Get an object_id by name
     """
@@ -92,7 +99,13 @@ class GrapheneWebsocket(GrapheneAPI):
     """
     def run_forever(self) :
         loop = asyncio.get_event_loop()
-        coro = loop.create_connection(self.factory, self.host, self.port)
+        if self.ssl :
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            coro = loop.create_connection(self.factory, self.host, self.port, ssl=context)
+        else :
+            coro = loop.create_connection(self.factory, self.host, self.port, ssl=self.ssl)
         loop.run_until_complete(coro)
         try :
             loop.run_forever()
