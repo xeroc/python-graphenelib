@@ -84,13 +84,14 @@ def resync():
 
 ### testing running feed schedule through script
 def checkTime():
-    minute = strftime("%M", gmtime())
-    minute = int(minute)
-    time = config.feed_script_time
-    if minute % 60 == time:
-        subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
-        subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed_script])
-        time.sleep(60)
+    if config.feed_script_active == True:
+        minute = strftime("%M", gmtime())
+        minute = int(minute)
+        time = config.feed_script_time
+        if minute % 60 == time:
+            subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
+            subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed_script])
+            time.sleep(60)
 
 
 replay = 0
