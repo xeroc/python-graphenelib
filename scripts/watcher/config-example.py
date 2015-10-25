@@ -20,7 +20,13 @@ path_to_wallet_json = "/home/user/src/bitshares-2/programs/cli_wallet/wallet.jso
 # full path to xerocs feed script.  Script needs to be modified to not require confirmation.
 path_to_feed_script = "/home/user/src/python-graphenelib/scripts/pricefeeds/pricefeeds.py"
 
-# the minute of each hour that you would like the feed script triggered.
-feed_script_time = 42
+# minute that will trigger feed script.  This needs to be less than the feed_script_interval or feed script will never trigger
+feed_script_trigger = 1
 
-feed_script_active = False
+# number of minutes between triggering the feed script
+feed_script_interval = 10
+
+# if set to true script will try to trigger the pricefeed script.  If set to false then password, wallet.json path,
+# feed script path, interval, and trigger are not needed.
+feed_script_active = True
+
