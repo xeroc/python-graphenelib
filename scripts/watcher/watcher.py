@@ -84,15 +84,30 @@ def resync():
 
 ### testing running feed schedule through script
 def checkTime():
-    minute = strftime("%M", gmtime())
-    minute = int(minute)
-    time = config.feed_script_time
-    if minute % 60 == time:
-        subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
-        subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed_script])
-        time.sleep(60)
+    if config.feed_script_active == True:
+        if feed == True:
+            minute = strftime("%M", gmtime())
+            minute = int(minute)
+            trigger = config.feed_script_trigger
+            interval = config.feed_script_interval
+            if minute % interval == trigger:
+                subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
+                subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed_script])
+                time.sleep(60)
+                return False
+            else:
+                return True
+        else:
+            minute = strftime("%M", gmtime())
+            minute = int(minute)
+            trigger = config.feed_script_trigger
+            interval = config.feed_script_interval
+            if minute % interval == trigger:
+                return False
+            else:
+                return True
 
-
+feed = True
 replay = 0
 crash = 0
 closeScreens()
@@ -104,7 +119,7 @@ unlockWallet()
 while True:
     try:
             checkTime()
-            waitAndNotify()
+            feed = waitAndNotify()
             tries = replay
             replay = watch(tries)
 ### if you are having issue try commenting out the try line (126) and everything below the except line to prevent auto restart
