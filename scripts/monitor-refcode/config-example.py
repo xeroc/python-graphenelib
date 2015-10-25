@@ -14,4 +14,4 @@ memo_wif_key = "<memo-wif-key>"
 last_op = "1.11.0"
 
 """ Faucet settings """
-faucet_url = "http://localhost:3000/api/v1/referral_codes", # URL to the faucet
+faucet_url = "http://localhost:3000/api/v1/referral_codes" # URL to the faucet
