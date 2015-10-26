@@ -22,12 +22,14 @@ def importActiveKey():
 
 def getSigningKey():
     witness = rpc.get_witness(config.witnessname)
-    signingKey = witness["signing-key"]
+    signingKey = witness["signing_key"]
     return signingKey
 
 def setSigningKey(signingKey):
     rpc.update_witness(config.witnessname,"",signingKey,"true")
 
+def saveWallet():
+    rpc.save_wallet_file(wallet.json)
 
 def info():
     info = rpc.info()

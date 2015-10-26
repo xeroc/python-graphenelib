@@ -8,8 +8,8 @@ import time
 import config
 import subprocess
 from time import gmtime, strftime
-import producer1
-import producer2
+from producer1 import producer1
+from producer2 import producer2
 
 
 
@@ -153,6 +153,8 @@ crash = 0
 closeScreens()
 openScreens()
 unlockWallet()
+witness = rpc.get_witness(config.witnessname)
+lastblock = witness["last_confirmed_block_num"]
 missed = getMissed(config.witnessname)
 try:
     producer1.closeProducer()
@@ -162,9 +164,11 @@ except:
 try:
     producer2.closeProducer()
     producer2.openProducer()
+except:
+    print ("producer2 unable to open")
 
 while True:
-    try:
+#    try:
         witness = rpc.get_witness(config.witnessname)
         if lastblock < witness["last_confirmed_block_num"]:
             lastblock = witness["last_confirmed_block_num"]
@@ -172,7 +176,7 @@ while True:
         elif missed <= getMissed(config.witnessname) - config.strictness:
             missed = getMissed(config.witnessname)
             switch(config.witnessname, config.publickeys, missed)
-            print(config.witnessname + " missed a block.  total missed = " + str(missed)
+            print(config.witnessname + " missed a block.  total missed = " + str(missed))
             lastblock = witness["last_confirmed_block_num"]
         else:
             try:
@@ -192,15 +196,14 @@ while True:
                     producer2.closeProducer()
                     producer2.openProducer()
                     print("producer2 witness participation = " + producer2.info())
-            try:
-                print("producer1 == " + producer1.info() + "      producer2 == " + producer2.info())
+
 
             checkTime()
             waitAndNotify()
             tries = replay
             replay = watch(tries)
 ### For debugging comment out try statement directly below while True line, and uncomment line line below this line and last line of script
-# '''
+'''
     except:
         try:
             if crash > 2:
@@ -245,7 +248,7 @@ while True:
                     closeScreens()
                     resync()
                     unlockWallet()
-# '''
+'''
 
 
 
