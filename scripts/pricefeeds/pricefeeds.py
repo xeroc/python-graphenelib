@@ -440,13 +440,13 @@ def bts_yahoo_map(asset) :
 ## ----------------------------------------------------------------------------
 if __name__ == "__main__":
  core_symbol = "BTS"
- _all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "RUB", "SEK", "NZD",
+ _all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
                    "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-                   "KRW" ] # , "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI"
+                   "KRW" ] # , "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
  _bases =["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
  _yahoo_base  = ["USD","EUR","CNY","JPY","HKD"]
- _yahoo_quote = ["XAG", "XAU", "TRY", "SGD", "HKD", "RUB", "SEK", "NZD", "CNY",
-                 "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"]
+ _yahoo_quote = ["XAG", "XAU", "TRY", "SGD", "HKD", "NZD", "CNY",
+                 "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"] # , "RUB", "SEK"
  _yahoo_indices = {
  #                    "399106.SZ" : core_symbol,  #"CNY",  # SHENZHEN
  #                    "^HSI"      : core_symbol,  #"HKD",  # HANGSENG
