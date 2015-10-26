@@ -34,7 +34,6 @@ import statistics
 import re
 import numpy as num
 import sys
-import config
 import threading
 import fractions
 from prettytable import PrettyTable
@@ -42,6 +41,10 @@ from math        import fabs
 from pprint      import pprint
 from datetime    import datetime
 from grapheneapi import GrapheneAPI
+
+## Only import config.py if config is not defined already
+if 'config' not in globals():
+    import config
 
 ## ----------------------------------------------------------------------------
 ## When do we have to force publish?
@@ -436,51 +439,9 @@ def bts_yahoo_map(asset) :
   return asset
 
 ## ----------------------------------------------------------------------------
-## Run Script
+## Startup method
 ## ----------------------------------------------------------------------------
-if __name__ == "__main__":
- core_symbol = "BTS"
- _all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
-                   "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-                   "KRW" ] # , "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
- _bases =["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
- _yahoo_base  = ["USD","EUR","CNY","JPY","HKD"]
- _yahoo_quote = ["XAG", "XAU", "TRY", "SGD", "HKD", "NZD", "CNY",
-                 "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"] # , "RUB", "SEK"
- _yahoo_indices = {
- #                    "399106.SZ" : core_symbol,  #"CNY",  # SHENZHEN
- #                    "^HSI"      : core_symbol,  #"HKD",  # HANGSENG
- #                    "^IXIC"     : core_symbol,  #"USD",  # NASDAQC
- #                    "^N225"     : core_symbol   #"JPY"   # NIKKEI
-                 }
- _bts_yahoo_map = {
-      "XAU"       : "GOLD",
-      "XAG"       : "SILVER",
-      "399106.SZ" : "SHENZHEN",
-      "000001.SS" : "SHANGHAI",
-      "^HSI"      : "HANGSENG",
-      "^IXIC"     : "NASDAQC",
-      "^N225"     : "NIKKEI"
- }
- _request_headers = {'content-type': 'application/json',
-                     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
- ## Call Parameters ###########################################################
- asset_list_publish = _all_bts_assets
- if len( sys.argv ) > 1 :
-  if sys.argv[1] != "ALL":
-   asset_list_publish = sys.argv
-   asset_list_publish.pop(0)
-
- ## Initialization
- myWitness               = {}
- price_in_bts_weighted   = {}
- price_median_blockchain = {}
- assets                  = {}
- price                   = {}
- volume                  = {}
- lastUpdate              = {}
- myCurrentFeed           = {}
-
+def update_price_feed() :
  for base in _bases  + [core_symbol]:
   price[base]            = {}
   volume[base]           = {}
@@ -580,3 +541,51 @@ if __name__ == "__main__":
    update_feed(rpc,price_feeds)
  else :
   print("no update required")
+
+## ----------------------------------------------------------------------------
+## Initialize global variables
+## ----------------------------------------------------------------------------
+core_symbol = "BTS"
+_all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
+               "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
+               "KRW" ] # , "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
+_bases =["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
+_yahoo_base  = ["USD","EUR","CNY","JPY","HKD"]
+_yahoo_quote = ["XAG", "XAU", "TRY", "SGD", "HKD", "NZD", "CNY",
+             "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"] # , "RUB", "SEK"
+_yahoo_indices = {
+#                    "399106.SZ" : core_symbol,  #"CNY",  # SHENZHEN
+#                    "^HSI"      : core_symbol,  #"HKD",  # HANGSENG
+#                    "^IXIC"     : core_symbol,  #"USD",  # NASDAQC
+#                    "^N225"     : core_symbol   #"JPY"   # NIKKEI
+             }
+_bts_yahoo_map = {
+  "XAU"       : "GOLD",
+  "XAG"       : "SILVER",
+  "399106.SZ" : "SHENZHEN",
+  "000001.SS" : "SHANGHAI",
+  "^HSI"      : "HANGSENG",
+  "^IXIC"     : "NASDAQC",
+  "^N225"     : "NIKKEI"
+}
+_request_headers = {'content-type': 'application/json',
+                 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
+## Call Parameters ###########################################################
+asset_list_publish = _all_bts_assets
+if len( sys.argv ) > 1 :
+ if sys.argv[1] != "ALL":
+  asset_list_publish = sys.argv
+  asset_list_publish.pop(0)
+
+## Initialization
+myWitness               = {}
+price_in_bts_weighted   = {}
+price_median_blockchain = {}
+assets                  = {}
+price                   = {}
+volume                  = {}
+lastUpdate              = {}
+myCurrentFeed           = {}
+
+if __name__ == "__main__":
+ update_price_feed()

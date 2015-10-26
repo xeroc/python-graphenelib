@@ -18,7 +18,7 @@ This library requires `autobahn` and requests to be installed:
 
     pip3 install autobahn --user
     pip3 install requests --user
-    pip3 install crypto --user
+    pip3 install pycrypto --user
 
 The graphene library itself can be installed by issuing:
 
