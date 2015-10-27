@@ -2,31 +2,48 @@ import sys
 import json
 from grapheneapi import GrapheneWebsocket, GrapheneWebsocketProtocol
 import time
-import config
 import subprocess
 
-rpc = GrapheneWebsocket("localhost", config.rpc_port, "", "")
-local_port = "127.0.0.1:" + config.rpc_port
+path_to_cli_wallet = "/home/user/src/bitshares-2/programs/cli_wallet/cli_wallet"
+
+wallet_password = "puppiesRkewl"
+
+remote_ws = "ws://192.241.239.195:8090"
+
+private_active_key = "5JxBDZG3DvRXnUDPeSjRxZWpMWiZkZvMh5sRRDKJZUwRdgMP7vf"
+
+witnessname = "dele-puppy"
+
+producer_number = 1
+
+rpc_port = "8093"
+
+wallet_name = "wallet1"
+
+
+
+rpc = GrapheneWebsocket("localhost", rpc_port, "", "")
+local_port = "127.0.0.1:" + rpc_port
 
 def openProducer():
-    subprocess.call(["screen","-dmS","wallet1","/home/user/src/bitshares-2/programs/cli_wallet/cli_wallet","-H","127.0.0.1:8093","-s","ws://192.241.239.195:8090","--chain-id","16362d305df19018476052eed629bb4052903c7655a586a0e0cfbdb0eaf1bfd8"])
+    subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"--chain-id","16362d305df19018476052eed629bb4052903c7655a586a0e0cfbdb0eaf1bfd8"])
 
 def unlockWallet():
-    rpc.unlock(config.wallet_password)
+    rpc.unlock(wallet_password)
 
 def setPassword():
-    rpc.set_password(config.wallet_password)
+    rpc.set_password(wallet_password)
 
 def importActiveKey():
-    rpc.import_key(config.witnessname, config.private_active_key)
+    rpc.import_key(witnessname, private_active_key)
 
 def getSigningKey():
-    witness = rpc.get_witness(config.witnessname)
+    witness = rpc.get_witness(witnessname)
     signingKey = witness["signing_key"]
     return signingKey
 
 def setSigningKey(signingKey):
-    rpc.update_witness(config.witnessname,"",signingKey,"true")
+    rpc.update_witness(witnessname,"",signingKey,"true")
 
 
 def saveWallet():
