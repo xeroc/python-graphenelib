@@ -26,13 +26,14 @@ change_min                   = 0.5    # Percentage of price change to force an u
 minValidAssetPriceInBTC      = 0.00001# minimum valid price for BTS in BTC
 
 ## Enable exchanges
-enable_yunbi             = True
+enable_yunbi             = False # currently halted
 enable_btc38             = True
 enable_bter              = False
 enable_poloniex          = True
 enable_bittrex           = True
 enable_btcavg            = True
 enable_ccedk             = True
+enable_btcid             = True
 
 ## trust level for exchanges (if an exception happens and level is 0.8 script
 ##                            will quit with a failure)
@@ -41,4 +42,5 @@ bter_trust_level         = 0.5
 poloniex_trust_level     = 1.0
 bittrex_trust_level      = 0.5
 yunbi_trust_level        = 0.8
-ccedk_trust_level        = 0.8
+ccedk_trust_level        = 1.0
+btcid_trust_level        = 1.0
