@@ -32,6 +32,7 @@ enable_bter              = False
 enable_poloniex          = True
 enable_bittrex           = True
 enable_btcavg            = True
+enable_ccedk             = True
 
 ## trust level for exchanges (if an exception happens and level is 0.8 script
 ##                            will quit with a failure)
@@ -40,3 +41,4 @@ bter_trust_level         = 0.5
 poloniex_trust_level     = 1.0
 bittrex_trust_level      = 0.5
 yunbi_trust_level        = 0.8
+ccedk_trust_level        = 0.8

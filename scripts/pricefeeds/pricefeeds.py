@@ -89,6 +89,40 @@ def publish_rule():
 ## ----------------------------------------------------------------------------
 ## Fetch data
 ## ----------------------------------------------------------------------------
+def fetch_from_btcIndonesia():
+  global price, volume
+  availableAssets = [ core_symbol ]
+  for coin in availableAssets :
+   try :
+    url="https://vip.bitcoin.co.id/api/%s_btc/ticker" % coin.lower()
+    response = requests.get(url=url, headers=_request_headers, timeout=3 )
+    result = response.json()["ticker"]
+    if float(result["last"]) > config.minValidAssetPriceInBTC:
+     price["BTC"][ coin ].append(float(result["last"]))
+     volume["BTC"][ coin ].append(float(result["vol_bts"])*config.btcid_trust_level)
+   except Exception as e:
+    print("\nError fetching results from btcIndonesia! ({0})\n".format(str(e)))
+    if config.btcid_trust_level > 0.8:
+     sys.exit("\nExiting due to exchange importance!\n")
+    return
+
+def fetch_from_ccedk():
+  global price, volume
+  try:
+   url="https://www.ccedk.com/api/v1/stats/marketdepth?pair_id=50"
+   response = requests.get(url=url, headers=_request_headers, timeout=3 )
+   result = response.json()["response"]["entity"]
+   availableAssets = [ core_symbol ]
+  except Exception as e:
+   print("\nError fetching results from ccedk! ({0})\n".format(str(e)))
+   if config.ccedk_trust_level > 0.8:
+    sys.exit("\nExiting due to exchange importance!\n")
+   return
+  for coin in availableAssets :
+   if float(result["avg"]) > config.minValidAssetPriceInBTC:
+    price["BTC"][ coin ].append(float(result["avg"]))
+    volume["BTC"][ coin ].append(float(result["vol"])*config.ccedk_trust_level)
+
 def fetch_from_yunbi():
   global price, volume
   try :
@@ -122,7 +156,7 @@ def fetch_from_btc38():
   url="http://api.btc38.com/v1/ticker.php"
   availableAssets = [ core_symbol ]
   try :
-   params = { 'c': 'all', 'mk_type': 'btc' }
+   params = { 'c': 'bts', 'mk_type': 'btc' }
    response = requests.get(url=url, params=params, headers=_request_headers, timeout=3 )
    result = response.json()
   except Exception as e:
@@ -134,7 +168,7 @@ def fetch_from_btc38():
   for coin in availableAssets :
    if "ticker" in result[coin.lower()] and result[coin.lower()]["ticker"] and float(result[coin.lower()]["ticker"]["last"])>config.minValidAssetPriceInBTC:
     price["BTC"][ coin ].append(float(result[coin.lower()]["ticker"]["last"]))
-    volume["BTC"][ coin ].append(float(result[coin.lower()]["ticker"]["vol"]*result[coin.lower()]["ticker"]["last"])*config.btc38_trust_level)
+    volume["BTC"][ coin ].append(float(result[coin.lower()]["ticker"]["vol"]/result[coin.lower()]["ticker"]["last"])*config.btc38_trust_level)
 
   availableAssets = [ core_symbol, "BTC" ]
   try :
@@ -462,6 +496,9 @@ def update_price_feed() :
  ## Get prices and stats ######################################################
  mythreads = {}
  mythreads["yahoo"]    = threading.Thread(target = fetch_from_yahoo)
+
+ if config.enable_btcid    :  mythreads["btcid"]    = threading.Thread(target = fetch_from_btcIndonesia)
+ if config.enable_ccedk    :  mythreads["ccedk"]    = threading.Thread(target = fetch_from_ccedk)
  if config.enable_yunbi    :  mythreads["yunbi"]    = threading.Thread(target = fetch_from_yunbi)
  if config.enable_btc38    :  mythreads["btc38"]    = threading.Thread(target = fetch_from_btc38)
  if config.enable_bter     :  mythreads["bter"]     = threading.Thread(target = fetch_from_bter)
