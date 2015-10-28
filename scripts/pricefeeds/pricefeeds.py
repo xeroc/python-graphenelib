@@ -49,7 +49,7 @@ if 'config' not in globals():
 ## ----------------------------------------------------------------------------
 ## When do we have to force publish?
 ## ----------------------------------------------------------------------------
-def publish_rule():
+def publish_rule(rpc):
  ##############################################################################
  # - if you haven't published a price in the past 20 minutes
  # - if REAL_PRICE < MEDIAN and YOUR_PRICE > MEDIAN publish price
@@ -63,28 +63,37 @@ def publish_rule():
  # if you haven't published a price in the past 20 minutes, and the price change more than 0.5%
  ##############################################################################
  # YOUR_PRICE = Your current published price.                    = myCurrentFeed[asset]
- # REAL_PRICE = Lowest of external feeds                         = realPrice
+ # REAL_PRICE = Lowest of external feeds                         = newPrice
  # MEDIAN = current median price according to the blockchain.    = price_median_blockchain[asset]
  ##############################################################################
+ publish = False
  for asset in asset_list_publish :
   ## Define REAL_PRICE
-  realPrice = statistics.median( price["BTS"][asset] )
+  newPrice    = price_in_bts_weighted[asset] #statistics.median( price[core_symbol][asset] )
+  priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
+
+  ## Check max price change
+  if priceChange > config.change_max :
+       if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
+                             asset,price_median_blockchain[asset],newPrice,priceChange)) :
+           return False # skip everything and return
+
   ## Rules
   if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
         print("Feeds for %s too old! Force updating!" % asset)
-        return True
-  elif realPrice     < price_median_blockchain[asset] and \
-       myCurrentFeed[asset] > price_median_blockchain[asset]:
-        print("External price move for %s: realPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
-               % (asset,realPrice,price_median_blockchain[asset],realPrice,price_median_blockchain[asset]))
-        return True
-  elif fabs(myCurrentFeed[asset]-realPrice)/realPrice > config.change_min and\
+        publish = True
+  elif newPrice     < price_median_blockchain[asset] and \
+       price_median_blockchain[asset] > price_median_blockchain[asset]:
+        print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
+               % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
+        publish = True
+  elif priceChange > config.change_min and\
        (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
         print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
-               % (asset,fabs(myCurrentFeed[asset]-realPrice), config.change_min))
-        return True
- ## default: False
- return False
+               % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
+        publish = True
+
+ return publish
 
 ## ----------------------------------------------------------------------------
 ## Fetch data
@@ -565,7 +574,7 @@ def update_price_feed() :
 
  ## Check publish rules and publich feeds #####################################
  publish = False
- if publish_rule() :
+ if publish_rule(rpc) :
 
   if config.ask_confirmation :
    if rpc._confirm("Are you SURE you would like to publish this feed?") :
