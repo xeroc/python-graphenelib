@@ -191,7 +191,7 @@ lastblock = witness["last_confirmed_block_num"]
 missed = getMissed(config.witnessname)
 
 while True:
-#    try:
+    try:
         witness = rpc.get_witness(config.witnessname)
         if lastblock < witness["last_confirmed_block_num"]:
             lastblock = witness["last_confirmed_block_num"]
@@ -226,7 +226,7 @@ while True:
             tries = replay
             replay = watch(tries)
 ### For debugging comment out try statement directly below while True line, and uncomment line line below this line and last line of script
-'''
+###'''
     except:
         try:
             if crash > 2:
@@ -271,7 +271,7 @@ while True:
                     closeScreens()
                     resync()
                     unlockWallet()
-'''
+###'''
 
 
 

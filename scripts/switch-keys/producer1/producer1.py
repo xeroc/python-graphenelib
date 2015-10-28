@@ -31,8 +31,8 @@ def tryProducer():
     while attempt < 5:
         attempt +=1
         print("attempt #" + attempt + " to reconnect to " + wallet_name)
-        subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"--chain-id","16362d305df19018476052eed629bb4052903c7655a586a0e0cfbdb0eaf1bfd8"]) ### uncomment this line if running on testnet
-#        subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"]) ### comment this line out if running on testnet
+#        subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"--chain-id","16362d305df19018476052eed629bb4052903c7655a586a0e0cfbdb0eaf1bfd8"]) ### uncomment this line if running on testnet
+        subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"]) ### comment this line out if running on testnet
         time.sleep(1)
 
 
@@ -47,8 +47,8 @@ def openProducer():
 
             try:
                 print("waiting ...")
-                subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"--chain-id","16362d305df19018476052eed629bb4052903c7655a586a0e0cfbdb0eaf1bfd8"]) ### uncomment this line if running on testnet
-#                subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"]) ### comment this line out if running on testnet
+#                subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"--chain-id","16362d305df19018476052eed629bb4052903c7655a586a0e0cfbdb0eaf1bfd8"]) ### uncomment this line if running on testnet
+                subprocess.call(["screen","-dmS",wallet_name,path_to_cli_wallet,"-H",local_port,"-s",remote_ws,"]) ### comment this line out if running on testnet
                 time.sleep(1)
                 checkIfNew()
                 unlockWallet()
