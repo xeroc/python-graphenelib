@@ -51,7 +51,7 @@ def waitAndNotify():
     block = info["head_block_num"]
     age = info["head_block_age"]
     participation = info["participation"]
-    print(str(block) + "     " + str(age) + "     " + str(participation) + "      replay = " + str(replay) + "      crash = " + str(crash))
+
 
 def watch(tries):
     if float(info()) < 50:
@@ -118,8 +118,8 @@ unlockWallet()
 
 while True:
     try:
-            checkTime()
-            feed = waitAndNotify()
+            feed = checkTime()
+            waitAndNotify()
             tries = replay
             replay = watch(tries)
 ### if you are having issue try commenting out the try line (126) and everything below the except line to prevent auto restart
