@@ -13,8 +13,8 @@ except ImportError:
 """ PubKey Prefix
     Productive network: BTS
     Testnetwork: GPH """
-#prefix = "GPH"
-prefix = "BTS"
+prefix = "GPH"
+#prefix = "BTS"
 
 """ Callback on event
     This function will be triggered on a notification of the witness.
@@ -40,13 +40,16 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
             block        = operation["block_num"]
             op           = operation["op"][1]
 
+            if not "amount" in op:
+                continue
+
             # Get assets involved in Fee and Transfer
             fee_asset    = api.getObject(op["fee"]["asset_id"])
             amount_asset = api.getObject(op["amount"]["asset_id"])
 
             # Amounts for fee and transfer
-            fee_amount   =    op["fee"]["amount"] / float(10**int(fee_asset["precision"]))
-            amount_amount= op["amount"]["amount"] / float(10**int(amount_asset["precision"]))
+            fee_amount   =    float(op["fee"]["amount"]) / float(10**int(fee_asset["precision"]))
+            amount_amount= float(op["amount"]["amount"]) / float(10**int(amount_asset["precision"]))
 
             # Get accounts involved
             from_account = api.getObject(op["from"])
@@ -59,7 +62,8 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
                 pubkey  = PublicKey(memo["from"], prefix=prefix)
                 memomsg = Memo.decode_memo(privkey, pubkey, memo["nonce"], memo["message"])
             except Exception as e: # if not possible
-                memomsg = "--cannot decode-- (%s)" % str(e)
+                print("--cannot decode-- %s" % e)
+                continue
 
             # Print out
             print("last_op: %s | block:%s | from %s -> to: %s | fee: %f %s | amount: %f %s | memo: %s" % (
@@ -72,18 +76,16 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
             # Parse the memo
             pattern       = re.compile('[a-zA-Z0-9]{8}')
             searchResults = pattern.search(memomsg)
+            if not searchResults:
+                continue
             ref_code      = searchResults.group(0)
 
             # Request to Faucet
-            headers  = {'content-type': 'application/json'}
-            query = {
-               "refcode[code]"         : ref_code,
-               "refcode[account]"      : from_account["name"],
-               "refcode[asset_symbol]" : amount_asset["symbol"],
-               "refcode[asset_amount]" : amount_amount,
-            }
-            response = requests.get(faucet_url,
-                                     data=json.dumps(query),
+            headers  = {'content-type': 'text/plain'}
+            query = "refcode[code]=%s&refcode[account]=%s&refcode[asset_symbol]=%s&refcode[asset_amount]=%s" % (ref_code, from_account["name"], amount_asset["symbol"], op["amount"]["amount"])
+            print("--- query: %s" % query)
+            response = requests.post(config.faucet_url,
+                                     params=query,
                                      headers=headers)
 
 if __name__ == '__main__':
