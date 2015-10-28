@@ -32,11 +32,17 @@ def openScreens():
     print("opening witness")
     subprocess.call(["screen","-dmS","witness",config.path_to_witness_node,"-d",config.path_to_data_dir,"--replay-blockchain"])
     print("waiting..." + "replay = " + str(replay) + "                     crash = " + str(crash))
-    time.sleep(180)
-    print("opening wallet")
-    subprocess.call(["screen","-dmS","wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
-    print("waiting...")
-    time.sleep(10)
+    print("checking if witness_node is ready for communication yet")
+    result = None
+    while result == None:
+        try:
+            print("waiting ...")
+            subprocess.call(["screen","-dmS","local-wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
+            time.sleep(1)
+            result = rpc.info()
+        except:
+            time.sleep(10)
+            pass
 
 def info():
     info = rpc.info()
@@ -51,7 +57,7 @@ def waitAndNotify():
     block = info["head_block_num"]
     age = info["head_block_age"]
     participation = info["participation"]
-
+    print(str(block) + "     " + str(age) + "     " + str(participation) + "      replay = " + str(replay) + "      crash = " + str(crash))
 
 def watch(tries):
     if float(info()) < 50:

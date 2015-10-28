@@ -19,14 +19,14 @@ from producer2 import producer2
 rpc = GrapheneWebsocket("localhost", 8092, "", "")
 
 def unlockWallet():
-    if config.feed_script_active == True:
+    if config.feed_script_active == True or config.switching_active == True:
         print("unlocking wallet")
         rpc.unlock(config.wallet_password)
-        time.sleep(10)
+        time.sleep(11)
 
 def closeScreens():
     print("closing wallet")
-    subprocess.call(["screen","-S","wallet","-p","0","-X","quit"])
+    subprocess.call(["screen","-S","local-wallet","-p","0","-X","quit"])
     time.sleep(2)
     print("closing witness")
     subprocess.call(["screen","-S","witness","-p","0","-X","quit"])
@@ -38,11 +38,17 @@ def openScreens():
     print("opening witness")
     subprocess.call(["screen","-dmS","witness",config.path_to_witness_node,"-d",config.path_to_data_dir,"--replay-blockchain"])
     print("waiting..." + "replay = " + str(replay) + "                     crash = " + str(crash))
-    time.sleep(180)
-    print("opening wallet")
-    subprocess.call(["screen","-dmS","wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
-    print("waiting...")
-    time.sleep(10)
+    print("checking if witness_node is ready for communication yet")
+    result = None
+    while result == None:
+        try:
+            print("waiting ...")
+            subprocess.call(["screen","-dmS","local-wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
+            time.sleep(1)
+            result = rpc.info()
+        except:
+            time.sleep(10)
+            pass
 
 def info():
     info = rpc.info()
@@ -81,12 +87,17 @@ def resync():
     print("opening witness with --resync-blockchain.  Please CTRL C now if you do not want to wipe your data_dir")
     time.sleep(15)
     subprocess.call(["screen","-dmS","witness",config.path_to_witness_node,"-d",config.path_to_data_dir,"--resync-blockchain"])
-    print("waiting...")
-    time.sleep(600)
-    print("opening wallet")
-    subprocess.call(["screen","-dmS","wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
-    print("waiting...")
-    time.sleep(10)
+    print("checking if witness_node is ready for communication yet")
+    result = None
+    while result == None:
+        try:
+            print("waiting ...")
+            subprocess.call(["screen","-dmS","local-wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
+            time.sleep(1)
+            result = rpc.info()
+        except:
+            time.sleep(10)
+            pass
 
 ### testing running feed schedule through script
 def checkTime():
@@ -116,8 +127,12 @@ def checkTime():
 
 def compareSigningKeys():
     if producer1.getSigningKey() == producer2.getSigningKey():
+        print("node1 signing key= "+producer1.getSigningKey()+"       node1 witness participation = " + str(producer1.info()))
+        print("node2 signing key= "+producer2.getSigningKey()+"       node2 witness participation = " + str(producer2.info()))
         return True
     else:
+        print("ERROR....ERROR....ERROR....ERROR....ERROR")
+        print("signing keys are different.  You have been forked")
         return False
 
 def setRemoteKey(num):
@@ -135,7 +150,7 @@ def comparePart():
         return 0
     elif producer1.info() > producer2.info():
         return 1
-    elif producer1.info() > producer1.info():
+    elif producer2.info() > producer1.info():
         return 2
 
 def getMissed(witnessname):
@@ -145,30 +160,35 @@ def getMissed(witnessname):
 
 # add check for age of head block, and last block vs head block
 def switch(witnessname, publickeys, missed):
-    keynumber = (missed//config.strictness) % len(publickeys)
-    key = publickeys[keynumber]
-    rpc.update_witness(witnessname, "", key, "true")
-    print("updated signing key to " + key)
+    if config.switching_active == True:
+        blockAge = rpc.info()
+        blockAge = blockAge["head_block_age"]
+        blockAgeInt = int(blockAge.split()[0])
+        blockAgeString = str(blockAge.split()[1])
+        if blockAgeString == "second" or blockAgeString == "seconds":
+            if blockAgeInt < 60:
+                keynumber = (missed//config.strictness) % len(publickeys)
+                key = publickeys[keynumber]
+                rpc.update_witness(witnessname, "", key, "true")
+                print("updated signing key to " + key)
 
 feed = True
 replay = 0
 crash = 0
+producer1.closeProducer()
+producer2.closeProducer()
+producer1.openProducer()
+producer2.openProducer()
+time.sleep(2)
+#compareSigningKeys()
 closeScreens()
 openScreens()
+time.sleep(2)
 unlockWallet()
+time.sleep(2)
 witness = rpc.get_witness(config.witnessname)
 lastblock = witness["last_confirmed_block_num"]
 missed = getMissed(config.witnessname)
-try:
-    producer1.closeProducer()
-    producer1.openProducer()
-except:
-    print ("producer1 unable to open")
-try:
-    producer2.closeProducer()
-    producer2.openProducer()
-except:
-    print ("producer2 unable to open")
 
 while True:
 #    try:
@@ -183,23 +203,23 @@ while True:
             lastblock = witness["last_confirmed_block_num"]
         else:
             try:
-                if compareSigningKeys == False:
-                    setRemoteKey(comparePart())
+                if compareSigningKeys() == False:
+                    choice = comparePart()
+                    setRemoteKey(choice)
             except:
                 try:
-                    print("producer1 witness participation = " + producer1.info())
+                    part1 = producer1.info()
+                    print(part1)
                 except:
                     print("producer1 no workie")
                     producer1.closeProducer()
                     producer1.openProducer()
-                    print("producer1 witness participation = " + producer1.info())
                 try:
-                    print("producer2 witness participation = " + producer2.info())
+                    part2 = producer2.info()
+                    print(part2)
                 except:
                     producer2.closeProducer()
                     producer2.openProducer()
-                    print("producer2 witness participation = " + producer2.info())
-
 
             checkTime()
             waitAndNotify()
