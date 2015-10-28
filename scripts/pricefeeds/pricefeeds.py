@@ -34,7 +34,6 @@ import statistics
 import re
 import numpy as num
 import sys
-import config
 import threading
 import fractions
 from prettytable import PrettyTable
@@ -43,10 +42,14 @@ from pprint      import pprint
 from datetime    import datetime
 from grapheneapi import GrapheneAPI
 
+## Only import config.py if config is not defined already
+if 'config' not in globals():
+    import config
+
 ## ----------------------------------------------------------------------------
 ## When do we have to force publish?
 ## ----------------------------------------------------------------------------
-def publish_rule():
+def publish_rule(rpc):
  ##############################################################################
  # - if you haven't published a price in the past 20 minutes
  # - if REAL_PRICE < MEDIAN and YOUR_PRICE > MEDIAN publish price
@@ -60,32 +63,75 @@ def publish_rule():
  # if you haven't published a price in the past 20 minutes, and the price change more than 0.5%
  ##############################################################################
  # YOUR_PRICE = Your current published price.                    = myCurrentFeed[asset]
- # REAL_PRICE = Lowest of external feeds                         = realPrice
+ # REAL_PRICE = Lowest of external feeds                         = newPrice
  # MEDIAN = current median price according to the blockchain.    = price_median_blockchain[asset]
  ##############################################################################
+ publish = False
  for asset in asset_list_publish :
   ## Define REAL_PRICE
-  realPrice = statistics.median( price["BTS"][asset] )
+  newPrice    = price_in_bts_weighted[asset] #statistics.median( price[core_symbol][asset] )
+  priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
+
+  ## Check max price change
+  if priceChange > config.change_max :
+       if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
+                             asset,price_median_blockchain[asset],newPrice,priceChange)) :
+           return False # skip everything and return
+
   ## Rules
   if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
         print("Feeds for %s too old! Force updating!" % asset)
-        return True
-  elif realPrice     < price_median_blockchain[asset] and \
-       myCurrentFeed[asset] > price_median_blockchain[asset]:
-        print("External price move for %s: realPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
-               % (asset,realPrice,price_median_blockchain[asset],realPrice,price_median_blockchain[asset]))
-        return True
-  elif fabs(myCurrentFeed[asset]-realPrice)/realPrice > config.change_min and\
+        publish = True
+  elif newPrice     < price_median_blockchain[asset] and \
+       price_median_blockchain[asset] > price_median_blockchain[asset]:
+        print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
+               % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
+        publish = True
+  elif priceChange > config.change_min and\
        (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
         print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
-               % (asset,fabs(myCurrentFeed[asset]-realPrice), config.change_min))
-        return True
- ## default: False
- return False
+               % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
+        publish = True
+
+ return publish
 
 ## ----------------------------------------------------------------------------
 ## Fetch data
 ## ----------------------------------------------------------------------------
+def fetch_from_btcIndonesia():
+  global price, volume
+  availableAssets = [ core_symbol ]
+  for coin in availableAssets :
+   try :
+    url="https://vip.bitcoin.co.id/api/%s_btc/ticker" % coin.lower()
+    response = requests.get(url=url, headers=_request_headers, timeout=3 )
+    result = response.json()["ticker"]
+    if float(result["last"]) > config.minValidAssetPriceInBTC:
+     price["BTC"][ coin ].append(float(result["last"]))
+     volume["BTC"][ coin ].append(float(result["vol_bts"])*config.btcid_trust_level)
+   except Exception as e:
+    print("\nError fetching results from btcIndonesia! ({0})\n".format(str(e)))
+    if config.btcid_trust_level > 0.8:
+     sys.exit("\nExiting due to exchange importance!\n")
+    return
+
+def fetch_from_ccedk():
+  global price, volume
+  try:
+   url="https://www.ccedk.com/api/v1/stats/marketdepth?pair_id=50"
+   response = requests.get(url=url, headers=_request_headers, timeout=3 )
+   result = response.json()["response"]["entity"]
+   availableAssets = [ core_symbol ]
+  except Exception as e:
+   print("\nError fetching results from ccedk! ({0})\n".format(str(e)))
+   if config.ccedk_trust_level > 0.8:
+    sys.exit("\nExiting due to exchange importance!\n")
+   return
+  for coin in availableAssets :
+   if float(result["avg"]) > config.minValidAssetPriceInBTC:
+    price["BTC"][ coin ].append(float(result["avg"]))
+    volume["BTC"][ coin ].append(float(result["vol"])*config.ccedk_trust_level)
+
 def fetch_from_yunbi():
   global price, volume
   try :
@@ -119,7 +165,7 @@ def fetch_from_btc38():
   url="http://api.btc38.com/v1/ticker.php"
   availableAssets = [ core_symbol ]
   try :
-   params = { 'c': 'all', 'mk_type': 'btc' }
+   params = { 'c': 'bts', 'mk_type': 'btc' }
    response = requests.get(url=url, params=params, headers=_request_headers, timeout=3 )
    result = response.json()
   except Exception as e:
@@ -131,7 +177,7 @@ def fetch_from_btc38():
   for coin in availableAssets :
    if "ticker" in result[coin.lower()] and result[coin.lower()]["ticker"] and float(result[coin.lower()]["ticker"]["last"])>config.minValidAssetPriceInBTC:
     price["BTC"][ coin ].append(float(result[coin.lower()]["ticker"]["last"]))
-    volume["BTC"][ coin ].append(float(result[coin.lower()]["ticker"]["vol"]*result[coin.lower()]["ticker"]["last"])*config.btc38_trust_level)
+    volume["BTC"][ coin ].append(float(result[coin.lower()]["ticker"]["vol"]/result[coin.lower()]["ticker"]["last"])*config.btc38_trust_level)
 
   availableAssets = [ core_symbol, "BTC" ]
   try :
@@ -436,51 +482,9 @@ def bts_yahoo_map(asset) :
   return asset
 
 ## ----------------------------------------------------------------------------
-## Run Script
+## Startup method
 ## ----------------------------------------------------------------------------
-if __name__ == "__main__":
- core_symbol = "BTS"
- _all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "RUB", "SEK", "NZD",
-                   "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-                   "KRW" ] # , "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI"
- _bases =["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
- _yahoo_base  = ["USD","EUR","CNY","JPY","HKD"]
- _yahoo_quote = ["XAG", "XAU", "TRY", "SGD", "HKD", "RUB", "SEK", "NZD", "CNY",
-                 "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"]
- _yahoo_indices = {
- #                    "399106.SZ" : core_symbol,  #"CNY",  # SHENZHEN
- #                    "^HSI"      : core_symbol,  #"HKD",  # HANGSENG
- #                    "^IXIC"     : core_symbol,  #"USD",  # NASDAQC
- #                    "^N225"     : core_symbol   #"JPY"   # NIKKEI
-                 }
- _bts_yahoo_map = {
-      "XAU"       : "GOLD",
-      "XAG"       : "SILVER",
-      "399106.SZ" : "SHENZHEN",
-      "000001.SS" : "SHANGHAI",
-      "^HSI"      : "HANGSENG",
-      "^IXIC"     : "NASDAQC",
-      "^N225"     : "NIKKEI"
- }
- _request_headers = {'content-type': 'application/json',
-                     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
- ## Call Parameters ###########################################################
- asset_list_publish = _all_bts_assets
- if len( sys.argv ) > 1 :
-  if sys.argv[1] != "ALL":
-   asset_list_publish = sys.argv
-   asset_list_publish.pop(0)
-
- ## Initialization
- myWitness               = {}
- price_in_bts_weighted   = {}
- price_median_blockchain = {}
- assets                  = {}
- price                   = {}
- volume                  = {}
- lastUpdate              = {}
- myCurrentFeed           = {}
-
+def update_price_feed() :
  for base in _bases  + [core_symbol]:
   price[base]            = {}
   volume[base]           = {}
@@ -501,6 +505,9 @@ if __name__ == "__main__":
  ## Get prices and stats ######################################################
  mythreads = {}
  mythreads["yahoo"]    = threading.Thread(target = fetch_from_yahoo)
+
+ if config.enable_btcid    :  mythreads["btcid"]    = threading.Thread(target = fetch_from_btcIndonesia)
+ if config.enable_ccedk    :  mythreads["ccedk"]    = threading.Thread(target = fetch_from_ccedk)
  if config.enable_yunbi    :  mythreads["yunbi"]    = threading.Thread(target = fetch_from_yunbi)
  if config.enable_btc38    :  mythreads["btc38"]    = threading.Thread(target = fetch_from_btc38)
  if config.enable_bter     :  mythreads["bter"]     = threading.Thread(target = fetch_from_bter)
@@ -567,7 +574,7 @@ if __name__ == "__main__":
 
  ## Check publish rules and publich feeds #####################################
  publish = False
- if publish_rule() :
+ if publish_rule(rpc) :
 
   if config.ask_confirmation :
    if rpc._confirm("Are you SURE you would like to publish this feed?") :
@@ -580,3 +587,51 @@ if __name__ == "__main__":
    update_feed(rpc,price_feeds)
  else :
   print("no update required")
+
+## ----------------------------------------------------------------------------
+## Initialize global variables
+## ----------------------------------------------------------------------------
+core_symbol = "BTS"
+_all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
+               "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
+               "KRW" ] # , "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
+_bases =["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
+_yahoo_base  = ["USD","EUR","CNY","JPY","HKD"]
+_yahoo_quote = ["XAG", "XAU", "TRY", "SGD", "HKD", "NZD", "CNY",
+             "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"] # , "RUB", "SEK"
+_yahoo_indices = {
+#                    "399106.SZ" : core_symbol,  #"CNY",  # SHENZHEN
+#                    "^HSI"      : core_symbol,  #"HKD",  # HANGSENG
+#                    "^IXIC"     : core_symbol,  #"USD",  # NASDAQC
+#                    "^N225"     : core_symbol   #"JPY"   # NIKKEI
+             }
+_bts_yahoo_map = {
+  "XAU"       : "GOLD",
+  "XAG"       : "SILVER",
+  "399106.SZ" : "SHENZHEN",
+  "000001.SS" : "SHANGHAI",
+  "^HSI"      : "HANGSENG",
+  "^IXIC"     : "NASDAQC",
+  "^N225"     : "NIKKEI"
+}
+_request_headers = {'content-type': 'application/json',
+                 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
+## Call Parameters ###########################################################
+asset_list_publish = _all_bts_assets
+if len( sys.argv ) > 1 :
+ if sys.argv[1] != "ALL":
+  asset_list_publish = sys.argv
+  asset_list_publish.pop(0)
+
+## Initialization
+myWitness               = {}
+price_in_bts_weighted   = {}
+price_median_blockchain = {}
+assets                  = {}
+price                   = {}
+volume                  = {}
+lastUpdate              = {}
+myCurrentFeed           = {}
+
+if __name__ == "__main__":
+ update_price_feed()
