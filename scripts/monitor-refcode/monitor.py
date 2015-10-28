@@ -74,15 +74,21 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
                       memomsg))
 
             # Parse the memo
-            pattern       = re.compile('[a-zA-Z0-9]{8}')
+            pattern       = re.compile('[A-Z0-9]{3}-[A-Z0-9-]{8}')
             searchResults = pattern.search(memomsg)
             if not searchResults:
                 continue
             ref_code      = searchResults.group(0)
 
+            email = ""    
+            pattern       = re.compile('[a-z0-9][-a-z0-9_\+\.]*[a-z0-9]\@.+\.[a-z]+')
+            searchResults = pattern.search(memomsg.lower())
+            if searchResults:
+                email      = searchResults.group(0)
+
             # Request to Faucet
             headers  = {'content-type': 'text/plain'}
-            query = "refcode[code]=%s&refcode[account]=%s&refcode[asset_symbol]=%s&refcode[asset_amount]=%s" % (ref_code, from_account["name"], amount_asset["symbol"], op["amount"]["amount"])
+            query = "refcode[code]=%s&refcode[account]=%s&refcode[asset_symbol]=%s&refcode[asset_amount]=%s&refcode[send_to]=%s" % (ref_code, from_account["name"], amount_asset["symbol"], op["amount"]["amount"], email)
             print("--- query: %s" % query)
             response = requests.post(config.faucet_url,
                                      params=query,
