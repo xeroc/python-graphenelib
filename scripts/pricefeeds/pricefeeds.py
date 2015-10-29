@@ -108,7 +108,7 @@ def fetch_from_btcIndonesia():
     result = response.json()["ticker"]
     if float(result["last"]) > config.minValidAssetPriceInBTC:
      price["BTC"][ coin ].append(float(result["last"]))
-     volume["BTC"][ coin ].append(float(result["vol_bts"])*config.btcid_trust_level)
+     volume["BTC"][ coin ].append(float(result["vol_"+coin.lower()])*config.btcid_trust_level)
    except Exception as e:
     print("\nError fetching results from btcIndonesia! ({0})\n".format(str(e)))
     if config.btcid_trust_level > 0.8:
@@ -233,7 +233,7 @@ def fetch_from_poloniex():
   for coin in availableAssets :
    if float(result["BTC_"+coin]["last"]) > config.minValidAssetPriceInBTC:
     price["BTC"][ coin ].append(float(result["BTC_"+coin]["last"]))
-    volume["BTC"][ coin ].append(float(result["BTC_"+coin]["baseVolume"])*config.poloniex_trust_level)
+    volume["BTC"][ coin ].append(float(result["BTC_"+coin]["quoteVolume"])*config.poloniex_trust_level)
 
 def fetch_from_bittrex():
   availableAssets = [ "BTSX" ]
@@ -392,7 +392,7 @@ def derive_prices():
    if base == quote : continue
    for idx in range(0, len(price[base][quote])) :
      price[quote][base].append( (float(1/price[base][quote][idx] )))
-     #volume[quote][base].append((float(1/volume[base][quote][idx])))
+     volume[quote][base].append((float(1/volume[base][quote][idx])))
 
  # derive BTS prices for all _base assets
  for base in _bases :
@@ -401,34 +401,35 @@ def derive_prices():
    for ratio in price[base][quote] :
     for idx in range(0, len(price[base]["BTS"])) :
      price[quote]["BTS"].append( (float(price[base]["BTS"][idx] /ratio)))
-     #volume[quote]["BTS"].append((float(volume[base]["BTS"][idx]/ratio)))
+     volume[quote]["BTS"].append((float(volume[base]["BTS"][idx]/ratio)))
 
  for base in _bases :
   for quote in asset_list_publish :
    for ratio in price[ base ][ quote ] :
     for idx in range(0, len(price[base]["BTS"])) :
      price["BTS"][quote].append( (float(price[base]["BTS"][idx] /ratio)))
-     #volume["BTS"][quote].append((float(volume[base]["BTS"][idx]/ratio)))
+     volume["BTS"][quote].append((float(volume[base]["BTS"][idx]/ratio)))
 
+ # Derive Final Price according to price metric
  for asset in asset_list_publish :
-  ### Median
-  try :
+  if config.price_metric == "median" :
    price_in_bts_weighted[asset] = statistics.median(price[core_symbol][asset])
-  except Exception as e:
-   print("Error in asset %s: %s" %(asset, str(e)))
 
-  ### Mean
-  #price_in_bts_weighted[asset] = statistics.mean(price[core_symbol][asset])
+  elif config.price_metric == "mean" :
+   price_in_bts_weighted[asset] = statistics.mean(price[core_symbol][asset])
 
-  ### Weighted Mean
-  #assetvolume= [v for v in  volume[core_symbol][asset] ]
-  #assetprice = [p for p in  price[core_symbol][asset]  ]
-  #if len(assetvolume) > 1 :
-  # price_in_bts_weighted[asset] = num.average(assetprice, weights=assetvolume)
-  #else :
-  # price_in_bts_weighted[asset] = assetprice[0]
+  elif config.price_metric == "weighted" :
+   assetvolume= [v for v in  volume[core_symbol][asset] ]
+   assetprice = [p for p in  price[core_symbol][asset]  ]
+   if len(assetvolume) > 1 :
+    price_in_bts_weighted[asset] = num.average(assetprice, weights=assetvolume)
+   else :
+    price_in_bts_weighted[asset] = assetprice[0]
 
-  ### Discount
+  else :
+   raise Exception("Configuration error, 'price_metric' has to be out of [ 'median', 'mean', 'weighted]")
+
+  # Discount for shorts if any
   price_in_bts_weighted[asset] = price_in_bts_weighted[asset] * config.discount
 
 ## ----------------------------------------------------------------------------

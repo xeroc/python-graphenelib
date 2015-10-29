@@ -24,6 +24,7 @@ maintenance_collateral_ratio = 1750   # Call when collateral only pays off 175% 
 maximum_short_squeeze_ratio  = 1100   # Stop calling when collateral only pays off 110% of the debt
 minValidAssetPriceInBTC      = 0.00001# minimum valid price for BTS in BTC
 
+price_metric                 = "weighted" # "median", "mean", or "weighted" (by volume)
 change_min                   = 0.5    # Percentage of price change to force an update
 change_max                   = 5.0    # Percentage of price change to cause a warning
 
