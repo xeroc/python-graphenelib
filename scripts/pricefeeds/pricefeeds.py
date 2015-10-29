@@ -117,20 +117,27 @@ def fetch_from_btcIndonesia():
 
 def fetch_from_ccedk():
   global price, volume
-  try:
-   url="https://www.ccedk.com/api/v1/stats/marketdepth?pair_id=50"
-   response = requests.get(url=url, headers=_request_headers, timeout=3 )
-   result = response.json()["response"]["entity"]
-   availableAssets = [ core_symbol ]
-  except Exception as e:
-   print("\nError fetching results from ccedk! ({0})\n".format(str(e)))
-   if config.ccedk_trust_level > 0.8:
-    sys.exit("\nExiting due to exchange importance!\n")
-   return
-  for coin in availableAssets :
+  bts_markets = {
+                  "CNY":123,
+                  "USD":55,
+                  "BTC":50,
+                  "EUR":54,
+                }
+  for market in bts_markets : 
+   pair_id = bts_markets[market]
+   try :
+    url="https://www.ccedk.com/api/v1/stats/marketdepth?pair_id=%d" % pair_id
+    response = requests.get(url=url, headers=_request_headers, timeout=3 )
+    result = response.json()["response"]["entity"]
+    availableAssets = [ core_symbol ]
+   except Exception as e:
+    print("\nError fetching results from ccedk! ({0})\n".format(str(e)))
+    if config.ccedk_trust_level > 0.8:
+     sys.exit("\nExiting due to exchange importance!\n")
+    return
    if float(result["avg"]) > config.minValidAssetPriceInBTC:
-    price["BTC"][ coin ].append(float(result["avg"]))
-    volume["BTC"][ coin ].append(float(result["vol"])*config.ccedk_trust_level)
+    price[market][ core_symbol ].append(float(result["avg"]))
+    volume[market][ core_symbol ].append(float(result["vol"])*config.ccedk_trust_level)
 
 def fetch_from_yunbi():
   global price, volume

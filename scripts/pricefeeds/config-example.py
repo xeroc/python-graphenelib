@@ -30,8 +30,8 @@ change_max                   = 5.0    # Percentage of price change to cause a wa
 
 ## Enable exchanges
 enable_yunbi             = False # currently halted
-enable_btc38             = False # not yet trading bts2
-enable_bter              = False
+enable_bter              = False # No BTS2
+enable_btc38             = True
 enable_poloniex          = True
 enable_bittrex           = True
 enable_btcavg            = True
@@ -40,10 +40,11 @@ enable_btcid             = True
 
 ## trust level for exchanges (if an exception happens and level is 0.8 script
 ##                            will quit with a failure)
-btc38_trust_level        = 0.9
-bter_trust_level         = 0.5
 poloniex_trust_level     = 1.0
-bittrex_trust_level      = 0.5
-yunbi_trust_level        = 0.8
-ccedk_trust_level        = 1.0
-btcid_trust_level        = 1.0
+bittrex_trust_level      = 0.1
+ccedk_trust_level        = 0.1
+btcid_trust_level        = 0.5
+btc38_trust_level        = 0.5
+# disabled!
+yunbi_trust_level        = 0.0
+bter_trust_level         = 0.0
