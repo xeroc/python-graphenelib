@@ -126,7 +126,7 @@ def fetch_from_ccedk():
   for market in bts_markets : 
    pair_id = bts_markets[market]
    try :
-    url="https://www.ccedk.com/api/v1/stats/marketdepth?pair_id=%d" % pair_id
+    url="https://www.ccedk.com/api/v1/stats/marketdepthfull?pair_id=%d" % pair_id
     response = requests.get(url=url, headers=_request_headers, timeout=3 )
     result = response.json()["response"]["entity"]
     availableAssets = [ core_symbol ]
@@ -136,7 +136,7 @@ def fetch_from_ccedk():
      sys.exit("\nExiting due to exchange importance!\n")
     return
    if float(result["avg"]) > config.minValidAssetPriceInBTC:
-    price[market][ core_symbol ].append(float(result["avg"]))
+    price[market][ core_symbol ].append(float(result["last_price"]))
     volume[market][ core_symbol ].append(float(result["vol"])*config.ccedk_trust_level)
 
 def fetch_from_yunbi():
