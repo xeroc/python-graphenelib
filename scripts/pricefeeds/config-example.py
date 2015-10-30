@@ -29,22 +29,22 @@ change_min                   = 0.5    # Percentage of price change to force an u
 change_max                   = 5.0    # Percentage of price change to cause a warning
 
 ## Enable exchanges
-enable_yunbi             = False # currently halted
+enable_btcavg            = True  # used to get BTC/* prices
 enable_bter              = False # No BTS2
-enable_btc38             = True
+enable_btc38             = False # No official statement for BTS2 yet
+enable_btcid             = False # No official statement for BTS2 yet
+enable_yunbi             = True
 enable_poloniex          = True
 enable_bittrex           = True
-enable_btcavg            = True
 enable_ccedk             = True
-enable_btcid             = True
 
 ## trust level for exchanges (if an exception happens and level is 0.8 script
 ##                            will quit with a failure)
-poloniex_trust_level     = 1.0
-bittrex_trust_level      = 0.1
-ccedk_trust_level        = 0.1
-btcid_trust_level        = 0.5
-btc38_trust_level        = 0.5
-# disabled!
-yunbi_trust_level        = 0.0
-bter_trust_level         = 0.0
+poloniex_trust_level     = 1.0 # trades BTS2
+ccedk_trust_level        = 1.0 # trades BTS2
+bittrex_trust_level      = 0.5 # is currently migrating
+yunbi_trust_level        = 0.5 # is currently migrating
+
+btc38_trust_level        = 0.0 # disabled!
+btcid_trust_level        = 0.0 # disabled!
+bter_trust_level         = 0.0 # disabled!
