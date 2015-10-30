@@ -297,7 +297,7 @@ def fetch_from_yahoo():
 def fetch_bitcoinaverage():
    global price, volume
    url="https://api.bitcoinaverage.com/ticker/"
-   availableAssets = [ "USD", "EUR" ]
+   availableAssets = [ "USD", "EUR", "CNY" ]
    for coin in availableAssets :
     response = requests.get(url=url+coin, headers=_request_headers, timeout=3)
     result = response.json()
