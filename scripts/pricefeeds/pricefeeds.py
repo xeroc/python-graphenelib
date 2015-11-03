@@ -70,7 +70,7 @@ def publish_rule(rpc):
  for asset in asset_list_publish :
   ## Define REAL_PRICE
   newPrice    = price_in_bts_weighted[asset] #statistics.median( price[core_symbol][asset] )
-  priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
+  priceChange = fabs(myCurrentFeed[asset]-newPrice)/myCurrentFeed[asset] * 100.0
 
   ## Check max price change
   if priceChange > config.change_max :
@@ -83,14 +83,14 @@ def publish_rule(rpc):
         print("Feeds for %s too old! Force updating!" % asset)
         publish = True
   elif newPrice     < price_median_blockchain[asset] and \
-       price_median_blockchain[asset] > price_median_blockchain[asset]:
-        print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
-               % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
+       myCurrentFeed[asset] > price_median_blockchain[asset]:
+        print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and myfeedprice(%.8f) > feedmedian(%f) Force updating!"\
+               % (asset,newPrice,price_median_blockchain[asset],myCurrentFeed[asset],price_median_blockchain[asset]))
         publish = True
   elif priceChange > config.change_min and\
-       (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
-        print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
-               % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
+       (datetime.utcnow()-lastUpdate[asset]).total_seconds() > 20*60:
+        print("New Feeds differs too much for %s %.3f%% > %.3f%%! Force updating!" \
+               % (asset,priceChange, config.change_min))
         publish = True
 
  return publish
@@ -123,7 +123,7 @@ def fetch_from_ccedk():
                   "BTC":50,
                   "EUR":54,
                 }
-  for market in bts_markets : 
+  for market in bts_markets :
    pair_id = bts_markets[market]
    try :
     url="https://www.ccedk.com/api/v1/stats/marketdepthfull?pair_id=%d" % pair_id
@@ -371,7 +371,7 @@ def update_feed(rpc, feeds):
  handle = rpc.begin_builder_transaction();
  for feed in feeds :
   # id 19 corresponds to price feed update operation
-  rpc.add_operation_to_builder_transaction(handle, 
+  rpc.add_operation_to_builder_transaction(handle,
         [19, {
                 "asset_id"  : feed[0],
                 "feed"      : feed[1],
