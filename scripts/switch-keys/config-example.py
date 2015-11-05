@@ -7,7 +7,6 @@
 # the name of your witness as string
 witnessname = "test.dele-puppy"
 
-# witness number
 witness_object = "1.6.13"
 # the password of your wallet as string
 wallet_password = "puppiesRkewl" # not really my password.  Just left in so people can see how it should look.

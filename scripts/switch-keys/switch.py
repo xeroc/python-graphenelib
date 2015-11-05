@@ -14,7 +14,7 @@ from producer1 import producer1
 from producer2 import producer2
 
 
-#  (note to self I would like to add a check if the current block age is greater than or less than a minute to participation check.  If head_block_age is greater than 1 min, it is possible it is syncing the blockchain, and we should wait 15 or so seconds, do a second check and then resplay if needed.)
+#
 #
 #
 rpc = GrapheneWebsocket("localhost", 8092, "", "")
@@ -22,8 +22,9 @@ rpc = GrapheneWebsocket("localhost", 8092, "", "")
 def unlockWallet():
     if config.feed_script_active == True or config.switching_active == True:
         print("unlocking wallet")
+        time.sleep(5)
         rpc.unlock(config.wallet_password)
-        time.sleep(11)
+        time.sleep(1)
 
 def closeScreens():
     print("closing wallet")
@@ -68,20 +69,30 @@ def waitAndNotify():
 
 def watch(tries):
     if float(info()) < 50:
-        if tries > 2:
-            closeScreens()
-            resync()
-            unlockWallet()
-            tries = 0
-            return tries
+        blockAge = rpc.info()
+        blockAge = blockAge["head_block_age"]
+        blockAgeInt = int(blockAge.split()[0])
+        blockAgeString = str(blockAge.split()[1])
+        if blockAgeString == "second" or blockAgeString == "seconds":
+            if blockAgeInt < 60:
+                if tries > 2:
+                    closeScreens()
+                    resync()
+                    unlockWallet()
+                    tries = 0
+                    return tries
+                else:
+                    closeScreens()
+                    openScreens()
+                    unlockWallet()
+                    tries += 1
+                    return tries
+            else:
+                return tries
         else:
-            closeScreens()
-            openScreens()
-            unlockWallet()
-            tries += 1
             return tries
     else:
-        return 0
+        return tries
 
 def resync():
     print("--replay failed.  --resync underway")
