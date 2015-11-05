@@ -101,6 +101,7 @@ def resync():
     subprocess.call(["screen","-dmS","witness",config.path_to_witness_node,"-d",config.path_to_data_dir,"--resync-blockchain"])
     print("checking if witness_node is ready for communication yet")
     result = None
+    time.sleep(60)
     while result == None:
         try:
             print("waiting ...")
@@ -170,7 +171,12 @@ def getMissed(witnessname):
     missed = witness["total_missed"]
     return missed
 
-# add check for age of head block, and last block vs head block
+# checks that witness is not currently scheduled for one of last 5 shuffle slots.
+# and that last block age is less than 60 seconds to prevent switching when resyncing.
+# then switches keys.  Key selected is determined by total blocks missed so that two nodes
+# running the script will not fight over the correct key.
+# it is possible this will lead to missing another block if for example the key doesn't switch due to the first
+# missed block being within the last 5 slots of a shuffle.
 def switch(witnessname, publickeys, missed):
     shuffle = rpc.get_object("2.12.0")
     shuffle = shuffle["current_shuffled_witnesses"]
