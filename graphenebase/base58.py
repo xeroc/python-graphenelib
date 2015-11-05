@@ -37,7 +37,9 @@ class Base58(object) :
         elif _format.lower() == "btc":
             return base58CheckEncode(0x00, self._hex)
         elif _format.lower() == "bts" :
-            return _format + str(self)
+            return _format.upper() + str(self)
+        elif _format.lower() == "muse" :
+            return _format.upper() + str(self)
         else :
             raise Exception("Format %s unkown." %_format)
     """
