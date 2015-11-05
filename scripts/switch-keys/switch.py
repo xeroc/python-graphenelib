@@ -14,8 +14,9 @@ from producer1 import producer1
 from producer2 import producer2
 
 
-
-
+#  (note to self I would like to add a check if the current block age is greater than or less than a minute to participation check.  If head_block_age is greater than 1 min, it is possible it is syncing the blockchain, and we should wait 15 or so seconds, do a second check and then resplay if needed.)
+#
+#
 rpc = GrapheneWebsocket("localhost", 8092, "", "")
 
 def unlockWallet():
@@ -58,7 +59,7 @@ def info():
     return part
 
 def waitAndNotify():
-    time.sleep(3)
+    time.sleep(1)
     info = rpc.info()
     block = info["head_block_num"]
     age = info["head_block_age"]
@@ -160,7 +161,16 @@ def getMissed(witnessname):
 
 # add check for age of head block, and last block vs head block
 def switch(witnessname, publickeys, missed):
-    if config.switching_active == True:
+    shuffle = rpc.get_object("2.12.0")
+    shuffle = shuffle["current_shuffled_witnesses"]
+    witness1 = shuffle[len(shuffle) -1]
+    witness2 = shuffle[len(shuffle) -2]
+    witness3 = shuffle[len(shuffle) -3]
+    witness4 = shuffle[len(shuffle) -4]
+    witness5 = shuffle[len(shuffle) -5]
+    if config.witness_object == witness1 or config.witness_object == witness2 or config.witness_object == witness3 or config.witness_object == witness4 or config.witness_object == witness5:
+        return
+    elif config.switching_active == True:
         blockAge = rpc.info()
         blockAge = blockAge["head_block_age"]
         blockAgeInt = int(blockAge.split()[0])
@@ -171,6 +181,7 @@ def switch(witnessname, publickeys, missed):
                 key = publickeys[keynumber]
                 rpc.update_witness(witnessname, "", key, "true")
                 print("updated signing key to " + key)
+                time.sleep(3)
 
 feed = True
 replay = 0
