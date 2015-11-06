@@ -8,16 +8,27 @@ import time
 import config
 import subprocess
 from time import gmtime, strftime
+from producer1 import producer1
 
 
+from producer2 import producer2
+
+
+#
+#
+#
 rpc = GrapheneWebsocket("localhost", 8092, "", "")
 
-
+def unlockWallet():
+    if config.feed_script_active == True or config.switching_active == True:
+        print("unlocking wallet")
+        time.sleep(5)
+        rpc.unlock(config.wallet_password)
+        time.sleep(1)
 
 def closeScreens():
     print("closing wallet")
-    time.sleep(15) #adding this to give some time to ctrl-c before --resync if desired
-    subprocess.call(["screen","-S","wallet","-p","0","-X","quit"])
+    subprocess.call(["screen","-S","local-wallet","-p","0","-X","quit"])
     time.sleep(2)
     print("closing witness")
     subprocess.call(["screen","-S","witness","-p","0","-X","quit"])
@@ -29,11 +40,17 @@ def openScreens():
     print("opening witness")
     subprocess.call(["screen","-dmS","witness",config.path_to_witness_node,"-d",config.path_to_data_dir,"--replay-blockchain"])
     print("waiting..." + "replay = " + str(replay) + "                     crash = " + str(crash))
-    time.sleep(180)
-    print("opening wallet")
-    subprocess.call(["screen","-dmS","wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
-    print("waiting...")
-    time.sleep(10)
+    print("checking if witness_node is ready for communication yet")
+    result = None
+    while result == None:
+        try:
+            print("waiting ...")
+            subprocess.call(["screen","-dmS","local-wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
+            time.sleep(1)
+            result = rpc.info()
+        except:
+            time.sleep(10)
+            pass
 
 def info():
     info = rpc.info()
@@ -42,20 +59,8 @@ def info():
     age = info["head_block_age"]
     return part
 
-def getMissed(witnessname):
-    witness = rpc.get_witness(witnessname)
-    missed = witness["total_missed"]
-    return missed
-
-# add check for age of head block, and last block vs head block
-def switch(witnessname, publickeys, missed):
-    keynumber = (missed//config.strictness) % len(publickeys)
-    key = publickeys[keynumber]
-    rpc.update_witness(witnessname, "", key, "true")
-    print("updated signing key to " + key)
-
 def waitAndNotify():
-    time.sleep(3)
+    time.sleep(1)
     info = rpc.info()
     block = info["head_block_num"]
     age = info["head_block_age"]
@@ -64,63 +69,154 @@ def waitAndNotify():
 
 def watch(tries):
     if float(info()) < 50:
-        if tries > 2:
-            closeScreens()
-            resync()
-            print("unlocking wallet")
-            rpc.unlock(config.wallet_password)
-            print("wallet unlocked")
-            time.sleep(30)
-            tries = 0
-            return tries
-
+        blockAge = rpc.info()
+        blockAge = blockAge["head_block_age"]
+        blockAgeInt = int(blockAge.split()[0])
+        blockAgeString = str(blockAge.split()[1])
+        if blockAgeString == "second" or blockAgeString == "seconds":
+            if blockAgeInt < 60:
+                if tries > 2:
+                    closeScreens()
+                    resync()
+                    unlockWallet()
+                    tries = 0
+                    return tries
+                else:
+                    closeScreens()
+                    openScreens()
+                    unlockWallet()
+                    tries += 1
+                    return tries
+            else:
+                return tries
         else:
-            closeScreens()
-            openScreens()
-            print("unlocking wallet")
-            rpc.unlock(config.wallet_password)
-            print("wallet unlocked")
-            time.sleep(30)
-            tries += 1
             return tries
     else:
-        return 0
+        return tries
 
 def resync():
     print("--replay failed.  --resync underway")
-    print("opening witness")
+    print("opening witness with --resync-blockchain.  Please CTRL C now if you do not want to wipe your data_dir")
+    time.sleep(15)
     subprocess.call(["screen","-dmS","witness",config.path_to_witness_node,"-d",config.path_to_data_dir,"--resync-blockchain"])
-    print("waiting...")
-    time.sleep(300)
-    print("opening wallet")
-    subprocess.call(["screen","-dmS","wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
-    print("waiting...")
-    time.sleep(10)
+    print("checking if witness_node is ready for communication yet")
+    result = None
+    time.sleep(60)
+    while result == None:
+        try:
+            print("waiting ...")
+            subprocess.call(["screen","-dmS","local-wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
+            time.sleep(1)
+            result = rpc.info()
+        except:
+            time.sleep(10)
+            pass
 
 ### testing running feed schedule through script
 def checkTime():
-    minute = strftime("%M", gmtime())
-    minute = int(minute)
-    if minute % 60 == config.feed_script_time:
-        subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
-        subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed])
-        time.sleep(60)
+    if config.feed_script_active == True:
+        if feed == True:
+            minute = strftime("%M", gmtime())
+            minute = int(minute)
+            trigger = config.feed_script_trigger
+            interval = config.feed_script_interval
+            if minute % interval == trigger:
+                subprocess.call(["screen","-S","feed","-p","0","-X","quit"])
+                subprocess.call(["screen","-dmS","feed","python3",config.path_to_feed_script])
+                time.sleep(60)
+                return False
+            else:
+                return True
+        else:
+            minute = strftime("%M", gmtime())
+            minute = int(minute)
+            trigger = config.feed_script_trigger
+            interval = config.feed_script_interval
+            if minute % interval == trigger:
+                return False
+            else:
+                return True
 
 
+def compareSigningKeys():
+    if producer1.getSigningKey() == producer2.getSigningKey():
+        print("node1 signing key= "+producer1.getSigningKey()+"       node1 witness participation = " + str(producer1.info()))
+        print("node2 signing key= "+producer2.getSigningKey()+"       node2 witness participation = " + str(producer2.info()))
+        return True
+    else:
+        print("ERROR....ERROR....ERROR....ERROR....ERROR")
+        print("signing keys are different.  You have been forked")
+        return False
 
-recentmissed = 0
-emergency = False
+def setRemoteKey(num):
+    if num == 0:
+        return
+    elif num == 1:
+        signingKey = producer1.getSigningKey()
+        producer2.setSigningKey(signingKey)
+    elif num == 2:
+        signingKey = producer2.getSigningKey()
+        producer1.setSigningKey(signingKey)
+
+def comparePart():
+    if producer1.info() == producer2.info():
+        return 0
+    elif producer1.info() > producer2.info():
+        return 1
+    elif producer2.info() > producer1.info():
+        return 2
+
+def getMissed(witnessname):
+    witness = rpc.get_witness(witnessname)
+    missed = witness["total_missed"]
+    return missed
+
+# checks that witness is not currently scheduled for one of last 5 shuffle slots.
+# and that last block age is less than 60 seconds to prevent switching when resyncing.
+# then switches keys.  Key selected is determined by total blocks missed so that two nodes
+# running the script will not fight over the correct key.
+# it is possible this will lead to missing another block if for example the key doesn't switch due to the first
+# missed block being within the last 5 slots of a shuffle.
+def switch(witnessname, publickeys, missed):
+    shuffle = rpc.get_object("2.12.0")
+    shuffle = shuffle["current_shuffled_witnesses"]
+    witness1 = shuffle[len(shuffle) -1]
+    witness2 = shuffle[len(shuffle) -2]
+    witness3 = shuffle[len(shuffle) -3]
+    witness4 = shuffle[len(shuffle) -4]
+    witness5 = shuffle[len(shuffle) -5]
+    if config.witness_object == witness1 or config.witness_object == witness2 or config.witness_object == witness3 or config.witness_object == witness4 or config.witness_object == witness5:
+        return
+    elif config.switching_active == True:
+        blockAge = rpc.info()
+        blockAge = blockAge["head_block_age"]
+        blockAgeInt = int(blockAge.split()[0])
+        blockAgeString = str(blockAge.split()[1])
+        if blockAgeString == "second" or blockAgeString == "seconds":
+            if blockAgeInt < 60:
+                keynumber = (missed//config.strictness) % len(publickeys)
+                key = publickeys[keynumber]
+                rpc.update_witness(witnessname, "", key, "true")
+                print("updated signing key to " + key)
+                time.sleep(3)
+
+feed = True
 replay = 0
 crash = 0
-lastHour = 0
+producer1.closeProducer()
+producer2.closeProducer()
+producer1.openProducer()
+producer2.openProducer()
+time.sleep(2)
+#compareSigningKeys()
 closeScreens()
 openScreens()
-print("unlocking wallet")
-rpc.unlock(config.wallet_password)
-
-missed = getMissed(config.witnessname)
+time.sleep(2)
+unlockWallet()
+time.sleep(2)
 witness = rpc.get_witness(config.witnessname)
 lastblock = witness["last_confirmed_block_num"]
+missed = getMissed(config.witnessname)
 
 while True:
     try:
@@ -128,109 +224,85 @@ while True:
         if lastblock < witness["last_confirmed_block_num"]:
             lastblock = witness["last_confirmed_block_num"]
             print(config.witnessname + " generated block num " + str(lastblock))
-            recentmissed = 0
-        elif config.emergencykeys != 0:
-            if emergency == True:
-                witness = rpc.get_witness(config.witnessname)
-                if missed <= getMissed(config.witnessname) - config.strictness:
-                    missed = getMissed(config.witnessname)
-                    switch(config.witnessname, config.emergencykeys, missed)
-                    recentmissed +=1
-                    lastblock = witness["last_confirmed_block_num"]
-                    print("EMERGENCY!!! total missed = " + str(missed) + " recent missed = " + str(recentmissed))
-                elif emergencyblock < block - 600:
-                    emergency = False
-                    switch(config.witnessname, config.publickeys, missed)
-                    recentmissed = 0
-                    print("attempting to switch back to primary nodes")
-                elif recentmissed == len(config.emergencykeys) * 2:
-                    emergency = False
-                    switch(config.witnessname, config.publickeys, missed)
-                    recentmissed = 0
-                    print("attempting to switch back to primary nodes")
-                else:
-                    waitAndNotify()
-            elif recentmissed > len(config.publickeys) * 2:
-                emergency = True
-                missed = getMissed(config.witnessname)
-                switch(config.witnessname, config.emergencykeys, missed)
-                recentmissed = 0
-                lastblock = witness["last_confirmed_block_num"]
-                print("all primary nodes down. switching to emergency nodes")
-                emergencyblock = block
-            elif missed <= getMissed(config.witnessname) - config.strictness:
-                missed = getMissed(config.witnessname)
-                switch(config.witnessname, config.publickeys, missed)
-                recentmissed +=1
-                print(config.witnessname + " missed a block.  total missed = " + str(missed) + " recent missed = " + str(recentmissed))
-                lastblock = witness["last_confirmed_block_num"]
-            else:
-                waitAndNotify()
         elif missed <= getMissed(config.witnessname) - config.strictness:
             missed = getMissed(config.witnessname)
             switch(config.witnessname, config.publickeys, missed)
-            recentmissed +=1
-            print(config.witnessname + " missed a block.  total missed = " + str(missed) + " recent missed = " + str(recentmissed))
+            print(config.witnessname + " missed a block.  total missed = " + str(missed))
             lastblock = witness["last_confirmed_block_num"]
         else:
-#            lastHour = checkTime(lastHour)
+            try:
+                if compareSigningKeys() == False:
+                    choice = comparePart()
+                    setRemoteKey(choice)
+            except:
+                try:
+                    part1 = producer1.info()
+                    print(part1)
+                except:
+                    print("producer1 no workie")
+                    producer1.closeProducer()
+                    producer1.openProducer()
+                try:
+                    part2 = producer2.info()
+                    print(part2)
+                except:
+                    producer2.closeProducer()
+                    producer2.openProducer()
+
+            checkTime()
             waitAndNotify()
             tries = replay
             replay = watch(tries)
-### if you are having issue try commenting out the try line (126) and everything below the except line to prevent auto restart
+### For debugging comment out try statement directly below while True line, and uncomment line line below this line and last line of script
+###'''
     except:
         try:
             if crash > 2:
                 crash = 0
                 closeScreens()
                 resync()
-                print("unlocking wallet")
-                rpc.unlock(config.wallet_password)
-                print("wallet unlocked")
+                unlockWallet()
             else:
                 crash += 1
                 print("error.  restarting.")
                 closeScreens()
                 openScreens()
-                print("unlocking wallet")
-                rpc.unlock(config.wallet_password)
-                print("wallet unlocked")
+                unlockWallet()
         except:
             try:
                 if crash > 2:
                     crash = 0
                     closeScreen()
                     resync()
-                    print("unlocking wallet")
-                    rpc.unlock(config.wallet_password)
+                    unlockWallet()
                 else:
                     crash += 1
                     print("error... restarting")
                     closeScreens()
                     openScreens()
-                    print("unlocking wallet")
-                    rpc.unlock(config.wallet_password)
+                    unlockWallet()
             except:
                 try:
                     if crash > 2:
                         crash = 0
                         closeScreens()
                         resync()
-                        print("unlocking wallet")
-                        rpc.unlock(config.wallet_password)
+                        unlockWallet()
                     else:
                         crash += 1
                         print("error.  restarting.")
                         closeScreens()
                         openScreens()
-                        print("unlocking wallet")
-                        rpc.unlock(config.wallet_password)
+                        unlockWallet()
                 except:
                     crash = 0
                     closeScreens()
                     resync()
-                    print("unlocking wallet")
-                    rpc.unlock(config.wallet_password)
+                    unlockWallet()
+###'''
+
+
+
 
 
 

@@ -32,11 +32,17 @@ def openScreens():
     print("opening witness")
     subprocess.call(["screen","-dmS","witness",config.path_to_witness_node,"-d",config.path_to_data_dir,"--replay-blockchain"])
     print("waiting..." + "replay = " + str(replay) + "                     crash = " + str(crash))
-    time.sleep(180)
-    print("opening wallet")
-    subprocess.call(["screen","-dmS","wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
-    print("waiting...")
-    time.sleep(10)
+    print("checking if witness_node is ready for communication yet")
+    result = None
+    while result == None:
+        try:
+            print("waiting ...")
+            subprocess.call(["screen","-dmS","local-wallet",config.path_to_cli_wallet,"-H",config.rpc_port,"-w",config.path_to_wallet_json])
+            time.sleep(1)
+            result = rpc.info()
+        except:
+            time.sleep(10)
+            pass
 
 def info():
     info = rpc.info()
@@ -118,8 +124,8 @@ unlockWallet()
 
 while True:
     try:
-            checkTime()
-            feed = waitAndNotify()
+            feed = checkTime()
+            waitAndNotify()
             tries = replay
             replay = watch(tries)
 ### if you are having issue try commenting out the try line (126) and everything below the except line to prevent auto restart
