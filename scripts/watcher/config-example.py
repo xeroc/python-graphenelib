@@ -28,5 +28,4 @@ feed_script_interval = 10
 
 # if set to true script will try to trigger the pricefeed script.  If set to false then password, wallet.json path,
 # feed script path, interval, and trigger are not needed.
-feed_script_active = True
-
+feed_script_active = False
