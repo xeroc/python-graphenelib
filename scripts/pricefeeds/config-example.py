@@ -42,8 +42,8 @@ enable_ccedk             = True
 ##                            will quit with a failure)
 poloniex_trust_level     = 1.0 # trades BTS2
 ccedk_trust_level        = 1.0 # trades BTS2
+yunbi_trust_level        = 1.0
 bittrex_trust_level      = 0.5 # is currently migrating
-yunbi_trust_level        = 0.5 # is currently migrating
 
 btc38_trust_level        = 0.0 # disabled!
 btcid_trust_level        = 0.0 # disabled!
