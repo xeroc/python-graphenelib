@@ -562,8 +562,14 @@ def update_price_feed() :
                           "amount": numerator
                         }
                       },
-                      "maintenance_collateral_ratio": config.maintenance_collateral_ratio,
-                      "maximum_short_squeeze_ratio": config.maximum_short_squeeze_ratio,
+                      "maintenance_collateral_ratio" : 
+                                config.maintenance_collateral_ratio[ assets[asset]["symbol"] ] 
+                                if (assets[asset]["symbol"] in config.maintenance_collateral_ratio) 
+                                else config.default_maintenance_collateral_ratio,
+                      "maximum_short_squeeze_ratio"  : 
+                                config.maximum_short_squeeze_ratio[ assets[asset]["symbol"] ]  
+                                if (assets[asset]["symbol"] in config.maximum_short_squeeze_ratio) 
+                                else config.default_maximum_short_squeeze_ratio,
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": "1.3.0",
