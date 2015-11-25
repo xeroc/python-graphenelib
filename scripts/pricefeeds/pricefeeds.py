@@ -182,9 +182,9 @@ def fetch_from_btc38():
    return
 
   for coin in availableAssets :
-   if "ticker" in result[coin.lower()] and result[coin.lower()]["ticker"] and float(result[coin.lower()]["ticker"]["last"])>config.minValidAssetPriceInBTC:
-    price["BTC"][ coin ].append(float(result[coin.lower()]["ticker"]["last"]))
-    volume["BTC"][ coin ].append(float(result[coin.lower()]["ticker"]["vol"]/result[coin.lower()]["ticker"]["last"])*config.btc38_trust_level)
+   if "ticker" in result and result["ticker"] and float(result["ticker"]["last"])>config.minValidAssetPriceInBTC:
+    price["BTC"][ coin ].append(float(result["ticker"]["last"]))
+    volume["BTC"][ coin ].append(float(result["ticker"]["vol"]/result["ticker"]["last"])*config.btc38_trust_level)
 
   availableAssets = [ core_symbol, "BTC" ]
   try :
