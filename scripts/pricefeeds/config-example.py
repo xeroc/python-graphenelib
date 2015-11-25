@@ -54,16 +54,6 @@ enable_btcid             = True
 
 ## trust level for exchanges (if an exception happens and level is 0.8 script
 ##                            will quit with a failure)
-<<<<<<< HEAD
-poloniex_trust_level     = 1.0 # trades BTS2
-ccedk_trust_level        = 1.0 # trades BTS2
-yunbi_trust_level        = 1.0
-bittrex_trust_level      = 0.5 # is currently migrating
-
-btc38_trust_level        = 0.0 # disabled!
-btcid_trust_level        = 0.0 # disabled!
-bter_trust_level         = 0.0 # disabled!
-=======
 poloniex_trust_level     = 1.0
 ccedk_trust_level        = 1.0
 bittrex_trust_level      = 0.1
@@ -72,4 +62,3 @@ btc38_trust_level        = 0.5
 # disabled!
 yunbi_trust_level        = 0.0
 bter_trust_level         = 0.0
->>>>>>> [Price Feed] asset specific SQP etc
