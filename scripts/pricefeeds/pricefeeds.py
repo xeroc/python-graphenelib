@@ -49,7 +49,7 @@ if 'config' not in globals():
 ## ----------------------------------------------------------------------------
 ## When do we have to force publish?
 ## ----------------------------------------------------------------------------
-def publish_rule(rpc):
+def publish_rule(rpc, asset):
  ##############################################################################
  # - if you haven't published a price in the past 20 minutes
  # - if REAL_PRICE < MEDIAN and YOUR_PRICE > MEDIAN publish price
@@ -66,34 +66,32 @@ def publish_rule(rpc):
  # REAL_PRICE = Lowest of external feeds                         = newPrice
  # MEDIAN = current median price according to the blockchain.    = price_median_blockchain[asset]
  ##############################################################################
- publish = False
- for asset in asset_list_publish :
-  ## Define REAL_PRICE
-  newPrice    = price_in_bts_weighted[asset] #statistics.median( price[core_symbol][asset] )
-  priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
+ ## Define REAL_PRICE
+ newPrice    = price_in_bts_weighted[asset] #statistics.median( price[core_symbol][asset] )
+ priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
 
-  ## Check max price change
-  if priceChange > config.change_max :
-       if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
-                             asset,price_median_blockchain[asset],newPrice,priceChange)) :
-           return False # skip everything and return
+ ## Check max price change
+ if priceChange > config.change_max :
+      if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
+                            asset,price_median_blockchain[asset],newPrice,priceChange)) :
+          return False # skip everything and return
 
-  ## Rules
-  if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
-        print("Feeds for %s too old! Force updating!" % asset)
-        publish = True
-  elif newPrice     < price_median_blockchain[asset] and \
-       price_median_blockchain[asset] > price_median_blockchain[asset]:
-        print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
-               % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
-        publish = True
-  elif priceChange > config.change_min and\
-       (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
-        print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
-               % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
-        publish = True
+ ## Rules
+ if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
+       print("Feeds for %s too old! Force updating!" % asset)
+       return True
+ elif newPrice     < price_median_blockchain[asset] and \
+      price_median_blockchain[asset] > price_median_blockchain[asset]:
+       print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
+              % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
+       return True
+ elif priceChange > config.change_min and\
+      (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
+       print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
+              % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
+       return True
 
- return publish
+ return False
 
 ## ----------------------------------------------------------------------------
 ## Fetch data
@@ -367,14 +365,14 @@ def update_feed(rpc, feeds):
   print( "Unlocking wallet" )
   ret = rpc.unlock(config.unlock)
 
- print("publishing feeds for delegate: %s"%config.delegate_name)
+ print("constructing feed for witness %s"%config.delegate_name)
  handle = rpc.begin_builder_transaction();
- for feed in feeds :
-  # id 19 corresponds to price feed update operation
+ for asset in feeds :
+  if not feeds[asset]["publish"] : continue
   rpc.add_operation_to_builder_transaction(handle, 
-        [19, {
-                "asset_id"  : feed[0],
-                "feed"      : feed[1],
+        [19, {  # id 19 corresponds to price feed update operation
+                "asset_id"  : feeds[asset]["asset_id"],
+                "feed"      : feeds[asset]["feed"],
                 "publisher" : myWitness["witness_account"],
              }])
 
@@ -442,8 +440,8 @@ def derive_prices():
 ## ----------------------------------------------------------------------------
 ## Print stats as table
 ## ----------------------------------------------------------------------------
-def print_stats() :
- t = PrettyTable(["asset","BTS/base","my mean","median exchanges","blockchain median","% change (my)","% change (blockchain)","last update"])
+def print_stats(feeds) :
+ t = PrettyTable(["asset","BTS/base","my mean","median exchanges","blockchain median","% change (my)","% change (blockchain)","last update","publish"])
  t.align                   = 'r'
  t.border                  = True
  t.float_format['BTS/base']              = ".8"
@@ -477,7 +475,9 @@ def print_stats() :
                1/price_from_blockchain,
                change_my,
                change_blockchain,
-               age+" ago" ])
+               age+" ago",
+               "X" if feeds[asset]["publish"] else ""
+             ])
  print("\n"+t.get_string())
 
 ## ----------------------------------------------------------------------------
@@ -535,7 +535,9 @@ def update_price_feed() :
  derive_prices()
 
  ## Only publish given feeds ##################################################
- price_feeds = []
+ price_feeds = {}
+ update_required = False
+
  for asset in asset_list_publish :
     if len(price[core_symbol][asset]) > 0 :
         if price_in_bts_weighted[asset] > 0.0:
@@ -584,15 +586,22 @@ def update_price_feed() :
                         }
                       }
                     }
-            price_feeds.append([assets[asset]["id"], price_feed])
+
+            asset_update_required = publish_rule(rpc,asset)
+            if asset_update_required: update_required = True 
+            price_feeds[symbol] = {
+                                     "asset_id": assets[asset]["id"],
+                                     "feed":     price_feed,
+                                     "publish":  asset_update_required
+                                  }
 
  ## Print some stats ##########################################################
- print_stats()
+ print_stats(price_feeds)
 
  ## Check publish rules and publich feeds #####################################
- publish = False
- if publish_rule(rpc) :
 
+ if update_required :
+  publish = False
   if config.ask_confirmation :
    if rpc._confirm("Are you SURE you would like to publish this feed?") :
     publish = True
@@ -600,8 +609,8 @@ def update_price_feed() :
     publish = True
 
   if publish :
-   print("Update required! Forcing now!")
-   update_feed(rpc,price_feeds)
+    print("Update required! Forcing now!")
+    update_feed(rpc,price_feeds)
  else :
   print("no update required")
 
