@@ -31,21 +31,21 @@ price_metric                 = "weighted"  # "median", "mean", or "weighted" (by
 ## Asset specific Borrow/Short parameters
 ################################################################################
 # Core exchange rate for paying transaction fees in non-BTS assets
-default_core_exchange_factor = 0.95
 core_exchange_factor = {
-                                  "USD" : 0.95,
+                                  "default" : 0.95, # default value
+                                  "USD"     : 0.95, # asset-specific overwrite
                        }
 
 # Call when collateral only pays off 175% the debt
-default_maintenance_collateral_ratio = 1750
 maintenance_collateral_ratio = {
-                                  "USD" : 1750,
+                                  "default" : 1750, # default value
+                                  "USD"     : 1750, # asset-specific overwrite
                                }
 
 # Stop calling when collateral only pays off 110% of the debt
-default_maximum_short_squeeze_ratio  = 1100
 maximum_short_squeeze_ratio  = {
-                                  "USD" : 1100,
+                                  "default" : 1100, # default value
+                                  "USD"     : 1100, # asset-specific overwrite
                                }
 
 ################################################################################

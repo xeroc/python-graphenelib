@@ -566,18 +566,18 @@ def update_price_feed() :
                       "maintenance_collateral_ratio" : 
                                 config.maintenance_collateral_ratio[ symbol ] 
                                 if (symbol in config.maintenance_collateral_ratio) 
-                                else config.default_maintenance_collateral_ratio,
+                                else config.maintenance_collateral_ratio["default"],
                       "maximum_short_squeeze_ratio"  : 
                                 config.maximum_short_squeeze_ratio[ symbol ]  
                                 if (symbol in config.maximum_short_squeeze_ratio) 
-                                else config.default_maximum_short_squeeze_ratio,
+                                else config.maximum_short_squeeze_ratio["default"],
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": "1.3.0",
                           "amount": int(denominator * (
                                         config.core_exchange_factor[ symbol ]
                                         if (symbol in config.core_exchange_factor)
-                                        else config.default_core_exchange_factor
+                                        else config.core_exchange_factor["default"]
                                        ))
                         },
                         "base": {
