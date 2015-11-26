@@ -1,28 +1,31 @@
 ################################################################################
 ## RPC-client connection information (required)
 ################################################################################
-host   = "localhost"
-port   = 8092
-user   = ""
-passwd = ""
-unlock = ""
-
-ask_confirmation = True
+host   = "localhost"     # machine that runs a cli-wallet with -H parameter
+port   = 8092            # RPC port, e.g.`-H 127.0.0.1:8092`
+user   = ""              # API user (optional)
+passwd = ""              # API user passphrase (optional)
+unlock = ""              # password to unlock the wallet if the cli-wallet is locked
 
 ################################################################################
-## Delegate Feed Publish Parameters
+## Script runtime parameters
 ################################################################################
-delegate_name            = "init0"
-maxAgeFeedInSeconds      = 60*60 # 1hour
+ask_confirmation             = True # if true, a manual confirmation is required
+
+################################################################################
+## Witness Feed Publish Parameters
+################################################################################
+witness_name                 = "init0"
+maxAgeFeedInSeconds          = 60*60  # A feed should be at most 1hour old
+change_min                   = 0.5    # Percentage of price change to force an update
+change_max                   = 5.0    # Percentage of price change to cause a warning
 
 ################################################################################
 ## Fine tuning
 ################################################################################
-discount                     = 0.995  # discount for borrowing of an asset
-minValidAssetPriceInBTC      = 100 * 1e-8# minimum valid price for BTS in BTC
-price_metric                 = "weighted" # "median", "mean", or "weighted" (by volume)
-change_min                   = 0.5    # Percentage of price change to force an update
-change_max                   = 5.0    # Percentage of price change to cause a warning
+discount                     = 0.995       # discount for borrowing of an asset
+minValidAssetPriceInBTC      = 100 * 1e-8  # minimum valid price for BTS in BTC
+price_metric                 = "weighted"  # "median", "mean", or "weighted" (by volume)
 
 ################################################################################
 ## Asset specific Borrow/Short parameters

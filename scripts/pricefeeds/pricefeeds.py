@@ -309,7 +309,7 @@ def fetch_from_wallet(rpc):
  print("Fetching data from wallet...")
  ## Get my Witness
  global myWitness
- myWitness = rpc.get_witness(config.delegate_name)
+ myWitness = rpc.get_witness(config.witness_name)
  witnessId = myWitness["witness_account"]
 
  ## asset definition - mainly for precision
@@ -365,7 +365,7 @@ def update_feed(rpc, feeds):
   print( "Unlocking wallet" )
   ret = rpc.unlock(config.unlock)
 
- print("constructing feed for witness %s"%config.delegate_name)
+ print("constructing feed for witness %s"%config.witness_name)
  handle = rpc.begin_builder_transaction();
  for asset in feeds :
   if not feeds[asset]["publish"] : continue
