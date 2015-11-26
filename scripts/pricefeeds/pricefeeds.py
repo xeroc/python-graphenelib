@@ -540,16 +540,15 @@ def update_price_feed() :
     if len(price[core_symbol][asset]) > 0 :
         if price_in_bts_weighted[asset] > 0.0:
             quote_precision = assets[asset]["precision"]
+            symbol          = assets[asset]["symbol"]
+            assert symbol is not asset
+
             base_precision  = assets["1.3.0"]["precision"] ## core asset
             core_price      = price_in_bts_weighted[asset] * 10**(quote_precision-base_precision)
             core_price      = fractions.Fraction.from_float(core_price).limit_denominator(100000)
             denominator     = core_price.denominator
             numerator       = core_price.numerator
 
-            assert assets[asset]["symbol"] is not asset
-
-            #if denominator == 0 or numerator == 0 or int(denominator * config.core_exchange_factor) :
-            #        continue
 
             price_feed = {
                       "settlement_price": {
@@ -563,17 +562,21 @@ def update_price_feed() :
                         }
                       },
                       "maintenance_collateral_ratio" : 
-                                config.maintenance_collateral_ratio[ assets[asset]["symbol"] ] 
-                                if (assets[asset]["symbol"] in config.maintenance_collateral_ratio) 
+                                config.maintenance_collateral_ratio[ symbol ] 
+                                if (symbol in config.maintenance_collateral_ratio) 
                                 else config.default_maintenance_collateral_ratio,
                       "maximum_short_squeeze_ratio"  : 
-                                config.maximum_short_squeeze_ratio[ assets[asset]["symbol"] ]  
-                                if (assets[asset]["symbol"] in config.maximum_short_squeeze_ratio) 
+                                config.maximum_short_squeeze_ratio[ symbol ]  
+                                if (symbol in config.maximum_short_squeeze_ratio) 
                                 else config.default_maximum_short_squeeze_ratio,
                       "core_exchange_rate": {
                         "quote": {
                           "asset_id": "1.3.0",
-                          "amount": int(denominator * config.core_exchange_factor)
+                          "amount": int(denominator * (
+                                        config.core_exchange_factor[ symbol ]
+                                        if (symbol in config.core_exchange_factor)
+                                        else config.default_core_exchange_factor
+                                       ))
                         },
                         "base": {
                           "asset_id": assets[asset]["id"],
