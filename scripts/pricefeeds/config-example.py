@@ -34,8 +34,18 @@ asset_config = {
                    "default" : { ## DEFAULT BEHAVIOR
                        # "median", "mean", or "weighted" (by volume)
                        "metric" : "weighted",
-                       # all:* , or array of: "yahoo", "btcid", "ccedk", "yunbi", "btc38", "bter", "poloniex", "bittrex", "btcavg"
-                       "sources" : ["*"],
+                       # all:* , or array of loaded exchanges (see below)
+                       "sources" : ["yahoo", 
+                                    "ccedk", 
+                                    "yunbi", 
+                                    "btc38", 
+                                    "poloniex", 
+                                    "bittrex", 
+                                    "btcavg", 
+                                    "okcoin",
+                                    #"btcchina",
+                                    #"huobi",
+                                    ],
                        # Core exchange rate for paying transaction fees in non-BTS assets
                        "core_exchange_factor" : 0.95,
                        # Call when collateral only pays off 175% the debt
@@ -45,7 +55,11 @@ asset_config = {
                    },
                    "CNY" : {
                        "metric" : "median",
-                       "sources" : ["poloniex","bittrex","huobi","btcchina"]
+                       "sources" : ["poloniex",
+                                    "bittrex",
+                                    "huobi",
+                                    "btcchina",
+                                    "okcoin"]
                    }
                }
 
@@ -61,6 +75,7 @@ feedSources["bittrex"]  = feedsources.Bittrex(trust=1.0)
 feedSources["ccedk"]    = feedsources.Ccedk(trust=1.0)
 feedSources["btcchina"] = feedsources.BtcChina(trust=1.0)
 feedSources["huobi"]    = feedsources.Huobi(trust=1.0)
+feedSources["okcoin"]   = feedsources.Okcoin(trust=1.0)
 feedSources["yunbi"]    = feedsources.Yunbi(trust=0.5)
 feedSources["btc38"]    = feedsources.Btc38(trust=0.5)
 

@@ -44,7 +44,7 @@ class BitcoinIndonesia(FeedSource) :
       for coin in availableAssets :
        try :
         url="https://vip.bitcoin.co.id/api/%s_btc/ticker" % coin.lower()
-        response = requests.get(url=url, headers=_request_headers, timeout=3 )
+        response = requests.get(url=url, headers=_request_headers, timeout=10 )
         result = response.json()["ticker"]
         feed["BTC"][ coin ]  = { "price"  : float(result["last"]),
                                  "volume" : float(result["vol_"+coin.lower()])*self.trust }
@@ -72,7 +72,7 @@ class Ccedk(FeedSource) :
        feed[market] = {}
        try :
         url="https://www.ccedk.com/api/v1/stats/marketdepthfull?pair_id=%d" % pair_id
-        response = requests.get(url=url, headers=_request_headers, timeout=3 )
+        response = requests.get(url=url, headers=_request_headers, timeout=10 )
         result = response.json()["response"]["entity"]
         feed[market][core_symbol]  = { "price"  : float(result["last_price"]),
                                        "volume" : float(result["vol"])*self.trust}
@@ -93,7 +93,7 @@ class Yunbi(FeedSource) :
       feed["CNY"]  = {}
       try :
        url="https://yunbi.com/api/v2/tickers.json"
-       response = requests.get(url=url, headers=_request_headers, timeout=3)
+       response = requests.get(url=url, headers=_request_headers, timeout=10)
        result = response.json()
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
@@ -122,7 +122,7 @@ class Btc38(FeedSource) :
       availableAssets = [ core_symbol ]
       try :
        params = { 'c': 'bts', 'mk_type': 'btc' }
-       response = requests.get(url=url, params=params, headers=_request_headers, timeout=3 )
+       response = requests.get(url=url, params=params, headers=_request_headers, timeout=10 )
        result = response.json()
        for coin in availableAssets :
         feed["BTC"][ coin ] = { "price"  : (float(result[coin.lower()]["ticker"]["last"])),
@@ -136,7 +136,7 @@ class Btc38(FeedSource) :
        return
       try :
        params = { 'c': 'all', 'mk_type': 'cny' }
-       response = requests.get(url=url, params=params, headers=_request_headers, timeout=3 )
+       response = requests.get(url=url, params=params, headers=_request_headers, timeout=10 )
        result = response.json()
        for coin in availableAssets:
         feed["CNY"][ coin ] = { "price"  : (float(result[coin.lower()]["ticker"]["last"])),
@@ -157,7 +157,7 @@ class Bter(FeedSource) :
       volume = {}
       try :
        url="http://data.bter.com/api/1/tickers"
-       response = requests.get(url=url, headers=_request_headers, timeout=3 )
+       response = requests.get(url=url, headers=_request_headers, timeout=10 )
        result = response.json()
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
@@ -182,7 +182,7 @@ class Poloniex(FeedSource) :
       feed["BTC"]  = {}
       try :
        url="https://poloniex.com/public?command=returnTicker"
-       response = requests.get(url=url, headers=_request_headers, timeout=3 )
+       response = requests.get(url=url, headers=_request_headers, timeout=10 )
        result = response.json()
        availableAssets = [ core_symbol ]
       except Exception as e:
@@ -205,7 +205,7 @@ class Bittrex(FeedSource) :
       availableAssets = [ "BTS" ]
       try:
        url="https://bittrex.com/api/v1.1/public/getmarketsummaries"
-       response = requests.get(url=url, headers=_request_headers, timeout=3 )
+       response = requests.get(url=url, headers=_request_headers, timeout=10 )
        result = response.json()["result"]
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
@@ -239,7 +239,7 @@ class Yahoo(FeedSource) :
            yahooAssets = ",".join([a+base+"=X" for a in _yahoo_quote])
            url="http://download.finance.yahoo.com/d/quotes.csv"
            params = {'s':yahooAssets,'f':'l1','e':'.csv'}
-           response = requests.get(url=url, headers=_request_headers, timeout=3 ,params=params)
+           response = requests.get(url=url, headers=_request_headers, timeout=10 ,params=params)
            yahooprices =  response.text.replace('\r','').split( '\n' )
            for i,a in enumerate(_yahoo_quote) :
             if float(yahooprices[i]) > 0 :
@@ -249,7 +249,7 @@ class Yahoo(FeedSource) :
           # yahooAssets = ",".join(_yahoo_indices.keys())
           # url="http://download.finance.yahoo.com/d/quotes.csv"
           # params = {'s':yahooAssets,'f':'l1','e':'.csv'}
-          # response = requests.get(url=url, headers=_request_headers, timeout=3 ,params=params)
+          # response = requests.get(url=url, headers=_request_headers, timeout=10 ,params=params)
           # yahooprices =  response.text.replace('\r','').split( '\n' )
           # for i,a in enumerate(_yahoo_indices) :
           #  if float(yahooprices[i]) > 0 :
@@ -270,7 +270,7 @@ class BitcoinAverage(FeedSource) :
       availableAssets = [ "USD", "EUR", "CNY" ]
       for coin in availableAssets :
        feed[coin] = {}
-       response = requests.get(url=url+coin, headers=_request_headers, timeout=3)
+       response = requests.get(url=url+coin, headers=_request_headers, timeout=10)
        result = response.json()
        feed[coin][ "BTC" ] = { "price"  : (float(result["last"])),
                                "volume" : (float(result["total_vol"])) }
@@ -289,7 +289,7 @@ class BtcChina(FeedSource) :
               feed[market] = {}
               for coin in availableAssets :
                   url="https://data.btcchina.com/data/ticker?market=%s%s" % (coin.lower(), market.lower())
-                  response = requests.get(url=url, headers=_request_headers, timeout=3 )
+                  response = requests.get(url=url, headers=_request_headers, timeout=10 )
                   result = response.json()
                   feed[market][coin] = { "price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"])*self.trust) }
@@ -313,7 +313,36 @@ class Huobi(FeedSource) :
               feed[market] = {}
               for coin in availableAssets :
                   url="http://api.huobi.com/staticmarket/ticker_%s_json.js" % (coin.lower())
-                  response = requests.get(url=url, headers=_request_headers, timeout=3 )
+                  response = requests.get(url=url, headers=_request_headers, timeout=10 )
+                  result = response.json()
+                  feed[market][coin] = { "price"  : (float(result["ticker"]["last"])),
+                                         "volume" : (float(result["ticker"]["vol"])*self.trust) }
+      except Exception as e:
+       print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+       if self.trust > 0.8:
+        sys.exit("\nExiting due to exchange importance!")
+       return
+      return feed
+
+class Okcoin(FeedSource) :
+    def __init__(self, *args, **kwargs) :
+        super().__init__(*args, **kwargs)
+
+    def fetch(self):
+      feed  = {}
+      markets = ["USD","CNY"]
+      availableAssets = [ "BTC" ]
+      try :
+          for market in markets :
+              feed[market] = {}
+              for coin in availableAssets :
+                  if market == "USD" :
+                      url="https://www.okcoin.com/api/v1/ticker.do?symbol=%s_%s" % (coin.lower(), market.lower())
+                  elif market == "CNY" : 
+                      url="https://www.okcoin.cn/api/ticker.do?symbol=%s_%s" % (coin.lower(), market.lower())
+                  else : 
+                    sys.exit("\n%s does not know market type %s" % (type(self).__name__, market))
+                  response = requests.get(url=url, headers=_request_headers, timeout=10 )
                   result = response.json()
                   feed[market][coin] = { "price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"])*self.trust) }
