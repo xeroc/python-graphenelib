@@ -1,3 +1,4 @@
+import feedsources
 ################################################################################
 ## RPC-client connection information (required)
 ################################################################################
@@ -25,48 +26,43 @@ change_max                   = 5.0    # Percentage of price change to cause a wa
 ################################################################################
 discount                     = 0.995       # discount for borrowing of an asset
 minValidAssetPriceInBTC      = 100 * 1e-8  # minimum valid price for BTS in BTC
-price_metric                 = "weighted"  # "median", "mean", or "weighted" (by volume)
 
 ################################################################################
-## Asset specific Borrow/Short parameters
+## Asset specific Settings
 ################################################################################
-# Core exchange rate for paying transaction fees in non-BTS assets
-core_exchange_factor = {
-                                  "default" : 0.95, # default value
-                                  "USD"     : 0.95, # asset-specific overwrite
-                       }
-
-# Call when collateral only pays off 175% the debt
-maintenance_collateral_ratio = {
-                                  "default" : 1750, # default value
-                                  "USD"     : 1750, # asset-specific overwrite
-                               }
-
-# Stop calling when collateral only pays off 110% of the debt
-maximum_short_squeeze_ratio  = {
-                                  "default" : 1100, # default value
-                                  "USD"     : 1100, # asset-specific overwrite
-                               }
+asset_config = {
+                   "default" : { ## DEFAULT BEHAVIOR
+                       # "median", "mean", or "weighted" (by volume)
+                       "metric" : "weighted",
+                       # all:* , or array of: "yahoo", "btcid", "ccedk", "yunbi", "btc38", "bter", "poloniex", "bittrex", "btcavg"
+                       "sources" : ["*"],
+                       # Core exchange rate for paying transaction fees in non-BTS assets
+                       "core_exchange_factor" : 0.95,
+                       # Call when collateral only pays off 175% the debt
+                       "maintenance_collateral_ratio" : 1750,
+                       # Stop calling when collateral only pays off 110% of the debt
+                       "maximum_short_squeeze_ratio" : 1100,
+                   },
+                   "CNY" : {
+                       "metric" : "median",
+                       "sources" : ["poloniex","bittrex","huobi","btcchina"]
+                   }
+               }
 
 ################################################################################
-## Enable exchanges
+## Exchanges and settings
 ################################################################################
-enable_bter              = False # No BTS2
-enable_btc38             = False # No official statement for BTS2 yet
-enable_yunbi             = False # currently halted
-enable_poloniex          = True
-enable_bittrex           = True
-enable_btcavg            = True
-enable_ccedk             = True
-enable_btcid             = True
+feedSources = {}
+feedSources["yahoo"]    = feedsources.Yahoo(trust=1.0)
+feedSources["btcavg"]   = feedsources.BitcoinAverage(trust=1.0)
 
-## trust level for exchanges (if an exception happens and level is 0.8 script
-##                            will quit with a failure)
-poloniex_trust_level     = 1.0 # trades BTS2
-ccedk_trust_level        = 1.0 # trades BTS2
-yunbi_trust_level        = 1.0
-bittrex_trust_level      = 0.5 # is currently migrating
+feedSources["poloniex"] = feedsources.Poloniex(trust=1.0)
+feedSources["bittrex"]  = feedsources.Bittrex(trust=1.0)
+feedSources["ccedk"]    = feedsources.Ccedk(trust=1.0)
+feedSources["btcchina"] = feedsources.BtcChina(trust=1.0)
+feedSources["huobi"]    = feedsources.Huobi(trust=1.0)
+feedSources["yunbi"]    = feedsources.Yunbi(trust=0.5)
+feedSources["btc38"]    = feedsources.Btc38(trust=0.5)
 
-btc38_trust_level        = 0.0 # disabled!
-btcid_trust_level        = 0.0 # disabled!
-bter_trust_level         = 0.0 # disabled!
+#feedSources["btcid"]    = feedsources.BitcoinIndonesia(trust=0.0)
+#feedSources["bter"]     = feedsources.Bter(trust=0.0)
