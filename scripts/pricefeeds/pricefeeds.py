@@ -48,7 +48,7 @@ from concurrent import futures
 if 'config' not in globals():
     import config
 
-debug = 0
+debug = 1
 
 ## ----------------------------------------------------------------------------
 ## When do we have to force publish?
@@ -220,7 +220,8 @@ def derive_prices(feed):
      if feed[datasource][base][quote]["price"] > 0 and feed[datasource][base][quote]["volume"] > 0 and quote in price :
       # Inverted pair price/volume
       price[quote][base].append((float(1.0/feed[datasource][base][quote]["price"] )))
-      volume[quote][base].append((float(feed[datasource][base][quote]["volume"] * (float(feed[datasource][base][quote]["price"] )))))
+      # volume is usually in "quote"
+      volume[quote][base].append((float(feed[datasource][base][quote]["volume"]*feed[datasource][base][quote]["price"])))
 
   # derive BTS prices for all _base assets
   for base in _bases :
@@ -251,8 +252,6 @@ def derive_prices(feed):
   elif price_metric == "weighted" :
    assetvolume= [v for v in  volume[core_symbol][asset] ]
    assetprice = [p for p in  price[core_symbol][asset]  ]
-
-   if asset == "BTC" : pprint(assetvolume)
 
    if len(assetvolume) > 1 :
     price_result[asset] = num.average(assetprice, weights=assetvolume)
