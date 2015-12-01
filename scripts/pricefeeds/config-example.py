@@ -31,9 +31,18 @@ minValidAssetPriceInBTC      = 100 * 1e-8  # minimum valid price for BTS in BTC
 ################################################################################
 asset_config = {
                    "default" : { ## DEFAULT BEHAVIOR
-                       # "median", "mean", or "weighted" (by volume)
+                       #
+                       # how to derive a single price from several sources
+                       # Choose from: "median", "mean", or "weighted" (by volume)
                        "metric" : "weighted",
-                       # all:* , or array of loaded exchanges (see below)
+                       #
+                       # Select sources for this particular asset. Each source
+                       # has its own fetch() method and collects several markets
+                       # any market of an exchanges is considered but only the
+                       # current asset's price is derived
+                       # 
+                       # Choose from: - "*": all,
+                       #              - loaded exchanges (see below)
                        "sources" : ["yahoo", 
                                     "ccedk", 
                                     "yunbi", 
@@ -45,13 +54,18 @@ asset_config = {
                                     #"btcchina", # no trading-fees
                                     #"huobi",    # no trading-fees
                                     ],
-                       # Core exchange rate for paying transaction fees in non-BTS assets
+                       # Core exchange factor for paying transaction fees in
+                       # non-BTS assets. This is a factor: 0.95 = 95%
                        "core_exchange_factor"          : 0.95,
-                       # Call when collateral only pays off 175% the debt
+                       # Call when collateral only pays off 175% the debt. 
+                       # This is denoted as: 1750 = 175% = 1.75
                        "maintenance_collateral_ratio"  : 1750,
                        # Stop calling when collateral only pays off 110% of the debt
+                       # This is denoted as: 1100 = 110% = 1.10
                        "maximum_short_squeeze_ratio"   : 1100,
-                       # Multiplicative factor for discount when borrowing bitassets
+                       # Multiplicative factor for discount when borrowing
+                       # bitassets. This is a factor: 0.95 = 95%. 1.0 disables
+                       # the discount
                        "discount"                      : 1.0,
                    },
                    "CNY" : {
@@ -60,7 +74,8 @@ asset_config = {
                                     "bittrex",
                                     "huobi",
                                     "btcchina",
-                                    "okcoin"]
+                                    "okcoin",
+                                   ]
                    }
                }
 

@@ -48,7 +48,7 @@ from concurrent import futures
 if 'config' not in globals():
     import config
 
-debug = 1
+debug = 0
 
 ## ----------------------------------------------------------------------------
 ## When do we have to force publish?
