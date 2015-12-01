@@ -28,10 +28,14 @@ _bts_yahoo_map = {
 }
 
 class FeedSource() :
-    def __init__(self, trust=1.0, enable=True):
-        self.trust   = trust
-        self.enabled = enable
-        self.feed = None
+    def __init__(self, trust=1.0, enable=True, allowFailure=False):
+        self.trust        = trust
+        self.enabled      = enable
+        self.allowFailure = allowFailure
+        
+        ## Why fail if the trust is 0
+        if self.trust == 0.0 :
+            self.allowFailure = True
 
 class BitcoinIndonesia(FeedSource) :
     def __init__(self, *args, **kwargs) :
@@ -50,7 +54,7 @@ class BitcoinIndonesia(FeedSource) :
                                  "volume" : float(result["vol_"+coin.lower()])*self.trust }
        except Exception as e:
         print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-        if self.trust > 0.8:
+        if not self.allowFailure:
          sys.exit("\nExiting due to exchange importance!")
         return
       return feed 
@@ -78,7 +82,7 @@ class Ccedk(FeedSource) :
                                        "volume" : float(result["vol"])*self.trust}
        except Exception as e:
         print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-        if self.trust > 0.8:
+        if not self.allowFailure:
          sys.exit("\nExiting due to exchange importance!")
         return
       return feed
@@ -97,7 +101,7 @@ class Yunbi(FeedSource) :
        result = response.json()
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance")
        return
       availableAssets = [ core_symbol ]
@@ -131,7 +135,7 @@ class Btc38(FeedSource) :
        availableAssets = [ core_symbol, "BTC" ]
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance!")
        return
       try :
@@ -143,7 +147,7 @@ class Btc38(FeedSource) :
                                 "volume" : (float(result[coin.lower()]["ticker"]["vol"])*float(result[coin.lower()]["ticker"]["last"])*self.trust) }
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance!")
        return
       return feed
@@ -161,7 +165,7 @@ class Bter(FeedSource) :
        result = response.json()
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance")
        return
       availableAssets = [ "BTC", core_symbol ]
@@ -187,7 +191,7 @@ class Poloniex(FeedSource) :
        availableAssets = [ core_symbol ]
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance!")
        return
       for coin in availableAssets :
@@ -209,7 +213,7 @@ class Bittrex(FeedSource) :
        result = response.json()["result"]
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance!")
        return
       for coin in result :
@@ -256,7 +260,10 @@ class Yahoo(FeedSource) :
           #   feed[ core_symbol ][ self.bts_yahoo_map(a) ] = { "price"  : (1/float(yahooprices[i])),
           #                                                    "volume" : 1.0, }
       except Exception as e:
-        sys.exit("\nError fetching results from yahoo! {0}".format(str(e)))
+       print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+       if not self.allowFailure:
+        sys.exit("\nExiting due to exchange importance!")
+       return
 
       return feed
 
@@ -295,7 +302,7 @@ class BtcChina(FeedSource) :
                                          "volume" : (float(result["ticker"]["vol"])*self.trust) }
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance!")
        return
       return feed
@@ -319,7 +326,7 @@ class Huobi(FeedSource) :
                                          "volume" : (float(result["ticker"]["vol"])*self.trust) }
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance!")
        return
       return feed
@@ -348,7 +355,7 @@ class Okcoin(FeedSource) :
                                          "volume" : (float(result["ticker"]["vol"])*self.trust) }
       except Exception as e:
        print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-       if self.trust > 0.8:
+       if not self.allowFailure:
         sys.exit("\nExiting due to exchange importance!")
        return
       return feed

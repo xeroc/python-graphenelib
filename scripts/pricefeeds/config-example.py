@@ -68,16 +68,19 @@ asset_config = {
                        # the discount
                        "discount"                      : 1.0,
                    },
-                   "USD" : {
+                   ## Exchanges trading BTC/BTS directly
+                   ## (this does not include any other trading pairs)
+                   "BTC" : {
                        "sources" : ["poloniex",
-                                    #"btc38",
                                     "bittrex",
-                                    "yunbi",
-                                    "huobi",
-                                    "btcchina",
-                                    "okcoin",
+                                    "ccedk",
+                                    "bittrex",
                                    ],
                    },
+                   ## Settings for CNY take popular chinese exchanges into
+                   ## account that let people trade without fees.
+                   ## Hence, the metric should be median, since the volume could
+                   ## be easily manipulated
                    "CNY" : {
                        "metric" : "median",
                        "sources" : ["poloniex",
@@ -91,6 +94,10 @@ asset_config = {
 
 ################################################################################
 ## Exchanges and settings
+## 
+## trust:        a multiplicative factor for the volume
+## allowFailure: bool variable that will (if not set or set to False) exit the
+##               script on error
 ################################################################################
 feedSources = {}
 feedSources["yahoo"]    = feedsources.Yahoo(trust=1.0)
@@ -98,13 +105,19 @@ feedSources["btcavg"]   = feedsources.BitcoinAverage(trust=1.0)
 
 feedSources["poloniex"] = feedsources.Poloniex(trust=1.0)
 feedSources["ccedk"]    = feedsources.Ccedk(trust=1.0)
-feedSources["yunbi"]    = feedsources.Yunbi(trust=1.0)
+feedSources["yunbi"]    = feedsources.Yunbi(trust=1.0, allowFailure=True)
 feedSources["btcchina"] = feedsources.BtcChina(trust=1.0)
 feedSources["huobi"]    = feedsources.Huobi(trust=1.0)
-feedSources["okcoin"]   = feedsources.Okcoin(trust=1.0)
+feedSources["okcoin"]   = feedsources.Okcoin(trust=1.0, allowFailure=True)
 
 feedSources["bittrex"]  = feedsources.Bittrex(trust=0.5)
 
 feedSources["btcid"]    = feedsources.BitcoinIndonesia(trust=0.0)
 feedSources["btc38"]    = feedsources.Btc38(trust=0.0)
 feedSources["bter"]     = feedsources.Bter(trust=0.0)
+
+################################################################################
+# Debug Mode! This loads old data and prevents the script for publishing any
+# price feed!
+################################################################################
+debug = False # True or False

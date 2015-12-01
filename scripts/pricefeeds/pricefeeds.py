@@ -48,8 +48,6 @@ from concurrent import futures
 if 'config' not in globals():
     import config
 
-debug = 0
-
 ## ----------------------------------------------------------------------------
 ## When do we have to force publish?
 ## ----------------------------------------------------------------------------
@@ -208,7 +206,7 @@ def derive_prices(feed):
     price[base][quote]    = []
     volume[base][quote]   = []
 
-  # Invert pairs
+  # Load feed data into price/volume array for processing
   for datasource in list(sources) : 
    if not feed[datasource] : continue
    for base in list(feed[datasource]) :
@@ -224,35 +222,26 @@ def derive_prices(feed):
       # volume is usually in "quote"
       volume[quote][base].append((float(feed[datasource][base][quote]["volume"]*feed[datasource][base][quote]["price"])))
 
-  # derive BTS prices for all _base assets
-  for base in _bases :
-   for quote in _bases :
-    if base == quote : continue
-    for ratio in price[base][quote] :
+  # derive BTS prices for all assets in asset_list_publish
+  for targetasset in asset_list_publish :
+   for base in _bases :
+    if base == targetasset : continue
+    for ratio in price[targetasset][base] :
      for idx in range(0, len(price[base][core_symbol])) :
       if volume[base][core_symbol][idx] == 0 : continue
-      price[quote][core_symbol].append( (float(price[base][core_symbol][idx] /ratio)))
-      volume[quote][core_symbol].append((float(volume[base][core_symbol][idx]/ratio)))
-
-  for base in _bases :
-   for quote in asset_list_publish :
-    if base == quote : continue
-    for ratio in price[base][quote] :
-     for idx in range(0, len(price[base][core_symbol])) :
-      if volume[base][core_symbol][idx] == 0 : continue
-      price[core_symbol][quote].append( 1.0/(float(price[base][core_symbol][idx] /ratio)))
-      volume[core_symbol][quote].append(1.0/(float(volume[base][core_symbol][idx]/ratio)))
+      price[targetasset][core_symbol].append( (float(price[base][core_symbol][idx]  * ratio)))
+      volume[targetasset][core_symbol].append((float(volume[base][core_symbol][idx] * ratio)))
 
   # Derive Final Price according to price metric
   if price_metric == "median" :
-   price_result[asset] = statistics.median(price[core_symbol][asset])
+   price_result[asset] = statistics.median(price[asset][core_symbol])
 
   elif price_metric == "mean" :
-   price_result[asset] = statistics.mean(price[core_symbol][asset])
+   price_result[asset] = statistics.mean(price[asset][core_symbol])
 
   elif price_metric == "weighted" :
-   assetvolume= [v for v in  volume[core_symbol][asset] ]
-   assetprice = [p for p in  price[core_symbol][asset]  ]
+   assetvolume= [v for v in  volume[asset][core_symbol] ]
+   assetprice = [p for p in   price[asset][core_symbol]  ]
 
    if len(assetvolume) > 1 :
     price_result[asset] = num.average(assetprice, weights=assetvolume)
@@ -263,7 +252,7 @@ def derive_prices(feed):
    raise Exception("Configuration error, 'price_metric' has to be out of [ 'median', 'mean', 'weighted]")
 
   # Discount and price convertion to "price for one BTS" i.e.  base=*, quote=core_symbol
-  price_result[asset] = discount/(price_result[asset])
+  price_result[asset] = price_result[asset] * discount
 
  return price_result
 
@@ -271,10 +260,10 @@ def derive_prices(feed):
 ## Print stats as table
 ## ----------------------------------------------------------------------------
 def print_stats(feeds) :
- t = PrettyTable(["asset","price for one BTS","mean exchanges","median exchanges","blockchain median","% change (my)","% change (net)","last update","publish"])
+ t = PrettyTable(["asset","price per BTS","mean exchanges","median exchanges","blockchain median","% change (my)","% change (net)","last update","publish"])
  t.align                   = 'r'
  t.border                  = True
- t.float_format['price for one BTS']     = ".8"
+ t.float_format['price per BTS']         = ".8"
  t.float_format['mean exchanges']        = ".8"
  t.float_format['median exchanges']      = ".8"
  t.float_format['blockchain median']     = ".8"
@@ -282,14 +271,14 @@ def print_stats(feeds) :
  t.float_format['% change (net)']        = ".5"
  #t.align['BTC']            = "r"
  for asset in asset_list_publish :
-    if len(price[core_symbol][asset]) < 1 : continue # empty asset
+    if len(price[asset][core_symbol]) < 1 : continue # empty asset
     age                     = (str(datetime.utcnow()-lastUpdate[asset]))
     weighted_external_price = derived_prices[asset]
     price_from_blockchain   = price_median_blockchain[asset]
     cur_feed                = float(myCurrentFeed[asset])
     ## Stats
-    mean_exchanges          = statistics.mean(price[core_symbol][asset])
-    median_exchanges        = statistics.median(price[core_symbol][asset])
+    mean_exchanges          = statistics.mean(  price[asset][core_symbol])
+    median_exchanges        = statistics.median(price[asset][core_symbol])
     if cur_feed == 0 :               change_my              = -1
     else :                           change_my              = ((weighted_external_price - cur_feed)/cur_feed)*100
     if price_from_blockchain == 0 :
@@ -298,7 +287,7 @@ def print_stats(feeds) :
     else :
      change_blockchain      = ((weighted_external_price - price_from_blockchain)/price_from_blockchain)*100
     t.add_row([asset,
-               1/weighted_external_price,
+               weighted_external_price,
                mean_exchanges,
                median_exchanges,
                price_from_blockchain,
@@ -321,7 +310,7 @@ def update_price_feed() :
   myCurrentFeed[asset]           = {}
 
  ## Get Prices from Feed Sources ##############################################
- if debug and os.path.isfile('data.json') : 
+ if config.debug and os.path.isfile('data.json') : 
  ## Load data from disk for (faster) debugging
   with open('data.json', 'r') as fp:
      feed = json.load(fp)
@@ -354,68 +343,67 @@ def update_price_feed() :
  update_required = False
 
  for asset in asset_list_publish :
-    if len(price[core_symbol][asset]) > 0 :
-        if derived_prices[asset] > 0.0:
-            quote_precision = assets[asset]["precision"]
-            symbol          = assets[asset]["symbol"]
-            assert symbol is not asset
+    if derived_prices[asset] > 0.0:
+        quote_precision = assets[asset]["precision"]
+        symbol          = assets[asset]["symbol"]
+        assert symbol is not asset
 
-            base_precision  = assets["1.3.0"]["precision"] ## core asset
-            core_price      = derived_prices[asset] * 10**(quote_precision-base_precision)
-            core_price      = fractions.Fraction.from_float(core_price).limit_denominator(100000)
-            denominator     = core_price.denominator
-            numerator       = core_price.numerator
+        base_precision  = assets["1.3.0"]["precision"] ## core asset
+        core_price      = derived_prices[asset] * 10**(quote_precision-base_precision)
+        core_price      = fractions.Fraction.from_float(core_price).limit_denominator(100000)
+        denominator     = core_price.denominator
+        numerator       = core_price.numerator
 
 
-            price_feed = {
-                      "settlement_price": {
-                        "quote": {
-                          "asset_id": "1.3.0",
-                          "amount": denominator
-                        },
-                        "base": {
-                          "asset_id": assets[asset]["id"],
-                          "amount": numerator
-                        }
-                      },
-                      "maintenance_collateral_ratio" : 
-                                config.asset_config[symbol]["maintenance_collateral_ratio"]
-                                if (symbol in config.asset_config and "maintenance_collateral_ratio" in config.asset_config[symbol])
-                                else config.asset_config["default"]["maintenance_collateral_ratio"],
-                      "maximum_short_squeeze_ratio"  : 
-                                config.asset_config[symbol]["maximum_short_squeeze_ratio"]
-                                if (symbol in config.asset_config and "maximum_short_squeeze_ratio" in config.asset_config[symbol])
-                                else config.asset_config["default"]["maximum_short_squeeze_ratio"],
-                      "core_exchange_rate": {
-                        "quote": {
-                          "asset_id": "1.3.0",
-                          "amount": int(denominator * (
-                                        config.asset_config[symbol]["core_exchange_factor"]
-                                        if (symbol in config.asset_config and "core_exchange_factor" in config.asset_config[symbol])
-                                        else config.asset_config["default"]["core_exchange_factor"]
-                                       ))
-                        },
-                        "base": {
-                          "asset_id": assets[asset]["id"],
-                          "amount": numerator
-                        }
-                      }
+        price_feed = {
+                  "settlement_price": {
+                    "quote": {
+                      "asset_id": "1.3.0",
+                      "amount": denominator
+                    },
+                    "base": {
+                      "asset_id": assets[asset]["id"],
+                      "amount": numerator
                     }
+                  },
+                  "maintenance_collateral_ratio" : 
+                            config.asset_config[symbol]["maintenance_collateral_ratio"]
+                            if (symbol in config.asset_config and "maintenance_collateral_ratio" in config.asset_config[symbol])
+                            else config.asset_config["default"]["maintenance_collateral_ratio"],
+                  "maximum_short_squeeze_ratio"  : 
+                            config.asset_config[symbol]["maximum_short_squeeze_ratio"]
+                            if (symbol in config.asset_config and "maximum_short_squeeze_ratio" in config.asset_config[symbol])
+                            else config.asset_config["default"]["maximum_short_squeeze_ratio"],
+                  "core_exchange_rate": {
+                    "quote": {
+                      "asset_id": "1.3.0",
+                      "amount": int(denominator * (
+                                    config.asset_config[symbol]["core_exchange_factor"]
+                                    if (symbol in config.asset_config and "core_exchange_factor" in config.asset_config[symbol])
+                                    else config.asset_config["default"]["core_exchange_factor"]
+                                   ))
+                    },
+                    "base": {
+                      "asset_id": assets[asset]["id"],
+                      "amount": numerator
+                    }
+                  }
+                }
 
-            asset_update_required = publish_rule(rpc,asset)
-            if asset_update_required: update_required = True 
-            price_feeds[symbol] = {
-                                     "asset_id": assets[asset]["id"],
-                                     "feed":     price_feed,
-                                     "publish":  asset_update_required
-                                  }
+        asset_update_required = publish_rule(rpc,asset)
+        if asset_update_required: update_required = True 
+        price_feeds[symbol] = {
+                                 "asset_id": assets[asset]["id"],
+                                 "feed":     price_feed,
+                                 "publish":  asset_update_required
+                              }
 
  ## Print some stats ##########################################################
  print_stats(price_feeds)
 
  ## Check publish rules and publich feeds #####################################
 
- if update_required :
+ if update_required and not config.debug:
   publish = False
   if config.ask_confirmation :
    if rpc._confirm("Are you SURE you would like to publish this feed?") :
@@ -426,6 +414,9 @@ def update_price_feed() :
   if publish :
     print("Update required! Forcing now!")
     update_feed(rpc,price_feeds)
+ elif config.debug :
+  print("[Warning] This script is loading old data for debuggin. No price can be published.\n"+\
+        "          Please set 'debug' to 'False' if you are ready to go online!")
  else :
   print("no update required")
 
