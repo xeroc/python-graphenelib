@@ -201,7 +201,7 @@ def derive_prices(feed):
   price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
   discount          = this_asset_config["discount"] if "discount" in this_asset_config        else config.asset_config["default"]["discount"]
 
-  for base in _bases  + [core_symbol]:
+  for base in _all_bts_assets  + [core_symbol]:
    price[base]            = {}
    volume[base]           = {}
    for quote in _all_bts_assets + [core_symbol]:
@@ -217,7 +217,8 @@ def derive_prices(feed):
      price[base][quote].append(feed[datasource][base][quote]["price"])
      volume[base][quote].append(feed[datasource][base][quote]["volume"])
 
-     if feed[datasource][base][quote]["price"] > 0 and feed[datasource][base][quote]["volume"] > 0 and quote in price :
+     if feed[datasource][base][quote]["price"] > 0 and \
+        feed[datasource][base][quote]["volume"] > 0 :
       # Inverted pair price/volume
       price[quote][base].append((float(1.0/feed[datasource][base][quote]["price"] )))
       # volume is usually in "quote"

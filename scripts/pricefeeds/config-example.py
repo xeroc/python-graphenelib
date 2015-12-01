@@ -68,6 +68,16 @@ asset_config = {
                        # the discount
                        "discount"                      : 1.0,
                    },
+                   "USD" : {
+                       "sources" : ["poloniex",
+                                    #"btc38",
+                                    "bittrex",
+                                    "yunbi",
+                                    "huobi",
+                                    "btcchina",
+                                    "okcoin",
+                                   ],
+                   },
                    "CNY" : {
                        "metric" : "median",
                        "sources" : ["poloniex",
