@@ -24,7 +24,6 @@ change_max                   = 5.0    # Percentage of price change to cause a wa
 ################################################################################
 ## Fine tuning
 ################################################################################
-discount                     = 0.995       # discount for borrowing of an asset
 minValidAssetPriceInBTC      = 100 * 1e-8  # minimum valid price for BTS in BTC
 
 ################################################################################
@@ -42,16 +41,18 @@ asset_config = {
                                     "poloniex", 
                                     "bittrex", 
                                     "btcavg", 
-                                    "okcoin",
-                                    #"btcchina",
-                                    #"huobi",
+                                    #"okcoin",   # no trading-fees
+                                    #"btcchina", # no trading-fees
+                                    #"huobi",    # no trading-fees
                                     ],
                        # Core exchange rate for paying transaction fees in non-BTS assets
-                       "core_exchange_factor" : 0.95,
+                       "core_exchange_factor"          : 0.95,
                        # Call when collateral only pays off 175% the debt
-                       "maintenance_collateral_ratio" : 1750,
+                       "maintenance_collateral_ratio"  : 1750,
                        # Stop calling when collateral only pays off 110% of the debt
-                       "maximum_short_squeeze_ratio" : 1100,
+                       "maximum_short_squeeze_ratio"   : 1100,
+                       # Multiplicative factor for discount when borrowing bitassets
+                       "discount"                      : 1.0,
                    },
                    "CNY" : {
                        "metric" : "median",
@@ -71,13 +72,14 @@ feedSources["yahoo"]    = feedsources.Yahoo(trust=1.0)
 feedSources["btcavg"]   = feedsources.BitcoinAverage(trust=1.0)
 
 feedSources["poloniex"] = feedsources.Poloniex(trust=1.0)
-feedSources["bittrex"]  = feedsources.Bittrex(trust=1.0)
 feedSources["ccedk"]    = feedsources.Ccedk(trust=1.0)
+feedSources["yunbi"]    = feedsources.Yunbi(trust=1.0)
 feedSources["btcchina"] = feedsources.BtcChina(trust=1.0)
 feedSources["huobi"]    = feedsources.Huobi(trust=1.0)
 feedSources["okcoin"]   = feedsources.Okcoin(trust=1.0)
-feedSources["yunbi"]    = feedsources.Yunbi(trust=0.5)
-feedSources["btc38"]    = feedsources.Btc38(trust=0.5)
 
-#feedSources["btcid"]    = feedsources.BitcoinIndonesia(trust=0.0)
-#feedSources["bter"]     = feedsources.Bter(trust=0.0)
+feedSources["bittrex"]  = feedsources.Bittrex(trust=0.5)
+
+feedSources["btcid"]    = feedsources.BitcoinIndonesia(trust=0.0)
+feedSources["btc38"]    = feedsources.Btc38(trust=0.0)
+feedSources["bter"]     = feedsources.Bter(trust=0.0)

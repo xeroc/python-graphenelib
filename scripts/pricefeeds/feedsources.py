@@ -216,7 +216,7 @@ class Bittrex(FeedSource) :
        if( coin[ "MarketName" ] in ["BTC-"+a for a in availableAssets] ) :
         mObj    = re.match( 'BTC-(.*)', coin[ "MarketName" ] )
         feed["BTC"][ mObj.group(1) ] = { "price" : (float(coin["Last"])),
-                                         "volume" : (float(coin["Volume"])*float(coin["Last"])*self.trust) }
+                                         "volume" : (float(coin["Volume"])*self.trust) }
       return feed 
 
 class Yahoo(FeedSource) :

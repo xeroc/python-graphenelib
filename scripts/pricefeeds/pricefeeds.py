@@ -196,9 +196,10 @@ def derive_prices(feed):
 
  for asset in asset_list_publish :
 
-  this_asset_config = config.asset_config[asset]  if asset in config.asset_config           else config.asset_config["default"]
-  sources           = list(feed)                  if this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
-  price_metric      = this_asset_config["metric"] if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
+  this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
+  sources           = list(feed)                    if this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
+  price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
+  discount          = this_asset_config["discount"] if "discount" in this_asset_config        else config.asset_config["default"]["discount"]
 
   for base in _bases  + [core_symbol]:
    price[base]            = {}
@@ -250,6 +251,9 @@ def derive_prices(feed):
   elif price_metric == "weighted" :
    assetvolume= [v for v in  volume[core_symbol][asset] ]
    assetprice = [p for p in  price[core_symbol][asset]  ]
+
+   if asset == "BTC" : pprint(assetvolume)
+
    if len(assetvolume) > 1 :
     price_result[asset] = num.average(assetprice, weights=assetvolume)
    else :
@@ -258,8 +262,8 @@ def derive_prices(feed):
   else :
    raise Exception("Configuration error, 'price_metric' has to be out of [ 'median', 'mean', 'weighted]")
 
-  # Discount for shorts if any
-  price_result[asset] = 1.0/(price_result[asset] * config.discount)
+  # Discount and price convertion to "price for one BTS" i.e.  base=*, quote=core_symbol
+  price_result[asset] = discount/(price_result[asset])
 
  return price_result
 
@@ -267,26 +271,25 @@ def derive_prices(feed):
 ## Print stats as table
 ## ----------------------------------------------------------------------------
 def print_stats(feeds) :
- t = PrettyTable(["asset","price per BTS","my mean","median exchanges","blockchain median","% change (my)","% change (blockchain)","last update","publish"])
+ t = PrettyTable(["asset","price for one BTS","mean exchanges","median exchanges","blockchain median","% change (my)","% change (net)","last update","publish"])
  t.align                   = 'r'
  t.border                  = True
- t.float_format['price per BTS']              = ".8"
- t.float_format['my mean']               = ".8"
+ t.float_format['price for one BTS']     = ".8"
+ t.float_format['mean exchanges']        = ".8"
  t.float_format['median exchanges']      = ".8"
  t.float_format['blockchain median']     = ".8"
  t.float_format['% change (my)']         = ".5"
- t.float_format['% change (blockchain)'] = ".5"
+ t.float_format['% change (net)']        = ".5"
  #t.align['BTC']            = "r"
  for asset in asset_list_publish :
     if len(price[core_symbol][asset]) < 1 : continue # empty asset
     age                     = (str(datetime.utcnow()-lastUpdate[asset]))
     weighted_external_price = derived_prices[asset]
-    prices_from_exchanges   = price[core_symbol][asset]
     price_from_blockchain   = price_median_blockchain[asset]
     cur_feed                = float(myCurrentFeed[asset])
     ## Stats
-    mean_exchanges          = statistics.mean(prices_from_exchanges)
-    median_exchanges        = statistics.median(prices_from_exchanges)
+    mean_exchanges          = statistics.mean(price[core_symbol][asset])
+    median_exchanges        = statistics.median(price[core_symbol][asset])
     if cur_feed == 0 :               change_my              = -1
     else :                           change_my              = ((weighted_external_price - cur_feed)/cur_feed)*100
     if price_from_blockchain == 0 :
@@ -295,10 +298,10 @@ def print_stats(feeds) :
     else :
      change_blockchain      = ((weighted_external_price - price_from_blockchain)/price_from_blockchain)*100
     t.add_row([asset,
-               weighted_external_price,
-               1/mean_exchanges,
-               1/median_exchanges,
-               1/price_from_blockchain,
+               1/weighted_external_price,
+               mean_exchanges,
+               median_exchanges,
+               price_from_blockchain,
                change_my,
                change_blockchain,
                age+" ago",
