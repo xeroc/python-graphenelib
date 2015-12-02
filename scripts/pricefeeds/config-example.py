@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ################################################################################
 ##
 ##                D E F A U L T    C O N F I G U R A T I O N
@@ -29,7 +31,7 @@ ask_confirmation             = True # if true, a manual confirmation is required
 ## Witness Feed Publish Parameters
 ################################################################################
 witness_name                 = "init0"
-maxAgeFeedInSeconds          = 15*60  # A feed should be at most 15 minutes old
+maxAgeFeedInSeconds          = 60*60  # A feed should be at most 1hour old
 change_min                   = 0.5    # Percentage of price change to force an update
 change_max                   = 5.0    # Percentage of price change to cause a warning
 
@@ -55,11 +57,11 @@ asset_config = {
                                     "btcavg",    # To get from BTC into USD/CNY/EUR
                                     "yahoo",     # To get from USD/CNY/EUR into other FIAT currencies
                                     ## BTC/BTS exchanges (include BTC/* if available)
+                                    "poloniex",
                                     "ccedk",
-                                    "yunbi",
+                                    "bittrex",
                                     "btc38",
-                                    "poloniex", 
-                                    "bittrex", 
+                                    "yunbi",
                                     ## BTC/* exchanges
                                     #"okcoin",   # no trading-fees
                                     #"btcchina", # no trading-fees
@@ -79,15 +81,12 @@ asset_config = {
                    ## (this does not include any other trading pairs)
                    "BTC" : {
                        "metric" : "weighted",
-                       "sources" : ["ccedk",
-                                    "btc38",
-                                    "poloniex",
+                       "sources" : ["poloniex",
+                                    "ccedk",
                                     "bittrex",
-                                    #"yunbi",    # not trading BTS/BTC atm
-                                    #"okcoin",   # no trading-fees
-                                    #"btcchina", # no trading-fees
-                                    #"huobi",    # no trading-fees
-                                   ]
+                                    "btc38",
+                                    "yunbi",
+                                    ],
                    },
                    ## Settings for CNY take popular chinese exchanges into
                    ## account that let people trade without fees.
@@ -95,13 +94,11 @@ asset_config = {
                    ## be easily manipulated
                    "CNY" : {
                        "metric" : "weighted",
-                       "sources" : ["poloniex",
-                                    "bittrex",
+                       "sources" : ["btc38",
+                                    "yunbi",
                                     "huobi",
                                     "btcchina",
                                     "okcoin",
-                                    "btc38",
-                                    "yunbi"
                                    ]
                    }
                }
@@ -117,18 +114,18 @@ feedSources = {}
 feedSources["yahoo"]    = feedsources.Yahoo()
 feedSources["btcavg"]   = feedsources.BitcoinAverage()
 
-feedSources["poloniex"] = feedsources.Poloniex()
-feedSources["ccedk"]    = feedsources.Ccedk()
-feedSources["bittrex"]  = feedsources.Bittrex()
-feedSources["btcchina"] = feedsources.BtcChina()
-feedSources["huobi"]    = feedsources.Huobi()
-
+feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True)
+feedSources["ccedk"]    = feedsources.Ccedk(allowFailure=True)
+feedSources["bittrex"]  = feedsources.Bittrex(allowFailure=True)
 feedSources["yunbi"]    = feedsources.Yunbi(allowFailure=True)
-feedSources["okcoin"]   = feedsources.Okcoin(allowFailure=True)
 feedSources["btc38"]    = feedsources.Btc38(allowFailure=True)
 
-#feedSources["btcid"]    = feedsources.BitcoinIndonesia()
-#feedSources["bter"]     = feedsources.Bter()
+feedSources["btcchina"] = feedsources.BtcChina(allowFailure=True)
+feedSources["okcoin"]   = feedsources.Okcoin(allowFailure=True)
+feedSources["huobi"]    = feedsources.Huobi(allowFailure=True)
+
+#feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True)
+#feedSources["bter"]     = feedsources.Bter(allowFailure=True)
 
 ################################################################################
 # Blame mode allows to verify old published prices
@@ -140,8 +137,7 @@ feedSources["btc38"]    = feedsources.Btc38(allowFailure=True)
 # Default: "latest"  # Will fetch prices from exchanges and publish it
 ################################################################################
 blame = "latest"
-#blame = "1428190"
-#blame = "1430264"
+blame = "1428190"
 
 ################################################################################
 ## Git revision for storage in blame files
