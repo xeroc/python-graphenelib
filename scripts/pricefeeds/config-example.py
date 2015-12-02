@@ -40,16 +40,16 @@ asset_config = {
                        # has its own fetch() method and collects several markets
                        # any market of an exchanges is considered but only the
                        # current asset's price is derived
-                       # 
+                       #
                        # Choose from: - "*": all,
                        #              - loaded exchanges (see below)
-                       "sources" : ["yahoo", 
-                                    "ccedk", 
-                                    "yunbi", 
-                                    "btc38", 
-                                    "poloniex", 
-                                    "bittrex", 
-                                    "btcavg", 
+                       "sources" : ["yahoo",
+                                    "ccedk",
+                                    "yunbi",
+                                    "btc38",
+                                    "poloniex",
+                                    "bittrex",
+                                    "btcavg",
                                     #"okcoin",   # no trading-fees
                                     #"btcchina", # no trading-fees
                                     #"huobi",    # no trading-fees
@@ -57,7 +57,7 @@ asset_config = {
                        # Core exchange factor for paying transaction fees in
                        # non-BTS assets. This is a factor: 0.95 = 95%
                        "core_exchange_factor"          : 0.95,
-                       # Call when collateral only pays off 175% the debt. 
+                       # Call when collateral only pays off 175% the debt.
                        # This is denoted as: 1750 = 175% = 1.75
                        "maintenance_collateral_ratio"  : 1750,
                        # Stop calling when collateral only pays off 110% of the debt
@@ -94,7 +94,7 @@ asset_config = {
 
 ################################################################################
 ## Exchanges and settings
-## 
+##
 ## trust:        a multiplicative factor for the volume
 ## allowFailure: bool variable that will (if not set or set to False) exit the
 ##               script on error

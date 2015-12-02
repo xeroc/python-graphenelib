@@ -68,32 +68,34 @@ def publish_rule(rpc, asset):
  # REAL_PRICE = Lowest of external feeds                         = newPrice
  # MEDIAN = current median price according to the blockchain.    = price_median_blockchain[asset]
  ##############################################################################
- ## Define REAL_PRICE
- newPrice    = derived_prices[asset] #statistics.median( price[core_symbol][asset] )
- priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
+ publish = False
+ for asset in asset_list_publish :
+  ## Define REAL_PRICE
+  newPrice    = derived_prices[asset] #statistics.median( price[core_symbol][asset] )
+  priceChange = fabs(myCurrentFeed[asset]-newPrice)/myCurrentFeed[asset] * 100.0
 
- ## Check max price change
- if priceChange > config.change_max :
-      if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
-                            asset,price_median_blockchain[asset],newPrice,priceChange)) :
-          return False # skip everything and return
+  ## Check max price change
+  if priceChange > config.change_max :
+       if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
+                             asset,price_median_blockchain[asset],newPrice,priceChange)) :
+           return False # skip everything and return
 
- ## Rules
- if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
-       print("Feeds for %s too old! Force updating!" % asset)
-       return True
- elif newPrice     < price_median_blockchain[asset] and \
-      price_median_blockchain[asset] > price_median_blockchain[asset]:
-       print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
-              % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
-       return True
- elif priceChange > config.change_min and\
-      (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
-       print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
-              % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
-       return True
+  ## Rules
+  if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
+        print("Feeds for %s too old! Force updating!" % asset)
+        publish = True
+  elif newPrice     < price_median_blockchain[asset] and \
+       myCurrentFeed[asset] > price_median_blockchain[asset]:
+        print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and myfeedprice(%.8f) > feedmedian(%f) Force updating!"\
+               % (asset,newPrice,price_median_blockchain[asset],myCurrentFeed[asset],price_median_blockchain[asset]))
+        publish = True
+  elif priceChange > config.change_min and\
+       (datetime.utcnow()-lastUpdate[asset]).total_seconds() > 20*60:
+        print("New Feeds differs too much for %s %.3f%% > %.3f%%! Force updating!" \
+               % (asset,priceChange, config.change_min))
+        publish = True
 
- return False
+ return publish
 
 ## ----------------------------------------------------------------------------
 ## Fetch data
@@ -166,7 +168,7 @@ def update_feed(rpc, feeds):
  handle = rpc.begin_builder_transaction();
  for asset in feeds :
   if not feeds[asset]["publish"] : continue
-  rpc.add_operation_to_builder_transaction(handle, 
+  rpc.add_operation_to_builder_transaction(handle,
         [19, {  # id 19 corresponds to price feed update operation
                 "asset_id"  : feeds[asset]["asset_id"],
                 "feed"      : feeds[asset]["feed"],
@@ -207,7 +209,7 @@ def derive_prices(feed):
     volume[base][quote]   = []
 
   # Load feed data into price/volume array for processing
-  for datasource in list(sources) : 
+  for datasource in list(sources) :
    if not feed[datasource] : continue
    for base in list(feed[datasource]) :
     for quote in list(feed[datasource][base]) :
@@ -310,11 +312,11 @@ def update_price_feed() :
   myCurrentFeed[asset]           = {}
 
  ## Get Prices from Feed Sources ##############################################
- if config.debug and os.path.isfile('data.json') : 
+ if config.debug and os.path.isfile('data.json') :
  ## Load data from disk for (faster) debugging
   with open('data.json', 'r') as fp:
      feed = json.load(fp)
- else : 
+ else :
  ## Get prices from sources
   pool = futures.ThreadPoolExecutor(max_workers=8)
   feed      = {}
@@ -366,11 +368,11 @@ def update_price_feed() :
                       "amount": numerator
                     }
                   },
-                  "maintenance_collateral_ratio" : 
+                  "maintenance_collateral_ratio" :
                             config.asset_config[symbol]["maintenance_collateral_ratio"]
                             if (symbol in config.asset_config and "maintenance_collateral_ratio" in config.asset_config[symbol])
                             else config.asset_config["default"]["maintenance_collateral_ratio"],
-                  "maximum_short_squeeze_ratio"  : 
+                  "maximum_short_squeeze_ratio"  :
                             config.asset_config[symbol]["maximum_short_squeeze_ratio"]
                             if (symbol in config.asset_config and "maximum_short_squeeze_ratio" in config.asset_config[symbol])
                             else config.asset_config["default"]["maximum_short_squeeze_ratio"],
@@ -391,7 +393,7 @@ def update_price_feed() :
                 }
 
         asset_update_required = publish_rule(rpc,asset)
-        if asset_update_required: update_required = True 
+        if asset_update_required: update_required = True
         price_feeds[symbol] = {
                                  "asset_id": assets[asset]["id"],
                                  "feed":     price_feed,

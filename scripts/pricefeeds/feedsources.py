@@ -32,7 +32,7 @@ class FeedSource() :
         self.trust        = trust
         self.enabled      = enable
         self.allowFailure = allowFailure
-        
+
         ## Why fail if the trust is 0
         if self.trust == 0.0 :
             self.allowFailure = True
@@ -40,7 +40,7 @@ class FeedSource() :
 class BitcoinIndonesia(FeedSource) :
     def __init__(self, *args, **kwargs) :
         super().__init__(*args, **kwargs)
-  
+
     def fetch(self):
       feed = {}
       feed["BTC"]  = {}
@@ -57,7 +57,7 @@ class BitcoinIndonesia(FeedSource) :
         if not self.allowFailure:
          sys.exit("\nExiting due to exchange importance!")
         return
-      return feed 
+      return feed
 
 class Ccedk(FeedSource) :
     def __init__(self, *args, **kwargs) :
@@ -71,7 +71,7 @@ class Ccedk(FeedSource) :
                       "BTC":50,
                       "EUR":54,
                     }
-      for market in bts_markets : 
+      for market in bts_markets :
        pair_id = bts_markets[market]
        feed[market] = {}
        try :
@@ -112,7 +112,7 @@ class Yunbi(FeedSource) :
       for coin in availableAssets :
        feed["CNY"][ coin ] = { "price"  : (float(result[coin.lower()+"cny"]["ticker"]["last"])),
                                "volume" : (float(result[coin.lower()+"cny"]["ticker"]["vol"])*self.trust) }
-      return feed 
+      return feed
 
 class Btc38(FeedSource) :
     def __init__(self, *args, **kwargs) :
@@ -129,8 +129,8 @@ class Btc38(FeedSource) :
        response = requests.get(url=url, params=params, headers=_request_headers, timeout=10 )
        result = response.json()
        for coin in availableAssets :
-        feed["BTC"][ coin ] = { "price"  : (float(result[coin.lower()]["ticker"]["last"])),
-                                "volume" : (float(result[coin.lower()]["ticker"]["vol"]/result[coin.lower()]["ticker"]["last"])*self.trust) }
+        feed["BTC"][ coin ] = { "price"  : (float(result["ticker"]["last"])),
+                                "volume" : (float(result["ticker"]["vol"]/result["ticker"]["last"])*self.trust) }
 
        availableAssets = [ core_symbol, "BTC" ]
       except Exception as e:
@@ -221,7 +221,7 @@ class Bittrex(FeedSource) :
         mObj    = re.match( 'BTC-(.*)', coin[ "MarketName" ] )
         feed["BTC"][ mObj.group(1) ] = { "price" : (float(coin["Last"])),
                                          "volume" : (float(coin["Volume"])*self.trust) }
-      return feed 
+      return feed
 
 class Yahoo(FeedSource) :
     def __init__(self, *args, **kwargs) :
@@ -345,9 +345,9 @@ class Okcoin(FeedSource) :
               for coin in availableAssets :
                   if market == "USD" :
                       url="https://www.okcoin.com/api/v1/ticker.do?symbol=%s_%s" % (coin.lower(), market.lower())
-                  elif market == "CNY" : 
+                  elif market == "CNY" :
                       url="https://www.okcoin.cn/api/ticker.do?symbol=%s_%s" % (coin.lower(), market.lower())
-                  else : 
+                  else :
                     sys.exit("\n%s does not know market type %s" % (type(self).__name__, market))
                   response = requests.get(url=url, headers=_request_headers, timeout=10 )
                   result = response.json()
