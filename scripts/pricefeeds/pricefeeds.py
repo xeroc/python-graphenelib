@@ -450,8 +450,10 @@ def update_price_feed() :
         state["price_feeds"]    = price_feeds
         state["lastblock"]      = get_last_block(rpc)
         state["config"]         = configStruct
-        with open("blame/"+str(state["lastblock"])+'.json', 'w') as fp:
+        blameFile               = "blame/"+str(state["lastblock"])+'.json'
+        with open(blameFile, 'w') as fp:
            json.dump(state, fp)
+        print("Blamefile: "+blameFile)
 
         ## Check publish rules and publich feeds #####################################
         if update_required and not debug :

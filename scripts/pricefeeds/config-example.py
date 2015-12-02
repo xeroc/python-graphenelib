@@ -33,7 +33,7 @@ asset_config = {
                        #
                        # how to derive a single price from several sources
                        # Choose from: "median", "mean", or "weighted" (by volume)
-                       "metric" : "median",
+                       "metric" : "weighted",
                        #
                        # Select sources for this particular asset. Each source
                        # has its own fetch() method and collects several markets
@@ -42,13 +42,17 @@ asset_config = {
                        # 
                        # Choose from: - "*": all,
                        #              - loaded exchanges (see below)
-                       "sources" : ["yahoo", 
-                                    "ccedk", 
-                                    "yunbi", 
-                                    "btc38", 
+                       "sources" : [
+                                    ## Required Exchanges for FIAT
+                                    "btcavg",    # To get from BTC into USD/CNY/EUR
+                                    "yahoo",     # To get from USD/CNY/EUR into other FIAT currencies
+                                    ## BTC/BTS exchanges (include BTC/* if available)
+                                    "ccedk",
+                                    "yunbi",
+                                    "btc38",
                                     "poloniex", 
                                     "bittrex", 
-                                    "btcavg", 
+                                    ## BTC/* exchanges
                                     #"okcoin",   # no trading-fees
                                     #"btcchina", # no trading-fees
                                     #"huobi",    # no trading-fees
@@ -65,7 +69,7 @@ asset_config = {
                        # Multiplicative factor for discount when borrowing
                        # bitassets. This is a factor: 0.95 = 95%. 1.0 disables
                        # the discount
-                       "discount"                      : 1,
+                       "discount"                      : 1.0,
                    },
                    ## Exchanges trading BTC/BTS directly
                    ## (this does not include any other trading pairs)
@@ -73,7 +77,8 @@ asset_config = {
                        "sources" : ["poloniex",
                                     "bittrex",
                                     "ccedk",
-                                    "bittrex",
+                                    "btc38",
+                                    #"yunbi" # no trading possible atm
                                    ],
                    },
                    ## Settings for CNY take popular chinese exchanges into
@@ -124,11 +129,11 @@ feedSources["btc38"]    = feedsources.Btc38(allowFailure=True)
 #
 # Default: "latest"  # Will fetch prices from exchanges and publish it
 ################################################################################
-# blame  = "1426478"
 blame = "latest"
+#blame = "1427276"
 
 ################################################################################
-## Git revision
+## Git revision for storage in blame files
 ## (do not touch this line)
 ################################################################################
 gittag = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip("\n")
