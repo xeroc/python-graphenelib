@@ -252,7 +252,7 @@ def formatPercentageMinus(f) :
 def formatPercentagePlus(f) :
     return "\033[1;32m%+5.2f%%\033[1;m" % f
 def formatPrice(f) :
-    return "\033[1;33m%+.8f\033[1;m" %f
+    return "\033[1;33m%.8f\033[1;m" %f
 def priceChange(new,old):
     if float(old)==0.0: return -1
     else : 
