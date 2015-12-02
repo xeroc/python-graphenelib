@@ -184,7 +184,6 @@ def derive_prices(feed):
 
          this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
          sources           = list(feed)                    if this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
-         discount          = this_asset_config["discount"] if "discount" in this_asset_config        else config.asset_config["default"]["discount"]
 
          for base in _all_bts_assets  + [core_symbol]:
              price[base]            = {}
@@ -235,11 +234,11 @@ def derive_prices(feed):
          else :
              price_weighted = assetprice[0]
 
-         # Discount and price convertion to "price for one BTS" i.e.  base=*, quote=core_symbol
+         # price convertion to "price for one BTS" i.e.  base=*, quote=core_symbol
          price_result[asset] = {
-                                 "mean"    : price_mean     * discount,
-                                 "median"  : price_median   * discount,
-                                 "weighted": price_weighted * discount,
+                                 "mean"    : price_mean,
+                                 "median"  : price_median,
+                                 "weighted": price_weighted,
                                }
 
      return price_result

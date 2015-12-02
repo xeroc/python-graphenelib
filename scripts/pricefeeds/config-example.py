@@ -74,10 +74,6 @@ asset_config = {
                        # Stop calling when collateral only pays off 110% of the debt
                        # This is denoted as: 1100 = 110% = 1.10
                        "maximum_short_squeeze_ratio"   : 1100,
-                       # Multiplicative factor for discount when borrowing
-                       # bitassets. This is a factor: 0.95 = 95%. 1.0 disables
-                       # the discount
-                       "discount"                      : 1.0,
                    },
                    ## Exchanges trading BTC/BTS directly
                    ## (this does not include any other trading pairs)
