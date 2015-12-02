@@ -166,7 +166,7 @@ def update_feed(rpc, feeds):
 
     # Signing and Broadcast
     signedTx = rpc.sign_builder_transaction(handle, True)
-    print(json.dumps(signedTx,indent=4));
+    #print(json.dumps(signedTx,indent=4));
 
     if wallet_was_unlocked :
         print( "Relocking wallet" )
