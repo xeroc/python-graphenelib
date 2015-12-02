@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# coding=utf8 sw=4 expandtab ft=python
+
 import feedsources
 ################################################################################
 ## RPC-client connection information (required)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# coding=utf8 sw=1 expandtab ft=python
+# coding=utf8 sw=4 expandtab ft=python
 
 ####################################################################################
 #########################  W  A  R  N  I  N  G   ###################################
