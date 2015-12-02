@@ -137,7 +137,7 @@ feedSources["huobi"]    = feedsources.Huobi(allowFailure=True)
 # Default: "latest"  # Will fetch prices from exchanges and publish it
 ################################################################################
 blame = "latest"
-blame = "1428190"
+#blame = "1428190"
 
 ################################################################################
 ## Git revision for storage in blame files
