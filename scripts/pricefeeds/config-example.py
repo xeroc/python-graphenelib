@@ -1,64 +1,123 @@
+import feedsources
 ################################################################################
 ## RPC-client connection information (required)
 ################################################################################
-host   = "localhost"
-port   = 8092
-user   = ""
-passwd = ""
-unlock = ""
-
-ask_confirmation = True
+host   = "localhost"     # machine that runs a cli-wallet with -H parameter
+port   = 8092            # RPC port, e.g.`-H 127.0.0.1:8092`
+user   = ""              # API user (optional)
+passwd = ""              # API user passphrase (optional)
+unlock = ""              # password to unlock the wallet if the cli-wallet is locked
 
 ################################################################################
-## Delegate Feed Publish Parameters
+## Script runtime parameters
 ################################################################################
-delegate_name            = "init0"
-maxAgeFeedInSeconds      = 60*60 # 1hour
+ask_confirmation             = True # if true, a manual confirmation is required
 
 ################################################################################
-## Fine tuning
+## Witness Feed Publish Parameters
 ################################################################################
-discount                     = 0.995  # discoun for shorts
-core_exchange_factor         = 0.95   # 5% discount if paying fees in bitassets
-minValidAssetPriceInBTC      = 100 * 1e-8# minimum valid price for BTS in BTC
-price_metric                 = "weighted" # "median", "mean", or "weighted" (by volume)
+witness_name                 = "init0"
+maxAgeFeedInSeconds          = 60*60  # A feed should be at most 1hour old
 change_min                   = 0.5    # Percentage of price change to force an update
 change_max                   = 5.0    # Percentage of price change to cause a warning
 
 ################################################################################
-## Asset specific Borrow/Short parameters
+## Fine tuning
 ################################################################################
-# Call when collateral only pays off 175% the debt
-default_maintenance_collateral_ratio = 1750
-maintenance_collateral_ratio = {
-                                  "USD" : 1750,
-                               }
-
-
-default_maximum_short_squeeze_ratio  = 1100   # Stop calling when collateral only pays off 110% of the debt
-maximum_short_squeeze_ratio  = {
-                                  "USD" : 1100,
-                               }
+minValidAssetPriceInBTC      = 100 * 1e-8  # minimum valid price for BTS in BTC
 
 ################################################################################
-## Enable exchanges
+## Asset specific Settings
 ################################################################################
-enable_bter              = False # No BTS2
-enable_btc38             = False # No official statement for BTS2 yet
-enable_yunbi             = False # currently halted
-enable_poloniex          = True
-enable_bittrex           = True
-enable_btcavg            = True
-enable_ccedk             = True
-enable_btcid             = True
+asset_config = {
+                   "default" : { ## DEFAULT BEHAVIOR
+                       #
+                       # how to derive a single price from several sources
+                       # Choose from: "median", "mean", or "weighted" (by volume)
+                       "metric" : "weighted",
+                       #
+                       # Select sources for this particular asset. Each source
+                       # has its own fetch() method and collects several markets
+                       # any market of an exchanges is considered but only the
+                       # current asset's price is derived
+                       #
+                       # Choose from: - "*": all,
+                       #              - loaded exchanges (see below)
+                       "sources" : ["yahoo",
+                                    "ccedk",
+                                    "yunbi",
+                                    "btc38",
+                                    "poloniex",
+                                    "bittrex",
+                                    "btcavg",
+                                    #"okcoin",   # no trading-fees
+                                    #"btcchina", # no trading-fees
+                                    #"huobi",    # no trading-fees
+                                    ],
+                       # Core exchange factor for paying transaction fees in
+                       # non-BTS assets. This is a factor: 0.95 = 95%
+                       "core_exchange_factor"          : 0.95,
+                       # Call when collateral only pays off 175% the debt.
+                       # This is denoted as: 1750 = 175% = 1.75
+                       "maintenance_collateral_ratio"  : 1750,
+                       # Stop calling when collateral only pays off 110% of the debt
+                       # This is denoted as: 1100 = 110% = 1.10
+                       "maximum_short_squeeze_ratio"   : 1100,
+                       # Multiplicative factor for discount when borrowing
+                       # bitassets. This is a factor: 0.95 = 95%. 1.0 disables
+                       # the discount
+                       "discount"                      : 1.0,
+                   },
+                   ## Exchanges trading BTC/BTS directly
+                   ## (this does not include any other trading pairs)
+                   "BTC" : {
+                       "sources" : ["poloniex",
+                                    "bittrex",
+                                    "ccedk",
+                                    "bittrex",
+                                   ],
+                   },
+                   ## Settings for CNY take popular chinese exchanges into
+                   ## account that let people trade without fees.
+                   ## Hence, the metric should be median, since the volume could
+                   ## be easily manipulated
+                   "CNY" : {
+                       "metric" : "median",
+                       "sources" : ["poloniex",
+                                    "bittrex",
+                                    "huobi",
+                                    "btcchina",
+                                    "okcoin",
+                                   ]
+                   }
+               }
 
-## trust level for exchanges (if an exception happens and level is 0.8 script
-##                            will quit with a failure)
-poloniex_trust_level     = 1.0
-ccedk_trust_level        = 1.0
-bittrex_trust_level      = 0.1
-btcid_trust_level        = 0.5
-btc38_trust_level        = 0.5
-# disabled!
-yunbi_trust_level        = 0.0
-bter_trust_level         = 0.0
+################################################################################
+## Exchanges and settings
+##
+## trust:        a multiplicative factor for the volume
+## allowFailure: bool variable that will (if not set or set to False) exit the
+##               script on error
+################################################################################
+feedSources = {}
+feedSources["yahoo"]    = feedsources.Yahoo(trust=1.0)
+feedSources["btcavg"]   = feedsources.BitcoinAverage(trust=1.0)
+
+feedSources["poloniex"] = feedsources.Poloniex(trust=1.0)
+feedSources["ccedk"]    = feedsources.Ccedk(trust=1.0)
+feedSources["yunbi"]    = feedsources.Yunbi(trust=1.0, allowFailure=True)
+feedSources["btcchina"] = feedsources.BtcChina(trust=1.0)
+feedSources["huobi"]    = feedsources.Huobi(trust=1.0)
+feedSources["okcoin"]   = feedsources.Okcoin(trust=1.0, allowFailure=True)
+
+feedSources["bittrex"]  = feedsources.Bittrex(trust=0.5)
+
+feedSources["btcid"]    = feedsources.BitcoinIndonesia(trust=0.0)
+feedSources["btc38"]    = feedsources.Btc38(trust=0.0)
+feedSources["bter"]     = feedsources.Bter(trust=0.0)
+
+################################################################################
+# Debug Mode! This loads old data and prevents the script for publishing any
+# price feed!
+################################################################################
+debug = False # True or False
