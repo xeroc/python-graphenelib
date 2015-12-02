@@ -145,7 +145,7 @@ feedSources["btc38"]    = feedsources.Btc38(allowFailure=True)
 ################################################################################
 blame = "latest"
 #blame = "1428190"
-blame = "1430264"
+#blame = "1430264"
 
 ################################################################################
 ## Git revision for storage in blame files

@@ -96,7 +96,7 @@ class Yunbi(FeedSource) :
     def fetch(self):
         feed  = {}
         markets         = ["BTC","CNY"]
-        availableAssets = [ core_symbol, "BTC" ]
+        availableAssets = [ core_symbol ] # "BTC"
         try :
             url="https://yunbi.com/api/v2/tickers.json"
             response = requests.get(url=url, headers=_request_headers, timeout=10)
@@ -123,7 +123,7 @@ class Btc38(FeedSource) :
     def fetch(self):
         feed  = {}
         markets         = ["BTC", "CNY"]
-        availableAssets = [ core_symbol, "BTC" ]
+        availableAssets = [ core_symbol ] # "BTC"
         url="http://api.btc38.com/v1/ticker.php"
         try :
             for market in markets : 
