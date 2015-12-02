@@ -1,5 +1,13 @@
-#!/usr/bin/env python3
-# coding=utf8 sw=4 expandtab ft=python
+################################################################################
+##
+##                D E F A U L T    C O N F I G U R A T I O N
+##
+##   This configuration represents a working example. Prices published are very
+##   close to what they "should be". However, every witness has to judge on his
+##   own as to whether these settings fit his needs.
+##
+################################################################################
+
 import feedsources
 import subprocess
 
@@ -74,8 +82,16 @@ asset_config = {
                    ## Exchanges trading BTC/BTS directly
                    ## (this does not include any other trading pairs)
                    "BTC" : {
-                       "metric" : "median",
-                       "sources" : ["*"], ## All exchanges
+                       "metric" : "weighted",
+                       "sources" : ["ccedk",
+                                    "btc38",
+                                    "poloniex",
+                                    "bittrex",
+                                    #"yunbi",    # not trading BTS/BTC atm
+                                    #"okcoin",   # no trading-fees
+                                    #"btcchina", # no trading-fees
+                                    #"huobi",    # no trading-fees
+                                   ]
                    },
                    ## Settings for CNY take popular chinese exchanges into
                    ## account that let people trade without fees.
@@ -89,6 +105,7 @@ asset_config = {
                                     "btcchina",
                                     "okcoin",
                                     "btc38",
+                                    "yunbi"
                                    ]
                    }
                }
@@ -128,9 +145,12 @@ feedSources["btc38"]    = feedsources.Btc38(allowFailure=True)
 ################################################################################
 blame = "latest"
 #blame = "1428190"
+blame = "1430264"
 
 ################################################################################
 ## Git revision for storage in blame files
 ## (do not touch this line)
 ################################################################################
 gittag = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip("\n")
+
+# coding=utf8 sw=4 expandtab ft=python
