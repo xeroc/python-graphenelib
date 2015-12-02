@@ -26,11 +26,6 @@ change_min                   = 0.5    # Percentage of price change to force an u
 change_max                   = 5.0    # Percentage of price change to cause a warning
 
 ################################################################################
-## Fine tuning
-################################################################################
-minValidAssetPriceInBTC      = 100 * 1e-8  # minimum valid price for BTS in BTC
-
-################################################################################
 ## Asset specific Settings
 ################################################################################
 asset_config = {
