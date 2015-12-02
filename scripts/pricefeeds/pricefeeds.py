@@ -53,46 +53,26 @@ if 'config' not in globals():
 ## ----------------------------------------------------------------------------
 def publish_rule(rpc, asset):
     if config.debug : return False
-    ##############################################################################
-    # - if you haven't published a price in the past 20 minutes
-    # - if REAL_PRICE < MEDIAN and YOUR_PRICE > MEDIAN publish price
-    # - if REAL_PRICE > MEDIAN and YOUR_PRICE < MEDIAN and abs( YOUR_PRICE - REAL_PRICE ) / REAL_PRICE > 0.005 publish price
-    # The goal is to force the price down rapidly and allow it to creep up slowly.
-    # By publishing prices more often it helps market makers maintain the peg and
-    # minimizes opportunity for shorts to sell USD below the peg that the market
-    # makers then have to absorb.
-    # If we can get updates flowing smoothly then we can gradually reduce the spread in the market maker bots.
-    # *note: all prices in USD per BTS
-    # if you haven't published a price in the past 20 minutes, and the price change more than 0.5%
-    ##############################################################################
-    # YOUR_PRICE = Your current published price.                    = myCurrentFeed[asset]
-    # REAL_PRICE = Lowest of external feeds                         = newPrice
-    # MEDIAN = current median price according to the blockchain.    = price_median_blockchain[asset]
-    ##############################################################################
-    # Get Final Price according to price metric
+
     this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
     price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
-    newPrice    = derived_prices[asset][price_metric]
+    newPrice          = derived_prices[asset][price_metric]
 
-    priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
+    priceChange       = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
 
     ## Check max price change
     if priceChange > config.change_max :
-         if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
+         if rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
                                asset,price_median_blockchain[asset],newPrice,priceChange)) :
-             return False # skip everything and return
+            return True
 
-    ## Rules
+    ## Feed too old
     if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
           print("Feed for %s too old! Forcing update!" % asset)
           return True
-    elif newPrice     < price_median_blockchain[asset] and \
-         price_median_blockchain[asset] > price_median_blockchain[asset]:
-          print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
-                 % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
-          return True
-    elif priceChange > config.change_min and\
-         (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
+
+    ## External Price movement
+    if priceChange > config.change_min :
           print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
                  % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
           return True
