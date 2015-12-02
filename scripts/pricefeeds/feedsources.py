@@ -134,7 +134,7 @@ class Btc38(FeedSource) :
                  response = requests.get(url=url, params=params, headers=_request_headers, timeout=10 )
                  result = response.json()
                  feed[market][coin] = {  "price"  : (float(result["ticker"]["last"])),
-                                         "volume" : (float(result["ticker"]["vol"]/result["ticker"]["last"])*self.scaleVolumeBy) }
+                                         "volume" : (float(result["ticker"]["vol"])*self.scaleVolumeBy) }
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
             if not self.allowFailure:
