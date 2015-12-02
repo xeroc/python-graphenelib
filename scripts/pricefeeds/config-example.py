@@ -74,24 +74,21 @@ asset_config = {
                    ## Exchanges trading BTC/BTS directly
                    ## (this does not include any other trading pairs)
                    "BTC" : {
-                       "sources" : ["poloniex",
-                                    "bittrex",
-                                    "ccedk",
-                                    "btc38",
-                                    #"yunbi" # no trading possible atm
-                                   ],
+                       "metric" : "median",
+                       "sources" : ["*"], ## All exchanges
                    },
                    ## Settings for CNY take popular chinese exchanges into
                    ## account that let people trade without fees.
                    ## Hence, the metric should be median, since the volume could
                    ## be easily manipulated
                    "CNY" : {
-                       "metric" : "median",
+                       "metric" : "weighted",
                        "sources" : ["poloniex",
                                     "bittrex",
                                     "huobi",
                                     "btcchina",
                                     "okcoin",
+                                    "btc38",
                                    ]
                    }
                }
@@ -130,7 +127,7 @@ feedSources["btc38"]    = feedsources.Btc38(allowFailure=True)
 # Default: "latest"  # Will fetch prices from exchanges and publish it
 ################################################################################
 blame = "latest"
-#blame = "1427276"
+#blame = "1428190"
 
 ################################################################################
 ## Git revision for storage in blame files
