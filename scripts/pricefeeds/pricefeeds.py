@@ -54,25 +54,26 @@ def publish_rule(rpc, asset):
     this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
     price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
     newPrice          = derived_prices[asset][price_metric]
+    oldPrice          = myCurrentFeed[asset]
 
-    priceChange       = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
+    priceChange       = fabs(oldPrice-newPrice)/oldPrice * 100.0
 
     ## Check max price change
-    if priceChange > config.change_max :
-         if rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
-                               asset,price_median_blockchain[asset],newPrice,priceChange)) :
+    if priceChange > fabs(config.change_max) :
+        if rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
+                           asset,oldPrice,newPrice,priceChange)) :
             return True
 
     ## Feed too old
     if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
-          print("Feed for %s too old! Forcing update!" % asset)
-          return True
+        print("Feed for %s too old! Forcing update!" % asset)
+        return True
 
     ## External Price movement
     if priceChange > config.change_min :
-          print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
-                 % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
-          return True
+        print("%s: New Feeds differs too much: %.8f%% > %.8f%%! Force updating!" \
+             % (asset, priceChange, config.change_min))
+        return True
 
     return False
 

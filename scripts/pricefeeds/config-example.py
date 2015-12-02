@@ -29,7 +29,7 @@ ask_confirmation             = True # if true, a manual confirmation is required
 ## Witness Feed Publish Parameters
 ################################################################################
 witness_name                 = "init0"
-maxAgeFeedInSeconds          = 60*60  # A feed should be at most 1hour old
+maxAgeFeedInSeconds          = 15*60  # A feed should be at most 15 minutes old
 change_min                   = 0.5    # Percentage of price change to force an update
 change_max                   = 5.0    # Percentage of price change to cause a warning
 
