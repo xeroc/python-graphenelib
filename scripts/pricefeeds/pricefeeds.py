@@ -52,48 +52,52 @@ if 'config' not in globals():
 ## When do we have to force publish?
 ## ----------------------------------------------------------------------------
 def publish_rule(rpc, asset):
- ##############################################################################
- # - if you haven't published a price in the past 20 minutes
- # - if REAL_PRICE < MEDIAN and YOUR_PRICE > MEDIAN publish price
- # - if REAL_PRICE > MEDIAN and YOUR_PRICE < MEDIAN and abs( YOUR_PRICE - REAL_PRICE ) / REAL_PRICE > 0.005 publish price
- # The goal is to force the price down rapidly and allow it to creep up slowly.
- # By publishing prices more often it helps market makers maintain the peg and
- # minimizes opportunity for shorts to sell USD below the peg that the market
- # makers then have to absorb.
- # If we can get updates flowing smoothly then we can gradually reduce the spread in the market maker bots.
- # *note: all prices in USD per BTS
- # if you haven't published a price in the past 20 minutes, and the price change more than 0.5%
- ##############################################################################
- # YOUR_PRICE = Your current published price.                    = myCurrentFeed[asset]
- # REAL_PRICE = Lowest of external feeds                         = newPrice
- # MEDIAN = current median price according to the blockchain.    = price_median_blockchain[asset]
- ##############################################################################
- ## Define REAL_PRICE
- newPrice    = derived_prices[asset] #statistics.median( price[core_symbol][asset] )
- priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
+    if config.debug : return False
+    ##############################################################################
+    # - if you haven't published a price in the past 20 minutes
+    # - if REAL_PRICE < MEDIAN and YOUR_PRICE > MEDIAN publish price
+    # - if REAL_PRICE > MEDIAN and YOUR_PRICE < MEDIAN and abs( YOUR_PRICE - REAL_PRICE ) / REAL_PRICE > 0.005 publish price
+    # The goal is to force the price down rapidly and allow it to creep up slowly.
+    # By publishing prices more often it helps market makers maintain the peg and
+    # minimizes opportunity for shorts to sell USD below the peg that the market
+    # makers then have to absorb.
+    # If we can get updates flowing smoothly then we can gradually reduce the spread in the market maker bots.
+    # *note: all prices in USD per BTS
+    # if you haven't published a price in the past 20 minutes, and the price change more than 0.5%
+    ##############################################################################
+    # YOUR_PRICE = Your current published price.                    = myCurrentFeed[asset]
+    # REAL_PRICE = Lowest of external feeds                         = newPrice
+    # MEDIAN = current median price according to the blockchain.    = price_median_blockchain[asset]
+    ##############################################################################
+    # Get Final Price according to price metric
+    this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
+    price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
+    newPrice    = derived_prices[asset][price_metric]
 
- ## Check max price change
- if priceChange > config.change_max :
-      if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
-                            asset,price_median_blockchain[asset],newPrice,priceChange)) :
-          return False # skip everything and return
+    priceChange = fabs(price_median_blockchain[asset]-newPrice)/price_median_blockchain[asset] * 100.0
 
- ## Rules
- if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
-       print("Feeds for %s too old! Force updating!" % asset)
-       return True
- elif newPrice     < price_median_blockchain[asset] and \
-      price_median_blockchain[asset] > price_median_blockchain[asset]:
-       print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
-              % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
-       return True
- elif priceChange > config.change_min and\
-      (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
-       print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
-              % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
-       return True
+    ## Check max price change
+    if priceChange > config.change_max :
+         if not rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
+                               asset,price_median_blockchain[asset],newPrice,priceChange)) :
+             return False # skip everything and return
 
- return False
+    ## Rules
+    if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
+          print("Feed for %s too old! Forcing update!" % asset)
+          return True
+    elif newPrice     < price_median_blockchain[asset] and \
+         price_median_blockchain[asset] > price_median_blockchain[asset]:
+          print("External price move for %s: newPrice(%.8f) < feedmedian(%.8f) and newprice(%.8f) > feedmedian(%f) Force updating!"\
+                 % (asset,newPrice,price_median_blockchain[asset],newPrice,price_median_blockchain[asset]))
+          return True
+    elif priceChange > config.change_min and\
+         (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds > 20*60:
+          print("New Feeds differs too much for %s %.8f > %.8f! Force updating!" \
+                 % (asset,fabs(price_median_blockchain[asset]-newPrice), config.change_min))
+          return True
+
+    return False
 
 ## ----------------------------------------------------------------------------
 ## Fetch data
@@ -195,106 +199,95 @@ def derive_prices(feed):
 
      for asset in asset_list_publish :
 
-        this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
-        sources           = list(feed)                    if this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
-        price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
-        discount          = this_asset_config["discount"] if "discount" in this_asset_config        else config.asset_config["default"]["discount"]
+         this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
+         sources           = list(feed)                    if this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
+         discount          = this_asset_config["discount"] if "discount" in this_asset_config        else config.asset_config["default"]["discount"]
 
-        for base in _all_bts_assets  + [core_symbol]:
-            price[base]            = {}
-            volume[base]           = {}
-            for quote in _all_bts_assets + [core_symbol]:
-                price[base][quote]    = []
-                volume[base][quote]   = []
+         for base in _all_bts_assets  + [core_symbol]:
+             price[base]            = {}
+             volume[base]           = {}
+             for quote in _all_bts_assets + [core_symbol]:
+                 price[base][quote]    = []
+                 volume[base][quote]   = []
 
-        # Load feed data into price/volume array for processing
-        for datasource in list(sources) : 
-            if not feed[datasource] : continue
-            for base in list(feed[datasource]) :
-                for quote in list(feed[datasource][base]) :
-                    # Original price/volume
-                    price[base][quote].append(feed[datasource][base][quote]["price"])
-                    volume[base][quote].append(feed[datasource][base][quote]["volume"])
+         # Load feed data into price/volume array for processing
+         for datasource in list(sources) : 
+             if not feed[datasource] : continue
+             for base in list(feed[datasource]) :
+                 for quote in list(feed[datasource][base]) :
+                     # Original price/volume
+                     price[base][quote].append(feed[datasource][base][quote]["price"])
+                     volume[base][quote].append(feed[datasource][base][quote]["volume"])
 
-                    if feed[datasource][base][quote]["price"] > 0 and \
-                       feed[datasource][base][quote]["volume"] > 0 :
-                        # Inverted pair price/volume
-                        price[quote][base].append((float(1.0/feed[datasource][base][quote]["price"] )))
-                        # volume is usually in "quote"
-                        volume[quote][base].append((float(feed[datasource][base][quote]["volume"]*feed[datasource][base][quote]["price"])))
+                     if feed[datasource][base][quote]["price"] > 0 and \
+                        feed[datasource][base][quote]["volume"] > 0 :
+                         # Inverted pair price/volume
+                         price[quote][base].append((float(1.0/feed[datasource][base][quote]["price"] )))
+                         # volume is usually in "quote"
+                         volume[quote][base].append((float(feed[datasource][base][quote]["volume"]*feed[datasource][base][quote]["price"])))
 
-        # derive BTS prices for all assets in asset_list_publish
-        for targetasset in asset_list_publish :
-            for base in _bases :
-                if base == targetasset : continue
-                for ratio in price[targetasset][base] :
-                    for idx in range(0, len(price[base][core_symbol])) :
-                        if volume[base][core_symbol][idx] == 0 : continue
-                        price[targetasset][core_symbol].append( (float(price[base][core_symbol][idx]  * ratio)))
-                        volume[targetasset][core_symbol].append((float(volume[base][core_symbol][idx] * ratio)))
+         # derive BTS prices for all assets in asset_list_publish
+         for targetasset in asset_list_publish :
+             for base in _bases :
+                 if base == targetasset : continue
+                 for ratio in price[targetasset][base] :
+                     for idx in range(0, len(price[base][core_symbol])) :
+                         if volume[base][core_symbol][idx] == 0 : continue
+                         price[targetasset][core_symbol].append( (float(price[base][core_symbol][idx]  * ratio)))
+                         volume[targetasset][core_symbol].append((float(volume[base][core_symbol][idx] * ratio)))
 
-        # Derive Final Price according to price metric
-        if price_metric == "median" :
-            price_result[asset] = statistics.median(price[asset][core_symbol])
+         # Derive all prices and pick the right one later
+         assetvolume= [v for v in  volume[asset][core_symbol] ]
+         assetprice = [p for p in   price[asset][core_symbol]  ]
 
-        elif price_metric == "mean" :
-            price_result[asset] = statistics.mean(price[asset][core_symbol])
+         price_median = statistics.median(price[asset][core_symbol])
+         price_mean   = statistics.mean(price[asset][core_symbol])
+         if len(assetvolume) > 1 :
+             price_weighted = num.average(assetprice, weights=assetvolume)
+         else :
+             price_weighted = assetprice[0]
 
-        elif price_metric == "weighted" :
-            assetvolume= [v for v in  volume[asset][core_symbol] ]
-            assetprice = [p for p in   price[asset][core_symbol]  ]
-
-            if len(assetvolume) > 1 :
-                price_result[asset] = num.average(assetprice, weights=assetvolume)
-            else :
-                price_result[asset] = assetprice[0]
-
-        else :
-            raise Exception("Configuration error, 'price_metric' has to be out of [ 'median', 'mean', 'weighted]")
-
-        # Discount and price convertion to "price for one BTS" i.e.  base=*, quote=core_symbol
-        price_result[asset] = price_result[asset] * discount
+         # Discount and price convertion to "price for one BTS" i.e.  base=*, quote=core_symbol
+         price_result[asset] = {
+                                 "mean"    : price_mean     * discount,
+                                 "median"  : price_median   * discount,
+                                 "weighted": price_weighted * discount,
+                               }
 
      return price_result
 
 ## ----------------------------------------------------------------------------
 ## Print stats as table
 ## ----------------------------------------------------------------------------
+def priceChange(new,old):
+    if float(old)==0.0: return -1
+    else :              return ((float(new)-float(old))) / float(old) * 100 # percent
+
 def print_stats(feeds) :
-    t = PrettyTable(["asset","price per BTS","mean exchanges","median exchanges","blockchain median","% change (my)","% change (net)","last update","publish"])
-    t.align                   = 'r'
+    t = PrettyTable(["asset","new price","mean","median","weighted","blockchain","my last price","last update","publish"])
+    t.align                   = 'c'
     t.border                  = True
-    t.float_format['price per BTS']         = ".8"
-    t.float_format['mean exchanges']        = ".8"
-    t.float_format['median exchanges']      = ".8"
-    t.float_format['blockchain median']     = ".8"
-    t.float_format['% change (my)']         = ".5"
-    t.float_format['% change (net)']        = ".5"
     #t.align['BTC']            = "r"
     for asset in asset_list_publish :
-        if len(price[asset][core_symbol]) < 1 : continue # empty asset
-        age                     = (str(datetime.utcnow()-lastUpdate[asset]))
-        weighted_external_price = derived_prices[asset]
-        price_from_blockchain   = price_median_blockchain[asset]
-        cur_feed                = float(myCurrentFeed[asset])
-        ## Stats
-        mean_exchanges          = statistics.mean(  price[asset][core_symbol])
-        median_exchanges        = statistics.median(price[asset][core_symbol])
-        if cur_feed == 0 :               change_my              = -1
-        else :                           change_my              = ((weighted_external_price - cur_feed)/cur_feed)*100
-        if price_from_blockchain == 0 :
-            change_blockchain      = -1
-            price_from_blockchain  = -1
-        else :
-            change_blockchain      = ((weighted_external_price - price_from_blockchain)/price_from_blockchain)*100
+        # Get Final Price according to price metric
+        this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
+        price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
+
+        age                     = (str(datetime.utcnow()-lastUpdate[asset])) if not (lastUpdate[asset]==datetime.fromtimestamp(0))  else "infinity "
+
+        myprice                 = derived_prices[asset][price_metric]
+        prices                  = derived_prices[asset]
+        blockchain              = price_median_blockchain[asset]
+        last                    = float(myCurrentFeed[asset])
+
         t.add_row([asset,
-                   weighted_external_price,
-                   mean_exchanges,
-                   median_exchanges,
-                   price_from_blockchain,
-                   change_my,
-                   change_blockchain,
-                   age+" ago",
+                   ("%.8f"%(myprice)),
+                   ("%.8f (%5.2f%%)"%(prices["mean"],     priceChange(myprice,prices["mean"]))),
+                   ("%.8f (%5.2f%%)"%(prices["median"],   priceChange(myprice,prices["median"]))),
+                   ("%.8f (%5.2f%%)"%(prices["weighted"], priceChange(myprice,prices["weighted"]))),
+                   ("%.8f (%5.2f%%)"%(blockchain,         priceChange(myprice,blockchain))),
+                   ("%.8f (%5.2f%%)"%(last,               priceChange(myprice,last))),
+                   age + " ago",
                    "X" if feeds[asset]["publish"] else ""
                  ])
     print("\n"+t.get_string())
@@ -344,13 +337,17 @@ def update_price_feed() :
     update_required = False
 
     for asset in asset_list_publish :
-       if derived_prices[asset] > 0.0:
+       # Get Final Price according to price metric
+       this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
+       price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
+
+       if derived_prices[asset][price_metric] > 0.0:
            quote_precision = assets[asset]["precision"]
            symbol          = assets[asset]["symbol"]
            assert symbol is not asset
 
            base_precision  = assets["1.3.0"]["precision"] ## core asset
-           core_price      = derived_prices[asset] * 10**(quote_precision-base_precision)
+           core_price      = derived_prices[asset][price_metric] * 10**(quote_precision-base_precision)
            core_price      = fractions.Fraction.from_float(core_price).limit_denominator(100000)
            denominator     = core_price.denominator
            numerator       = core_price.numerator
