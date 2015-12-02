@@ -211,6 +211,10 @@ def derive_prices(feed):
                  volume[base][quote]   = []
 
          # Load feed data into price/volume array for processing
+         # This few lines solely take the data of the chosen exchanges and put
+         # them into price[base][quote]. Since markets are symmetric, the
+         # corresponding price[quote][base] is derived accordingly and the
+         # corresponding volume is derived at spot price
          for datasource in list(sources) : 
              if not feed[datasource] : continue
              for base in list(feed[datasource]) :
@@ -227,6 +231,8 @@ def derive_prices(feed):
                          volume[quote][base].append((float(feed[datasource][base][quote]["volume"]*feed[datasource][base][quote]["price"])))
 
          # derive BTS prices for all assets in asset_list_publish
+         # This loop adds prices going via 2 markets:
+         # E.g. : CNY:BTC -> BTC:BTS = CNY:BTS
          for targetasset in asset_list_publish :
              for base in _bases :
                  if base == targetasset : continue
@@ -239,7 +245,6 @@ def derive_prices(feed):
          # Derive all prices and pick the right one later
          assetvolume= [v for v in  volume[asset][core_symbol] ]
          assetprice = [p for p in   price[asset][core_symbol]  ]
-
          price_median = statistics.median(price[asset][core_symbol])
          price_mean   = statistics.mean(price[asset][core_symbol])
          if len(assetvolume) > 1 :
@@ -273,7 +278,7 @@ def print_stats(feeds) :
         this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
         price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
 
-        age                     = (str(datetime.utcnow()-lastUpdate[asset])) if not (lastUpdate[asset]==datetime.fromtimestamp(0))  else "infinity "
+        age                     = (str(datetime.utcnow()-lastUpdate[asset])) if not (lastUpdate[asset]==datetime.fromtimestamp(0)) else "infinity"
 
         myprice                 = derived_prices[asset][price_metric]
         prices                  = derived_prices[asset]
