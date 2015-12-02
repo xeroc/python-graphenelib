@@ -43,16 +43,13 @@ import os.path
 import threading
 from multiprocessing.pool import ThreadPool
 from concurrent import futures
-
-## Only import config.py if config is not defined already
-if 'config' not in globals():
-    import config
+import config
 
 ## ----------------------------------------------------------------------------
 ## When do we have to force publish?
 ## ----------------------------------------------------------------------------
 def publish_rule(rpc, asset):
-    if config.debug : return False
+    if debug : return False
 
     this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
     price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
@@ -82,6 +79,12 @@ def publish_rule(rpc, asset):
 ## ----------------------------------------------------------------------------
 ## Fetch data
 ## ----------------------------------------------------------------------------
+
+## ----------------------------------------------------------------------------
+## Get last block
+## ----------------------------------------------------------------------------
+def get_last_block(rpc):
+    return rpc.get_dynamic_global_properties()["head_block_number"]
 
 ## ----------------------------------------------------------------------------
 ## Fetch current feeds, assets and feeds of assets from wallet
@@ -244,9 +247,44 @@ def derive_prices(feed):
 ## ----------------------------------------------------------------------------
 ## Print stats as table
 ## ----------------------------------------------------------------------------
+def formatPercentageMinus(f) :
+    return "\033[1;31m%+5.2f%%\033[1;m" % f
+def formatPercentagePlus(f) :
+    return "\033[1;32m%+5.2f%%\033[1;m" % f
+def formatPrice(f) :
+    return "\033[1;33m%+.8f\033[1;m" %f
 def priceChange(new,old):
     if float(old)==0.0: return -1
-    else :              return ((float(new)-float(old))) / float(old) * 100 # percent
+    else : 
+        percent = ((float(new)-float(old))) / float(old) * 100
+        if percent >= 0 :
+            return formatPercentagePlus(percent)
+        else :
+            return formatPercentageMinus(percent)
+
+def compare_feeds(blamePrices, newPrices) :
+    t = PrettyTable(["asset","blame price","recalculated price","mean","median","weighted"])
+    t.align                   = 'c'
+    t.border                  = True
+    #t.align['BTC']            = "r"
+    for asset in asset_list_publish :
+        # Get Final Price according to price metric
+        this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
+        price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
+
+        blamed_prices     = blamePrices[asset]
+        new_prices        = newPrices[asset]
+        blamed            = blamePrices[asset][price_metric]
+        new               = newPrices[asset][price_metric]
+
+        t.add_row([asset,
+                   ("%s"% formatPrice(blamed)),
+                   ("%s (%s)"% (formatPrice(new), priceChange(new, blamed))),
+                   ("%s"% priceChange(new_prices["mean"],    blamed_prices["mean"])),
+                   ("%s"% priceChange(new_prices["median"],  blamed_prices["median"])),
+                   ("%s"% priceChange(new_prices["weighted"],blamed_prices["weighted"])),
+                 ])
+    print(t.get_string())
 
 def print_stats(feeds) :
     t = PrettyTable(["asset","new price","mean","median","weighted","blockchain","my last price","last update","publish"])
@@ -266,35 +304,52 @@ def print_stats(feeds) :
         last                    = float(myCurrentFeed[asset])
 
         t.add_row([asset,
-                   ("%.8f"%(myprice)),
-                   ("%.8f (%5.2f%%)"%(prices["mean"],     priceChange(myprice,prices["mean"]))),
-                   ("%.8f (%5.2f%%)"%(prices["median"],   priceChange(myprice,prices["median"]))),
-                   ("%.8f (%5.2f%%)"%(prices["weighted"], priceChange(myprice,prices["weighted"]))),
-                   ("%.8f (%5.2f%%)"%(blockchain,         priceChange(myprice,blockchain))),
-                   ("%.8f (%5.2f%%)"%(last,               priceChange(myprice,last))),
+                   ("%s"     % formatPrice(myprice)),
+                   ("%s (%s)"%(formatPrice(prices["mean"]),     priceChange(myprice,prices["mean"]))),
+                   ("%s (%s)"%(formatPrice(prices["median"]),   priceChange(myprice,prices["median"]))),
+                   ("%s (%s)"%(formatPrice(prices["weighted"]), priceChange(myprice,prices["weighted"]))),
+                   ("%s (%s)"%(formatPrice(blockchain),         priceChange(myprice,blockchain))),
+                   ("%s (%s)"%(formatPrice(last),               priceChange(myprice,last))),
                    age + " ago",
                    "X" if feeds[asset]["publish"] else ""
                  ])
-    print("\n"+t.get_string())
+    print(t.get_string())
 
 ## ----------------------------------------------------------------------------
 ## Startup method
 ## ----------------------------------------------------------------------------
 def update_price_feed() :
-    global derived_prices
+    global derived_prices, config
+    state = {}
 
     for asset in _all_bts_assets + [core_symbol]:
         price_median_blockchain[asset] = 0.0
         lastUpdate[asset]              = datetime.utcnow()
         myCurrentFeed[asset]           = {}
 
-    ## Get Prices from Feed Sources ##############################################
-    if config.debug and os.path.isfile('data.json') : 
-        ## Load data from disk for (faster) debugging
-        with open('data.json', 'r') as fp:
-           feed = json.load(fp)
+    ## Load Feedsource data #####################################################
+    if configFile.blame != "latest" :
+        if os.path.isfile("blame/"+configFile.blame+'.json') : 
+            ## Load data from disk for (faster) debugging and verification
+            with open("blame/"+configFile.blame+'.json', 'r') as fp:
+                state = json.load(fp)
+                ## Load feed sources
+                feed  = state["feed"]
+                ## Load configuration from old state
+                configStruct = state["config"]
+                for key in configStruct :
+                    ## Skip asset config
+                    if key == "asset_config" : continue
+                    config.__dict__[key] = configStruct[key]
+
+        else :
+            sys.exit("Configuration error: Either set 'blame' to an existing "+
+                     "block number from the blame/ to verify or set it to "+
+                     "'latest' to run the script online! ")
     else : 
-        ## Get prices from sources
+        ## Load configuration from file
+        config = configFile
+        ## Get prices online from sources
         pool = futures.ThreadPoolExecutor(max_workers=8)
         feed      = {}
         mythreads = {}
@@ -307,17 +362,14 @@ def update_price_feed() :
             print(".", end="",flush=True)
             feed[name]      = mythreads[name].result()
 
-        with open('data.json', 'w') as fp:
-           json.dump(feed, fp)
-
     ## Determine bts price ######################################################
     derived_prices = derive_prices(feed)
 
-    ## rpc variables about bts rpc ###############################################
+    ## rpc variables about bts rpc ##############################################
     rpc = GrapheneAPI(config.host, config.port, config.user, config.passwd)
     fetch_from_wallet(rpc)
 
-    ## Only publish given feeds ##################################################
+    ## Only publish given feeds #################################################
     price_feeds = {}
     update_required = False
 
@@ -336,7 +388,6 @@ def update_price_feed() :
            core_price      = fractions.Fraction.from_float(core_price).limit_denominator(100000)
            denominator     = core_price.denominator
            numerator       = core_price.numerator
-
 
            price_feed = {
                      "settlement_price": {
@@ -381,31 +432,55 @@ def update_price_feed() :
                                     "publish":  asset_update_required
                                  }
 
-    ## Print some stats ##########################################################
-    print_stats(price_feeds)
+    if not debug :
+        ## Print some stats ##########################################################
+        print_stats(price_feeds)
 
-    ## Check publish rules and publich feeds #####################################
+        ## Verify results or store them ##############################################
+        configStruct = {}
+        for key in dir(config) :
+            if key[0] == "_" : continue
+            if key == "feedSources" : continue ## can't storage objects / TODO: pickle
+            if key == "feedsources" : continue
+            if key == "subprocess"  : continue
+            configStruct[key] = config.__dict__[key]
+        # Store State
+        state["feed"]           = feed
+        state["derived_prices"] = derived_prices
+        state["price_feeds"]    = price_feeds
+        state["lastblock"]      = get_last_block(rpc)
+        state["config"]         = configStruct
+        with open("blame/"+str(state["lastblock"])+'.json', 'w') as fp:
+           json.dump(state, fp)
 
-    if update_required and not config.debug:
-        publish = False
-        if config.ask_confirmation :
-            if rpc._confirm("Are you SURE you would like to publish this feed?") :
+        ## Check publish rules and publich feeds #####################################
+        if update_required and not debug :
+            publish = False
+            if config.ask_confirmation :
+                if rpc._confirm("Are you SURE you would like to publish this feed?") :
+                   publish = True
+            else :
                publish = True
-        else :
-           publish = True
 
-        if publish :
-            print("Update required! Forcing now!")
-            update_feed(rpc,price_feeds)
-    elif config.debug :
-        print("[Warning] This script is loading old data for debuggin. No price can be published.\n"+\
-              "          Please set 'debug' to 'False' if you are ready to go online!")
-    else :
-        print("no update required")
+            if publish :
+                print("Update required! Forcing now!")
+                update_feed(rpc,price_feeds)
+        else :
+            print("no update required")
+
+    else : 
+        # Verify results
+        print()
+        print("[Warning] This script is loading old data for debugging. No price can be published.\n"+\
+              "          Please set 'blame' to 'latest' if you are ready to go online!")
+        print()
+        compare_feeds(state["derived_prices"], derived_prices)
+
 
 ## ----------------------------------------------------------------------------
 ## Initialize global variables
 ## ----------------------------------------------------------------------------
+configFile = config
 core_symbol = "BTS"
 _all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
                    "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
@@ -428,6 +503,7 @@ volume                  = {}
 lastUpdate              = {}
 myCurrentFeed           = {}
 derived_prices          = {}
+debug                   = False if configFile.blame == "latest" else True
 
 if __name__ == "__main__":
     update_price_feed()

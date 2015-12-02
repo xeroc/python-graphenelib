@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # coding=utf8 sw=4 expandtab ft=python
-
 import feedsources
+import subprocess
+
 ################################################################################
 ## RPC-client connection information (required)
 ################################################################################
@@ -37,7 +38,7 @@ asset_config = {
                        #
                        # how to derive a single price from several sources
                        # Choose from: "median", "mean", or "weighted" (by volume)
-                       "metric" : "weighted",
+                       "metric" : "median",
                        #
                        # Select sources for this particular asset. Each source
                        # has its own fetch() method and collects several markets
@@ -69,7 +70,7 @@ asset_config = {
                        # Multiplicative factor for discount when borrowing
                        # bitassets. This is a factor: 0.95 = 95%. 1.0 disables
                        # the discount
-                       "discount"                      : 1.0,
+                       "discount"                      : 1,
                    },
                    ## Exchanges trading BTC/BTS directly
                    ## (this does not include any other trading pairs)
@@ -120,7 +121,19 @@ feedSources["btc38"]    = feedsources.Btc38(allowFailure=True)
 #feedSources["bter"]     = feedsources.Bter()
 
 ################################################################################
-# Debug Mode! This loads old data and prevents the script for publishing any
-# price feed!
+# Blame mode allows to verify old published prices
+# All data requires is stored in the blame/ directoy. Filename is the head block
+# number at the time of script execution.
+# To recover a price (will not publish) simply set blame to the block number of
+# an existing(!) file.
+#
+# Default: "latest"  # Will fetch prices from exchanges and publish it
 ################################################################################
-debug = False # True or False
+# blame  = "1426478"
+blame = "latest"
+
+################################################################################
+## Git revision
+## (do not touch this line)
+################################################################################
+gittag = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip("\n")
