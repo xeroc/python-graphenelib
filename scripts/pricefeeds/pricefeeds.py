@@ -329,9 +329,10 @@ def update_price_feed() :
 
     ## Load Feedsource data #####################################################
     if configFile.blame != "latest" :
-        if os.path.isfile("blame/"+configFile.blame+'.json') : 
+        blameFile = config.configPath + "/blame/" + configFile.blame + ".json"
+        if os.path.isfile() : 
             ## Load data from disk for (faster) debugging and verification
-            with open("blame/"+configFile.blame+'.json', 'r') as fp:
+            with open(blameFile, 'r') as fp:
                 state = json.load(fp)
                 ## Load feed sources
                 feed  = state["feed"]
@@ -443,6 +444,7 @@ def update_price_feed() :
             if key == "feedSources" : continue ## can't storage objects / TODO: pickle
             if key == "feedsources" : continue
             if key == "subprocess"  : continue
+            if key == "os"          : continue
             configStruct[key] = config.__dict__[key]
         # Store State
         state["feed"]           = feed
@@ -450,7 +452,7 @@ def update_price_feed() :
         state["price_feeds"]    = price_feeds
         state["lastblock"]      = get_last_block(rpc)
         state["config"]         = configStruct
-        blameFile               = "blame/"+str(state["lastblock"])+'.json'
+        blameFile               = config.configPath + "/blame/"+str(state["lastblock"]) + ".json"
         with open(blameFile, 'w') as fp:
            json.dump(state, fp)
         print("Blamefile: "+blameFile)

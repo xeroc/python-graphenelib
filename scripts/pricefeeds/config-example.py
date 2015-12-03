@@ -12,6 +12,8 @@
 
 import feedsources
 import subprocess
+import os
+configPath = os.path.dirname(__file__)
 
 ################################################################################
 ## RPC-client connection information (required)
@@ -143,6 +145,9 @@ blame = "latest"
 ## Git revision for storage in blame files
 ## (do not touch this line)
 ################################################################################
-gittag = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip("\n")
+try :
+    gittag = subprocess.check_output(["git","-C", configPath, "rev-parse", "HEAD"]).decode("ascii").strip("\n")
+except :
+    pass
 
 # coding=utf8 sw=4 expandtab ft=python
