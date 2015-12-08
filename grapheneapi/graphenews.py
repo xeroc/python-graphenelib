@@ -16,7 +16,6 @@ class GrapheneWebsocket(GrapheneAPI):
     """ Constructor takes host, port, and login credentials 
     """
     def __init__(self, host, port, username, password, proto=GrapheneWebsocketProtocol) :
-        ## initialize API (overwrites __getattr__()
         super().__init__(host, port, username, password)
 
         self.username = username
@@ -73,6 +72,12 @@ class GrapheneWebsocket(GrapheneAPI):
     """
     def setObjectCallbacks(self, callbacks) :
         self.proto.database_callbacks = callbacks
+
+    """ Subscribe to Full Account Updates
+    """
+    def setAccountsDispatcher(self, accounts, callback) :
+        self.proto.accounts = accounts
+        self.proto.accounts_callback = [callback]
 
     """ Create websocket factory by Autobahn
     """

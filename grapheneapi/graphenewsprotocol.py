@@ -14,6 +14,8 @@ Error Classes
 class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     database_callbacks = {}
     database_callbacks_ids = {} # sorted by subscription ids
+    accounts = []
+    accounts_callback = [None]
     objectMap = {}
 
     def __init__(self) :
@@ -52,14 +54,17 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def setObject(self, oid, data) :
         self.objectMap[ oid ] = data 
 
-    def subscribe_to_accont(self, account_id, *args) :
-        self.wsexec([0, "get_full_accounts", [["1.2."+str(account_id)], True]])
+    def subscribe_to_accont(self, account_ids, *args) :
+        self.wsexec([0, "get_full_accounts", [account_ids, True]])
 
     def subscribe_to_objects(self, *args) :
         handles = []
         for handle in self.database_callbacks :
             handles.append(partial(self.getObjectcb, handle, None))
             self.database_callbacks_ids.update({handle : self.database_callbacks[handle]})
+
+        if self.accounts :
+            handles.append(partial(self.subscribe_to_accont, self.accounts))
         self.request_id += 1
         self.wsexec([self.api_ids["database"],"set_subscribe_callback", [self.request_id,False]], handles)
 
@@ -68,6 +73,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             oid = notice["id"];
             if oid in self.database_callbacks_ids :
                 self.database_callbacks_ids[oid](self,notice)
+            if oid and self.accounts_callback :
+                self.accounts_callback[0](self,notice)
         except Exception as e :
             print('Error dispatching notice: %s' % str(e))
 
@@ -98,7 +105,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def onMessage(self, payload, isBinary):
         res = json.loads(payload.decode('utf8'))
         #print("Server: " + json.dumps(res,indent=1))
-        #print("Server: " + str(res))
+        #print("\n\nServer: " + str(res))
         if "error" not in res :
             """ Resolve answers from RPC calls
             """

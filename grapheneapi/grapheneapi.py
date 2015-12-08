@@ -72,8 +72,8 @@ class GrapheneAPI(object) :
             raise ValueError("Client returned invalid format. Expected JSON!")
         except RPCError as err:
             raise err
-        if isinstance(ret["result"], list) and len(ret["result"]) == 1:
-            return ret["result"][0]
+        #if isinstance(ret["result"], list) and len(ret["result"]) == 1:
+        #    return ret["result"][0]
         else :
             return ret["result"]
 
@@ -82,9 +82,15 @@ class GrapheneAPI(object) :
     """
     def __getattr__(self, name) :
         def method(*args):
+            #query = {
+            #   "method": "call",
+            #   "params": [0, name, args],
+            #   "jsonrpc": "2.0",
+            #   "id": 0
+            #}
             query = {
-               "method": "call",
-               "params": [0, name, args],
+               "method": name,
+               "params": args,
                "jsonrpc": "2.0",
                "id": 0
             }
