@@ -73,7 +73,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             oid = notice["id"];
             if oid in self.database_callbacks_ids :
                 self.database_callbacks_ids[oid](self,notice)
-            if oid and self.accounts_callback :
+            if oid and self.accounts_callback != [None]:
                 self.accounts_callback[0](self,notice)
         except Exception as e :
             print('Error dispatching notice: %s' % str(e))
