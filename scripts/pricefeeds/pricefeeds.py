@@ -59,10 +59,12 @@ def publish_rule(rpc, asset):
     priceChange       = fabs(oldPrice-newPrice)/oldPrice * 100.0
 
     ## Check max price change
-    if priceChange > fabs(config.change_max) :
+    if abs(priceChange) > fabs(config.change_max) :
         if rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
                            asset,oldPrice,newPrice,priceChange)) :
             return True
+        else : 
+            return False
 
     ## Feed too old
     if (datetime.utcnow()-lastUpdate[asset]).total_seconds() > config.maxAgeFeedInSeconds :
