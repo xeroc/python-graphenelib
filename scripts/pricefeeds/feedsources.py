@@ -95,7 +95,7 @@ class Yunbi(FeedSource) :
 
     def fetch(self):
         feed  = {}
-        markets         = ["BTC","CNY"]
+        markets         = ["CNY"] # "BTC",
         availableAssets = [ core_symbol ] # "BTC"
         try :
             url="https://yunbi.com/api/v2/tickers.json"
