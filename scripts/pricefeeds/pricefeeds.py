@@ -204,6 +204,7 @@ def derive_prices(feed):
              if not feed[datasource] : continue
              for base in list(feed[datasource]) :
                  for quote in list(feed[datasource][base]) :
+                     if not base or not quote: continue
                      # Original price/volume
                      price[base][quote].append(feed[datasource][base][quote]["price"])
                      volume[base][quote].append(feed[datasource][base][quote]["volume"])
@@ -332,7 +333,7 @@ def update_price_feed() :
     ## Load Feedsource data #####################################################
     if configFile.blame != "latest" :
         blameFile = config.configPath + "/blame/" + configFile.blame + ".json"
-        if os.path.isfile() : 
+        if os.path.isfile(blameFile) : 
             ## Load data from disk for (faster) debugging and verification
             with open(blameFile, 'r') as fp:
                 state = json.load(fp)
