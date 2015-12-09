@@ -231,8 +231,14 @@ def derive_prices(feed):
          # Derive all prices and pick the right one later
          assetvolume= [v for v in  volume[asset][core_symbol] ]
          assetprice = [p for p in   price[asset][core_symbol]  ]
+
          price_median = statistics.median(price[asset][core_symbol])
          price_mean   = statistics.mean(price[asset][core_symbol])
+         price_std    = statistics.stdev([a-price_median for a in price[asset][core_symbol]]) / price_median
+
+         if price_std > 0.1 :
+             print("Asset %s shows high variance in fetched prices!"%(asset))
+
          if len(assetvolume) > 1 :
              price_weighted = num.average(assetprice, weights=assetvolume)
          else :
@@ -243,6 +249,7 @@ def derive_prices(feed):
                                  "mean"    : price_mean,
                                  "median"  : price_median,
                                  "weighted": price_weighted,
+                                 "std"     : price_std,
                                }
 
      return price_result
@@ -256,6 +263,11 @@ def formatPercentagePlus(f) :
     return "\033[1;32m%+5.2f%%\033[1;m" % f
 def formatPrice(f) :
     return "\033[1;33m%.8f\033[1;m" %f
+def formatStd(f) :
+    if f > 0.3 :
+        return "\033[1;31m%.8f\033[1;m" %f
+    else :
+        return "\033[1;33m%.8f\033[1;m" %f
 def priceChange(new,old):
     if float(old)==0.0: return -1
     else : 
@@ -266,7 +278,7 @@ def priceChange(new,old):
             return formatPercentageMinus(percent)
 
 def compare_feeds(blamePrices, newPrices) :
-    t = PrettyTable(["asset","blame price","recalculated price","mean","median","weighted"])
+    t = PrettyTable(["asset","blame price","recalculated price","mean","median","weighted","std"])
     t.align                   = 'c'
     t.border                  = True
     #t.align['BTC']            = "r"
@@ -286,11 +298,12 @@ def compare_feeds(blamePrices, newPrices) :
                    ("%s"% priceChange(new_prices["mean"],    blamed_prices["mean"])),
                    ("%s"% priceChange(new_prices["median"],  blamed_prices["median"])),
                    ("%s"% priceChange(new_prices["weighted"],blamed_prices["weighted"])),
+                   ("%s"% formatStd(new_prices["std"]))
                  ])
     print(t.get_string())
 
 def print_stats(feeds) :
-    t = PrettyTable(["asset","new price","mean","median","weighted","blockchain","my last price","last update","publish"])
+    t = PrettyTable(["asset","new price","mean","median","weighted","std","blockchain","my last price","last update","publish"])
     t.align                   = 'c'
     t.border                  = True
     #t.align['BTC']            = "r"
@@ -311,6 +324,7 @@ def print_stats(feeds) :
                    ("%s (%s)"%(formatPrice(prices["mean"]),     priceChange(myprice,prices["mean"]))),
                    ("%s (%s)"%(formatPrice(prices["median"]),   priceChange(myprice,prices["median"]))),
                    ("%s (%s)"%(formatPrice(prices["weighted"]), priceChange(myprice,prices["weighted"]))),
+                   ("%s"     %(formatPrice(prices["std"]))),
                    ("%s (%s)"%(formatPrice(blockchain),         priceChange(myprice,blockchain))),
                    ("%s (%s)"%(formatPrice(last),               priceChange(myprice,last))),
                    age + " ago",
