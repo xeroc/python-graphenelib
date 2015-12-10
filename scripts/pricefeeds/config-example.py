@@ -33,7 +33,26 @@ ask_confirmation             = True # if true, a manual confirmation is required
 ## Witness Feed Publish Parameters
 ################################################################################
 witness_name                 = "init0"
-maxAgeFeedInSeconds          = 60*60  # A feed should be at most 1hour old
+
+################################################################################
+## Publishing Criteria
+################################################################################
+#
+# Publish price if any of these are valid:
+#
+#  1.) price feed is older than maxAgeFeedInSeconds
+#  2.) price has moved from my last published price by more than change_min
+#
+# Do NOT publish if
+#
+#  * Price has moved more than 'change_max'
+#     AND
+#  * Manual confirmation is 'false'
+#
+# A feed becomes invalid if it is older than 24h. Hence, it should be force
+# published once a day (e.g. every 12h) Note that the script should be run more
+# frequently and publishes only those prices that fit the publishing criteria
+maxAgeFeedInSeconds          = 12*60*60 # max age of 12h
 change_min                   = 0.5    # Percentage of price change to force an update
 change_max                   = 5.0    # Percentage of price change to cause a warning
 
@@ -140,7 +159,6 @@ feedSources["huobi"]    = feedsources.Huobi(allowFailure=True)
 ################################################################################
 blame = "latest"
 #blame = "1428190"
-
 ################################################################################
 ## Git revision for storage in blame files
 ## (do not touch this line)

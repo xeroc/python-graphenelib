@@ -4,13 +4,13 @@ import sys
 import re
 
 _request_headers = {'content-type': 'application/json',
-                 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
+                    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
 
-core_symbol = "BTS"
+core_symbol  = "BTS"
 
-_yahoo_base  = ["USD","EUR","CNY","JPY","HKD"]
-_yahoo_quote = ["XAG", "XAU", "TRY", "SGD", "HKD", "NZD", "CNY",
-             "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"] # , "RUB", "SEK"
+_yahoo_base  = [ "USD","EUR","CNY","JPY","HKD" ]
+_yahoo_quote = [ "XAG", "XAU", "TRY", "SGD", "HKD", "NZD", "CNY",
+                 "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW" ] # "RUB", "SEK"
 _yahoo_indices = {
 #                    "399106.SZ" : core_symbol,  #"CNY",  # SHENZHEN
 #                    "^HSI"      : core_symbol,  #"HKD",  # HANGSENG

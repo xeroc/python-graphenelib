@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# coding=utf8 sw=4 expandtab ft=python
+# coding=utf8 sw=4 ts=4 expandtab ft=python
 
 ####################################################################################
 #########################  W  A  R  N  I  N  G   ###################################
@@ -188,6 +188,9 @@ def derive_prices(feed):
          this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
          sources           = list(feed)                    if this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
 
+         ## Reset prices
+         price = {}
+         volume = {}
          for base in _all_bts_assets  + [core_symbol]:
              price[base]            = {}
              volume[base]           = {}
@@ -219,37 +222,44 @@ def derive_prices(feed):
          # derive BTS prices for all assets in asset_list_publish
          # This loop adds prices going via 2 markets:
          # E.g. : CNY:BTC -> BTC:BTS = CNY:BTS
-         for targetasset in asset_list_publish :
-             for base in _bases :
-                 if base == targetasset : continue
-                 for ratio in price[targetasset][base] :
-                     for idx in range(0, len(price[base][core_symbol])) :
-                         if volume[base][core_symbol][idx] == 0 : continue
-                         price[targetasset][core_symbol].append( (float(price[base][core_symbol][idx]  * ratio)))
-                         volume[targetasset][core_symbol].append((float(volume[base][core_symbol][idx] * ratio)))
+         # I.e. : BTS : interasset -> interasset : targetasset
+         for targetasset in [asset] :
+             for interasset in _bases :
+                 if interasset == targetasset : continue
+                 for ratio in price[targetasset][interasset] :
+                     for idx in range(0, len(price[interasset][core_symbol])) :
+                         if volume[interasset][core_symbol][idx] == 0 : continue
+                         price[targetasset][core_symbol].append( (float(price[interasset][core_symbol][idx]  * ratio)))
+                         volume[targetasset][core_symbol].append((float(volume[interasset][core_symbol][idx] * ratio)))
 
          # Derive all prices and pick the right one later
          assetvolume= [v for v in  volume[asset][core_symbol] ]
          assetprice = [p for p in   price[asset][core_symbol]  ]
 
-         price_median = statistics.median(price[asset][core_symbol])
-         price_mean   = statistics.mean(price[asset][core_symbol])
-         price_std    = statistics.stdev([a-price_median for a in price[asset][core_symbol]]) / price_median
-
-         if price_std > 0.1 :
-             print("Asset %s shows high variance in fetched prices!"%(asset))
-
          if len(assetvolume) > 1 :
+             price_median = statistics.median(price[asset][core_symbol])
+             price_mean   = statistics.mean(price[asset][core_symbol])
              price_weighted = num.average(assetprice, weights=assetvolume)
-         else :
+             price_std      = statistics.stdev([a-price_median for a in price[asset][core_symbol]]) / price_median
+             if price_std > 0.1 :
+                 print("Asset %s shows high variance in fetched prices!"%(asset))
+         elif len(assetvolume) == 1:
+             price_median   = assetprice[0]
+             price_mean     = assetprice[0]
              price_weighted = assetprice[0]
+             price_std      = 0
+             print("[Warning] Only a single source for the %s price could be identified"%asset)
+         else :
+             print("[Warning] No market route found for %s. Skipping price"%asset)
+             continue
 
          # price convertion to "price for one BTS" i.e.  base=*, quote=core_symbol
          price_result[asset] = {
                                  "mean"    : price_mean,
                                  "median"  : price_median,
                                  "weighted": price_weighted,
-                                 "std"     : price_std,
+                                 "std"     : price_std*100, # percentage
+                                 "number"  : len(assetprice)
                                }
 
      return price_result
@@ -264,10 +274,10 @@ def formatPercentagePlus(f) :
 def formatPrice(f) :
     return "\033[1;33m%.8f\033[1;m" %f
 def formatStd(f) :
-    if f > 0.3 :
-        return "\033[1;31m%.8f\033[1;m" %f
+    if f > 5 :
+        return "\033[1;31m%5.2f%%\033[1;m" % f
     else :
-        return "\033[1;33m%.8f\033[1;m" %f
+        return "\033[1;32m%5.2f%%\033[1;m" % f
 def priceChange(new,old):
     if float(old)==0.0: return -1
     else : 
@@ -278,7 +288,7 @@ def priceChange(new,old):
             return formatPercentageMinus(percent)
 
 def compare_feeds(blamePrices, newPrices) :
-    t = PrettyTable(["asset","blame price","recalculated price","mean","median","weighted","std"])
+    t = PrettyTable(["asset","blame price","recalculated price","mean","median","weighted","std (#)"])
     t.align                   = 'c'
     t.border                  = True
     #t.align['BTC']            = "r"
@@ -298,12 +308,12 @@ def compare_feeds(blamePrices, newPrices) :
                    ("%s"% priceChange(new_prices["mean"],    blamed_prices["mean"])),
                    ("%s"% priceChange(new_prices["median"],  blamed_prices["median"])),
                    ("%s"% priceChange(new_prices["weighted"],blamed_prices["weighted"])),
-                   ("%s"% formatStd(new_prices["std"]))
+                   ("%s (%2d)"% (formatStd(new_prices["std"]), new_prices["number"]))
                  ])
     print(t.get_string())
 
 def print_stats(feeds) :
-    t = PrettyTable(["asset","new price","mean","median","weighted","std","blockchain","my last price","last update","publish"])
+    t = PrettyTable(["asset","new price","mean","median","weighted","std (#)","blockchain","my last price","last update","publish"])
     t.align                   = 'c'
     t.border                  = True
     #t.align['BTC']            = "r"
@@ -320,13 +330,13 @@ def print_stats(feeds) :
         last                    = float(myCurrentFeed[asset])
 
         t.add_row([asset,
-                   ("%s"     % formatPrice(myprice)),
-                   ("%s (%s)"%(formatPrice(prices["mean"]),     priceChange(myprice,prices["mean"]))),
-                   ("%s (%s)"%(formatPrice(prices["median"]),   priceChange(myprice,prices["median"]))),
-                   ("%s (%s)"%(formatPrice(prices["weighted"]), priceChange(myprice,prices["weighted"]))),
-                   ("%s"     %(formatPrice(prices["std"]))),
-                   ("%s (%s)"%(formatPrice(blockchain),         priceChange(myprice,blockchain))),
-                   ("%s (%s)"%(formatPrice(last),               priceChange(myprice,last))),
+                   ("%s"       %  formatPrice(myprice)),
+                   ("%s (%s)"  % (formatPrice(prices["mean"]),     priceChange(myprice,prices["mean"]))),
+                   ("%s (%s)"  % (formatPrice(prices["median"]),   priceChange(myprice,prices["median"]))),
+                   ("%s (%s)"  % (formatPrice(prices["weighted"]), priceChange(myprice,prices["weighted"]))),
+                   ("%s (%2d)" % (formatStd(prices["std"]),                            prices["number"])),
+                   ("%s (%s)"  % (formatPrice(blockchain),         priceChange(myprice,blockchain))),
+                   ("%s (%s)"  % (formatPrice(last),               priceChange(myprice,last))),
                    age + " ago",
                    "X" if feeds[asset]["publish"] else ""
                  ])
