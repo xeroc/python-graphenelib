@@ -16,6 +16,7 @@ setup(
 
       packages=["grapheneapi",
                 "graphenebase",
+                "grapheneextra",
                 ],
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
