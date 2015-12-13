@@ -1,6 +1,5 @@
 """ RPC connection settings """
-host     = "<websocket host>"
-port     = 443
+url      = "ws://<websocket host>:80/"
 user     = ""
 password = ""
 

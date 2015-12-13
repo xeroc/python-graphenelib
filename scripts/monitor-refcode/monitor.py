@@ -101,7 +101,7 @@ if __name__ == '__main__':
     protocol.account_id = "1.2.%s" % config.accountID.split(".")[2]  ## account to monitor
 
     ## Open Up Graphene Websocket API
-    api      = GrapheneWebsocket(config.host, config.port, config.user, config.password, protocol)
+    api      = GrapheneWebsocket(config.url, config.user, config.password, protocol)
 
     print(api)
 

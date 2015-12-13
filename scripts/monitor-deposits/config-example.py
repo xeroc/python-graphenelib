@@ -1,6 +1,5 @@
 """ RPC connection settings """
-host     = "localhost"
-port     = 8090
+url      = "ws://localhost:80"
 user     = ""
 password = ""
 

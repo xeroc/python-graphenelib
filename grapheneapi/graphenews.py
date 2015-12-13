@@ -7,6 +7,7 @@ import ssl
 
 try :
     from autobahn.asyncio.websocket import WebSocketClientFactory
+    from autobahn.websocket.protocol import parseWsUrl
 except ImportError:
     raise ImportError( "Missing dependency: python-autobahn" )
 from grapheneapi import GrapheneAPI, GrapheneWebsocketProtocol
@@ -15,18 +16,14 @@ class GrapheneWebsocket(GrapheneAPI):
 
     """ Constructor takes host, port, and login credentials 
     """
-    def __init__(self, host, port, username, password, proto=GrapheneWebsocketProtocol) :
+    def __init__(self, url, username, password, proto=GrapheneWebsocketProtocol) :
+        ssl, host, port, resource, path, params = parseWsUrl(url)
         super().__init__(host, port, username, password)
-
+        self.url      = url
         self.username = username
         self.password = password
-        hostparts = host.split("/")
-        if len(hostparts)==1 :
-            self.host     = hostparts[0]
-            self.ssl      = False
-        else :
-            self.host     = hostparts[2]
-            self.ssl      = (hostparts[0] == "wss:")
+        self.ssl      = ssl
+        self.host     = host
         self.port     = port
         self.proto    = proto
         self.proto.username = self.username
@@ -79,10 +76,16 @@ class GrapheneWebsocket(GrapheneAPI):
         self.proto.accounts = accounts
         self.proto.accounts_callback = [callback]
 
+    """ Set Event Callbacks
+    """
+    def setEventCallbacks(self, callbacks) :
+        for key in callbacks :
+            self.proto.onEventCallbacks[key] = callbacks[key]
+
     """ Create websocket factory by Autobahn
     """
     def connect(self) :
-        self.factory          = WebSocketClientFactory("ws://{}:{:d}".format(self.host, self.port), debug=False)
+        self.factory          = WebSocketClientFactory(self.url, debug=False)
         self.factory.protocol = self.proto
 
     """ Store Objects in protocol memory
@@ -104,17 +107,27 @@ class GrapheneWebsocket(GrapheneAPI):
     """
     def run_forever(self) :
         loop = asyncio.get_event_loop()
-        if self.ssl :
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-            coro = loop.create_connection(self.factory, self.host, self.port, ssl=context)
-        else :
-            coro = loop.create_connection(self.factory, self.host, self.port, ssl=self.ssl)
-        loop.run_until_complete(coro)
-        try :
-            loop.run_forever()
-        except KeyboardInterrupt:
-            pass
-        finally :
-            loop.close()
+        # forward loop into protocol so that we can issue a reset from the
+        # protocol:
+        self.factory.protocol.setLoop(self.factory.protocol,loop)
+
+        while True :
+            try :
+                if self.ssl :
+                    context = ssl.create_default_context()
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                    coro = loop.create_connection(self.factory, self.host, self.port, ssl=context)
+                else :
+                    coro = loop.create_connection(self.factory, self.host, self.port, ssl=self.ssl)
+
+                loop.run_until_complete(coro)
+                loop.run_forever()
+            except KeyboardInterrupt:
+                break
+
+            print("Trying to re-connect in 10 seconds!")
+            time.sleep(10)
+
+        print("Good bye!")
+        loop.close()

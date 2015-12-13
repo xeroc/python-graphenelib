@@ -9,14 +9,16 @@ except ImportError:
     raise ImportError( "Missing dependency: python-autobahn" )
 
 """
-Error Classes
+Graphene Websocket Protocol
 """
 class GrapheneWebsocketProtocol(WebSocketClientProtocol):
+    loop = None
     database_callbacks = {}
     database_callbacks_ids = {} # sorted by subscription ids
     accounts = []
     accounts_callback = [None]
     objectMap = {}
+    onEventCallbacks = {}
 
     def __init__(self) :
         self.request_id = 0
@@ -36,18 +38,26 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         #print(request["request"])
         self.sendMessage(json.dumps(request["request"]).encode('utf8'))
 
+    def eventcallback(self, name) :
+        if name in self.onEventCallbacks and callable(self.onEventCallbacks[name]) :
+            self.onEventCallbacks[name](self)
+
     def _set_api_id(self, name, data) :
         self.api_ids.update({ name : data })
+        if name == "database":
+            self.eventcallback("registered-database")
+        elif name == "history":
+            self.eventcallback("registered-history")
 
     def _login(self) :
         self.wsexec([1,"login",[self.username,self.password]])
 
     def getObjectcb(self, oid, callback, *args) :
-        if oid in self.objectMap :
+        if oid in self.objectMap and callable(callback):
             callback(self.objectMap[oid])
         else : 
             handles = [ partial(self.setObject, oid), ]
-            if callback : 
+            if callback and callable(callback): 
                 handles.append(callback)
             self.wsexec([self.api_ids["database"],"get_objects", [[oid]]], handles)
             
@@ -71,9 +81,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def dispatchNotice(self, notice) :
         try :
             oid = notice["id"];
-            if oid in self.database_callbacks_ids :
+            if oid in self.database_callbacks_ids and callable(self.database_callbacks_ids[oid]):
                 self.database_callbacks_ids[oid](self,notice)
-            if oid and self.accounts_callback != [None]:
+            if oid and self.accounts_callback and callable(self.accounts_callback[0]):
                 self.accounts_callback[0](self,notice)
         except Exception as e :
             print('Error dispatching notice: %s' % str(e))
@@ -135,9 +145,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         else :
             print("Error! ", res)
 
-    def connection_lost(self, err) :
-        self.onClose(0, 0, "connection_lost")
+    def setLoop(self,loop) :
+        self.loop = loop
 
-    def onClose(self, wasClean, code, reason):
-        print("WebSocket connection closed: {0}".format(reason))
-        sys.exit(1)
+    def connection_lost(self, errmsg) :
+        print("WebSocket connection closed: {0}".format(errmsg))
+        self.loop.stop()

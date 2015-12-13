@@ -10,7 +10,7 @@ import subprocess
 from time import gmtime, strftime
 
 
-rpc = GrapheneWebsocket("localhost", 8092, "", "")
+rpc = GrapheneWebsocket("ws://localhost:8092", "", "")
 
 def unlockWallet():
     if config.feed_script_active == True:

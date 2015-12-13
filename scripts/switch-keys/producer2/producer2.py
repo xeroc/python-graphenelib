@@ -22,10 +22,10 @@ wallet_name = "wallet2.json"
 
 
 
-rpc = GrapheneWebsocket("localhost", rpc_port, "", "")
+rpc = GrapheneWebsocket("ws://localhost:%d"%rpc_port, "", "")
 local_port = "127.0.0.1:" + rpc_port
 
-rpc = GrapheneWebsocket("localhost", rpc_port, "", "")
+rpc = GrapheneWebsocket("ws://localhost:%d"%rpc_port, "", "")
 local_port = "127.0.0.1:" + rpc_port
 
 
