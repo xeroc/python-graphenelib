@@ -14,8 +14,10 @@ assert sys.version_info[0] == 3, "graphenelib requires python3"
 def get_shared_secret(priv, pub) :
     pub_point  = pub.point()
     priv_point = int(repr(priv),16)
-    res     = pub_point * priv_point
-    res_hex = '%032x' % res.x()
+    res        = pub_point * priv_point
+    res_hex    = '%032x' % res.x()
+    # Zero padding
+    res_hex = '0'*(64-len(res_hex))+res_hex
     return res_hex
 
 def init_aes(shared_secret, nonce) :
