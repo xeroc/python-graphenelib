@@ -79,11 +79,12 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         self.wsexec([self.api_ids["database"],"set_subscribe_callback", [self.request_id,False]], handles)
 
     def dispatchNotice(self, notice) :
+        if not "id" in notice : return
+        oid = notice["id"];
         try :
-            oid = notice["id"];
             if oid in self.database_callbacks_ids and callable(self.database_callbacks_ids[oid]):
                 self.database_callbacks_ids[oid](self,notice)
-            if oid and self.accounts_callback != [None] and callable(self.accounts_callback[0]):
+            if self.accounts_callback != [None] and callable(self.accounts_callback[0]):
                 self.accounts_callback[0](self,notice)
         except Exception as e :
             print('Error dispatching notice: %s' % str(e))
