@@ -181,9 +181,11 @@ def update_feed(rpc, feeds):
 def derive_prices(feed):
      price_result = {}
      for asset in _all_bts_assets + [core_symbol]:
-         price_result[asset]    = 0.0
+         price_result[asset]    = {}
 
      for asset in asset_list_publish :
+         # secondary markets are different 
+         if asset in list(config.secondary_mpas.keys()) : continue
 
          this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
          sources           = list(feed)                    if this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
@@ -262,6 +264,11 @@ def derive_prices(feed):
                                  "number"  : len(assetprice)
                                }
 
+     # secondary market pegged assets
+     for asset in list(config.secondary_mpas.keys()) :
+         if "sameas" in config.secondary_mpas[asset] :
+             price_result[asset] = price_result[config.secondary_mpas[asset]["sameas"]]
+
      return price_result
 
 ## ----------------------------------------------------------------------------
@@ -297,6 +304,8 @@ def compare_feeds(blamePrices, newPrices) :
         this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
         price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
 
+        if asset not in blamePrices : continue
+        if asset not in newPrices : continue
         blamed_prices     = blamePrices[asset]
         new_prices        = newPrices[asset]
         blamed            = blamePrices[asset][price_metric]
@@ -321,9 +330,9 @@ def print_stats(feeds) :
         # Get Final Price according to price metric
         this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
         price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
+        if asset not in derived_prices or price_metric not in derived_prices[asset] : continue
 
         age                     = (str(datetime.utcnow()-lastUpdate[asset])) if not (lastUpdate[asset]==datetime.fromtimestamp(0)) else "infinity"
-
         myprice                 = derived_prices[asset][price_metric]
         prices                  = derived_prices[asset]
         blockchain              = price_median_blockchain[asset]
@@ -406,7 +415,10 @@ def update_price_feed() :
        this_asset_config = config.asset_config[asset]    if asset in config.asset_config           else config.asset_config["default"]
        price_metric      = this_asset_config["metric"]   if "metric" in this_asset_config          else config.asset_config["default"]["metric"]
 
-       if derived_prices[asset][price_metric] > 0.0:
+       if asset not in derived_prices or price_metric not in derived_prices[asset] : 
+           print("Warning: Asset %s has not derived price!" %asset)
+           continue
+       if float(derived_prices[asset][price_metric]) > 0.0:
            quote_precision = assets[asset]["precision"]
            symbol          = assets[asset]["symbol"]
            assert symbol is not asset
@@ -515,7 +527,7 @@ configFile = config
 core_symbol = "BTS"
 _all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
                    "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-                   "KRW" ] # , "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
+                   "KRW", "TCNY" ] # , "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
 _bases =["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
 
 ## Call Parameters ###########################################################

@@ -124,6 +124,12 @@ asset_config = {
                    }
                }
 
+secondary_mpas = {
+                    "TCNY" : {
+                                "sameas" : "CNY"
+                             }
+                 }
+
 ################################################################################
 ## Exchanges and settings
 ## 
