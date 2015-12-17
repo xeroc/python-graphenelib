@@ -28,10 +28,11 @@ _bts_yahoo_map = {
 }
 
 class FeedSource() :
-    def __init__(self, scaleVolumeBy=1.0, enable=True, allowFailure=False):
+    def __init__(self, scaleVolumeBy=1.0, enable=True, allowFailure=False, timeout=20):
         self.scaleVolumeBy = scaleVolumeBy
         self.enabled       = enable
         self.allowFailure  = allowFailure
+        self.timeout       = timeout
         
         ## Why fail if the scaleVolumeBy is 0
         if self.scaleVolumeBy == 0.0 :
@@ -50,7 +51,7 @@ class BitcoinIndonesia(FeedSource) :
                 feed[market] = {}
                 for coin in availableAssets :
                     url="https://vip.bitcoin.co.id/api/%s_%s/ticker" % (coin.lower(),market.lower())
-                    response = requests.get(url=url, headers=_request_headers, timeout=10 )
+                    response = requests.get(url=url, headers=_request_headers, timeout=self.timeout )
                     result = response.json()["ticker"]
                     feed[market][coin]  = { "price"  : float(result["last"]),
                                             "volume" : float(result["vol_"+coin.lower()])*self.scaleVolumeBy }
@@ -78,7 +79,7 @@ class Ccedk(FeedSource) :
                 pair_id = bts_markets[market]
                 feed[market] = {}
                 url="https://www.ccedk.com/api/v1/stats/marketdepthfull?pair_id=%d" % pair_id
-                response = requests.get(url=url, headers=_request_headers, timeout=10 )
+                response = requests.get(url=url, headers=_request_headers, timeout=self.timeout )
                 result = response.json()["response"]["entity"]
                 feed[market][core_symbol]  = { "price"  : float(result["last_price"]),
                                                "volume" : float(result["vol"])*self.scaleVolumeBy}
@@ -99,7 +100,7 @@ class Yunbi(FeedSource) :
         availableAssets = [ core_symbol ] # "BTC"
         try :
             url="https://yunbi.com/api/v2/tickers.json"
-            response = requests.get(url=url, headers=_request_headers, timeout=10)
+            response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
             result = response.json()
             for market in markets : 
                 feed[market] = {}
@@ -131,10 +132,16 @@ class Btc38(FeedSource) :
              for coin in availableAssets :
                  if market == coin : continue
                  params = { 'c': coin.lower(), 'mk_type': market.lower() }
-                 response = requests.get(url=url, params=params, headers=_request_headers, timeout=10 )
+                 response = requests.get(url=url, params=params, headers=_request_headers, timeout=self.timeout )
                  result = response.json()
-                 feed[market][coin] = {  "price"  : (float(result["ticker"]["last"])),
-                                         "volume" : (float(result["ticker"]["vol"])*self.scaleVolumeBy) }
+                 if "ticker" in result and \
+                    "last" in result["ticker"] and \
+                    "vol" in result["ticker"] : 
+                     feed[market][coin] = {  "price"  : (float(result["ticker"]["last"])),
+                                             "volume" : (float(result["ticker"]["vol"])*self.scaleVolumeBy) }
+                 else :
+                     print("\nFetched data from {0} is empty!".format(type(self).__name__))
+                     continue
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
             if not self.allowFailure:
@@ -152,7 +159,7 @@ class Bter(FeedSource) :
         availableAssets = [ "BTC", core_symbol ]
         try :
             url="http://data.bter.com/api/1/tickers"
-            response = requests.get(url=url, headers=_request_headers, timeout=10 )
+            response = requests.get(url=url, headers=_request_headers, timeout=self.timeout )
             result = response.json()
             for market in markets :
                 feed[market]  = {}
@@ -178,7 +185,7 @@ class Poloniex(FeedSource) :
         availableAssets = [ core_symbol ]
         try :
             url="https://poloniex.com/public?command=returnTicker"
-            response = requests.get(url=url, headers=_request_headers, timeout=10 )
+            response = requests.get(url=url, headers=_request_headers, timeout=self.timeout )
             result = response.json()
             for market in markets :
                 feed[market]  = {}
@@ -205,7 +212,7 @@ class Bittrex(FeedSource) :
         availableAssets = [ "BTS" ]
         try :
             url="https://bittrex.com/api/v1.1/public/getmarketsummaries"
-            response = requests.get(url=url, headers=_request_headers, timeout=10 )
+            response = requests.get(url=url, headers=_request_headers, timeout=self.timeout )
             result = response.json()["result"]
             for market in markets : 
                 feed[market] = {}
@@ -242,7 +249,7 @@ class Yahoo(FeedSource) :
                 yahooAssets = ",".join([a+base+"=X" for a in _yahoo_quote])
                 url="http://download.finance.yahoo.com/d/quotes.csv"
                 params = {'s':yahooAssets,'f':'l1','e':'.csv'}
-                response = requests.get(url=url, headers=_request_headers, timeout=10 ,params=params)
+                response = requests.get(url=url, headers=_request_headers, timeout=self.timeout ,params=params)
                 yahooprices =  response.text.replace('\r','').split( '\n' )
                 for i,a in enumerate(_yahoo_quote) :
                     if float(yahooprices[i]) > 0 :
@@ -252,7 +259,7 @@ class Yahoo(FeedSource) :
                # yahooAssets = ",".join(_yahoo_indices.keys())
                # url="http://download.finance.yahoo.com/d/quotes.csv"
                # params = {'s':yahooAssets,'f':'l1','e':'.csv'}
-               # response = requests.get(url=url, headers=_request_headers, timeout=10 ,params=params)
+               # response = requests.get(url=url, headers=_request_headers, timeout=self.timeout ,params=params)
                # yahooprices =  response.text.replace('\r','').split( '\n' )
                # for i,a in enumerate(_yahoo_indices) :
                #     if float(yahooprices[i]) > 0 :
@@ -279,7 +286,7 @@ class BitcoinAverage(FeedSource) :
                 feed[market] = {}
                 for coin in availableAssets :
                     if coin == market: continue
-                    response = requests.get(url=url+market, headers=_request_headers, timeout=10)
+                    response = requests.get(url=url+market, headers=_request_headers, timeout=self.timeout)
                     result = response.json()
                     feed[market][coin] = { "price"  : (float(result["last"])),
                                            "volume" : (float(result["total_vol"])) }
@@ -303,7 +310,7 @@ class BtcChina(FeedSource) :
                 feed[market] = {}
                 for coin in availableAssets :
                     url="https://data.btcchina.com/data/ticker?market=%s%s" % (coin.lower(), market.lower())
-                    response = requests.get(url=url, headers=_request_headers, timeout=10 )
+                    response = requests.get(url=url, headers=_request_headers, timeout=self.timeout )
                     result = response.json()
                     feed[market][coin] = { "price"  : (float(result["ticker"]["last"])),
                                            "volume" : (float(result["ticker"]["vol"])*self.scaleVolumeBy) }
@@ -327,7 +334,7 @@ class Huobi(FeedSource) :
                 feed[market] = {}
                 for coin in availableAssets :
                     url="http://api.huobi.com/staticmarket/ticker_%s_json.js" % (coin.lower())
-                    response = requests.get(url=url, headers=_request_headers, timeout=10 )
+                    response = requests.get(url=url, headers=_request_headers, timeout=self.timeout )
                     result = response.json()
                     feed[market][coin] = { "price"  : (float(result["ticker"]["last"])),
                                            "volume" : (float(result["ticker"]["vol"])*self.scaleVolumeBy) }
@@ -356,7 +363,7 @@ class Okcoin(FeedSource) :
                         url="https://www.okcoin.cn/api/ticker.do?symbol=%s_%s" % (coin.lower(), market.lower())
                     else : 
                       sys.exit("\n%s does not know market type %s" % (type(self).__name__, market))
-                    response = requests.get(url=url, headers=_request_headers, timeout=10 )
+                    response = requests.get(url=url, headers=_request_headers, timeout=self.timeout )
                     result = response.json()
                     feed[market][coin] = { "price"  : (float(result["ticker"]["last"])),
                                            "volume" : (float(result["ticker"]["vol"])*self.scaleVolumeBy) }
