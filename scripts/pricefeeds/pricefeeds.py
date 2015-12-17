@@ -34,7 +34,7 @@ import numpy as num
 import sys
 import fractions
 from prettytable import PrettyTable
-from math        import fabs
+from math        import fabs, sqrt
 from pprint      import pprint
 from datetime    import datetime
 from grapheneapi import GrapheneAPI
@@ -78,6 +78,14 @@ def publish_rule(rpc, asset):
         return True
 
     return False
+
+## ----------------------------------------------------------------------------
+## Weighted std for statistical reasons
+## ----------------------------------------------------------------------------
+def weighted_std(values, weights):
+    average = num.average(values, weights=weights)
+    variance = num.average((values-average)**2, weights=weights)  # Fast and numerically precise
+    return sqrt(variance)
 
 ## ----------------------------------------------------------------------------
 ## Fetch data
@@ -242,7 +250,7 @@ def derive_prices(feed):
              price_median = statistics.median(price[asset][core_symbol])
              price_mean   = statistics.mean(price[asset][core_symbol])
              price_weighted = num.average(assetprice, weights=assetvolume)
-             price_std      = statistics.stdev([a-price_median for a in price[asset][core_symbol]]) / price_median
+             price_std      = weighted_std(assetprice, assetvolume)
              if price_std > 0.1 :
                  print("Asset %s shows high variance in fetched prices!"%(asset))
          elif len(assetvolume) == 1:
@@ -295,7 +303,7 @@ def priceChange(new,old):
             return formatPercentageMinus(percent)
 
 def compare_feeds(blamePrices, newPrices) :
-    t = PrettyTable(["asset","blame price","recalculated price","mean","median","weighted","std (#)"])
+    t = PrettyTable(["asset","blame price","recalculated price","mean","median","wgt. avg.","wgt. std (#)"])
     t.align                   = 'c'
     t.border                  = True
     #t.align['BTC']            = "r"
@@ -322,7 +330,7 @@ def compare_feeds(blamePrices, newPrices) :
     print(t.get_string())
 
 def print_stats(feeds) :
-    t = PrettyTable(["asset","new price","mean","median","weighted","std (#)","blockchain","my last price","last update","publish"])
+    t = PrettyTable(["asset","new price","mean","median","wgt. avg.","wgt. std (#)","blockchain","my last price","last update","publish"])
     t.align                   = 'c'
     t.border                  = True
     #t.align['BTC']            = "r"
