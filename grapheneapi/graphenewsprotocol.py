@@ -136,13 +136,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                 """ Run registered call backs for individual object notices
                 """
                 if res["method"] == "notice" :
-                    for notice in res["params"][1][0]:
-                        if "id" in notice :
-                            self.setObject(notice["id"], notice)
-                            self.dispatchNotice( notice )
-                        else :
-                            #print("Warning: Received a notice without id: " + str(notice));
-                            pass # FIXME: get this object id
+                    [ self.setObject(notice["id"], notice) for notice in res["params"][1][0] if "id" in notice ]
+                    [ self.dispatchNotice( notice ) for notice in res["params"][1][0] if "id" in notice ]
+                    #[ self.dispatchNotice( notice ) if "id" in notice else print("Warning: Received a notice without id: " + str(notice)) for notice in res["params"][1][0] ]
         else :
             print("Error! ", res)
 
