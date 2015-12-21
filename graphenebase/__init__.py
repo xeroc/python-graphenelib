@@ -5,3 +5,4 @@ import graphenebase.memo         as Memo
 import graphenebase.base58       as Bip58
 import graphenebase.bip38        as Bip38
 #import graphenebase.transactions as Transactions
+import graphenebase.dictionary   as BrainKeyDictionary

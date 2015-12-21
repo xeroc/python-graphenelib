@@ -1,14 +1,44 @@
 import ecdsa
 import hashlib
 from binascii import hexlify,unhexlify
-from .base58 import ripemd160,Base58
 import unittest
 import sys
+import re, os
+
+from graphenebase.base58 import ripemd160,Base58
+import graphenebase.dictionary   as BrainKeyDictionary
 
 """
 This class and the methods require python3
 """
 assert sys.version_info[0] == 3, "graphenelib requires python3"
+
+class BrainKey(object):
+    def __init__(self,brainkey=None,sequence=0):
+        if brainkey == None :
+            self.brainkey = self.suggest()
+        else :
+            self.brainkey = self.normalize(brainkey).strip()
+        self.sequence = sequence
+    def normalize(self, brainkey) :
+        return " ".join(re.compile("[\t\n\v\f\r ]+").split(brainkey))
+    def get_brainkey(self) :
+        return self.normalize(self.brainkey)
+    def get_private(self) :
+        encoded = "%s %d" % (self.brainkey, self.sequence)
+        s = hashlib.sha256(hashlib.sha512(bytes(encoded,'ascii')).digest()).digest()
+        return PrivateKey(hexlify(s).decode('ascii'))
+    def suggest(self):
+        word_count = 16
+        brainkey = [None]*word_count
+        dict_lines = BrainKeyDictionary.words.split(',')
+        assert len(dict_lines) == 49744
+        for j in range(0,word_count) :
+            num = int.from_bytes(os.urandom(2), byteorder="little")
+            rndMult = num / 2**16 # returns float between 0..1 (inclusive)
+            wIdx = round(len(dict_lines) * rndMult)
+            brainkey[j] = dict_lines[wIdx]
+        return " ".join(brainkey).upper()
 
 class Address(object):
     def __init__(self,address=None,pubkey=None,prefix="BTS"):
@@ -118,6 +148,8 @@ class PrivateKey(PublicKey):
         if wif == None :
             import os
             self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))
+        elif isinstance(wif, Base58) :
+            self._wif = wif
         else :
             self._wif = Base58(wif)
         # compress pubkeys only
@@ -275,6 +307,25 @@ class Testcases(unittest.TestCase) :
                             '0e1bfc9024d1f55a7855dc690e45b2e089d2d825a4671a3c3c7e4ea4e74ec00e',
                             '6e5cc4653d46e690c709ed9e0570a2c75a286ad7c1bc69a648aae6855d919d3e',
                             'b84abd64d66ee1dd614230ebbe9d9c6d66d78d93927c395196666762e9ad69d8'
+                        ])
+
+    def test_BrainKey(self):
+        self.assertEqual([
+                           str(BrainKey("COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN MATZO").get_private()),
+                           str(BrainKey("NAK TILTING MOOTING TAVERT SCREENY MAGIC BARDIE UPBORNE CONOID MAUVE CARBON NOTAEUM BITUMEN HOOEY KURUMA COWFISH").get_private()),
+                           str(BrainKey("CORKITE CORDAGE FONDISH UNDER FORGET BEFLEA OUTBUD ZOOGAMY BERLINE ACANTHA STYLO YINCE TROPISM TUNKET FALCULA TOMENT").get_private()),
+                           str(BrainKey("MURZA PREDRAW FIT LARIGOT CRYOGEN SEVENTH LISP UNTAWED AMBER CRETIN KOVIL TEATED OUTGRIN POTTAGY KLAFTER DABB").get_private()),
+                           str(BrainKey("VERDICT REPOUR SUNRAY WAMBLY UNFILM UNCOUS COWMAN REBUOY MIURUS KEACORN BENZOLE BEMAUL SAXTIE DOLENT CHABUK BOUGHED").get_private()),
+                           str(BrainKey("HOUGH TRUMPH SUCKEN EXODY MAMMATE PIGGIN CRIME TEPEE URETHAN TOLUATE BLINDLY CACOEPY SPINOSE COMMIE GRIECE FUNDAL").get_private()),
+                           str(BrainKey("OERSTED ETHERIN TESTIS PEGGLE ONCOST POMME SUBAH FLOODER OLIGIST ACCUSE UNPLAT OATLIKE DEWTRY CYCLIZE PIMLICO CHICOT").get_private()),
+                        ],[
+                            "5JfwDztjHYDDdKnCpjY6cwUQfM4hbtYmSJLjGd9KTpk9J4H2jDZ",
+                            "5JcdQEQjBS92rKqwzQnpBndqieKAMQSiXLhU7SFZoCja5c1JyKM",
+                            "5JsmdqfNXegnM1eA8HyL6uimHp6pS9ba4kwoiWjjvqFC1fY5AeV",
+                            "5J2KeFptc73WTZPoT1Sd59prFep6SobGobCYm7T5ZnBKtuW9RL9",
+                            "5HryThsy6ySbkaiGK12r8kQ21vNdH81T5iifFEZNTe59wfPFvU9",
+                            "5Ji4N7LSSv3MAVkM3Gw2kq8GT5uxZYNaZ3d3y2C4Ex1m7vshjBN",
+                            "5HqSHfckRKmZLqqWW7p2iU18BYvyjxQs2sksRWhXMWXsNEtxPZU",
                         ])
 
 def keyinfo(private_key) :
