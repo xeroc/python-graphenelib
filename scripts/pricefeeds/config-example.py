@@ -122,8 +122,23 @@ asset_config = {
                                     "okcoin",
                                    ]
                    }
+                   ##
+                   ## As requested by the issuer, the squeere ratio should be
+                   ## 100.1%
+                   "TCNY" : {
+                       "maximum_short_squeeze_ratio"   : 1001,
+                   }
                }
 
+## Other assets that are derived or something else.
+## Currently available:
+##
+##    "sameas" : x     ## uses the same asset price as a MPA above
+##
+##
+## Note: 
+##  The usual asset specific parameters have to be set in "asset_config",
+##  otherwise they will be ignored!
 secondary_mpas = {
                     "TCNY" : {
                                 "sameas" : "CNY"
