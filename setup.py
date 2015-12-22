@@ -3,17 +3,17 @@
 from setuptools import setup, find_packages
 
 setup(
-      name='graphene',
-      version='0.1',
-      description='Python libraries for Graphene',
+      name='graphenelib',
+      version='v0.1',
+      description='Python library for graphene-based blockchains',
       long_description=open('README.md').read(),
-
+      download_url = 'https://github.com/xeroc/python-graphenelib/tarball/v0.1',
       author='Fabian Schuh',
       author_email='<Fabian@BitShares.eu>',
       maintainer='Fabian Schuh',
       maintainer_email='<Fabian@BitShares.eu>',
       url='http://www.github.com/xeroc/python-graphene',
-
+      keywords = ['bitshares','muse','library','api','rpc','coin'],
       packages=["grapheneapi",
                 "graphenebase",
                 "grapheneextra",
