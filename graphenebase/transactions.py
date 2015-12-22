@@ -8,7 +8,8 @@ import math
 import struct
 import sys
 import time
-from .account import PublicKey, Address
+from graphenebase.account import PrivateKey, PublicKey, Address
+from graphenebase import Memo
 
 #import graphenelib.address as address
 #from graphenelib.base58 import base58decode,base58encode,base58CheckEncode,base58CheckDecode,btsBase58CheckEncode,btsBase58CheckDecode
@@ -81,8 +82,8 @@ operations["assert"]                                    = 34
 operations["balance_claim"]                             = 35
 operations["override_transfer"]                         = 36
 
-chainid        = "<not-defined-yet>"
-PREFIX         = "BTS"
+chainid        = "ff3444b85c2185e1e53dcaa2bba7a898d8730a1a3bb6827d3718c24e6c45e51f"
+prefix         = "BTS"
 
 ## Variable encodings
 def varint(n):
@@ -113,6 +114,9 @@ def varintlength(n):
 
 def variable_buffer( s ) :
     return varint(len(s)) + s
+
+def JsonObj(data):
+    return json.loads(str(data))
 
 # Variable types
 class Uint8() :
@@ -153,32 +157,35 @@ class Bytes():
     def __bytes__(self)   : return varint(self.length) + bytes(self.data, 'utf-8')
     def __str__(self)     : return str(self.data)
 class Void():
-    def __init__(self,d)  : raise NotImplementedError
-    def __bytes__(self)   : raise NotImplementedError
-    def __str__(self)     : raise NotImplementedError
+    def __init__(self)    : pass
+    def __bytes__(self)   : return b''
+    def __str__(self)     : return ""
 class Array():
-    def __init__(self,d)  : self.data = d;
-    def __bytes__(self)   : return varint(len(self.data)) + b"".join([bytes(a) for a in self.data])
-    def __str__(self)     : return {}.update([str(a) for a in self.data])
-
-class Bool(Uint8): # Bool = Uint8 / FIXME verify?!
-    def __init__(self,d) : 
-        super().__init__(d)
-class Time_point_sec(Uint32): # Time_point_sec = Uint32 / FIXME iso string!
+    def __init__(self,d)  : self.data = d; self.length = Varint32(len(self.data))
+    def __bytes__(self)   : return bytes(self.length) + b"".join([bytes(a) for a in self.data])
+    def __str__(self)     : return json.dumps([JsonObj(a) for a in self.data])
+class PointInTime():
+    def __init__(self,d)  : self.data = d
+    def __bytes__(self)   : return struct.pack("<I",timegm(time.strptime((self.data+"UTC"), '%Y-%m-%dT%H:%M:%S%Z')))
+    def __str__(self)     : return self.data
+class Signature():
+    def __init__(self,d)  : self.data = d
+    def __bytes__(self)   : return self.data
+    def __str__(self)     : return json.dumps(hexlify(self.data).decode('ascii'))
+class Bool(Uint8):
     def __init__(self,d) : 
         super().__init__(d)
 class Set(Array): # Set = Array
     def __init__(self,d) : 
         super().__init__(d)
-
 class Fixed_array():
     def __init__(self,d)  : raise NotImplementedError
     def __bytes__(self)   : raise NotImplementedError
     def __str__(self)     : raise NotImplementedError
 class Optional():
     def __init__(self,d)  : self.data = d
-    def __bytes__(self)   : return struct.pack("<B",1) + bytes(self.data) if self.data else struct.pack("<B",0)
-    def __str__(self)     : return str(self.data) if self.data else ''
+    def __bytes__(self)   : return bytes(Bool(1)) + bytes(self.data) if bytes(self.data) else bytes(Bool(0))
+    def __str__(self)     : return str(self.data)
 class Static_variant():
     def __init__(self,d,type_id)  : self.data = d; self.type_id = type_id
     def __bytes__(self)   : return varint(self.type_id) + bytes(self.data)
@@ -187,36 +194,42 @@ class Map():
     def __init__(self,d)  : raise NotImplementedError
     def __bytes__(self)   : raise NotImplementedError
     def __str__(self)     : raise NotImplementedError
-
 class Id():
     def __init__(self,d)  : self.data = Varint32(d)
     def __bytes__(self)   : return bytes(self.data)
     def __str__(self)     : return str(self.data)
 
-def JsonObj(data):
-    return json.loads(str(data))
+class Operation() :
+    def __init__(self, op) :
+        self.op = op
+        self.name = type(self.op).__name__.lower()
+        self.opId = operations[self.name]
+    def __bytes__(self)   :
+        return bytes(Id(self.opId)) + bytes(self.op)
+    def __str__(self)     :  
+        return json.dumps([self.opId, JsonObj(self.op)])
 
 # Graphene objects
 from collections import OrderedDict
 class GrapheneObject(object) :
-    def __init__(self, data):
+    def __init__(self, data=None):
         self.data = data 
     def __bytes__(self):
+        if self.data == None : return bytes()
         b = b""
         for name, value in self.data.items():
             if isinstance(value, str) :
-                 b += bytes(value,'utf-8')
+                b += bytes(value,'utf-8')
             else :
-                 b += bytes(value)
+                b += bytes(value)
         return b
     def __json__(self) :
+        if self.data == None : return {}
         d = {} ## JSON output is *not* ordered
         for name, value in self.data.items():
-            if isinstance(value, GrapheneObject) :
-                d.update( { name : value.__json__() } )
-            elif isinstance(value, Optional) :
-                d.update( { name : json.loads(str(value)) } )
-            else :
+            try : 
+                d.update( { name : JsonObj(value) } )
+            except :
                 d.update( { name : str(value) } )
         return OrderedDict(d)
     def __str__(self) :
@@ -248,13 +261,106 @@ class Asset(GrapheneObject) :
                     ]))
 
 class Memo(GrapheneObject) :
-    def __init__(self, _from, _to, _nonce, _message):
+    def __init__(self, _from=None, _to=None, _nonce=None, _message=None):
+        print(_message)
+        if _message : 
+            super().__init__(OrderedDict([
+                           ('from',    PublicKey(_from, prefix=prefix)),
+                           ('to',      PublicKey(_to, prefix=prefix)),
+                           ('nonce',   Uint64(_nonce)),
+                           ('message', Bytes(_message))
+                         ]))
+        else : 
+            super().__init__(None)
+
+class Signed_Transaction(GrapheneObject) :
+    def __init__(self, refNum, refPrefix, expiration, operations):
         super().__init__(OrderedDict([
-                       ('from',    PublicKey(_from, prefix="BTS")),
-                       ('to',      PublicKey(_to, prefix="BTS")),
-                       ('nonce',   Uint64(_nonce)),
-                       ('message', Bytes(_message))
-                     ]))
+                      ('ref_block_num', Uint16(refNum)),
+                      ('ref_block_prefix', Uint32(refPrefix)),
+                      ('expiration', PointInTime(expiration)),
+                      ('operations', Array(operations)),
+                      ('signatures', Void()),
+                    ]))
+
+    def derSigToHexSig(self, s):
+        s, junk = ecdsa.der.remove_sequence(unhexlify(s))
+        if junk :
+            print('JUNK: %s', hexlify(junk).decode('ascii'))
+        assert(junk == b'')
+        x, s = ecdsa.der.remove_integer(s)
+        y, s = ecdsa.der.remove_integer(s)
+        return '%064x%064x' % (x, y)
+
+    def recoverPubkeyParameter(self, digest, signature, pubkey) :
+        for i in range(0,4) :
+            p = self.signature_to_public_key(digest, signature, i)
+            if p.to_string() == pubkey.to_string() :
+                return i
+        return None
+
+    def signature_to_public_key(self, digest, signature, i):
+        # See http://www.secg.org/download/aid-780/sec1-v2.pdf section 4.1.6 primarily
+        curve = ecdsa.SECP256k1.curve
+        G     = ecdsa.SECP256k1.generator
+        order = ecdsa.SECP256k1.order
+        isYOdd      = i % 2
+        isSecondKey = i // 2
+        yp = 0 if (isYOdd) == 0 else 1
+        r, s = ecdsa.util.sigdecode_string(signature, order)
+        # 1.1
+        x = r + isSecondKey * order
+        # 1.3. This actually calculates for either effectively 02||X or 03||X depending on 'k' instead of always for 02||X as specified.
+        # This substitutes for the lack of reversing R later on. -R actually is defined to be just flipping the y-coordinate in the elliptic curve.
+        alpha = ((x * x * x) + (curve.a() * x) + curve.b()) % curve.p()
+        beta = ecdsa.numbertheory.square_root_mod_prime(alpha, curve.p())
+        if (beta - yp) % 2 == 0 :
+            y = beta
+        else :
+            y = curve.p() - beta
+        # 1.4 Constructor of Point is supposed to check if nR is at infinity. 
+        R = ecdsa.ellipticcurve.Point(curve, x, y, order)
+        # 1.5 Compute e
+        e = ecdsa.util.string_to_number(digest)
+        # 1.6 Compute Q = r^-1(sR - eG)
+        Q = ecdsa.numbertheory.inverse_mod(r, order) * (s * R + (-e % order) * G)
+        # Not strictly necessary, but let's verify the message for paranoia's sake.
+        if ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1).verify_digest(signature, digest, sigdecode=ecdsa.util.sigdecode_string) != True:
+            return None
+        return ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1)
+
+    def sign(self, wifkeys) :
+        self.privkeys = []
+        [self.privkeys.append(item) for item in wifkeys if item not in self.privkeys] # Unique private keys
+        self.chainid  = chainid
+        self.message  = unhexlify(chainid) + bytes(self)
+        self.digest   = hashlib.sha256(self.message).digest()
+        sigs = []
+        for wif in self.privkeys :
+            p     = bytes(PrivateKey(wif))
+            sk    = ecdsa.SigningKey.from_string(p, curve=ecdsa.SECP256k1)
+            cnt   = 0
+            while 1 :
+                cnt += 1
+                assert cnt<10, "Something wired happend while signing the transaction"
+                ## Sign message
+                k         = ecdsa.rfc6979.generate_k(sk.curve.generator.order(), sk.privkey.secret_multiplier, hashlib.sha256, self.digest+bytes(cnt))
+                sigder    = sk.sign_digest(self.digest, sigencode=ecdsa.util.sigencode_der, k=k)
+                hexSig    = self.derSigToHexSig(hexlify(sigder))  # DER decode
+                signature = unhexlify(hexSig)
+                ## Recovery parameter
+                r, s      = ecdsa.util.sigdecode_string(signature, ecdsa.SECP256k1.order)
+                if ecdsa.curves.orderlen( r ) is 32 or ecdsa.curves.orderlen( s ) is 32 : ## Verify length or r and s
+                    i = self.recoverPubkeyParameter(self.digest, signature, sk.get_verifying_key())
+                    i += 4  # compressed
+                    i += 27 # compact
+                    break
+            sigstr = struct.pack("<B",i)
+            sigstr += signature
+            sigs.append( Signature(sigstr) )
+
+        self.data["signature"] = Array(sigs)
+        return self
 
 class Transfer(GrapheneObject) :
     def __init__(self, _feeObj, _from, _to, _amountObj, _memo=None):
@@ -264,26 +370,8 @@ class Transfer(GrapheneObject) :
                       ('to'        , Protocol_id_type("account",_to)),
                       ('amount'    , _amountObj),
                       ('memo'      , Optional(_memo))
-                    ]))  ## FIXME missing future_extensions
+                    ]))
 
-class Transaction(GrapheneObject) :
-    def __init__(self, refNum, refPrefix, expiration, operations):
-        super().__init__(OrderedDict([
-                      ('ref_block_num', Uint16(refNum)),
-                      ('ref_block_prefix', Uint32(refPrefix)),
-                      ('expiration', Time_point_sec(expiration)),
-                      ('operations', Array(operations))
-                    ]))  ## FIXME missing future_extensions
-
-class Signed_Transaction(GrapheneObject) :
-    def __init__(self, refNum, refPrefix, expiration, operations):
-        super().__init__(OrderedDict([
-                      ('ref_block_num', Uint16(refNum)),
-                      ('ref_block_prefix', Uint32(refPrefix)),
-                      ('expiration', Time_point_sec(expiration)),
-                      ('operations', Array(operations)),
-                      ('signatures', Array([ Bytes(s,65) for s in signatures]))
-                    ]))  ## FIXME missing future_extensions
 
 if __name__ == '__main__':
     fee      = Asset(10, 15)
