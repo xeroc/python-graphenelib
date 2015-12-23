@@ -19,11 +19,12 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     accounts_callback = [None]
     objectMap = {}
     onEventCallbacks = {}
+    api_ids    = {}
+    request_id = 0
+    requests   = {}
 
     def __init__(self) :
-        self.request_id = 0
-        self.api_ids    = {}
-        self.requests   = {}
+        pass
 
     def wsexec(self, params, callback=None) :
         request = {"request":{},"callback":None}
