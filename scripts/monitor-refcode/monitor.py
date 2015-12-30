@@ -30,7 +30,7 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
 
     def onAccountUpdate(self, data) :
         # Get Operation ID that modifies our balance
-        opID         = api.getObject(data["most_recent_op"])["operation_id"]
+        opID         = api.get_object(data["most_recent_op"])["operation_id"]
         self.wsexec([self.api_ids["history"], "get_account_history", [self.account_id, self.last_op, 100, "1.11.0"]], self.process_operations)
         self.last_op = opID
 
@@ -44,16 +44,16 @@ class GrapheneMonitor(GrapheneWebsocketProtocol) :
                 continue
 
             # Get assets involved in Fee and Transfer
-            fee_asset    = api.getObject(op["fee"]["asset_id"])
-            amount_asset = api.getObject(op["amount"]["asset_id"])
+            fee_asset    = api.get_object(op["fee"]["asset_id"])
+            amount_asset = api.get_object(op["amount"]["asset_id"])
 
             # Amounts for fee and transfer
             fee_amount   =    float(op["fee"]["amount"]) / float(10**int(fee_asset["precision"]))
             amount_amount= float(op["amount"]["amount"]) / float(10**int(amount_asset["precision"]))
 
             # Get accounts involved
-            from_account = api.getObject(op["from"])
-            to_account   = api.getObject(op["to"])
+            from_account = api.get_object(op["from"])
+            to_account   = api.get_object(op["to"])
 
             # Decode the memo
             memo         = op["memo"]
@@ -102,8 +102,6 @@ if __name__ == '__main__':
 
     ## Open Up Graphene Websocket API
     api      = GrapheneWebsocket(config.url, config.user, config.password, protocol)
-
-    print(api)
 
     ## Set Callback for object changes
     api.setObjectCallbacks({config.accountID : protocol.onAccountUpdate})
