@@ -86,6 +86,11 @@ class GrapheneWebsocket(GrapheneAPI):
     def setMarketCallBack(self, markets) :
         self.proto.markets = markets
 
+    """ Get_Object as a passthrough from get_objects([array])
+    """
+    def get_object(self, oid):
+        return self.get_objects([oid])[0]
+
     """ Create websocket factory by Autobahn
     """
     def connect(self) :
