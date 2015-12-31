@@ -14,20 +14,29 @@ This class and the methods require python3
 assert sys.version_info[0] == 3, "graphenelib requires python3"
 
 class BrainKey(object):
+
     def __init__(self,brainkey=None,sequence=0):
         if brainkey == None :
             self.brainkey = self.suggest()
         else :
             self.brainkey = self.normalize(brainkey).strip()
         self.sequence = sequence
+
+    def next_sequence(self) :
+        self.sequence += 1
+        return self
+
     def normalize(self, brainkey) :
         return " ".join(re.compile("[\t\n\v\f\r ]+").split(brainkey))
+
     def get_brainkey(self) :
         return self.normalize(self.brainkey)
+
     def get_private(self) :
         encoded = "%s %d" % (self.brainkey, self.sequence)
         s = hashlib.sha256(hashlib.sha512(bytes(encoded,'ascii')).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
+
     def suggest(self):
         word_count = 16
         brainkey = [None]*word_count
