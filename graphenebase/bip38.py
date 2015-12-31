@@ -6,8 +6,8 @@ import hashlib
 from binascii import hexlify, unhexlify
 import unittest
 import sys
-from .account import PrivateKey, PublicKey, Address
-from .base58 import ripemd160,Base58,base58encode,base58decode
+from graphenebase.account import PrivateKey, PublicKey, Address
+from graphenebase.base58 import ripemd160,Base58,base58encode,base58decode
 
 """
 This class and the methods require python3
