@@ -23,8 +23,32 @@ The first public blockchain to use the Graphene technology is *BitShares 2.0*.
 However, this library should be able to interface with any other Graphene-based
 blockchain, too.
 
-General
--------
+Python-Graphene Libraries
+-------------------------
+.. toctree::
+   :maxdepth: 3
+
+   installation
+   classes
+
+Scripts
+--------
+.. toctree::
+   :maxdepth: 1
+
+   scripts-monitor
+   scripts-pricefeed
+
+Tutorials
+---------
+.. toctree::
+   :maxdepth: 1
+
+   howto-exchanges
+   howto-exchanges-detailed
+
+Graphene API
+------------
 .. toctree::
    :maxdepth: 1
 
@@ -33,33 +57,6 @@ General
    graphene-ws
    witness
    wallet
-
-Python-Graphene Libraries
--------------------------
-.. toctree::
-   :maxdepth: 1
-
-   installation
-   address
-   base58
-   rpc
-   memo
-
-Scripts
---------
-.. toctree::
-   :maxdepth: 1
-
-   scripts-monitor
-   pricefeed
-
-Howto
------
-.. toctree::
-   :maxdepth: 1
-
-   howto-exchanges
-   howto-exchanges-detailed
 
 Indices and tables
 ==================

@@ -9,16 +9,17 @@ Download
 
     git clone http://github.com/xeroc/python-graphenelib
 
-Installation
+Dependencies
 ############
 
-This library requires `autobahn` and requests to be installed:
+This library requires some dependencies to be installed:
 
 .. code-block:: bash
 
-    pip3 install autobahn --user
-    pip3 install requests --user
-    pip3 install pycrypto --user
+    pip3 install--user autobahn requests pycrypto scrypt
+
+Installation
+############
 
 The graphene library itself can be installed by issuing:
 

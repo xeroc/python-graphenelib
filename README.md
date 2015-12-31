@@ -2,8 +2,6 @@
 
 Python library for Graphene 2.0!
 
-For Graphene 0.x please see `python-graphenerpc` and `python-graphenetools`.
-
 # Installtion
 
     python3 setup.py install --user

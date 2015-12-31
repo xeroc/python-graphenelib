@@ -47,7 +47,9 @@ Inherits ``Address``.
 *  ``format(PublicKey,_format)``
     Formats the instance of :doc:`Base58 <base58>` according to ``_format``
 
-Example:::
+Example:
+
+.. code-block:: python
 
    PublicKey("BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL")
   
@@ -66,7 +68,9 @@ constructs two instances of ``PublicKey``
 * ``format(PrivateKey,_format)``
     Formats the instance of :doc:`Base58 <base58>` according to ``_format``
 
-Example:::
+Example:
+
+.. code-block:: python
 
    PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")
 

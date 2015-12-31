@@ -34,7 +34,9 @@ Base58(object)
 
             return _format + str(self)
 
-Examples:::
+Examples:
+
+.. code-block:: python
 
         format(Base58("02b52e04a0acfe611a4b6963462aca94b6ae02b24e321eda86507661901adb49"),"wif")
         repr(Base58("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd"))
