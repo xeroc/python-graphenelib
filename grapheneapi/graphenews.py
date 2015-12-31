@@ -17,7 +17,7 @@ class GrapheneWebsocket(GrapheneAPI):
     def __init__(self, url, username, password,
                  proto=GrapheneWebsocketProtocol):
         ssl, host, port, resource, path, params = parseWsUrl(url)
-        super().__init__(host, port, username, password)
+        GrapheneAPI.__init__(self, host, port, username, password)
         self.url      = url
         self.username = username
         self.password = password
@@ -27,6 +27,7 @@ class GrapheneWebsocket(GrapheneAPI):
         self.proto    = proto
         self.proto.username = self.username
         self.proto.password = self.password
+        self.factory  = None
 
     """ Get an object_id by name
     """
@@ -87,6 +88,8 @@ class GrapheneWebsocket(GrapheneAPI):
         self.proto.markets = markets
 
     """ Get_Object as a passthrough from get_objects([array])
+        Attention: This call requires GrapheneAPI because it is a non-blocking
+        JSON query
     """
     def get_object(self, oid):
         return self.get_objects([oid])[0]

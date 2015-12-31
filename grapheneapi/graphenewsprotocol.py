@@ -26,6 +26,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def __init__(self):
         pass
 
+    """
+    API Calls
+    """
     def wsexec(self, params, callback=None):
         request = {"request" : {}, "callback" : None}
         self.request_id += 1
@@ -39,10 +42,19 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 #        print(request["request"])
         self.sendMessage(json.dumps(request["request"]).encode('utf8'))
 
+    """
+    Callback management
+    """
     def eventcallback(self, name):
         if (name in self.onEventCallbacks and
            callable(self.onEventCallbacks[name])):
             self.onEventCallbacks[name](self)
+
+    """
+    Registration to Graphene-APIs
+    """
+    def register_api(self, name):
+        self.wsexec([1, name, []], [partial(self._set_api_id, name)])
 
     def _set_api_id(self, name, data):
         self.api_ids.update({name : data})
@@ -58,20 +70,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def _login(self):
         self.wsexec([1, "login", [self.username, self.password]])
 
-    def getObjectcb(self, oid, callback, *args):
-        if oid in self.objectMap and callable(callback):
-            callback(self.objectMap[oid])
-        else:
-            handles = [partial(self.setObject, oid)]
-            if callback and callable(callback):
-                handles.append(callback)
-            self.wsexec([self.api_ids["database"],
-                         "get_objects",
-                         [[oid]]], handles)
-
-    def setObject(self, oid, data):
-        self.objectMap[oid] = data
-
+    """
+    Subscriptions
+    """
     def subscribe_to_accounts(self, account_ids, *args):
         self.wsexec([0, "get_full_accounts", [account_ids, True]])
 
@@ -97,11 +98,31 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                      "set_subscribe_callback",
                      [self.request_id, False]], handles)
 
+    """ Get History
+    """
+    def getAccountHistory(self, account_id, callback,
+                          start="1.11.0", stop="1.11.0", limit=100):
+        if account_id[0:4] == "1.2." :
+            self.wsexec([self.api_ids["history"],
+                        "get_account_history",
+                         [account_id, start, 100, stop]],
+                        callback)
+        else :
+            raise Exception("getAccountHistory expects an account" +
+                            "id of the form '1.2.x'!")
+
+    """
+    Main Message Dispatcher
+    """
     def dispatchNotice(self, notice):
         if "id" not in notice:
             return
         oid = notice["id"]
         [inst, _type, _id] = oid.split(".")
+        account_ids = []
+        for a in self.accounts :
+            account_ids.append("2.6.%s" % a.split(".")[2])
+            account_ids.append("1.2.%s" % a.split(".")[2])
         try:
             if (oid in self.database_callbacks_ids and
                callable(self.database_callbacks_ids[oid])):
@@ -109,8 +130,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
             " Account Notifications "
             if (callable(self.accounts_callback) and
-                (("2.6.%s" % _id in self.accounts) or
-                 ("1.2.%s" % _id in self.accounts))):
+                    oid in account_ids):
                 self.accounts_callback(notice)
 
             " Market notifications "
@@ -125,13 +145,29 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
         except Exception as e:
             print('Error dispatching notice: %s' % str(e))
+            import traceback
+            traceback.print_exc()
 
-    def register_api(self, name):
-        self.wsexec([1, name, []], [partial(self._set_api_id, name)])
+    """
+    Object Management
+    """
+    def getObjectcb(self, oid, callback, *args):
+        if oid in self.objectMap and callable(callback):
+            callback(self.objectMap[oid])
+        else:
+            handles = [partial(self.setObject, oid)]
+            if callback and callable(callback):
+                handles.append(callback)
+            self.wsexec([self.api_ids["database"],
+                         "get_objects",
+                         [[oid]]], handles)
 
-    ################
-    # Websocket API
-    ################
+    def setObject(self, oid, data):
+        self.objectMap[oid] = data
+
+    """
+    Websocket API via Autobahn
+    """
     def onConnect(self, response):
         self.request_id = 1
         print("Server connected: {0}".format(response.peer))
@@ -151,13 +187,13 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 #       self.register_api("network_node")
         self.register_api("network_broadcast")
 
+    " main websocket message dispatcher "
     def onMessage(self, payload, isBinary):
         res = json.loads(payload.decode('utf8'))
 #        print("\n\nServer: " + json.dumps(res,indent=1))
 #        print("\n\nServer: " + str(res))
         if "error" not in res:
-            """ Resolve answers from RPC calls
-            """
+            " Resolve answers from RPC calls "
             if "id" in res:
                 if res["id"] not in self.requests:
                     print("Received answer to an unknown request?!")
@@ -169,8 +205,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                         for callback in callbacks:
                             callback(res["result"])
             elif "method" in res:
-                """ Run registered call backs for individual object notices
-                """
+                " Run registered call backs for individual object notices "
                 if res["method"] == "notice":
                     [self.setObject(notice["id"], notice)
                         for notice in res["params"][1][0] if "id" in notice]
