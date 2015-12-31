@@ -2,7 +2,7 @@ from grapheneapi import GrapheneAPI, GrapheneWebsocket
 import logging as log
 
 
-class GrapheneClient(GrapheneAPI):
+class GrapheneClient():
     wallet_host = None
     wallet_port = None
     wallet_user = None
@@ -10,6 +10,7 @@ class GrapheneClient(GrapheneAPI):
     witness_url = None
     witness_user = None
     witness_password = None
+    prefix = None
 
     rpc = None
     ws  = None
@@ -31,13 +32,16 @@ class GrapheneClient(GrapheneAPI):
 
             self.rpc = GrapheneAPI(self.wallet_host,
                                    self.wallet_port,
-                                   self.wallet_username,
+                                   self.wallet_user,
                                    self.wallet_password)
             " For compatibility reasons: "
-            super().__init__(self.wallet_host,
-                             self.wallet_port,
-                             self.wallet_username,
-                             self.wallet_password)
+            GrapheneAPI.__init__(self,
+                                 self.wallet_host,
+                                 self.wallet_port,
+                                 self.wallet_user,
+                                 self.wallet_password)
+
+            core_asset = self.rpc.get_object("1.3.0")[0]
 
         """ Connect to Witness Node
         """
@@ -51,7 +55,8 @@ class GrapheneClient(GrapheneAPI):
 
             self.ws = GrapheneWebsocket(self.witness_url,
                                         self.witness_user,
-                                        self.witness_password)
+                                        self.witness_password,
+                                        proto=config)
 
             """ Register Call available backs
             """
@@ -90,13 +95,30 @@ class GrapheneClient(GrapheneAPI):
                                  % market)
                 self.setMarketCallBack(markets)
             if "onRegisterHistory" in available_features:
-                self.setEventCallbacks({"registered-history": config.onRegisterHistory})
+                self.setEventCallbacks(
+                    {"registered-history": config.onRegisterHistory})
             if "onRegisterDatabase" in available_features:
-                self.setEventCallbacks({"registered-database": config.onRegisterDatabase})
+                self.setEventCallbacks(
+                    {"registered-database": config.onRegisterDatabase})
             if "onRegisterNetworkNode" in available_features:
-                self.setEventCallbacks({"registered-network-node": config.onRegisterNetworkNode})
+                self.setEventCallbacks(
+                    {"registered-network-node": config.onRegisterNetworkNode})
             if "onRegisterNetworkBroadcast" in available_features:
-                self.setEventCallbacks({"registered-network-broadcast": config.onRegisterNetworkBroadcast})
+                self.setEventCallbacks(
+                    {"registered-network-broadcast":
+                     config.onRegisterNetworkBroadcast})
+
+            core_asset = self.ws.get_object("1.3.0")
+
+        if not core_asset :
+            raise Exception("Neither WS nor RPC propery configured!")
+
+        if core_asset["symbol"] == "BTS" :
+            self.prefix = "BTS"
+        elif core_asset["symbol"] == "MUSE" :
+            self.prefix = "MUSE"
+        elif core_asset["symbol"] == "CORE" :
+            self.prefix = "GPH"
 
     """ Forward these calls to Websocket API
     """
@@ -125,11 +147,18 @@ class GrapheneClient(GrapheneAPI):
     """ Object Store
     """
     def getObject(self, oid):
-        [_instance, _type, _id] = oid.split(".")
-        if (not (oid in self.ws.proto.objectMap) or
-                _instance == "1" and _type == "7"):  # force refresh orders
-            data = self.rpc.get_object(oid)
-            self.ws.proto.objectMap[oid] = data
-        else:
-            data = self.ws.proto.objectMap[oid]
-        return data
+        print(self.ws)
+        if self.ws :
+            [_instance, _type, _id] = oid.split(".")
+            if (not (oid in self.ws.proto.objectMap) or
+                    _instance == "1" and _type == "7"):  # force refresh orders
+                data = self.rpc.get_object(oid)
+                self.ws.proto.objectMap[oid] = data
+            else:
+                data = self.ws.proto.objectMap[oid]
+            if len(data) == 1 :
+                return data[0]
+            else:
+                return data
+        else :
+            return self.rpc.get_object(oid)[0]
