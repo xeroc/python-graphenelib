@@ -34,6 +34,8 @@ class Base58(object) :
     def __format__(self, _format) :
         if _format.lower() == "wif" :
             return base58CheckEncode(0x80, self._hex)
+        elif _format.lower() == "encwif" :
+            return base58encode(self._hex)
         elif _format.lower() == "btc":
             return base58CheckEncode(0x00, self._hex)
         elif _format.lower() == "bts" :
