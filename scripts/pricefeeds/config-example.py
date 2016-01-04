@@ -121,13 +121,16 @@ asset_config = {
                                     "btcchina",
                                     "okcoin",
                                    ]
-                   }
+                   },
                    ##
                    ## As requested by the issuer, the squeere ratio should be
                    ## 100.1%
                    "TCNY" : {
                        "maximum_short_squeeze_ratio"   : 1001,
-                   }
+                   },
+                   "TUSD" : {
+                       "maximum_short_squeeze_ratio"   : 1001
+                   },
                }
 
 ## Other assets that are derived or something else.
@@ -142,6 +145,9 @@ asset_config = {
 secondary_mpas = {
                     "TCNY" : {
                                 "sameas" : "CNY"
+                             },
+                    "TUSD" : {
+                                "sameas" : "USD"
                              }
                  }
 
@@ -180,6 +186,8 @@ feedSources["huobi"]    = feedsources.Huobi(allowFailure=True)
 ################################################################################
 blame = "latest"
 #blame = "1428190"
+blame = "2353644"
+
 ################################################################################
 ## Git revision for storage in blame files
 ## (do not touch this line)
