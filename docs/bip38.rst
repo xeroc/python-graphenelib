@@ -4,6 +4,9 @@ Bip38 Encrypted Private Keys
 
 BIP 38 allows to encrypt and decrypt private keys in the WIF format.
 
+Examples
+########
+
 .. code-block:: python
 
      from graphenebase import PrivateKey
@@ -21,3 +24,9 @@ BIP 38 allows to encrypt and decrypt private keys in the WIF format.
      format(decrypt("6PRN5mjUTtud6fUXbJXezfn6oABoSr6GSLjMbrGXRZxSUcxThxsUW8epQi","SecretPassPhrase"),"wif"),
 
      >> "5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd",
+
+Definitions
+###########
+
+.. automodule:: graphenebase.bip38
+   :members: encrypt, decrypt
