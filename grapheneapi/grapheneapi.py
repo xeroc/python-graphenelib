@@ -6,9 +6,7 @@ try:
 except ImportError:
     raise ImportError("Missing dependency: python-requests")
 
-"""
-Error Classes
-"""
+""" Error Classes """
 
 
 class UnauthorizedError(Exception):
@@ -22,9 +20,55 @@ class RPCError(Exception):
 class RPCConnection(Exception):
     pass
 
+""" API class """
+
 
 class GrapheneAPI(object):
-    def __init__(self, host, port, username, password):
+    """ Graphene JSON-HTTP-RPC API
+
+        This class serves as an abstraction layer for easy use of the
+        Grapehene API.
+
+        :param str host: Host of the API server
+        :param int port: Port to connect to
+        :param str username: Username for Authentication (if required,
+                             defaults to "")
+        :param str password: Password for Authentication (if required,
+                             defaults to "")
+
+        All RPC commands of the Graphene client are exposed as methods
+        in the class ``grapheneapi``. Once an instance of GrapheneAPI is
+        created with host, port, username, and password, e.g.,
+
+        .. code-block:: python
+
+            from grapheneapi import GrapheneAPI
+            rpc = GrapheneAPI("localhost", 8092, "", "")
+
+        any call available to that port can be issued using the instance
+        via the syntax rpc.*command*(*parameters*). Example:
+
+        .. code-block:: python
+
+            rpc.info()
+
+        .. note:: A distinction has to be made whether the connection is
+                  made to a **witness/full node** which handles the
+                  blockchain and P2P network, or a **cli-wallet** that
+                  handles wallet related actions! The available commands
+                  differ drastically!
+
+        If you are connected to a wallet, you can simply initiate a transfer with:
+
+        .. code-block:: python
+
+            res = client.transfer("sender","receiver","5", "USD", "memo", True);
+
+        Again, the witness node does not offer access to construct any transactions,
+        and hence the calls available to the witness-rpc can be seen as read-only for
+        the blockchain.
+    """
+    def __init__(self, host, port, username="", password=""):
         self.host = host
         self.port = port
         self.username = username
@@ -32,6 +76,14 @@ class GrapheneAPI(object):
         self.headers  = {'content-type': 'application/json'}
 
     def _confirm(self, question, default="yes"):
+        """ Confirmation dialog that requires *manual* input.
+
+            :param str question: Question to ask the user
+            :param str default: default answer
+            :return: Choice of the user
+            :rtype: bool
+
+        """
         valid = {"yes": True, "y": True, "ye": True,
                  "no": False, "n": False}
         if default is None:
@@ -53,9 +105,23 @@ class GrapheneAPI(object):
                 sys.stdout.write("Please respond with 'yes' or 'no' "
                                  "(or 'y' or 'n').\n")
 
-    """ Manual execute a command on API
-    """
     def rpcexec(self, payload):
+        """ Manual execute a command on API (internally used)
+
+            param str payload: The payload containing the request
+            return: Servers answer to the query
+            rtype: json
+            raises RPCConnection: if no connction can be made
+            raises UnauthorizedError: if the user is not authorized
+            raise ValueError: if the API returns a non-JSON formated
+                              answer
+
+            It is not recommended to use this method directly, unless
+            you know what you are doing. All calls available to the API
+            will be wrapped to methods directly::
+
+                info -> grapheneapi.info()
+        """
         try:
             response = requests.post("http://{}:{}/rpc".format(self.host,
                                                                self.port),
@@ -83,10 +149,9 @@ class GrapheneAPI(object):
         else:
             return ret["result"]
 
-    """
-    Meta: Map all methods to RPC calls and pass through the arguments
-    """
     def __getattr__(self, name):
+        """ Map all methods to RPC calls and pass through the arguments
+        """
         def method(*args):
             query = {"method": name,
                      "params": args,
