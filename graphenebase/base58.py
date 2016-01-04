@@ -4,21 +4,38 @@ import sys
 import string
 import unittest
 
-"""
-This class and the methods require python3
-"""
+""" This class and the methods require python3 """
 assert sys.version_info[0] == 3, "graphenelib requires python3"
 
-"""
-Default Prefix
-"""
+""" Default Prefix """
 PREFIX = "BTS"
 
-"""
-Base58 Class
-"""
+
 class Base58(object) :
-    def __init__(self,data,prefix=PREFIX) :
+    """Base58 base class
+
+    This class serves as an abstraction layer to deal with base58 encoded
+    strings and their corresponding hex and binary representation throughout the
+    library.
+
+    :param data: Data to initialize object, e.g. pubkey data, address data, ...
+    :type data: hex, wif, bip38 encrypted wif, base58 string
+    :param str prefix: Prefix to use for Address/PubKey strings (defaults to ``BTS``)
+    :return: Base58 object initialized with ``data``
+    :rtype: Base58
+    :raises ValueError: if data cannot be decoded
+
+    * ``bytes(Base58)``: Returns the raw data
+    * ``str(Base58)``:   Returns the readable ``Base58CheckEncoded`` data.
+    * ``repr(Base58)``:  Gives the hex representation of the data.
+    *  ``format(Base58,_format)`` Formats the instance according to ``_format``:
+        * ``"btc"``: prefixed with ``0x80``. Yields a valid btc address
+        * ``"wif"``: prefixed with ``0x00``. Yields a valid wif key
+        * ``"bts"``: prefixed with ``BTS``
+        * ``"muse"``: prefixed with ``MUSE``
+
+    """
+    def __init__(self, data, prefix=PREFIX) :
         self._prefix = prefix
         if all(c in string.hexdigits for c in data) :
             self._hex     = data
@@ -27,11 +44,16 @@ class Base58(object) :
         elif data[:len(PREFIX)] == self._prefix :
             self._hex     = btsBase58CheckDecode(data[len(PREFIX):])
         else :
-            raise Exception("Error loading Base58 object")
-    """
-    Format output according to argument _format (wif,btc,bts)
-    """
+            raise ValueError("Error loading Base58 object")
+
     def __format__(self, _format) :
+        """ Format output according to argument _format (wif,btc,bts)
+
+            :param str _format: Format to use
+            :return: formatted data according to _format
+            :rtype: str
+
+        """
         if _format.lower() == "wif" :
             return base58CheckEncode(0x80, self._hex)
         elif _format.lower() == "encwif" :
@@ -43,25 +65,37 @@ class Base58(object) :
         elif _format.lower() == "muse" :
             return _format.upper() + str(self)
         else :
-            raise Exception("Format %s unkown." %_format)
-    """
-    Returns hex value of object
-    """
+            raise Exception("Format %s unkown." % _format)
+
     def __repr__(self) :
+        """ Returns hex value of object
+
+            :return: Hex string of instance's data
+            :rtype: hex string
+        """
         return self._hex
-    """
-    Return BTS-base58CheckEncoded string of data
-    """
+
     def __str__(self) :
+        """ Return BTS-base58CheckEncoded string of data
+
+            :return: Base58 encoded data
+            :rtype: str
+        """
         return btsBase58CheckEncode(self._hex)
-    """
-    Return raw bytes
-    """
+
     def __bytes__(self) :
+        """ Return raw bytes
+
+            :return: Raw bytes of instance
+            :rtype: bytes
+
+        """
         return unhexlify(self._hex)
 
 # https://github.com/tochev/python3-cryptocoins/raw/master/cryptocoins/base58.py
 BASE58_ALPHABET = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+
 def base58decode(base58_str):
     base58_text = bytes(base58_str, "ascii")
     n = 0
@@ -77,10 +111,11 @@ def base58decode(base58_str):
         n = div
     else:
         res.insert(0, n)
-    return hexlify(bytearray(1)*leading_zeroes_count + res).decode('ascii')
+    return hexlify(bytearray(1) * leading_zeroes_count + res).decode('ascii')
+
 
 def base58encode(hexstring):
-    byteseq = bytes(unhexlify(bytes(hexstring,'ascii')))
+    byteseq = bytes(unhexlify(bytes(hexstring, 'ascii')))
     n = 0
     leading_zeroes_count = 0
     for c in byteseq:
@@ -96,44 +131,53 @@ def base58encode(hexstring):
         res.insert(0, BASE58_ALPHABET[n])
     return (BASE58_ALPHABET[0:1] * leading_zeroes_count + res).decode('ascii')
 
+
 def ripemd160(s):
     ripemd160 = hashlib.new('ripemd160')
     ripemd160.update(unhexlify(s))
     return ripemd160.digest()
 
+
 def doublesha256(s):
     return hashlib.sha256(hashlib.sha256(unhexlify(s)).digest()).digest()
+
 
 def b58encode(v) :
     return base58encode(v)
 
+
 def b58decode(v) :
     return base58decode(v)
 
+
 def base58CheckEncode(version, payload):
-    s = ('%.2x'%version) + payload
+    s = ('%.2x' % version) + payload
     checksum = doublesha256(s)[:4]
     result = s + hexlify(checksum).decode('ascii')
     return base58encode(result)
 
+
 def base58CheckDecode(s):
-    s   = unhexlify( base58decode(s) )
+    s   = unhexlify(base58decode(s))
     dec = hexlify(s[:-4]).decode('ascii')
     checksum = doublesha256(dec)[:4]
     assert(s[-4:] == checksum)
     return dec[2:]
+
 
 def btsBase58CheckEncode(s):
     checksum = ripemd160(s)[:4]
     result = s + hexlify(checksum).decode('ascii')
     return base58encode(result)
 
+
 def btsBase58CheckDecode(s):
-    s   = unhexlify( base58decode(s) )
+    s   = unhexlify(base58decode(s))
     dec = hexlify(s[:-4]).decode('ascii')
     checksum = ripemd160(dec)[:4]
     assert(s[-4:] == checksum)
     return dec
+
 
 class Testcases(unittest.TestCase) :
     def test_base58decode(self):
@@ -143,6 +187,7 @@ class Testcases(unittest.TestCase) :
                          [   '800c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d507a5b8d',
                              '80e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8555c5bbb26',
                              '80f3a375e00cc5147f30bee97bb5d54b31a12eee148a1ac31ac9edc4ecd13bc1f80cc8148e'])
+
     def test_base58encode(self):
         self.assertEqual([   '5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ',
                              '5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss',
@@ -150,6 +195,7 @@ class Testcases(unittest.TestCase) :
                          [   base58encode('800c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d507a5b8d'),
                              base58encode('80e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8555c5bbb26'),
                              base58encode('80f3a375e00cc5147f30bee97bb5d54b31a12eee148a1ac31ac9edc4ecd13bc1f80cc8148e')])
+
     def test_btsBase58CheckEncode(self):
         self.assertEqual( [   btsBase58CheckEncode("02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680"),
                               btsBase58CheckEncode("021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16"),
@@ -159,6 +205,7 @@ class Testcases(unittest.TestCase) :
                               "5725vivYpuFWbeyTifZ5KevnHyqXCi5hwHbNU9cYz1FHbFXCxX",
                               "6kZKHSuxqAwdCYsMvwTcipoTsNE2jmEUNBQufGYywpniBKXWZK",
                               "8b82mpnH8YX1E9RHnU2a2YgLTZ8ooevEGP9N15c1yFqhoBvJur" ])
+
     def test_btsBase58CheckDecode(self):
         self.assertEqual( [   "02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680",
                               "021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16",
@@ -168,6 +215,7 @@ class Testcases(unittest.TestCase) :
                               btsBase58CheckDecode("5725vivYpuFWbeyTifZ5KevnHyqXCi5hwHbNU9cYz1FHbFXCxX"),
                               btsBase58CheckDecode("6kZKHSuxqAwdCYsMvwTcipoTsNE2jmEUNBQufGYywpniBKXWZK"),
                               btsBase58CheckDecode("8b82mpnH8YX1E9RHnU2a2YgLTZ8ooevEGP9N15c1yFqhoBvJur") ])
+
     def test_btsb58(self):
         self.assertEqual( [   "02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680",
                               "03457298c4b2c56a8d572c051ca3109dabfe360beb144738180d6c964068ea3e58",
@@ -179,6 +227,7 @@ class Testcases(unittest.TestCase) :
                               btsBase58CheckDecode(btsBase58CheckEncode("021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16")),
                               btsBase58CheckDecode(btsBase58CheckEncode("02f561e0b57a552df3fa1df2d87a906b7a9fc33a83d5d15fa68a644ecb0806b49a")),
                               btsBase58CheckDecode(btsBase58CheckEncode("03e7595c3e6b58f907bee951dc29796f3757307e700ecf3d09307a0cc4a564eba3"))])
+
     def test_Base58CheckDecode(self):
         self.assertEqual( [   "02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680",
                               "021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16",
@@ -200,6 +249,7 @@ class Testcases(unittest.TestCase) :
                               base58CheckDecode("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R"),
                               base58CheckDecode("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7"),
                               ])
+
     def test_base58CheckEncodeDecopde(self):
         self.assertEqual( [   "02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680",
                               "03457298c4b2c56a8d572c051ca3109dabfe360beb144738180d6c964068ea3e58",
