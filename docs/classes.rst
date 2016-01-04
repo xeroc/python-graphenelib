@@ -19,11 +19,10 @@ Base Package
 ############
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    base58
    account
-   brainkey
    memo
    bip38
 

@@ -5,14 +5,16 @@ Websocket
 .. note:: This is a low level class that can be used in combination with
           GrapheneClient
 
-In order to receive notifications of object changes from the witness, we need
-to interface with the websockets protocol.
+Example
+#######
 
-To do so, we have developed a `GrapheneWebsocketProtocol`, an extension to
-`WebSocketClientProtocol` as provided by `autobahn.asyncio.websocket`.
+For more examples see the provided scripts.
 
-In order to access the websocket functionalities, we can extend this class even
-further. 
+Run method on every new block
+*****************************
+
+In order to access the websocket functionalities, we need to extend the
+``GrapheneWebsocketProtocol`` class:
 
 .. code-block:: python
 
@@ -36,4 +38,11 @@ further.
         api.connect()
         api.run_forever()
 
-Further an examples see the provided scripts.
+Definitions
+###########
+
+.. autoclass:: grapheneapi.graphenews.GrapheneWebsocket
+     :members:
+
+.. autoclass:: grapheneapi.graphenewsprotocol.GrapheneWebsocketProtocol
+     :members:
