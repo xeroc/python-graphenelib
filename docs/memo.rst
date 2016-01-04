@@ -15,7 +15,6 @@ derived from the receiver's private key and the senders public key.
 The memo public key is part of the account and can be retreived with the
 `get_account` call:
 
-
 .. code-block:: json
 
     get_account <accountname>
@@ -37,7 +36,7 @@ The take the following form:
 
 .. code-block:: json
 
-        "memo": {
+        {
           "from": "GPH5mgup8evDqMnT86L7scVebRYDC2fwAWmygPEUL43LjstQegYCC",
           "to": "GPH5Ar4j53kFWuEZQ9XhxbAja4YXMPJ2EnUg5QcrdeMFYUNMMNJbe",
           "nonce": "13043867485137706821",
@@ -48,8 +47,8 @@ The fields `from` and `to` contain the memo public key of sender and receiver.
 The `nonce` is a random integer that is used for the seed of the AES encryption
 of the message.
 
-Decoding with Python
-####################
+Example
+#######
 
 .. code-block:: python
 
@@ -68,3 +67,9 @@ Decoding with Python
         memomsg = Memo.decode_memo(privkey, pubkey, memo["nonce"], memo["message"])
     except Exception as e:
         memomsg = "--cannot decode-- %s" % str(e)
+
+Definitions
+###########
+
+.. automodule:: graphenebase.memo
+    :members:
