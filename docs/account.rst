@@ -2,16 +2,28 @@
 Account Module
 **************
 
-Definitions:
-############
+Address Class
+#############
 
 .. autoclass:: graphenebase.account.Address
     :members: __repr__, __str__, __format__, __bytes__
 
+PublicKey Class
+###############
+
 .. autoclass:: graphenebase.account.PublicKey
     :members: __repr__, __str__, __format__, __bytes__
 
+PrivateKey Class
+################
+
 .. autoclass:: graphenebase.account.PrivateKey
+    :members: 
+
+Brainkey
+########
+
+.. autoclass:: graphenebase.account.BrainKey
     :members: 
 
 Remarks
