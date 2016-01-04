@@ -59,7 +59,7 @@ def publish_rule(rpc, asset):
     priceChange       = fabs(oldPrice-newPrice)/oldPrice * 100.0
 
     ## Check max price change
-    if abs(priceChange) > fabs(config.change_max) :
+    if abs(priceChange) > fabs(config.change_max) and lastUpdate[asset].timestamp() != 0.0 :
         if rpc._confirm("Price for asset %s has change from %f to %f (%f%%)! Do you want to continue?"%(
                            asset,oldPrice,newPrice,priceChange)) :
             return True
@@ -218,6 +218,11 @@ def derive_prices(feed):
              for base in list(feed[datasource]) :
                  for quote in list(feed[datasource][base]) :
                      if not base or not quote: continue
+                     # Skip markets with zero trades in the last 24h
+                     if feed[datasource][base][quote]["volume"] == 0.0:
+                         print("Skipping %s's %s:%s market due to 0 volume in the last 24h" % (datasource, base, quote))
+                         continue
+                     
                      # Original price/volume
                      price[base][quote].append(feed[datasource][base][quote]["price"])
                      volume[base][quote].append(feed[datasource][base][quote]["volume"])

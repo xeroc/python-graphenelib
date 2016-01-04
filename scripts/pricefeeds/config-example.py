@@ -186,7 +186,6 @@ feedSources["huobi"]    = feedsources.Huobi(allowFailure=True)
 ################################################################################
 blame = "latest"
 #blame = "1428190"
-blame = "2353644"
 
 ################################################################################
 ## Git revision for storage in blame files
