@@ -22,7 +22,8 @@ Base Package
    :maxdepth: 1
 
    base58
-   address
+   account
+   brainkey
    memo
    bip38
 
