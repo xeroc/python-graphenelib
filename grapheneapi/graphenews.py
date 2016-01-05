@@ -33,8 +33,8 @@ class GrapheneWebsocket(GrapheneAPI):
         self.host     = host
         self.port     = port
         self.proto    = proto
-        self.proto.username = self.username
-        self.proto.password = self.password
+        self.proto.username = username
+        self.proto.password = password
         self.factory  = None
 
     def setObjectCallbacks(self, callbacks) :

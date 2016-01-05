@@ -367,9 +367,8 @@ class GrapheneClient() :
                 self.market_separator = config.market_separator
             else:
                 self.market_separator = ":"
-            if ("watch_markets" in available_features and
-                    "onMarketUpdate" in available_features):
-                self.markets = []
+            if ("watch_markets" in available_features):
+                self.markets = {}
                 for market in config.watch_markets:
                     [quote_symbol, base_symbol] = market.split(self.market_separator)
                     try:
@@ -379,10 +378,15 @@ class GrapheneClient() :
                         raise Exception("Couldn't load assets for market %s"
                                         % market)
                     if "id" in quote and "id" in base:
-                        self.markets.append({"name"    : market,
-                                             "quote"   : quote["id"],
-                                             "base"    : base["id"],
-                                             "callback": config.onMarketUpdate})
+                        if "onMarketUpdate" in available_features:
+                            self.markets.update({
+                                       market : {"quote"   : quote["id"],
+                                                 "base"    : base["id"],
+                                                 "callback": config.onMarketUpdate}})
+                        else:  # No callbacks
+                            self.markets.update({
+                                       market : {"quote"   : quote["id"],
+                                                 "base"    : base["id"]}})
                     else:
                         log.warn("Market assets could not be found: %s"
                                  % market)

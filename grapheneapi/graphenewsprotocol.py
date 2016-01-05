@@ -1,5 +1,6 @@
 import json
 from functools import partial
+
 try:
     from autobahn.asyncio.websocket import WebSocketClientProtocol
 except ImportError:
@@ -120,7 +121,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def subscribe_to_markets(self, dummy=None):
         """ Subscribe to the markets as defined in ``self.markets``.
         """
-        for market in self.markets:
+        for m in self.markets:
+            market = self.markets[m]
             self.request_id += 1
             self.wsexec([0, "subscribe_to_market",
                          [self.request_id,
@@ -197,7 +199,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
             " Market notifications "
             if inst == "1" and _type == "7":
-                for market in self.markets:
+                for m in self.markets:
+                    market = self.markets[m]
                     if(((market["quote"] == notice["sell_price"]["quote"]["asset_id"] and
                        market["base"] == notice["sell_price"]["base"]["asset_id"]) or
                        (market["base"] == notice["sell_price"]["quote"]["asset_id"] and
