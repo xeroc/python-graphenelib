@@ -363,11 +363,15 @@ class GrapheneClient() :
                     else:
                         log.warn("Account %s could not be found" % a)
                 self.setAccountsDispatcher(account_ids, config.onAccountUpdate)
+            if "market_separator" in available_features:
+                self.market_separator = config.market_separator
+            else:
+                self.market_separator = ":"
             if ("watch_markets" in available_features and
                     "onMarketUpdate" in available_features):
-                markets = []
+                self.markets = []
                 for market in config.watch_markets:
-                    [quote_symbol, base_symbol] = market.split(":")
+                    [quote_symbol, base_symbol] = market.split(self.market_separator)
                     try:
                         quote = self.rpc.get_asset(quote_symbol)
                         base  = self.rpc.get_asset(base_symbol)
@@ -375,14 +379,14 @@ class GrapheneClient() :
                         raise Exception("Couldn't load assets for market %s"
                                         % market)
                     if "id" in quote and "id" in base:
-                        markets.append({"name"    : market,
-                                        "quote"   : quote["id"],
-                                        "base"    : base["id"],
-                                        "callback": config.onMarketUpdate})
+                        self.markets.append({"name"    : market,
+                                             "quote"   : quote["id"],
+                                             "base"    : base["id"],
+                                             "callback": config.onMarketUpdate})
                     else:
                         log.warn("Market assets could not be found: %s"
                                  % market)
-                self.setMarketCallBack(markets)
+                self.setMarketCallBack(self.markets)
             if "onRegisterHistory" in available_features:
                 self.setEventCallbacks(
                     {"registered-history": config.onRegisterHistory})
