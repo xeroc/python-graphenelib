@@ -1,5 +1,6 @@
-*******************
-Proposal Management
-*******************
+*********
+Proposals
+*********
 
-*under construction*
+.. autoclass:: grapheneextra.proposal.Proposal
+      :members:
