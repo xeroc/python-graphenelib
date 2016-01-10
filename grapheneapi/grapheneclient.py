@@ -302,10 +302,10 @@ class GrapheneClient() :
     witness_password = None
     prefix = None
 
-    #: Instance of GrapheneAPI
+    #: RPC connection to the cli-wallet
     rpc = None
 
-    #: Instance of GrapeheneWebsocket
+    #: Websocket connection to the witness/full node
     ws  = None
 
     def __init__(self, config):
@@ -382,11 +382,15 @@ class GrapheneClient() :
                             self.markets.update({
                                        market : {"quote"   : quote["id"],
                                                  "base"    : base["id"],
+                                                 "base_symbol"    : base["symbol"],
+                                                 "quote_symbol"   : quote["symbol"],
                                                  "callback": config.onMarketUpdate}})
                         else:  # No callbacks
                             self.markets.update({
                                        market : {"quote"   : quote["id"],
-                                                 "base"    : base["id"]}})
+                                                 "base"    : base["id"],
+                                                 "base_symbol"    : base["symbol"],
+                                                 "quote_symbol"   : quote["symbol"] }})
                     else:
                         log.warn("Market assets could not be found: %s"
                                  % market)
