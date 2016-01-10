@@ -5,6 +5,14 @@ Classses
 The library comes with a set of classes that are separated in different
 packages:
 
+Exchange Package
+################
+
+.. toctree::
+   :maxdepth: 1
+
+   exchange
+
 API Package
 ###########
 
@@ -14,6 +22,7 @@ API Package
    client
    rpc
    websocket
+   websocketrpc
 
 Base Package
 ############
