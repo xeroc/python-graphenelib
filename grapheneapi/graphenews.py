@@ -7,10 +7,11 @@ try:
     from autobahn.websocket.protocol import parseWsUrl
 except ImportError:
     raise ImportError("Missing dependency: python-autobahn")
-from grapheneapi import GrapheneAPI, GrapheneWebsocketProtocol
+from .graphenewsprotocol import GrapheneWebsocketProtocol
+from .graphenewsrpc import GrapheneWebsocketRPC
 
 
-class GrapheneWebsocket(GrapheneAPI):
+class GrapheneWebsocket(GrapheneWebsocketRPC):
     """ This class serves as a management layer for the websocket
         connection and configuration of the websocket sub-protocol.
 
@@ -25,7 +26,7 @@ class GrapheneWebsocket(GrapheneAPI):
     def __init__(self, url, username, password,
                  proto=GrapheneWebsocketProtocol):
         ssl, host, port, resource, path, params = parseWsUrl(url)
-        GrapheneAPI.__init__(self, host, port, username, password)
+        GrapheneWebsocketRPC.__init__(self, url, username, password)
         self.url      = url
         self.username = username
         self.password = password
