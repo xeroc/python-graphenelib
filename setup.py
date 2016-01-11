@@ -1,22 +1,25 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
-setup(
-      name='graphenelib',
-      version='v0.1.1',
+VERSION = '0.2-rc1'
+
+setup(name='graphenelib',
+      version=VERSION,
       description='Python library for graphene-based blockchains',
       long_description=open('README.md').read(),
-      download_url = 'https://github.com/xeroc/python-graphenelib/tarball/v0.1.1',
+      download_url='https://github.com/xeroc/python-graphenelib/tarball/' + VERSION,
       author='Fabian Schuh',
       author_email='<Fabian@BitShares.eu>',
       maintainer='Fabian Schuh',
       maintainer_email='<Fabian@BitShares.eu>',
       url='http://www.github.com/xeroc/python-graphene',
-      keywords = ['bitshares','muse','library','api','rpc','coin'],
+      keywords=['bitshares', 'muse', 'library', 'api',
+                'rpc', 'coin', 'tradingbot', 'exchange'],
       packages=["grapheneapi",
                 "graphenebase",
                 "grapheneextra",
+                "grapheneexchange",
                 ],
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
@@ -26,4 +29,4 @@ setup(
                    'Intended Audience :: Financial and Insurance Industry',
                    'Topic :: Office/Business :: Financial',
                    ]
-    )
+      )
