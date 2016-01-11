@@ -219,8 +219,8 @@ class GrapheneExchange(GrapheneClient) :
                     op_name = name
             fs = f[1]
             for _type in fs :
-                fs[_type] = float(fs[_type]) * scale / 10 ** base["precision"]
-            r[op_name] = f[1]
+                fs[_type] = float(fs[_type]) * scale / 1e4 / 10 ** base["precision"]
+            r[op_name] = fs
         return r
 
     def returnTicker(self):
@@ -745,6 +745,9 @@ class GrapheneExchange(GrapheneClient) :
             :param float amount: Amount to borrow (denoted in 'asset')
             :param str symbol: Asset to borrow
             :param float collateral_ratio: Collateral ratio to borrow at
+            :raises ValueError: if symbol is not a bitasset
+            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
+            :raises ValueError: if required amounts of collateral are not available
 
             Example Output:
 
@@ -800,6 +803,14 @@ class GrapheneExchange(GrapheneClient) :
         collateral_asset = self.ws.get_objects([backing_asset_id])[0]
         settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
         amount_of_collateral = amount * collateral_ratio * settlement_price
+
+        # Verify that enough funds are available
+        balances = self.returnBalances()
+        fundsNeeded = amount_of_collateral + self.returnFees()["call_order_update"]["fee"]
+        fundsHave = balances[collateral_asset["symbol"]]
+        if fundsHave <= fundsNeeded:
+            raise ValueError("Not enough funds available. Need %f %s, but only %f %s are available" %
+                             (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
 
         # Borrow
         return self.rpc.borrow_asset(self.config.account,
