@@ -118,7 +118,8 @@ class GrapheneExchange(GrapheneClient) :
     account = ""
     wallet = None
 
-    def __init__(self, config) :
+    def __init__(self, config, safe_mode=True) :
+        self.safe_mode = safe_mode
         self.config = config
         super().__init__(config)
 
@@ -596,6 +597,9 @@ class GrapheneExchange(GrapheneClient) :
                     ]
                 }
         """
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
         # We buy quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.rpc.get_asset(base_symbol)
@@ -606,7 +610,7 @@ class GrapheneExchange(GrapheneClient) :
                                    quote_symbol,
                                    7 * 24 * 60 * 60,
                                    False,
-                                   False)
+                                   not self.safe_mode)
 
     def sell(self, currencyPair, rate, amount):
         """ Places a sell order in a given market (sell ``quote``, buy
@@ -651,6 +655,9 @@ class GrapheneExchange(GrapheneClient) :
 
 
         """
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
         # We sell quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         quote = self.rpc.get_asset(quote_symbol)
@@ -661,7 +668,7 @@ class GrapheneExchange(GrapheneClient) :
                                    base_symbol,
                                    7 * 24 * 60 * 60,
                                    False,
-                                   False)
+                                   not self.safe_mode)
 
     def cancel(self, currencyPair, orderNumber):
         """ Cancels an order you have placed in a given market. Requires
