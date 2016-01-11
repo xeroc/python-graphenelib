@@ -1,7 +1,6 @@
 from grapheneapi import GrapheneClient
 from datetime import datetime
 import time
-import json
 
 
 class ExampleConfig() :
@@ -564,7 +563,7 @@ class GrapheneExchange(GrapheneClient) :
         for market in markets :
             m = self.markets[market]
             filled = self.ws.get_fill_order_history(
-                m["quote"], m["base"], 2*limit, api="history")
+                m["quote"], m["base"], 2 * limit, api="history")
             trades = []
             for f in filled[1::2] :  # every second entry "fills" the order
                 data = {}
