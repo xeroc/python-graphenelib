@@ -77,12 +77,17 @@ class Ccedk(FeedSource) :
                 feed[market] = {}
                 url = "https://www.ccedk.com/api/v1/stats/marketdepthfull?pair_id=%d" % pair_id
                 response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
-                result = response.json()["response"]["entity"]
-                feed[market][core_symbol]  = {"price"  : float(result["last_price"]),
-                                              "volume" : float(result["vol"]) * self.scaleVolumeBy}
-                feed[market]["response"] = response.json()
+                result = response.json()
+                feed[market]["response"] = result
+                if ("response" in result and result["response"] and "entity" in result["response"]):
+                    if ("last_price" in result["response"]["entity"] and
+                            "vol" in result["response"]["entity"]):
+                        feed[market][core_symbol]  = {"price"  : float(result["response"]["entity"]["last_price"]),
+                                                      "volume" : float(result["response"]["entity"]["vol"]) * self.scaleVolumeBy}
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+            import traceback
+            traceback.print_exc()
             if not self.allowFailure:
                 sys.exit("\nExiting due to exchange importance!")
             return
