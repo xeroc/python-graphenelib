@@ -191,28 +191,44 @@ class GrapheneExchange(GrapheneClient) :
     def returnTicker(self):
         """ Returns the ticker for all markets.
 
+            Output Parameters:
+
+            * ``last``: Price of the order last filled
+            * ``lowestAsk``: Price of the lowest ask
+            * ``highestBid``: Price of the highest bid
+            * ``baseVolume``: Volume of the base asset
+            * ``quoteVolume``: Volume of the quote asset
+            * ``percentChange``: 24h change percentage (in %)
+            * ``settlement_price``: Settlement Price for borrow/settlement
+            * ``core_exchange_rate``: Core exchange rate for payment of fee in non-BTS asset
+
             Sample Output:
 
             .. code-block:: json
 
                 {
-                    "GOLD_BTS": {
-                        "baseVolume": 0,
-                        "last": 2.2831050228310503e-05,
-                        "lowestAsk": 2.25e-05,
-                        "highestBid": 2.0833333333333333e-05,
-                        "quoteVolume": 0,
-                        "percentChange": 0
+                    "BTS_USD": {
+                        "quoteVolume": 48328.73333,
+                        "settlement_price": 332.3344827586207,
+                        "lowestAsk": 340.0,
+                        "baseVolume": 144.1862,
+                        "percentChange": -1.9607843231354893,
+                        "highestBid": 334.20000000000005,
+                        "last": 333.33333330133934,
+                        "core_exchange_rate": 316.3434782608696
                     },
                     "USD_BTS": {
-                        "baseVolume": 36166663617.0,
-                        "last": 0.0003787878787878788,
-                        "lowestAsk": 0.0003787878787878788,
-                        "highestBid": 0.0003676470588235294,
-                        "quoteVolume": 10870000.0,
-                        "percentChange": 26.893939393939405
+                        "quoteVolume": 144.1862,
+                        "settlement_price": 0.003009016674102742,
+                        "lowestAsk": 0.002992220227408737,
+                        "baseVolume": 48328.73333,
+                        "percentChange": 2.0000000097901705,
+                        "highestBid": 0.0029411764705882353,
+                        "last": 0.003000000000287946,
+                        "core_exchange_rate": 0.003161120960980772
                     }
                 }
+
         """
         r = {}
         for market in self.markets :
@@ -230,9 +246,24 @@ class GrapheneExchange(GrapheneClient) :
             quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
             pricelast = self._get_price_filled(filled, m)
             data = {}
+            # Price and ask/bids
             data["last"]          = pricelast
             data["lowestAsk"]     = self._get_price(orders[1]["sell_price"])
             data["highestBid"]    = (1 / self._get_price(orders[0]["sell_price"]))
+            # smartcoin stuff
+            if "bitasset_data_id" in quote_asset :
+                bitasset = self.ws.get_objects([quote_asset["bitasset_data_id"]])[0]
+                backing_asset_id = bitasset["options"]["short_backing_asset"]
+                if backing_asset_id == base_asset["id"]:
+                    data["settlement_price"] = 1 / self._get_price(bitasset["current_feed"]["settlement_price"])
+                    data["core_exchange_rate"] = 1 / self._get_price(bitasset["current_feed"]["core_exchange_rate"])
+            if "bitasset_data_id" in base_asset :
+                bitasset = self.ws.get_objects([base_asset["bitasset_data_id"]])[0]
+                backing_asset_id = bitasset["options"]["short_backing_asset"]
+                if backing_asset_id == quote_asset["id"]:
+                    data["settlement_price"] = self._get_price(bitasset["current_feed"]["settlement_price"])
+                    data["core_exchange_rate"] = self._get_price(bitasset["current_feed"]["core_exchange_rate"])
+
             if len(marketHistory) :
                 if marketHistory[0]["key"]["quote"] == m["quote"] :
                     data["baseVolume"]    = float(marketHistory[0]["base_volume"])  / (10 ** base_asset["precision"])
@@ -246,7 +277,6 @@ class GrapheneExchange(GrapheneClient) :
                     price24h = ((float(marketHistory[0]["open_base"])  / 10 ** quote_asset["precision"]) /
                                 (float(marketHistory[0]["open_quote"]) / 10 ** base_asset["precision"]))
                 data["percentChange"] = ((pricelast / price24h - 1) * 100)
-                data["price24hago"] = price24h
             else :
                 data["baseVolume"]    = 0
                 data["quoteVolume"]   = 0
