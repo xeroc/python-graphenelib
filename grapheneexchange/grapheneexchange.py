@@ -699,6 +699,79 @@ class GrapheneExchange(GrapheneClient) :
                                    False,
                                    not self.safe_mode)
 
+    def adjust_collateral(self):
+        raise NotImplementedError  # TODO
+
+    def borrow(self, amount, symbol, collateral_ratio):
+        """ Borrow bitassets/smartcoins from the network by putting up
+            collateral in a CFD at a given collateral ratio.
+
+            :param float amount: Amount to borrow (denoted in 'asset')
+            :param str symbol: Asset to borrow
+            :param float collateral_ratio: Collateral ratio to borrow at
+
+            Example Output:
+
+            .. code-block:: json
+
+                {
+                    "ref_block_num": 14705,
+                    "signatures": [],
+                    "extensions": [],
+                    "expiration": "2016-01-11T15:14:30",
+                    "operations": [
+                        [
+                            3,
+                            {
+                                "funding_account": "1.2.282",
+                                "delta_collateral": {
+                                    "amount": 1080540000,
+                                    "asset_id": "1.3.0"
+                                },
+                                "extensions": [],
+                                "delta_debt": {
+                                    "amount": 10000,
+                                    "asset_id": "1.3.106"
+                                },
+                                "fee": {
+                                    "amount": 100000,
+                                    "asset_id": "1.3.0"
+                                }
+                            }
+                        ]
+                    ],
+                    "ref_block_prefix": 1284843328
+                }
+
+
+        """
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+        # We sell quote and pay with base
+        asset = self.rpc.get_asset(symbol)
+        if "bitasset_data_id" not in asset:
+            raise ValueError("%s is not a bitasset!" % symbol)
+        bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
+
+        # Check minimum collateral ratio
+        backing_asset_id = bitasset["options"]["short_backing_asset"]
+        maintenance_col_ratio = bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000
+        if maintenance_col_ratio > collateral_ratio:
+            raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
+
+        # Derive Amount of Collateral
+        collateral_asset = self.ws.get_objects([backing_asset_id])[0]
+        settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
+        amount_of_collateral = amount * collateral_ratio * settlement_price
+
+        # Borrow
+        return self.rpc.borrow_asset(self.config.account,
+                                     '{:.{prec}f}'.format(amount, prec=asset["precision"]),
+                                     symbol,
+                                     '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
+                                     not self.safe_mode)
+
     def cancel(self, currencyPair, orderNumber):
         """ Cancels an order you have placed in a given market. Requires
             only the "orderNumber" (market is included for compatibility
