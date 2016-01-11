@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-VERSION = '0.2-rc1'
+VERSION = '0.2-rc2'
 
 setup(name='graphenelib',
       version=VERSION,
