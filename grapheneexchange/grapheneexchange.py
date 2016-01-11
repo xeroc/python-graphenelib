@@ -187,6 +187,42 @@ class GrapheneExchange(GrapheneClient) :
             r.update({a["symbol"] : a})
         return r
 
+    def returnFees(self) :
+        """ Returns a dictionary of all fees that apply through the
+            network
+
+            Example output:
+
+            .. code-block:: json
+
+                {'proposal_create': {'fee': 400000.0},
+                'asset_publish_feed': {'fee': 1000.0}, 'account_create':
+                {'basic_fee': 950000.0, 'price_per_kbyte': 20000.0,
+                'premium_fee': 40000000.0}, 'custom': {'fee': 20000.0},
+                'asset_fund_fee_pool': {'fee': 20000.0},
+                'override_transfer': {'fee': 400000.0}, 'fill_order':
+                {}, 'asset_update': {'price_per_kbyte': 20000.0, 'fee':
+                200000.0}, 'asset_update_feed_producers': {'fee':
+                10000000.0}, 'assert': {'fee': 20000.0},
+                'committee_member_create': {'fee': 100000000.0}}
+
+        """
+        from graphenebase.transactions import operations
+        r = {}
+        obj, base = self.ws.get_objects(["2.0.0", "1.3.0"])
+        fees = obj["parameters"]["current_fees"]["parameters"]
+        scale = float(obj["parameters"]["current_fees"]["scale"])
+        for f in fees:
+            op_name = "unkown %d" % f[0]
+            for name in operations:
+                if operations[name] == f[0]:
+                    op_name = name
+            fs = f[1]
+            for _type in fs :
+                fs[_type] = float(fs[_type]) * scale / 10 ** base["precision"]
+            r[op_name] = f[1]
+        return r
+
     def returnTicker(self):
         """ Returns the ticker for all markets.
 
