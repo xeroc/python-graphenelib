@@ -1,6 +1,7 @@
 from grapheneapi import GrapheneClient
 from datetime import datetime
 import time
+import json
 
 
 class ExampleConfig() :
@@ -72,6 +73,14 @@ class GrapheneExchange(GrapheneClient) :
         :param config config: Configuration Class, similar to the
                               example above
 
+        This class tries to map the poloniex API around the DEX but has
+        some differences:
+
+            * market pairs are denoted as 'quote'_'base', e.g. `USD_BTS`
+            * Prices/Rates are denoted in 'quote', i.e. the USD_BTS market
+              is priced in USD and buying 1 USD costs `rate` BTS
+            * All markets could be considered reversed as well ('BTS_USD')
+
         Usage:
 
         .. code-block:: python
@@ -114,9 +123,23 @@ class GrapheneExchange(GrapheneClient) :
         super().__init__(config)
 
     def formatTimeFromNow(self, secs=0):
+        """ Properly Format Time that is `x` seconds in the future
+
+            :param int secs: Seconds to go in the future (`x>0`) or the
+                             past (`x<0`)
+            :return: Properly formated time for Graphene (`%Y-%m-%dT%H:%M:%S`)
+            :rtype: str
+
+        """
         return datetime.utcfromtimestamp(time.time() + int(secs)).strftime('%Y-%m-%dT%H:%M:%S')
 
     def _get_price(self, o) :
+        """ Given an object with `quote` and `base`, derive the correct
+            price.
+
+            Prices/Rates are denoted in 'quote', i.e. the USD_BTS market
+            is priced in USD and buying 1 USD costs `rate` BTS
+        """
         quote_amount = float(o["quote"]["amount"])
         base_amount  = float(o["base"]["amount"])
         quote_id     = o["quote"]["asset_id"]
@@ -126,16 +149,43 @@ class GrapheneExchange(GrapheneClient) :
                      (base_amount / 10 ** base["precision"]))
 
     def _get_price_filled(self, f, m):
+        """ A filled order has `receives` and `pays` ops which serve as
+            `base` and `quote` depending on sell or buy
+        """
         r = {}
         if f["op"]["receives"]["asset_id"] == m["base"] :
-            # sell
+            # If the seller received "base" in a quote_base market, than
+            # it has been a sell order of quote
             r["base"] = f["op"]["receives"]
             r["quote"] = f["op"]["pays"]
         else:
-            # buy
-            r["quote"] = f["op"]["receives"]
+            # buy order
             r["base"] = f["op"]["pays"]
+            r["quote"] = f["op"]["receives"]
         return self._get_price(r)
+
+    def returnCurrencies(self):
+        """ In contrast to poloniex, this call returns the assets of the
+            watched markets only.
+
+            Example Output:
+
+            .. code-block:: json
+
+            {'BTS': {'issuer': '1.2.3', 'id': '1.3.0', 'dynamic_asset_data_id': '2.3.0', 'precision': 5, 'symbol': 'BTS', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.0', 'amount': 1}, 'quote': {'asset_id': '1.3.0', 'amount': 1}}, 'flags': 0, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 0, 'max_supply': '360057050210207'}}, 'GOLD': {'issuer': '1.2.0', 'id': '1.3.106', 'dynamic_asset_data_id': '2.3.106', 'precision': 6, 'bitasset_data_id': '2.4.6', 'symbol': 'GOLD', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '1 troy ounce .999 fine gold', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.106', 'amount': 1}, 'quote': {'asset_id': '1.3.0', 'amount': 34145}}, 'flags': 128, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 511, 'max_supply': '1000000000000000'}}, 'USD': {'issuer': '1.2.0', 'id': '1.3.121', 'dynamic_asset_data_id': '2.3.121', 'precision': 4, 'bitasset_data_id': '2.4.21', 'symbol': 'USD', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '1 United States dollar', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.121', 'amount': 5}, 'quote': {'asset_id': '1.3.0', 'amount': 15751}}, 'flags': 128, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 511, 'max_supply': '1000000000000000'}}}
+
+        """
+        r = {}
+        asset_ids = []
+        for market in self.markets :
+            m = self.markets[market]
+            asset_ids.append(m["base"])
+            asset_ids.append(m["quote"])
+        asset_ids_unique = list(set(asset_ids))
+        assets = self.ws.get_objects(asset_ids_unique)
+        for a in assets:
+            r.update({a["symbol"] : a})
+        return r
 
     def returnTicker(self):
         """ Returns the ticker for all markets.
@@ -176,16 +226,26 @@ class GrapheneExchange(GrapheneClient) :
                 m["quote"], m["base"], 1)
             filled = self.ws.get_fill_order_history(
                 m["quote"], m["base"], 0, api="history")[0]
+            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
             pricelast = self._get_price_filled(filled, m)
             data = {}
             data["last"]          = pricelast
             data["lowestAsk"]     = self._get_price(orders[1]["sell_price"])
             data["highestBid"]    = (1 / self._get_price(orders[0]["sell_price"]))
             if len(marketHistory) :
-                price24h = float(marketHistory[0]["open_quote"]) / float(marketHistory[0]["open_base"])
-                data["baseVolume"]    = float(marketHistory[0]["base_volume"])
-                data["quoteVolume"]   = float(marketHistory[0]["quote_volume"])
+                if marketHistory[0]["key"]["quote"] == m["quote"] :
+                    data["baseVolume"]    = float(marketHistory[0]["base_volume"])  / (10 ** base_asset["precision"])
+                    data["quoteVolume"]   = float(marketHistory[0]["quote_volume"]) / (10 ** quote_asset["precision"])
+                    price24h = ((float(marketHistory[0]["open_quote"]) / 10 ** quote_asset["precision"]) /
+                                (float(marketHistory[0]["open_base"])  / 10 ** base_asset["precision"]))
+                else :
+                    #: Looks weird but is correct:
+                    data["baseVolume"]    = float(marketHistory[0]["quote_volume"]) / (10 ** base_asset["precision"])
+                    data["quoteVolume"]   = float(marketHistory[0]["base_volume"])  / (10 ** quote_asset["precision"])
+                    price24h = ((float(marketHistory[0]["open_base"])  / 10 ** quote_asset["precision"]) /
+                                (float(marketHistory[0]["open_quote"]) / 10 ** base_asset["precision"]))
                 data["percentChange"] = ((pricelast / price24h - 1) * 100)
+                data["price24hago"] = price24h
             else :
                 data["baseVolume"]    = 0
                 data["quoteVolume"]   = 0
@@ -224,19 +284,31 @@ class GrapheneExchange(GrapheneClient) :
             quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
             data = {}
             if len(marketHistory) :
-                data[m["base_symbol"]] = float(marketHistory[0]["base_volume"]) / (10 ** base_asset["precision"])
-                data[m["quote_symbol"]] = float(marketHistory[0]["quote_volume"] / (10 ** quote_asset["precision"]))
+                if marketHistory[0]["key"]["quote"] == m["quote"] :
+                    data[m["base_symbol"]] = float(marketHistory[0]["base_volume"]) / (10 ** base_asset["precision"])
+                    data[m["quote_symbol"]] = float(marketHistory[0]["quote_volume"]) / (10 ** quote_asset["precision"])
+                else :
+                    data[m["base_symbol"]] = float(marketHistory[0]["quote_volume"]) / (10 ** base_asset["precision"])
+                    data[m["quote_symbol"]] = float(marketHistory[0]["base_volume"]) / (10 ** quote_asset["precision"])
             else :
                 data[m["base_symbol"]] = 0
                 data[m["quote_symbol"]] = 0
             r.update({market : data})
         return r
 
-    def returnOrderBook(self, currencyPair="all"):
+    def returnOrderBook(self, currencyPair="all", limit=25):
         """ Returns the order book for a given market. You may also
             specify "all" to get the orderbooks of all markets.
 
             :param str currencyPair: Return results for a particular market only (default: "all")
+            :param int limit: Limit the amount of orders (default: 25)
+
+            Ouput is formated as:::
+
+                [price, amount]
+
+            * price is denoted in quote
+            * amount is in quote
 
             Sample output:
 
@@ -271,17 +343,19 @@ class GrapheneExchange(GrapheneClient) :
         for market in markets :
             m = self.markets[market]
             orders = self.ws.get_limit_orders(
-                m["quote"], m["base"], 25)
+                m["quote"], m["base"], limit)
             quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
             asks = []
             bids = []
             for o in orders:
                 if o["sell_price"]["base"]["asset_id"] == m["base"] :
-                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"] * self._get_price(o["sell_price"])
-                    asks.append([self._get_price(o["sell_price"]), volume])
+                    price = self._get_price(o["sell_price"])
+                    volume = float(o["for_sale"]) / 10 ** base_asset["precision"] * self._get_price(o["sell_price"])
+                    asks.append([price, volume])
                 else :
+                    price = 1 / self._get_price(o["sell_price"])
                     volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
-                    bids.append([1 / self._get_price(o["sell_price"]), volume])
+                    bids.append([price, volume])
 
             data = {"asks" : asks, "bids" : bids}
             r.update({market : data})
@@ -318,7 +392,16 @@ class GrapheneExchange(GrapheneClient) :
         return data
 
     def returnOpenOrders(self, currencyPair="all"):
-        """ Returns your open orders for a given market, specified by the "currencyPair
+        """ Returns your open orders for a given market, specified by
+            the "currencyPair.
+
+            Output Parameters:
+
+                - `type`: sell or buy
+                - `rate`: price for `quote` denoted in `base` ($50c per BTS = 0.5 USD/BTS)
+                - `orderNumber`: identifier (e.g. for cancelation)
+                - `amount`: amount of quote
+                - `total`: amount of base at asked price (amount/price)
 
             Example Output:
 
@@ -344,51 +427,65 @@ class GrapheneExchange(GrapheneClient) :
                     "GOLD_BTS": []
                 }
 
-            .. note:: A maximum of 100 orders will be searched. If your
-                      orders is far away from the highest/lowest
-                      bid/ask, it may not be returned here!
+            .. note:: Ths method will not show orders of markets that
+                      are **not** in the ``watch_markets`` array!
         """
+        account = self.rpc.get_account(self.config.account)
         r = {}
         if currencyPair == "all" :
             markets = list(self.markets.keys())
         else:
             markets = [currencyPair]
+        orders = self.ws.get_full_accounts([account["id"]], False)[0][1]["limit_orders"]
         for market in markets :
-            m = self.markets[market]
-            orders = self.ws.get_limit_orders(
-                m["quote"], m["base"], 100)
-            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
-            account = self.rpc.get_account(self.config.account)
-            open_orders = []
-            for o in orders:
-                if account["id"] == o["seller"] :
-                    if o["sell_price"]["base"]["asset_id"] == m["base"] :
-                        " selling "
-                        volume = float(o["for_sale"]) / 10 ** quote_asset["precision"] * self._get_price(o["sell_price"])
-                        rate = self._get_price(o["sell_price"])
-                        t = "sell"
-                    else :
-                        " buying "
-                        volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
-                        rate = 1 / self._get_price(o["sell_price"])
-                        t = "buy"
-                    open_orders.append({"rate" : rate,
-                                        "amount" : volume,
-                                        "total" : volume * rate,
-                                        "type" : t,
-                                        "orderNumber" : o["id"]})
-            r.update({market : open_orders})
+            r[market] = []
+        for o in orders:
+            quote_id = o["sell_price"]["quote"]["asset_id"]
+            base_id = o["sell_price"]["base"]["asset_id"]
+            quote_asset, base_asset = self.ws.get_objects([quote_id, base_id])
+            for market in markets :
+                m = self.markets[market]
+                if (o["sell_price"]["base"]["asset_id"] == m["base"] and
+                        o["sell_price"]["quote"]["asset_id"] == m["quote"]):
+                    " selling "
+                    amount = float(o["for_sale"]) / 10 ** base_asset["precision"] * self._get_price(o["sell_price"])
+                    rate = self._get_price(o["sell_price"])
+                    t = "sell"
+                    total = amount / rate
+                elif (o["sell_price"]["base"]["asset_id"] == m["quote"] and
+                        o["sell_price"]["quote"]["asset_id"] == m["base"]):
+                    " buying "
+                    amount = float(o["for_sale"]) / 10 ** quote_asset["precision"]
+                    rate = 1 / self._get_price(o["sell_price"])
+                    t = "buy"
+                    total = amount / rate
+                else :
+                    continue
+                r[market].append({"rate" : rate,
+                                  "amount" : amount,
+                                  "total" : total,
+                                  "type" : t,
+                                  "orderNumber" : o["id"]})
         if len(markets) == 1 :
             return r[markets[0]]
         else:
             return r
 
-    def returnTradeHistory(self, currencyPair="all"):
+    def returnTradeHistory(self, currencyPair="all", limit=25):
         """ Returns your trade history for a given market, specified by
             the "currencyPair" parameter. You may also specify "all" to
             get the orderbooks of all markets.
 
             :param str currencyPair: Return results for a particular market only (default: "all")
+            :param int limit: Limit the amount of orders (default: 25)
+
+
+            Output Parameters:
+
+                - `type`: sell or buy
+                - `rate`: price for `quote` denoted in `base` ($50c per BTS = 0.5 USD/BTS)
+                - `amount`: amount of quote
+                - `total`: amount of base at asked price (amount/price)
 
             Sample output:
 
@@ -436,9 +533,9 @@ class GrapheneExchange(GrapheneClient) :
         for market in markets :
             m = self.markets[market]
             filled = self.ws.get_fill_order_history(
-                m["quote"], m["base"], 25, api="history")
+                m["quote"], m["base"], 2*limit, api="history")
             trades = []
-            for f in filled[::2] :  # every second entry "fills" the order
+            for f in filled[1::2] :  # every second entry "fills" the order
                 data = {}
                 data["date"] = f["time"]
                 data["rate"] = self._get_price_filled(f, m)
@@ -449,7 +546,7 @@ class GrapheneExchange(GrapheneClient) :
                 else :
                     data["type"]   = "sell"
                     data["amount"] = f["op"]["pays"]["amount"] / 10 ** quote["precision"]
-                data["total"]  = data["amount"] * data["rate"]
+                data["total"]  = data["amount"] / data["rate"]
                 trades.append(data)
 
             r.update({market : trades})
@@ -457,11 +554,6 @@ class GrapheneExchange(GrapheneClient) :
             return r[markets[0]]
         else:
             return r
-
-    def returnMarketTradeHistory(self, currencyPair):
-        """ Not Implemented yet
-        """
-        return self.returnMarketHistory(currencyPair)
 
     def buy(self, currencyPair, rate, amount):
         """ Places a buy order in a given market (buy ``quote``, sell
