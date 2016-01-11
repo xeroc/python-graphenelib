@@ -205,7 +205,11 @@ def derive_prices(feed):
             if not feed[datasource] :
                 continue
             for base in list(feed[datasource]) :
+                if base == "response" :  # skip entries that store debug data
+                    continue
                 for quote in list(feed[datasource][base]) :
+                    if quote == "response" :  # skip entries that store debug data
+                        continue
                     if not base or not quote:
                         continue
                     # Skip markets with zero trades in the last 24h
