@@ -457,8 +457,6 @@ class GrapheneExchange(GrapheneClient) :
                     "GREENPOINT": 0.0
                 }
 
-            .. note:: Zero balance assets are included!
-
         """
         account = self.rpc.get_account(self.config.account)
         balances = self.ws.get_account_balances(account["id"], [])
@@ -466,7 +464,10 @@ class GrapheneExchange(GrapheneClient) :
         assets = self.ws.get_objects(asset_ids)
         data = {}
         for i, asset in enumerate(assets) :
-            data[asset["symbol"]] = float(balances[i]["amount"]) / 10 ** asset["precision"]
+            amount = float(balances[i]["amount"]) / 10 ** asset["precision"]
+            if amount == 0.0:
+                continue
+            data[asset["symbol"]] = amount
         return data
 
     def returnOpenOrders(self, currencyPair="all"):
