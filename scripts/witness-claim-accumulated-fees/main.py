@@ -23,14 +23,14 @@ if __name__ == '__main__':
         """ Get accumulated amount from blockchain """
         asset_data = client.get_object(asset["dynamic_asset_data_id"])[0]
         accumulated_fees = asset_data["accumulated_fees"]
-        op[1]["amount_to_claim"]["amount"] = math.floor(accumulated_fees * percentage)
+        op[1]["amount_to_claim"]["amount"] = math.floor(accumulated_fees * percentage / 100)
 
         ops.append(op)
 
     buildHandle = client.begin_builder_transaction()
     for op in ops :
         client.add_operation_to_builder_transaction(buildHandle, op)
-    client.set_fees_on_builder_transaction(buildHandle,asset["id"])
+    client.set_fees_on_builder_transaction(buildHandle,"1.3.0")
 
     params = client.get_object("2.0.0")[0]
     if owner["name"] == "committee-account":
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         preview = 0
 
     client.propose_builder_transaction2(buildHandle, proposer["name"], config.expiration, preview, False) 
-    client.set_fees_on_builder_transaction(buildHandle, asset["id"])
+    client.set_fees_on_builder_transaction(buildHandle, "1.3.0")
 
     ## Sign and broadcast
     tx = client.sign_builder_transaction(buildHandle, False)
