@@ -680,6 +680,12 @@ class GrapheneExchange(GrapheneClient) :
         # We buy quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.rpc.get_asset(base_symbol)
+        quote = self.rpc.get_asset(quote_symbol)
+        # Check amount > 0
+        amountBase = '{:.{prec}f}'.format(amount * rate, prec=base["precision"])
+        zero = '{:.{prec}f}'.format(0, prec=base["precision"])
+        if amountBase == zero:
+            raise ValueError("You are asking for too little! Check amounts")
         return self.rpc.sell_asset(self.config.account,
                                    '{:.{prec}f}'.format(amount / rate, prec=base["precision"]),
                                    base_symbol,
@@ -737,7 +743,13 @@ class GrapheneExchange(GrapheneClient) :
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
         # We sell quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
+        base = self.rpc.get_asset(base_symbol)
         quote = self.rpc.get_asset(quote_symbol)
+        # Check amount > 0
+        amountBase = '{:.{prec}f}'.format(amount * rate, prec=base["precision"])
+        zero = '{:.{prec}f}'.format(0, prec=base["precision"])
+        if amountBase == zero:
+            raise ValueError("You are asking for too little! Check amounts")
         return self.rpc.sell_asset(self.config.account,
                                    '{:.{prec}f}'.format(amount, prec=quote["precision"]),
                                    quote_symbol,
