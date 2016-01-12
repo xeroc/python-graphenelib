@@ -78,6 +78,8 @@ class GrapheneExchange(GrapheneClient) :
             * market pairs are denoted as 'quote'_'base', e.g. `USD_BTS`
             * Prices/Rates are denoted in 'quote', i.e. the USD_BTS market
               is priced in USD and buying 1 USD costs `rate` BTS
+              Example: in the USD_BTS market, a price of 0.01 means
+              a BTS is worth $0.01c
             * All markets could be considered reversed as well ('BTS_USD')
 
         Usage:
@@ -729,7 +731,7 @@ class GrapheneExchange(GrapheneClient) :
         return self.rpc.sell_asset(self.config.account,
                                    amount,
                                    quote_symbol,
-                                   '{:.{prec}f}'.format(amount / rate, prec=quote["precision"]),
+                                   '{:.{prec}f}'.format(amount * rate, prec=quote["precision"]),
                                    base_symbol,
                                    7 * 24 * 60 * 60,
                                    False,
