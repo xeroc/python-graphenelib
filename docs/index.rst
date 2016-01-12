@@ -38,6 +38,7 @@ Scripts
 
    scripts-monitor
    scripts-pricefeed
+   scripts-exchange-bridge-market-maker
 
 Tutorials
 ---------
