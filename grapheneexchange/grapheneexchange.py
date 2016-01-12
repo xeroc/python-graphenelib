@@ -266,10 +266,16 @@ class GrapheneExchange(GrapheneClient) :
                     }
                 }
 
+            .. note:: A market that has had no trades will result in
+                      prices of "-1" to indicate that no trades have
+                      happend.
+
         """
         r = {}
         for market in self.markets :
             m = self.markets[market]
+            data = {}
+            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
             marketHistory = self.ws.get_market_history(
                 m["quote"], m["base"],
                 24 * 60 * 60,
@@ -279,14 +285,18 @@ class GrapheneExchange(GrapheneClient) :
             orders = self.rpc.get_limit_orders(
                 m["quote"], m["base"], 1)
             filled = self.ws.get_fill_order_history(
-                m["quote"], m["base"], 0, api="history")[0]
-            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
-            pricelast = self._get_price_filled(filled, m)
-            data = {}
+                m["quote"], m["base"], 0, api="history")
             # Price and ask/bids
-            data["last"]          = pricelast
-            data["lowestAsk"]     = self._get_price(orders[1]["sell_price"])
-            data["highestBid"]    = (1 / self._get_price(orders[0]["sell_price"]))
+            if filled :
+                data["last"] = self._get_price_filled(filled[0], m)
+            else :
+                data["last"] = -1
+            if len(orders) > 1:
+                data["lowestAsk"]     = self._get_price(orders[1]["sell_price"])
+                data["highestBid"]    = (1 / self._get_price(orders[0]["sell_price"]))
+            else :
+                data["lowestAsk"]     = -1
+                data["highestBid"]    = -1
             # smartcoin stuff
             if "bitasset_data_id" in quote_asset :
                 bitasset = self.ws.get_objects([quote_asset["bitasset_data_id"]])[0]
@@ -294,7 +304,7 @@ class GrapheneExchange(GrapheneClient) :
                 if backing_asset_id == base_asset["id"]:
                     data["settlement_price"] = 1 / self._get_price(bitasset["current_feed"]["settlement_price"])
                     data["core_exchange_rate"] = 1 / self._get_price(bitasset["current_feed"]["core_exchange_rate"])
-            if "bitasset_data_id" in base_asset :
+            elif "bitasset_data_id" in base_asset :
                 bitasset = self.ws.get_objects([base_asset["bitasset_data_id"]])[0]
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == quote_asset["id"]:
@@ -313,7 +323,7 @@ class GrapheneExchange(GrapheneClient) :
                     data["quoteVolume"]   = float(marketHistory[0]["base_volume"])  / (10 ** quote_asset["precision"])
                     price24h = ((float(marketHistory[0]["open_base"])  / 10 ** quote_asset["precision"]) /
                                 (float(marketHistory[0]["open_quote"]) / 10 ** base_asset["precision"]))
-                data["percentChange"] = ((pricelast / price24h - 1) * 100)
+                data["percentChange"] = ((data["last"] / price24h - 1) * 100)
             else :
                 data["baseVolume"]    = 0
                 data["quoteVolume"]   = 0
@@ -673,7 +683,7 @@ class GrapheneExchange(GrapheneClient) :
         return self.rpc.sell_asset(self.config.account,
                                    '{:.{prec}f}'.format(amount / rate, prec=base["precision"]),
                                    base_symbol,
-                                   amount,
+                                   '{:.{prec}f}'.format(amount, prec=quote["precision"]),
                                    quote_symbol,
                                    7 * 24 * 60 * 60,
                                    False,
@@ -729,9 +739,9 @@ class GrapheneExchange(GrapheneClient) :
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         quote = self.rpc.get_asset(quote_symbol)
         return self.rpc.sell_asset(self.config.account,
-                                   amount,
+                                   '{:.{prec}f}'.format(amount, prec=quote["precision"]),
                                    quote_symbol,
-                                   '{:.{prec}f}'.format(amount * rate, prec=quote["precision"]),
+                                   '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
                                    base_symbol,
                                    7 * 24 * 60 * 60,
                                    False,
