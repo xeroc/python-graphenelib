@@ -33,8 +33,8 @@ if __name__ == '__main__':
     for m in config.watch_markets:
         quote, base = m.split(config.market_separator)
         if quote in amounts :
-            print(" - Selling %f %s @%f" % (amounts[quote], quote, sell_price))
+            print(" - Selling %f %s for %s @%f" % (amounts[quote], quote, base, sell_price))
             dex.sell(m, sell_price, amounts[quote])
         if base in amounts :
-            print(" - Buying %f %s @%f" % (amounts[base], base, buy_price))
+            print(" - Buying %f %s with %s @%f" % (amounts[base], base, quote, buy_price))
             dex.buy(m, buy_price, amounts[base] * buy_price)

@@ -688,7 +688,7 @@ class GrapheneExchange(GrapheneClient) :
         if amountBase == zero:
             raise ValueError("You are asking for too little! Check amounts")
         return self.rpc.sell_asset(self.config.account,
-                                   '{:.{prec}f}'.format(amount / rate, prec=base["precision"]),
+                                   '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
                                    base_symbol,
                                    '{:.{prec}f}'.format(amount, prec=quote["precision"]),
                                    quote_symbol,
