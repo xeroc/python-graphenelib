@@ -370,7 +370,12 @@ class GrapheneClient() :
             if ("watch_markets" in available_features):
                 self.markets = {}
                 for market in config.watch_markets:
-                    [quote_symbol, base_symbol] = market.split(self.market_separator)
+                    try :
+                        [quote_symbol, base_symbol] = market.split(self.market_separator)
+                    except :
+                        raise ValueError("An error has occured trying to " +
+                                         "parse the markets! Please " +
+                                         "check your values")
                     try:
                         quote = self.rpc.get_asset(quote_symbol)
                         base  = self.rpc.get_asset(base_symbol)
@@ -380,17 +385,17 @@ class GrapheneClient() :
                     if "id" in quote and "id" in base:
                         if "onMarketUpdate" in available_features:
                             self.markets.update({
-                                       market : {"quote"   : quote["id"],
-                                                 "base"    : base["id"],
-                                                 "base_symbol"    : base["symbol"],
-                                                 "quote_symbol"   : quote["symbol"],
-                                                 "callback": config.onMarketUpdate}})
+                                market : {"quote"   : quote["id"],
+                                          "base"    : base["id"],
+                                          "base_symbol"    : base["symbol"],
+                                          "quote_symbol"   : quote["symbol"],
+                                          "callback": config.onMarketUpdate}})
                         else:  # No callbacks
                             self.markets.update({
-                                       market : {"quote"   : quote["id"],
-                                                 "base"    : base["id"],
-                                                 "base_symbol"    : base["symbol"],
-                                                 "quote_symbol"   : quote["symbol"] }})
+                                market : {"quote"   : quote["id"],
+                                          "base"    : base["id"],
+                                          "base_symbol"    : base["symbol"],
+                                          "quote_symbol"   : quote["symbol"]}})
                     else:
                         log.warn("Market assets could not be found: %s"
                                  % market)
