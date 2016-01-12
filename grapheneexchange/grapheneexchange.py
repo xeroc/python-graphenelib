@@ -821,10 +821,9 @@ class GrapheneExchange(GrapheneClient) :
                                      '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
                                      not self.safe_mode)
 
-    def cancel(self, currencyPair, orderNumber):
+    def cancel(self, orderNumber):
         """ Cancels an order you have placed in a given market. Requires
-            only the "orderNumber" (market is included for compatibility
-            reasons with Poloniex). An order number takes the form
+            only the "orderNumber". An order number takes the form
             ``1.7.xxx``.
         """
         return self.rpc.cancel_order(orderNumber, True)
