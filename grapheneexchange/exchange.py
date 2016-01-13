@@ -135,6 +135,38 @@ class GrapheneExchange(GrapheneClient) :
         """
         return datetime.utcfromtimestamp(time.time() + int(secs)).strftime('%Y-%m-%dT%H:%M:%S')
 
+    def _get_market_name_from_ids(self, base_id, quote_id) :
+        """ Returns the properly formated name of a market given base
+            and quote ids
+        """
+        quote, base  = self.ws.get_objects([quote_id, base_id])
+        return {"quote" : quote, "base" : base}
+
+    def _get_assets_from_ids(self, base_id, quote_id) :
+        """ Returns assets of a market given base
+            and quote ids
+        """
+        quote, base  = self.ws.get_objects([quote_id, base_id])
+        return quote["symbol"] + self.market_separator + quote["symbol"]
+
+    def _get_market_ids_from_name(self, market) :
+        """ Returns the  base and quote ids given a properly formated
+            market name
+        """
+        quote_symbol, base_symbol = market.split(self.market_separator)
+        quote  = self.rpc.get_asset(quote_symbol)
+        base   = self.rpc.get_asset(quote_symbol)
+        return {"quote" : quote["id"], "base" : base["id"]}
+
+    def _get_assets_from_market(self, market) :
+        """ Returns the  base and quote assets given a properly formated
+            market name
+        """
+        quote_symbol, base_symbol = market.split(self.market_separator)
+        quote  = self.rpc.get_asset(quote_symbol)
+        base   = self.rpc.get_asset(quote_symbol)
+        return {"quote" : quote, "base" : base}
+
     def _get_price(self, o) :
         """ Given an object with `quote` and `base`, derive the correct
             price.
@@ -172,15 +204,15 @@ class GrapheneExchange(GrapheneClient) :
             on sell or buy
         """
         r = {}
-        if f["op"]["min_to_receive"]["asset_id"] == m["base"] :
+        if f["min_to_receive"]["asset_id"] == m["base"] :
             # If the seller received "base" in a quote_base market, than
             # it has been a sell order of quote
-            r["base"] = f["op"]["min_to_receive"]
-            r["quote"] = f["op"]["amount_to_sell"]
-        elif["op"]["min_to_receive"]["asset_id"] == m["quote"]:
+            r["base"] = f["min_to_receive"]
+            r["quote"] = f["amount_to_sell"]
+        elif f["min_to_receive"]["asset_id"] == m["quote"]:
             # buy order
-            r["base"] = f["op"]["amount_to_sell"]
-            r["quote"] = f["op"]["min_to_receive"]
+            r["base"] = f["amount_to_sell"]
+            r["quote"] = f["min_to_receive"]
         else :
             return None
         return self._get_price(r)
@@ -500,6 +532,7 @@ class GrapheneExchange(GrapheneClient) :
                 - `orderNumber`: identifier (e.g. for cancelation)
                 - `amount`: amount of quote
                 - `total`: amount of base at asked price (amount/price)
+                - `amount_to_sell`: "amount_to_sell"
 
             Example Output:
 
@@ -563,6 +596,7 @@ class GrapheneExchange(GrapheneClient) :
                                   "amount" : amount,
                                   "total" : total,
                                   "type" : t,
+                                  "amount_to_sell" : o["for_sale"],
                                   "orderNumber" : o["id"]})
         if len(markets) == 1 :
             return r[markets[0]]
@@ -868,7 +902,10 @@ class GrapheneExchange(GrapheneClient) :
             only the "orderNumber". An order number takes the form
             ``1.7.xxx``.
         """
-        return self.rpc.cancel_order(orderNumber, True)
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+        return self.rpc.cancel_order(orderNumber, not self.safe_mode)
 
     def withdraw(self, currency, amount, address):
         """ This Method makes no sense in a decentralized exchange
