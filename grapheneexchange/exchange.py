@@ -166,6 +166,25 @@ class GrapheneExchange(GrapheneClient) :
             r["quote"] = f["op"]["receives"]
         return self._get_price(r)
 
+    def _get_txorder_price(self, f, m):
+        """ A newly place limit order has `amount_to_sell` and
+            `min_to_receive` which serve as `base` and `quote` depending
+            on sell or buy
+        """
+        r = {}
+        if f["op"]["min_to_receive"]["asset_id"] == m["base"] :
+            # If the seller received "base" in a quote_base market, than
+            # it has been a sell order of quote
+            r["base"] = f["op"]["min_to_receive"]
+            r["quote"] = f["op"]["amount_to_sell"]
+        elif["op"]["min_to_receive"]["asset_id"] == m["quote"]:
+            # buy order
+            r["base"] = f["op"]["amount_to_sell"]
+            r["quote"] = f["op"]["min_to_receive"]
+        else :
+            return None
+        return self._get_price(r)
+
     def returnCurrencies(self):
         """ In contrast to poloniex, this call returns the assets of the
             watched markets only.
