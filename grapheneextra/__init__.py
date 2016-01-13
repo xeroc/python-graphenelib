@@ -1,2 +1,2 @@
 __all__ = ['proposal']
-import grapheneextra.proposal      as ProposalManagement
+from .proposal import Proposal as ProposalManagement
