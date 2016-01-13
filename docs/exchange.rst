@@ -53,11 +53,11 @@ Specifications
 GrapheneExchange
 ****************
 
-.. autoclass:: grapheneexchange.grapheneexchange.GrapheneExchange
+.. autoclass:: grapheneexchange.exchange.GrapheneExchange
     :members:
 
 Configuration
 *************
 
-.. autoclass:: grapheneexchange.grapheneexchange.ExampleConfig
+.. autoclass:: grapheneexchange.exchange.ExampleConfig
     :members:
