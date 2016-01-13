@@ -7,7 +7,7 @@ import re
 import os
 
 from graphenebase.base58 import ripemd160, Base58
-import graphenebase.dictionary as BrainKeyDictionary
+from .dictionary import words as BrainKeyDictionary
 
 """ This class and the methods require python3 """
 assert sys.version_info[0] == 3, "graphenelib requires python3"
@@ -68,7 +68,7 @@ class BrainKey(object) :
         """
         word_count = 16
         brainkey = [None] * word_count
-        dict_lines = BrainKeyDictionary.words.split(',')
+        dict_lines = BrainKeyDictionary.split(',')
         assert len(dict_lines) == 49744
         for j in range(0, word_count) :
             num = int.from_bytes(os.urandom(2), byteorder="little")

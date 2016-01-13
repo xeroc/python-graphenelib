@@ -1,4 +1,4 @@
-from grapheneapi import GrapheneClient
+from grapheneapi.grapheneclient import GrapheneClient
 from datetime import datetime
 import time
 

@@ -2,7 +2,7 @@ import sys
 import hashlib
 from binascii import hexlify, unhexlify
 from Crypto.Cipher import AES
-from graphenebase.account import PrivateKey, PublicKey
+from .account import PrivateKey, PublicKey
 
 " This class and the methods require python3 "
 assert sys.version_info[0] == 3, "graphenelib requires python3"

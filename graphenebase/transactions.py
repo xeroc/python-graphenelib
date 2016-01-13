@@ -8,8 +8,7 @@ import math
 import struct
 import sys
 import time
-from graphenebase.account import PrivateKey, PublicKey, Address
-from graphenebase import Memo
+from .account import PrivateKey, PublicKey, Address
 
 #import graphenelib.address as address
 #from graphenelib.base58 import base58decode,base58encode,base58CheckEncode,base58CheckDecode,btsBase58CheckEncode,btsBase58CheckDecode

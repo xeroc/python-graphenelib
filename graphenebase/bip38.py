@@ -6,8 +6,8 @@ import hashlib
 from binascii import hexlify, unhexlify
 import unittest
 import sys
-from graphenebase.account import PrivateKey
-from graphenebase.base58 import Base58, base58decode
+from .account import PrivateKey
+from .base58 import Base58, base58decode
 
 """ This class and the methods require python3 """
 assert sys.version_info[0] == 3, "graphenelib requires python3"

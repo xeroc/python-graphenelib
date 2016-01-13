@@ -1,4 +1,6 @@
-from grapheneapi import GrapheneAPI, GrapheneWebsocket
+from .grapheneapi import GrapheneAPI
+from .graphenews import GrapheneWebsocket
+
 import logging as log
 
 
