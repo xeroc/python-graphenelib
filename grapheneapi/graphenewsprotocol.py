@@ -152,7 +152,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
     def getAccountHistory(self, account_id, callback,
                           start="1.11.0", stop="1.11.0", limit=100):
-        """ Get Account history History
+        """ Get Account history History and call callback
 
             :param account-id account_id: Account ID to read the history for
             :param fnt callback: Callback to execute with the response
@@ -170,6 +170,18 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             raise ValueError("getAccountHistory expects an account" +
                              "id of the form '1.2.x'!")
 
+    def getAccountProposals(self, account_ids, callback):
+        """ Get Account Proposals and call callback
+
+            :param array account_ids: Array containing account ids
+            :param fnt callback: Callback to execute with the response
+
+        """
+        self.wsexec([self.api_ids["database"],
+                    "get_proposed_transactions",
+                     account_ids],
+                    callback)
+
     def dispatchNotice(self, notice):
         """ Main Message Dispatcher for notifications as called by
             ``onMessage``. This dispatcher will separated object,
@@ -185,8 +197,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         [inst, _type, _id] = oid.split(".")
         account_ids = []
         for a in self.accounts :
-            account_ids.append("2.6.%s" % a.split(".")[2])
-            account_ids.append("1.2.%s" % a.split(".")[2])
+            account_ids.append("2.6.%s" % a.split(".")[2])  # account history
+            account_ids.append("1.2.%s" % a.split(".")[2])  # account
         try:
             if (oid in self.database_callbacks_ids and
                callable(self.database_callbacks_ids[oid])):
@@ -194,7 +206,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
             " Account Notifications "
             if (callable(self.accounts_callback) and
-                    oid in account_ids):
+                    (oid in account_ids or  # account updates
+                     inst == "1" and _type == "10" or  # proposals
+                     inst == "1" and _type == "11")):  # history
                 self.accounts_callback(notice)
 
             " Market notifications "
