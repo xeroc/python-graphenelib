@@ -451,16 +451,6 @@ class GrapheneExchange(GrapheneClient) :
                 0.33333333333333337]], 'bids': [[2.0833333333333333e-05,
                 0.4], [1.851851851851852e-05, 0.0001]]}}
 
-            If a single market is chosen, the returning format is
-            slightly smaller:
-
-            .. code-block:: json
-
-                {'bids': [[0.0003676470588235294, 9.9],
-                [0.00036231884057971015, 10.0]], 'asks':
-                [[0.0003787878787878788, 203.1935],
-                [0.0003799587270281197, 123.65374999999999]]}
-
             .. note:: A maximum of 25 orders will be returned!
 
         """
@@ -488,10 +478,7 @@ class GrapheneExchange(GrapheneClient) :
 
             data = {"asks" : asks, "bids" : bids}
             r.update({market : data})
-        if len(markets) == 1 :
-            return r[markets[0]]
-        else:
-            return r
+        return r
 
     def returnBalances(self):
         """ Returns all of your balances.
@@ -598,10 +585,7 @@ class GrapheneExchange(GrapheneClient) :
                                   "type" : t,
                                   "amount_to_sell" : o["for_sale"],
                                   "orderNumber" : o["id"]})
-        if len(markets) == 1 :
-            return r[markets[0]]
-        else:
-            return r
+        return r
 
     def returnTradeHistory(self, currencyPair="all", limit=25):
         """ Returns your trade history for a given market, specified by
@@ -610,7 +594,6 @@ class GrapheneExchange(GrapheneClient) :
 
             :param str currencyPair: Return results for a particular market only (default: "all")
             :param int limit: Limit the amount of orders (default: 25)
-
 
             Output Parameters:
 
@@ -640,22 +623,6 @@ class GrapheneExchange(GrapheneClient) :
                 5.746150000000001e-07, 'rate': 2.5e-06, 'amount':
                 0.229846, 'type': 'sell'}]}
 
-            If a single market is chosen, the returning format is
-            slightly smaller:
-
-            .. code-block:: json
-
-                [{'date': '2016-01-10T17:02:33', 'type': 'buy', 'rate':
-                0.0030303030303030303, 'amount': 137.4452, 'total':
-                0.41650060606060607}, {'date': '2016-01-10T17:02:33',
-                'type': 'buy', 'rate': 0.0030120481927710845, 'amount':
-                300.0, 'total': 0.9036144578313253}, {'date':
-                '2016-01-10T17:02:33', 'type': 'buy', 'rate':
-                0.0030015759919952414, 'amount': 97.4239,
-                'total': 0.29242523928654524}]
-
-            .. note:: A maximum of 25 orders will be returned!
-
         """
         r = {}
         if currencyPair == "all" :
@@ -682,10 +649,7 @@ class GrapheneExchange(GrapheneClient) :
                 trades.append(data)
 
             r.update({market : trades})
-        if len(markets) == 1 :
-            return r[markets[0]]
-        else:
-            return r
+        return r
 
     def buy(self, currencyPair, rate, amount):
         """ Places a buy order in a given market (buy ``quote``, sell
