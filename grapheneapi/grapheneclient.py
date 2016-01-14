@@ -313,10 +313,6 @@ class GrapheneClient() :
     def __init__(self, config):
         """ Initialize configuration
         """
-
-        # Initialize through __init__ if available
-        config.__init__(config)
-
         available_features = dir(config)
 
         if ("wallet_host" in available_features and
