@@ -473,18 +473,18 @@ class GrapheneClient() :
         """ Get an Object either from Websocket store (if available) or
             from RPC connection.
         """
-        print(self.ws)
         if self.ws :
-            [_instance, _type, _id] = oid.split(".")
-            if (not (oid in self.ws.proto.objectMap) or
-                    _instance == "1" and _type == "7"):  # force refresh orders
-                data = self.rpc.get_object(oid)
-                self.ws.proto.objectMap[oid] = data
-            else:
-                data = self.ws.proto.objectMap[oid]
-            if len(data) == 1 :
-                return data[0]
-            else:
-                return data
+            # [_instance, _type, _id] = oid.split(".")
+            # if (not (oid in self.ws.proto.objectMap) or
+            #         _instance == "1" and _type == "7"):  # force refresh orders
+            #     data = self.rpc.get_object(oid)
+            #     self.ws.proto.objectMap[oid] = data
+            # else:
+            #     data = self.ws.proto.objectMap[oid]
+            # if len(data) == 1 :
+            #     return data[0]
+            # else:
+            #     return data
+            return self.ws.get_objects([oid])[0]
         else :
             return self.rpc.get_object(oid)[0]
