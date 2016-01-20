@@ -4,7 +4,10 @@ import graphenebase.bip38 as bip38
 import argparse
 import csv
 
-def main() : 
+prefix = "BTS"
+
+
+def main() :
     parser = argparse.ArgumentParser(description='Generate CSV table with brain key, pub key and private key')
     parser.add_argument('--number', type=int, help='Number of brain keys to generate')
     parser.add_argument('--filename', type=str, help='filename to store CSV file in')
@@ -21,22 +24,22 @@ def main() :
         while True :
             pw = getpass.getpass('Passphrase: ')
             pwck = getpass.getpass('Retype passphrase: ')
-            if(pw == pwck) : 
+            if(pw == pwck) :
                 break
             else :
                 print("Given Passphrases do not match!")
 
-    t = PrettyTable(["wif","pub","sequence"])
+    t = PrettyTable(["wif", "pub", "sequence"])
     b = BrainKey()
-    for i in range(0,args.number) :
+    for i in range(0, args.number) :
         wif = b.get_private()
-        pub = b.get_private().pubkey
-        if args.encrypt : # (optionally) encrypt paper wallet
-            try : 
-                wif = format(bip38.encrypt(wif,pw),"encwif")
+        pub = format(b.get_private().pubkey, prefix)
+        if args.encrypt :  # (optionally) encrypt paper wallet
+            try :
+                wif = format(bip38.encrypt(wif, pw), "encwif")
             except :
                 raise Exception("Error encoding the privkey for pubkey %s.  Already encrypted?" % pub)
-            assert format(b.get_private(),'wif') == format(bip38.decrypt(wif,pw),'wif')
+            assert format(b.get_private(), 'wif') == format(bip38.decrypt(wif, pw), 'wif')
 
         t.add_row([wif, pub, b.sequence])
         b.next_sequence()
@@ -45,7 +48,7 @@ def main() :
     print("\n\n\t%s\n\n" % b.get_brainkey())
     print(t.get_string())
 
-    if args.filename : 
+    if args.filename :
         with open(args.filename, 'w') as file:
             file.write("# This is your (unencrypted) Brainkey. Make sure to store it savely:\n")
             file.write("#\n#\t%s\n#\n" % b.get_brainkey())
