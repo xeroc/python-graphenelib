@@ -80,6 +80,13 @@ operations["custom"]                                    = 33
 operations["assert"]                                    = 34
 operations["balance_claim"]                             = 35
 operations["override_transfer"]                         = 36
+operations["balance_claim"]                             = 37
+operations["override_transfer"]                         = 38
+operations["transfer_to_blind"]                         = 39
+operations["blind_transfer"]                            = 40
+operations["transfer_from_blind"]                       = 41
+operations["asset_settle_cancel"]                       = 42
+operations["asset_claim_fees"]                          = 43
 
 chainid        = "ff3444b85c2185e1e53dcaa2bba7a898d8730a1a3bb6827d3718c24e6c45e51f"
 prefix         = "BTS"
