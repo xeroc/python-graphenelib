@@ -11,7 +11,7 @@ class Config():
     witness_user          = ""
     witness_password      = ""
 
-    watch_markets         = ["USD_BTS", "CNY_BTS", "GOLD_BTS", "SILVER_BTS", "EUR_BTS"]
+    watch_markets         = ["USD_BTS", "CNY_BTS", "GOLD_BTS", "SILVER_BTS", "EUR_BTS", "BTC_BTS"]
     market_separator      = "_"
     account               = "xeroc"
 
