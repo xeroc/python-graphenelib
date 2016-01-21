@@ -1,21 +1,35 @@
+from grapheneapi.graphenewsprotocol import GrapheneWebsocketProtocol
 from grapheneexchange import GrapheneExchange
+import time
+
+
+class BotProtocol(GrapheneWebsocketProtocol):
+    pass
 
 
 class Bot():
 
     def __init__(self, config, **kwargs):
+        botProtocol = BotProtocol
+        [setattr(botProtocol, key, config.__dict__[key]) for key in config.__dict__.keys()]
 
         self.config = config
-        self.dex    = GrapheneExchange(config, safe_mode=True)
+        self.dex    = GrapheneExchange(botProtocol, safe_mode=config.safe_mode)
 
         # Initialize all bots
         self.bots = {}
-        for name in config.bots:
-            self.bots[name] = config.bots[name]["bot"](config=self.config,
-                                                       name=name,
-                                                       dex=self.dex)
+        for index, name in enumerate(config.bots, 1):
+            botClass = config.bots[name]["bot"]
+            self.bots[name] = botClass(config=config, name=name,
+                                       dex=self.dex, index=index)
             self.bots[name].init()
+
+    def wait_block(self):
+        time.sleep(6)
 
     def execute(self):
         for name in self.bots:
-            self.bots[name].cancel_mine()
+            if self.bots[name].cancel_this_markets() and self.config.safe_mode:
+                self.wait_block()
+            self.bots[name].tick()
+            self.bots[name].store()
