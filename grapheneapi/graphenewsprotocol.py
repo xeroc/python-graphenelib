@@ -6,10 +6,6 @@ try:
 except ImportError:
     raise ImportError("Missing dependency: python-autobahn")
 
-"""
-Graphene Websocket Protocol
-"""
-
 
 class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     """ Graphene Websocket Protocol is the class that will be used
@@ -35,7 +31,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     markets = []
 
     #: Storage of Objects to reduce latency and load
-    objectMap = {}
+    objectMap = None
 
     #: Event Callback registrations and fnts
     onEventCallbacks = {}
@@ -234,20 +230,21 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             :param object-id oid: Object ID to retrieve
             :param fnt callback: Callback to call if object has been received
         """
-        # if oid in self.objectMap and callable(callback):
-        #     callback(self.objectMap[oid])
-        # else:
-        handles = [partial(self.setObject, oid)]
-        if callback and callable(callback):
-            handles.append(callback)
-        self.wsexec([self.api_ids["database"],
-                     "get_objects",
-                     [[oid]]], handles)
+        if self.objectMap is not None and oid in self.objectMap and callable(callback):
+            callback(self.objectMap[oid])
+        else:
+            handles = [partial(self.setObject, oid)]
+            if callback and callable(callback):
+                handles.append(callback)
+            self.wsexec([self.api_ids["database"],
+                         "get_objects",
+                         [[oid]]], handles)
 
     def setObject(self, oid, data):
         """ Set Object in the internal Object Storage
         """
-        self.objectMap[oid] = data
+        if self.objectMap is not None:
+            self.objectMap[oid] = data
 
     def onConnect(self, response):
         """ Is executed on successful connect. Calls event
