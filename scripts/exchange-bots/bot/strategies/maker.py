@@ -12,7 +12,7 @@ class MakerSellBuyWalls(BaseStrategy):
         super().__init__(*args, **kwargs)
 
     def tick(self) :
-        #self.cancel_mine()
+        self.cancel_mine()
         self.place()
 
     def place(self) :
@@ -38,7 +38,7 @@ class MakerSellBuyWalls(BaseStrategy):
             if isinstance(target_price, float):
                 buy_price  = target_price * (1.0 - self.settings["spread_percentage"] / 200)
                 sell_price = target_price * (1.0 + self.settings["spread_percentage"] / 200)
-            elif (isinstance(target_price, str) and 
+            elif (isinstance(target_price, str) and
                   target_price is "settlement_price" or
                   target_price is "feed" or
                   target_price is "price_feed"):
@@ -60,6 +60,7 @@ class MakerSellBuyWalls(BaseStrategy):
                     self.buy(m, buy_price, min([amounts[quote], amounts[base] * buy_price]))
                 else :
                     self.buy(m, buy_price, amounts[base] * buy_price)
+
 
 class MakerRamp(BaseStrategy):
 
@@ -97,7 +98,7 @@ class MakerRamp(BaseStrategy):
             quote, base = m.split(self.config.market_separator)
             if isinstance(target_price, float):
                 price_target = 1.0
-            elif (isinstance(target_price, str) and 
+            elif (isinstance(target_price, str) and
                   target_price is "settlement_price" or
                   target_price is "feed" or
                   target_price is "price_feed"):

@@ -27,9 +27,13 @@ class Bot():
     def wait_block(self):
         time.sleep(6)
 
+    def cancel_all(self):
+        for name in self.bots:
+            self.bots[name].cancel_all()
+            self.bots[name].store()
+
     def execute(self):
         for name in self.bots:
-            if self.bots[name].cancel_this_markets() and self.config.safe_mode:
-                self.wait_block()
+            self.bots[name].loadMarket()
             self.bots[name].tick()
             self.bots[name].store()
