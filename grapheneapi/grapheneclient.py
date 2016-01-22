@@ -1,7 +1,30 @@
 from .grapheneapi import GrapheneAPI
 from .graphenews import GrapheneWebsocket
+from collections import OrderedDict
 
 import logging as log
+
+#: max number of objects to chache
+max_cache_objects = 50
+
+
+class LimitedSizeDict(OrderedDict):
+    """ This class limits the size of the objectMap
+    """
+
+    def __init__(self, *args, **kwds):
+        self.size_limit = kwds.pop("size_limit", max_cache_objects)
+        OrderedDict.__init__(self, *args, **kwds)
+        self._check_size_limit()
+
+    def __setitem__(self, key, value):
+        OrderedDict.__setitem__(self, key, value)
+        self._check_size_limit()
+
+    def _check_size_limit(self):
+        if self.size_limit is not None:
+            while len(self) > self.size_limit:
+                self.popitem(last=False)
 
 
 class ExampleConfig() :
@@ -474,17 +497,16 @@ class GrapheneClient() :
             from RPC connection.
         """
         if self.ws :
-            # [_instance, _type, _id] = oid.split(".")
-            # if (not (oid in self.ws.proto.objectMap) or
-            #         _instance == "1" and _type == "7"):  # force refresh orders
-            #     data = self.rpc.get_object(oid)
-            #     self.ws.proto.objectMap[oid] = data
-            # else:
-            #     data = self.ws.proto.objectMap[oid]
-            # if len(data) == 1 :
-            #     return data[0]
-            # else:
-            #     return data
-            return self.ws.get_objects([oid])[0]
+            [_instance, _type, _id] = oid.split(".")
+            if (not (oid in self.ws.objectMap) or
+                    _instance == "1" and _type == "7"):  # force refresh orders
+                data = self.rpc.get_object(oid)
+                self.ws.objectMap[oid] = data
+            else:
+                data = self.ws.objectMap[oid]
+            if len(data) == 1 :
+                return data[0]
+            else:
+                return data
         else :
             return self.rpc.get_object(oid)[0]

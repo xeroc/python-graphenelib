@@ -7,17 +7,16 @@ class Config(GrapheneWebsocketProtocol):
     wallet_port           = 8092
     wallet_user           = ""
     wallet_password       = ""
-    witness_url           = "ws://localhost:8090/"
+    witness_url           = "ws://testnet.bitshares.eu:11011/"
     witness_user          = ""
     witness_password      = ""
 
-    watch_accounts        = ["nathan"]
-    watch_markets         = None
+    watch_accounts        = ["faucet"]
     memo_wif_keys         = {
-        "nathan": "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+        "faucet": "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
     }
 
-    last_op               = "1.11.181"
+    last_op               = "1.11.0"
 
     def __init__(self) :
         super().__init__()
