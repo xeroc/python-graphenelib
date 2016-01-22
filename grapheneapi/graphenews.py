@@ -134,6 +134,14 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
         """
         return self.get_objects([oid])[0]
 
+    def getObject(self, oid):
+        if self.objectMap is not None and oid in self.objectMap:
+            return self.objectMap[oid]
+        else:
+            data = self.get_object(oid)
+            self.objectMap[oid] = data
+            return data
+
     def connect(self) :
         """ Create websocket factory by Autobahn
         """
