@@ -8,7 +8,9 @@ witness_url           = "ws://testnet.bitshares.eu/ws"
 witness_user          = ""
 witness_password      = ""
 
-watch_markets         = ["PEG.PARITY : TEST", "PEG.RANDOM : TEST"]
+# watch_markets         = ["PEG.PARITY : TEST"]
+# watch_markets         = ["PEG.RANDOM : TEST"]
+watch_markets         = ["PEG.RANDOM : TEST", "PEG.PARITY : TEST"]
 market_separator      = " : "
 
 bots = {}
@@ -52,6 +54,22 @@ bots["MakerBridge"] = {"bot" : MakerSellBuyWalls,
                        "symmetric_sides" : True,
                        }
 
+bots["RandomWall"] = {"bot" : MakerSellBuyWalls,
+                      "markets" : ["PEG.RANDOM : TEST"],
+                      "target_price" : "feed",
+                      "spread_percentage" : 5,
+                      "volume_percentage" : 10,
+                      "symmetric_sides" : True,
+                      }
+bots["RandoRamp"] = {"bot" : MakerRamp,
+                     "markets" : ["PEG.RANDOM : TEST"],
+                     "target_price" : "feed",
+                     "spread_percentage" : 4,
+                     "volume_percentage" : 30,
+                     "ramp_price_percentage" : 4,
+                     "ramp_step_percentage" : 0.5,
+                     "ramp_mode" : "exponential"
+                     }
 
 account               = "xeroc"
 safe_mode = False
