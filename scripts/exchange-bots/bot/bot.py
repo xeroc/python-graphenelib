@@ -34,6 +34,7 @@ class Bot():
 
     def execute(self):
         for name in self.bots:
+            print("Executing bot %s" % name)
             self.bots[name].loadMarket()
             self.bots[name].tick()
             self.bots[name].store()
