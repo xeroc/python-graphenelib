@@ -508,6 +508,32 @@ class GrapheneExchange(GrapheneClient) :
             data[asset["symbol"]] = amount
         return data
 
+    def returnOpenOrdersIds(self, currencyPair="all"):
+        """ Returns only the ids of open Orders
+        """
+        account = self.rpc.get_account(self.config.account)
+        r = {}
+        if currencyPair == "all" :
+            markets = list(self.markets.keys())
+        else:
+            markets = [currencyPair]
+        orders = self.ws.get_full_accounts([account["id"]], False)[0][1]["limit_orders"]
+        for market in markets :
+            r[market] = []
+        for o in orders:
+            quote_id = o["sell_price"]["quote"]["asset_id"]
+            base_id = o["sell_price"]["base"]["asset_id"]
+            quote_asset, base_asset = self.ws.get_objects([quote_id, base_id])
+            for market in markets :
+                m = self.markets[market]
+                if ((o["sell_price"]["base"]["asset_id"] == m["base"] and
+                    o["sell_price"]["quote"]["asset_id"] == m["quote"])
+                    or (o["sell_price"]["base"]["asset_id"] == m["quote"] and
+                        o["sell_price"]["quote"]["asset_id"] ==
+                        m["base"])):
+                    r[market].append(o["id"])
+        return r
+
     def returnOpenOrders(self, currencyPair="all"):
         """ Returns your open orders for a given market, specified by
             the "currencyPair.
