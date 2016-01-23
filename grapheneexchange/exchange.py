@@ -158,11 +158,6 @@ class GrapheneExchange(GrapheneClient) :
         base   = self.rpc.get_asset(quote_symbol)
         return {"quote" : quote["id"], "base" : base["id"]}
 
-    def _get_market_from_symbols(self, quote, base) :
-        """ Returns the market name between quote and base
-        """
-        return "%s%s%s" % (quote, self.market_separator, base)
-
     def _get_assets_from_market(self, market) :
         """ Returns the  base and quote assets given a properly formated
             market name
@@ -179,12 +174,13 @@ class GrapheneExchange(GrapheneClient) :
             Prices/Rates are denoted in 'quote', i.e. the USD_BTS market
             is priced in USD and buying 1 USD costs `rate` BTS
         """
-        quote_amount = int(o["quote"]["amount"])
-        base_amount  = int(o["base"]["amount"])
+        quote_amount = float(o["quote"]["amount"])
+        base_amount  = float(o["base"]["amount"])
         quote_id     = o["quote"]["asset_id"]
         base_id      = o["base"]["asset_id"]
         quote, base  = self.ws.get_objects([quote_id, base_id])
-        return float((quote_amount / base_amount) * 10 ** (base["precision"] - quote["precision"]))
+        return float((quote_amount / 10 ** quote["precision"]) /
+                     (base_amount / 10 ** base["precision"]))
 
     def _get_price_filled(self, f, m):
         """ A filled order has `receives` and `pays` ops which serve as
@@ -300,16 +296,6 @@ class GrapheneExchange(GrapheneClient) :
 
                 {
                     "BTS_USD": {
-                        "quoteVolume": 144.1862,
-                        "settlement_price": 0.003009016674102742,
-                        "lowestAsk": 0.002992220227408737,
-                        "baseVolume": 48328.73333,
-                        "percentChange": 2.0000000097901705,
-                        "highestBid": 0.0029411764705882353,
-                        "last": 0.003000000000287946,
-                        "core_exchange_rate": 0.003161120960980772
-                    },
-                    "USD_BTS": {
                         "quoteVolume": 48328.73333,
                         "settlement_price": 332.3344827586207,
                         "lowestAsk": 340.0,
@@ -318,6 +304,16 @@ class GrapheneExchange(GrapheneClient) :
                         "highestBid": 334.20000000000005,
                         "last": 333.33333330133934,
                         "core_exchange_rate": 316.3434782608696
+                    },
+                    "USD_BTS": {
+                        "quoteVolume": 144.1862,
+                        "settlement_price": 0.003009016674102742,
+                        "lowestAsk": 0.002992220227408737,
+                        "baseVolume": 48328.73333,
+                        "percentChange": 2.0000000097901705,
+                        "highestBid": 0.0029411764705882353,
+                        "last": 0.003000000000287946,
+                        "core_exchange_rate": 0.003161120960980772
                     }
                 }
 
@@ -347,8 +343,8 @@ class GrapheneExchange(GrapheneClient) :
             else :
                 data["last"] = -1
             if len(orders) > 1:
-                data["lowestAsk"]     = (1.0 / self._get_price(orders[1]["sell_price"]))
-                data["highestBid"]    = self._get_price(orders[0]["sell_price"])
+                data["lowestAsk"]     = self._get_price(orders[1]["sell_price"])
+                data["highestBid"]    = (1 / self._get_price(orders[0]["sell_price"]))
             else :
                 data["lowestAsk"]     = -1
                 data["highestBid"]    = -1
@@ -357,14 +353,14 @@ class GrapheneExchange(GrapheneClient) :
                 bitasset = self.ws.get_objects([quote_asset["bitasset_data_id"]])[0]
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == base_asset["id"]:
-                    data["settlement_price"] = self._get_price(bitasset["current_feed"]["settlement_price"])
-                    data["core_exchange_rate"] = self._get_price(bitasset["current_feed"]["core_exchange_rate"])
+                    data["settlement_price"] = 1 / self._get_price(bitasset["current_feed"]["settlement_price"])
+                    data["core_exchange_rate"] = 1 / self._get_price(bitasset["current_feed"]["core_exchange_rate"])
             elif "bitasset_data_id" in base_asset :
                 bitasset = self.ws.get_objects([base_asset["bitasset_data_id"]])[0]
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == quote_asset["id"]:
-                    data["settlement_price"] = 1.0 / self._get_price(bitasset["current_feed"]["settlement_price"])
-                    data["core_exchange_rate"] = 1.0 / self._get_price(bitasset["current_feed"]["core_exchange_rate"])
+                    data["settlement_price"] = self._get_price(bitasset["current_feed"]["settlement_price"])
+                    data["core_exchange_rate"] = self._get_price(bitasset["current_feed"]["core_exchange_rate"])
 
             if len(marketHistory) :
                 if marketHistory[0]["key"]["quote"] == m["quote"] :
@@ -511,32 +507,6 @@ class GrapheneExchange(GrapheneClient) :
                 continue
             data[asset["symbol"]] = amount
         return data
-
-    def returnOpenOrdersIds(self, currencyPair="all"):
-        """ Returns only the ids of open Orders
-        """
-        account = self.rpc.get_account(self.config.account)
-        r = {}
-        if currencyPair == "all" :
-            markets = list(self.markets.keys())
-        else:
-            markets = [currencyPair]
-        orders = self.ws.get_full_accounts([account["id"]], False)[0][1]["limit_orders"]
-        for market in markets :
-            r[market] = []
-        for o in orders:
-            quote_id = o["sell_price"]["quote"]["asset_id"]
-            base_id = o["sell_price"]["base"]["asset_id"]
-            quote_asset, base_asset = self.ws.get_objects([quote_id, base_id])
-            for market in markets :
-                m = self.markets[market]
-                if ((o["sell_price"]["base"]["asset_id"] == m["base"] and
-                    o["sell_price"]["quote"]["asset_id"] == m["quote"])
-                    or (o["sell_price"]["base"]["asset_id"] == m["quote"] and
-                        o["sell_price"]["quote"]["asset_id"] ==
-                        m["base"])):
-                    r[market].append(o["id"])
-        return r
 
     def returnOpenOrders(self, currencyPair="all"):
         """ Returns your open orders for a given market, specified by
