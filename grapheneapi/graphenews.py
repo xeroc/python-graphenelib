@@ -1,6 +1,7 @@
 import time
 import asyncio
 import ssl
+from collections import OrderedDict
 
 try:
     from autobahn.asyncio.websocket import WebSocketClientFactory
@@ -9,6 +10,28 @@ except ImportError:
     raise ImportError("Missing dependency: python-autobahn")
 from .graphenewsprotocol import GrapheneWebsocketProtocol
 from .graphenewsrpc import GrapheneWebsocketRPC
+
+#: max number of objects to chache
+max_cache_objects = 50
+
+
+class LimitedSizeDict(OrderedDict):
+    """ This class limits the size of the objectMap
+    """
+
+    def __init__(self, *args, **kwds):
+        self.size_limit = kwds.pop("size_limit", max_cache_objects)
+        OrderedDict.__init__(self, *args, **kwds)
+        self._check_size_limit()
+
+    def __setitem__(self, key, value):
+        OrderedDict.__setitem__(self, key, value)
+        self._check_size_limit()
+
+    def _check_size_limit(self):
+        if self.size_limit is not None:
+            while len(self) > self.size_limit:
+                self.popitem(last=False)
 
 
 class GrapheneWebsocket(GrapheneWebsocketRPC):
@@ -36,6 +59,8 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
         self.proto    = proto
         self.proto.username = username
         self.proto.password = password
+        self.objectMap = LimitedSizeDict()
+        self.proto.objectMap = self.objectMap  # this is a reference
         self.factory  = None
 
     def setObjectCallbacks(self, callbacks) :
@@ -109,6 +134,14 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
         """
         return self.get_objects([oid])[0]
 
+    def getObject(self, oid):
+        if self.objectMap is not None and oid in self.objectMap:
+            return self.objectMap[oid]
+        else:
+            data = self.get_object(oid)
+            self.objectMap[oid] = data
+            return data
+
     def connect(self) :
         """ Create websocket factory by Autobahn
         """
@@ -121,6 +154,12 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
             This method will try to keep the connection alive and try an
             autoreconnect if the connection closes.
         """
+        if not issubclass(self.factory.protocol, GrapheneWebsocketProtocol) :
+            raise Exception("When using run(), we need websocket " +
+                            "notifications which requires the " +
+                            "configuration/protocol to inherit " +
+                            "'GrapheneWebsocketProtocol'")
+
         loop = asyncio.get_event_loop()
         # forward loop into protocol so that we can issue a reset from the
         # protocol:

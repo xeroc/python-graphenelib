@@ -8,10 +8,12 @@ class Config():
     wallet_user           = ""
     wallet_password       = ""
     witness_url           = "ws://10.0.0.16:8090/"
+    # witness_url           = "ws://testnet.bitshares.eu/ws"
     witness_user          = ""
     witness_password      = ""
 
     watch_markets         = ["USD_BTS", "CNY_BTS", "GOLD_BTS", "SILVER_BTS", "EUR_BTS", "BTC_BTS"]
+    # watch_markets         = ["PEG.RANDOM_TEST"]
     market_separator      = "_"
     account               = "xeroc"
 
@@ -29,7 +31,7 @@ if __name__ == '__main__':
 
         print("\n%s" % a)
         print("=" * len(a))
-        print(" - Last Trade Premium: %+7.3f%%" % premium)
+        print(" - Last Trade Premium: %+7.3f%% (%f)" % (premium, ticker[a]["last"]))
         print(" - Ask Order Premium:  %+7.3f%%" % premium_bid)
         print(" - Bid Order Premium:  %+7.3f%%" % premium_ask)
         print(" - Spread:             %+7.3f%%" % spread)
