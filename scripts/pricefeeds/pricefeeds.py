@@ -5,7 +5,7 @@
 ##                                                                                ##
 ## This is EXPERIMENTAL code!!                                                    ##
 ##                                                                                ##
-## If you are a witness capable of publishing a price feed for                    ##
+## If you are a feed producer capable of publishing a price feed for              ##
 ## market pegged assets, you should carefully REVIEW this code in order to        ##
 ## not publish a wrong price that may                                             ##
 ##                                                                                ##
@@ -92,10 +92,17 @@ def fetch_from_wallet(rpc):
     """
     print("Fetching data from wallet...")
 
-    # Get my Witness
-    global myWitness
-    myWitness = rpc.get_witness(config.witness_name)
-    witnessId = myWitness["witness_account"]
+    # Get feed producer
+    global myWitness, producerAccount
+    try:
+        # try if witness name is actually a witness:
+        myWitness = rpc.get_witness(config.producer_name)
+        producerID = myWitness["witness_account"]
+        producerAccount = rpc.get_account(producerID)
+    except:
+        producerAccount = rpc.get_account(config.producer_name)
+        producerID = producerAccount["id"]
+        pass
 
     # asset definition - mainly for precision
     for asset in asset_list_publish + ["1.3.0"]:
@@ -125,7 +132,7 @@ def fetch_from_wallet(rpc):
 
             # my feed specifics
             for feed in result["feeds"] :
-                if feed[0] == witnessId :
+                if feed[0] == producerID :
                     lastUpdate[asset] = datetime.strptime(feed[1][0], "%Y-%m-%dT%H:%M:%S")
                     base  = feed[1][1]["settlement_price"]["base"]
                     quote = feed[1][1]["settlement_price"]["quote"]
@@ -148,7 +155,7 @@ def update_feed(rpc, feeds):
         print("Unlocking wallet")
         rpc.unlock(config.unlock)
 
-    print("constructing feed for witness %s" % config.witness_name)
+    print("constructing feed for producer %s" % config.producer_name)
     handle = rpc.begin_builder_transaction()
     for asset in feeds :
         if not feeds[asset]["publish"] :
@@ -156,7 +163,7 @@ def update_feed(rpc, feeds):
         op = [19,  # id 19 corresponds to price feed update operation
               {"asset_id"  : feeds[asset]["asset_id"],
                "feed"      : feeds[asset]["feed"],
-               "publisher" : myWitness["witness_account"],
+               "publisher" : producerAccount["id"],
                }]
         rpc.add_operation_to_builder_transaction(handle, op)
 
@@ -164,7 +171,7 @@ def update_feed(rpc, feeds):
     rpc.set_fees_on_builder_transaction(handle, "1.3.0")
 
     # Signing and Broadcast
-    rpc.sign_builder_transaction(handle, True)
+    rpc.sign_builder_transaction(handle, False)
 
     if wallet_was_unlocked :
         print("Relocking wallet")
@@ -178,7 +185,13 @@ def derive_prices(feed):
     for asset in _all_bts_assets + [core_symbol]:
         price_result[asset]    = {}
 
-    for asset in asset_list_publish :
+    # secondary assets requirements
+    secondaries = []
+    for asset in config.secondary_mpas.keys():
+        if "sameas" in config.secondary_mpas[asset]:
+            secondaries.append(config.secondary_mpas[asset]["sameas"])
+
+    for asset in asset_list_publish + secondaries:
         # secondary markets are different
         if asset in list(config.secondary_mpas.keys()) :
             continue
