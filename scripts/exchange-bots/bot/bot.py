@@ -29,6 +29,7 @@ class Bot():
 
     def cancel_all(self):
         for name in self.bots:
+            self.bots[name].loadMarket()
             self.bots[name].cancel_all()
             self.bots[name].store()
 
