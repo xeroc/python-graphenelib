@@ -638,7 +638,7 @@ class GrapheneExchange(GrapheneClient) :
                     rate = self._get_price(o["sell_price"])
                     t = "sell"
                     total = amount * rate
-                    for_sale = o["for_sale"] / 10 ** quote_asset["precision"]
+                    for_sale = float(o["for_sale"]) / 10 ** quote_asset["precision"]
                 elif (o["sell_price"]["base"]["asset_id"] == m["quote"] and
                         o["sell_price"]["quote"]["asset_id"] == m["base"]):
                     " buying "
@@ -646,7 +646,7 @@ class GrapheneExchange(GrapheneClient) :
                     rate = 1 / self._get_price(o["sell_price"])
                     t = "buy"
                     total = amount * rate
-                    for_sale = o["for_sale"] / 10 ** base_asset["precision"]
+                    for_sale = float(o["for_sale"]) / 10 ** base_asset["precision"]
                 else :
                     continue
                 r[market].append({"rate" : rate,
