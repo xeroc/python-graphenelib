@@ -21,43 +21,73 @@ class BaseStrategy():
         self.opened_orders = []
         self.restore()
 
-    def cancel_all(self) :
+    def cancel_all(self, side="both") :
         onceCanceled = False
-        curOrders = self.dex.returnOpenOrdersIds()
+        curOrders = self.dex.returnOpenOrders()
         for m in self.settings["markets"]:
-            for o in curOrders[m]:
-                try :
-                    self.dex.cancel(o)
-                    onceCanceled = True
-                except:
-                    print("An error has occured when trying to cancel order %s!" % o)
+            if m in curOrders:
+                for o in curOrders[m]:
+                    if o["type"] is side or side is "both":
+                        try :
+                            print("Canceling %s" % o["orderNumber"])
+                            self.dex.cancel(o["orderNumber"])
+                            onceCanceled = True
+                        except:
+                            print("An error has occured when trying to cancel order %s!" % o)
         return onceCanceled
 
-    def cancel_mine(self) :
-        curOrders = self.dex.returnOpenOrdersIds()
+    def cancel_mine(self, side="both") :
+        curOrders = self.dex.returnOpenOrders()
         state = self.getState()
         onceCanceled = False
         for o in state["orders"]:
             for m in self.settings["markets"]:
                 if o in curOrders[m] :
-                    try :
-                        self.dex.cancel(o)
-                        onceCanceled = True
-                    except:
-                        print("An error has occured when trying to cancel order %s!" % o["orderNumber"])
+                    if o["type"] is side or side is "both":
+                        try :
+                            print("Canceling %s" % o["orderNumber"])
+                            self.dex.cancel(o["orderNumber"])
+                            onceCanceled = True
+                        except:
+                            print("An error has occured when trying to cancel order %s!" % o["orderNumber"])
         return onceCanceled
 
     def cancel_this_markets(self) :
         orders = self.dex.returnOpenOrders()
         onceCanceled = False
         for m in self.settings["markets"]:
-            for order in orders[m]:
+            for o in orders[m]:
                 try :
-                    self.dex.cancel(order["orderNumber"])
+                    print("Canceling %s" % o["orderNumber"])
+                    self.dex.cancel(o["orderNumber"])
                     onceCanceled = True
                 except:
-                    print("An error has occured when trying to cancel order %s!" % order["orderNumber"])
+                    print("An error has occured when trying to cancel order %s!" % o["orderNumber"])
         return onceCanceled
+
+    def cancel_all_sell_orders(self):
+        return self.cancel_all("sell")
+
+    def cancel_all_buy_orders(self):
+        return self.cancel_all("buy")
+
+    def cancel_my_sell_orders(self):
+        return self.cancel_mine("sell")
+
+    def cancel_my_buy_orders(self):
+        return self.cancel_mine("buy")
+
+    def cancel_all_bid_orders(self):
+        return self.cancel_all("buy")
+
+    def cancel_all_ask_orders(self):
+        return self.cancel_all("sell")
+
+    def cancel_my_bid_orders(self):
+        return self.cancel_my_buys()
+
+    def cancel_my_ask_orders(self):
+        return self.cancel_my_sells()
 
     def getState(self):
         return self.state
@@ -72,10 +102,12 @@ class BaseStrategy():
         for market in self.settings["markets"] :
             if market not in myorders:
                 myorders[market] = []
-            for orderid in curOrders[market] :
-                if orderid not in self.opened_orders[market] :
-                    myorders[market].append(orderid)
-                    self.orderPlaced(orderid)
+            if market in curOrders:
+                for orderid in curOrders[market] :
+                    if market not in self.opened_orders or \
+                            orderid not in self.opened_orders[market] :
+                        myorders[market].append(orderid)
+                        self.orderPlaced(orderid)
 
         state["orders"] = myorders
         with open(self.filename, 'w') as fp:
@@ -110,7 +142,7 @@ class BaseStrategy():
 
     def buy(self, market, price, amount):
         quote, base = market.split(self.config.market_separator)
-        print(" - Buying %f %s with %s @%f %s/%s" % (amount, base, quote, price, quote, base))
+        print(" - Buying %f %s with %s @%f %s/%s" % (amount, quote, base, price, quote, base))
         self.dex.buy(market, price, amount)
 
     def place(self) :
