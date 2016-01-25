@@ -176,7 +176,7 @@ class GrapheneExchange(GrapheneClient) :
             Example: in the USD_BTS market, a price of 300 means
             a USD is worth 300 BTS
 
-            .. note:: 
+            .. note::
 
                 All prices returned are in the **reveresed** orientation as the
                 market. I.e. in the BTC/BTS market, prices are BTS per BTS.
@@ -200,7 +200,7 @@ class GrapheneExchange(GrapheneClient) :
             Example: in the USD_BTS market, a price of 300 means
             a USD is worth 300 BTS
 
-            .. note:: 
+            .. note::
 
                 All prices returned are in the **reveresed** orientation as the
                 market. I.e. in the BTC/BTS market, prices are BTS per BTS.
@@ -313,7 +313,7 @@ class GrapheneExchange(GrapheneClient) :
             * ``settlement_price``: Settlement Price for borrow/settlement
             * ``core_exchange_rate``: Core exchange rate for payment of fee in non-BTS asset
 
-            .. note:: 
+            .. note::
 
                 All prices returned by ``returnTicker`` are in the **reveresed**
                 orientation as the market. I.e. in the BTC/BTS market, prices are
@@ -575,7 +575,7 @@ class GrapheneExchange(GrapheneClient) :
 
             Output Parameters:
 
-                - `type`: sell or buy
+                - `type`: sell or buy order for `quote`
                 - `rate`: price for `base` per `quote`
                 - `orderNumber`: identifier (e.g. for cancelation)
                 - `amount`: amount of quote
@@ -614,7 +614,6 @@ class GrapheneExchange(GrapheneClient) :
                     ]
                 }
 
-    
         """
         account = self.rpc.get_account(self.config.account)
         r = {}
@@ -636,7 +635,7 @@ class GrapheneExchange(GrapheneClient) :
                     " selling "
                     amount = float(o["for_sale"]) / 10 ** quote_asset["precision"] * self._get_price(o["sell_price"])
                     rate = self._get_price(o["sell_price"])
-                    t = "sell"
+                    t = "buy"
                     total = amount * rate
                     for_sale = float(o["for_sale"]) / 10 ** quote_asset["precision"]
                 elif (o["sell_price"]["base"]["asset_id"] == m["quote"] and
@@ -644,7 +643,7 @@ class GrapheneExchange(GrapheneClient) :
                     " buying "
                     amount = float(o["for_sale"]) / 10 ** base_asset["precision"]
                     rate = 1 / self._get_price(o["sell_price"])
-                    t = "buy"
+                    t = "sell"
                     total = amount * rate
                     for_sale = float(o["for_sale"]) / 10 ** base_asset["precision"]
                 else :
@@ -671,54 +670,6 @@ class GrapheneExchange(GrapheneClient) :
                 - `rate`: price for `quote` denoted in `base` per `quote`
                 - `amount`: amount of quote
                 - `total`: amount of base at asked price (amount/price)
-
-            Sample output:
-
-            .. code-block:: json
-
-{
-    "PEG.FAKEUSD_TEST": [
-        {
-            "rate": 328.7310979618672,
-            "type": "buy",
-            "total": 0.03042,
-            "amount": 10.0,
-            "date": "2016-01-25T13:41:05"
-        },
-        {
-            "rate": 0.003118781312073666,
-            "type": "buy",
-            "total": 3196.40879,
-            "amount": 9.9689,
-            "date": "2016-01-25T13:23:10"
-        },
-        {
-            "rate": 0.00311,
-            "type": "buy",
-            "total": 10.0,
-            "amount": 0.0311,
-            "date": "2016-01-25T13:22:20"
-        }
-    ]
-}
-      
-
-                {'USD_BTS': [{'date': '2016-01-10T17:02:33', 'total':
-                0.41650060606060607, 'rate': 0.0030303030303030303,
-                'amount': 137.4452, 'type': 'buy'}, {'date':
-                '2016-01-10T17:02:33', 'total': 0.9036144578313253,
-                'rate': 0.0030120481927710845, 'amount': 300.0, 'type':
-                'buy'}, {'date': '2016-01-10T17:02:33', 'total':
-                0.29242523928654524, 'rate': 0.0030015759919952414,
-                'amount': 97.4239, 'type': 'buy'}], 'GOLD_BTS':
-                [{'date': '2016-01-09T15:20:57', 'total':
-                4.929095890410958e-07, 'rate': 2.73972602739726e-06,
-                'amount': 0.179912, 'type': 'buy'}, {'date':
-                '2016-01-09T15:20:42', 'total': 5.454545561157027e-08,
-                'rate': 2.7272727805785134e-06, 'amount': 0.02, 'type':
-                'buy'}, {'date': '2016-01-07T06:30:21', 'total':
-                5.746150000000001e-07, 'rate': 2.5e-06, 'amount':
-                0.229846, 'type': 'sell'}]}
 
         """
         r = {}
