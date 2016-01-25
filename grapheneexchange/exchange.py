@@ -76,10 +76,10 @@ class GrapheneExchange(GrapheneClient) :
         some differences:
 
             * market pairs are denoted as 'quote'_'base', e.g. `USD_BTS`
-            * Prices/Rates are denoted in 'quote', i.e. the USD_BTS market
-              is priced in USD and buying 1 USD costs `rate` BTS
-              Example: in the USD_BTS market, a price of 0.01 means
-              a BTS is worth $0.01c
+            * Prices/Rates are denoted in 'base', i.e. the USD_BTS market
+              is priced in BTS per USD.
+              Example: in the USD_BTS market, a price of 300 means
+              a USD is worth 300 BTS
             * All markets could be considered reversed as well ('BTS_USD')
 
         Usage:
@@ -171,20 +171,41 @@ class GrapheneExchange(GrapheneClient) :
         """ Given an object with `quote` and `base`, derive the correct
             price.
 
-            Prices/Rates are denoted in 'quote', i.e. the USD_BTS market
-            is priced in USD and buying 1 USD costs `rate` BTS
+            Prices/Rates are denoted in 'base', i.e. the USD_BTS market
+            is priced in BTS per USD.
+            Example: in the USD_BTS market, a price of 300 means
+            a USD is worth 300 BTS
+
+            .. note:: 
+
+                All prices returned are in the **reveresed** orientation as the
+                market. I.e. in the BTC/BTS market, prices are BTS per BTS.
+                That way you can multiply prices with `1.05` to get a +5%.
         """
         quote_amount = float(o["quote"]["amount"])
         base_amount  = float(o["base"]["amount"])
         quote_id     = o["quote"]["asset_id"]
         base_id      = o["base"]["asset_id"]
         quote, base  = self.ws.get_objects([quote_id, base_id])
-        return float((quote_amount / 10 ** quote["precision"]) /
-                     (base_amount / 10 ** base["precision"]))
+        # invert price!
+        return float((base_amount / 10 ** base["precision"]) /
+                     (quote_amount / 10 ** quote["precision"]))
 
     def _get_price_filled(self, f, m):
         """ A filled order has `receives` and `pays` ops which serve as
             `base` and `quote` depending on sell or buy
+
+            Prices/Rates are denoted in 'base', i.e. the USD_BTS market
+            is priced in BTS per USD.
+            Example: in the USD_BTS market, a price of 300 means
+            a USD is worth 300 BTS
+
+            .. note:: 
+
+                All prices returned are in the **reveresed** orientation as the
+                market. I.e. in the BTC/BTS market, prices are BTS per BTS.
+                That way you can multiply prices with `1.05` to get a +5%.
+
         """
         r = {}
         if f["op"]["receives"]["asset_id"] == m["base"] :
@@ -196,6 +217,7 @@ class GrapheneExchange(GrapheneClient) :
             # buy order
             r["base"] = f["op"]["pays"]
             r["quote"] = f["op"]["receives"]
+        # invert price!
         return self._get_price(r)
 
     def _get_txorder_price(self, f, m):
@@ -215,6 +237,7 @@ class GrapheneExchange(GrapheneClient) :
             r["quote"] = f["min_to_receive"]
         else :
             return None
+        # invert price!
         return self._get_price(r)
 
     def returnCurrencies(self):
@@ -290,22 +313,24 @@ class GrapheneExchange(GrapheneClient) :
             * ``settlement_price``: Settlement Price for borrow/settlement
             * ``core_exchange_rate``: Core exchange rate for payment of fee in non-BTS asset
 
+            .. note:: 
+
+                All prices returned by ``returnTicker`` are in the **reveresed**
+                orientation as the market. I.e. in the BTC/BTS market, prices are
+                BTS per BTS. That way you can multiply prices with `1.05` to
+                get a +5%.
+
+                The prices in a `quote`/`base` market is denoted in `base` per
+                `quote`:
+
+                    market: USD_BTS - price 300 BTS per USD
+
             Sample Output:
 
             .. code-block:: json
 
                 {
                     "BTS_USD": {
-                        "quoteVolume": 48328.73333,
-                        "settlement_price": 332.3344827586207,
-                        "lowestAsk": 340.0,
-                        "baseVolume": 144.1862,
-                        "percentChange": -1.9607843231354893,
-                        "highestBid": 334.20000000000005,
-                        "last": 333.33333330133934,
-                        "core_exchange_rate": 316.3434782608696
-                    },
-                    "USD_BTS": {
                         "quoteVolume": 144.1862,
                         "settlement_price": 0.003009016674102742,
                         "lowestAsk": 0.002992220227408737,
@@ -314,6 +339,16 @@ class GrapheneExchange(GrapheneClient) :
                         "highestBid": 0.0029411764705882353,
                         "last": 0.003000000000287946,
                         "core_exchange_rate": 0.003161120960980772
+                    },
+                    "USD_BTS": {
+                        "quoteVolume": 48328.73333,
+                        "settlement_price": 332.3344827586207,
+                        "lowestAsk": 340.0,
+                        "baseVolume": 144.1862,
+                        "percentChange": -1.9607843231354893,
+                        "highestBid": 334.20000000000005,
+                        "last": 333.33333330133934,
+                        "core_exchange_rate": 316.3434782608696
                     }
                 }
 
@@ -436,7 +471,7 @@ class GrapheneExchange(GrapheneClient) :
 
                 [price, amount]
 
-            * price is denoted in quote
+            * price is denoted in base per quote
             * amount is in quote
 
             Sample output:
@@ -469,7 +504,7 @@ class GrapheneExchange(GrapheneClient) :
             for o in orders:
                 if o["sell_price"]["base"]["asset_id"] == m["base"] :
                     price = self._get_price(o["sell_price"])
-                    volume = float(o["for_sale"]) / 10 ** base_asset["precision"] * self._get_price(o["sell_price"])
+                    volume = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
                     asks.append([price, volume])
                 else :
                     price = 1 / self._get_price(o["sell_price"])
@@ -541,38 +576,45 @@ class GrapheneExchange(GrapheneClient) :
             Output Parameters:
 
                 - `type`: sell or buy
-                - `rate`: price for `quote` denoted in `base` ($50c per BTS = 0.5 USD/BTS)
+                - `rate`: price for `base` per `quote`
                 - `orderNumber`: identifier (e.g. for cancelation)
                 - `amount`: amount of quote
                 - `total`: amount of base at asked price (amount/price)
                 - `amount_to_sell`: "amount_to_sell"
 
-            Example Output:
+            .. note:: Ths method will not show orders of markets that
+                      are **not** in the ``watch_markets`` array!
 
-            .. code-block:: json
+            Example:
 
+            ::
                 {
                     "USD_BTS": [
                         {
-                            "total": 0.003639705882352941,
+                            "orderNumber": "1.7.1505",
                             "type": "buy",
-                            "rate": 0.0003676470588235294,
-                            "orderNumber": "1.7.18646",
-                            "amount": 9.9
+                            "rate": 341.74559999999997,
+                            "total": 341.74559999999997,
+                            "amount": 1.0
                         },
                         {
-                            "total": 0.0036231884057971015,
+                            "orderNumber": "1.7.1512",
                             "type": "buy",
-                            "rate": 0.00036231884057971015,
-                            "orderNumber": "1.7.18644",
-                            "amount": 10.0
+                            "rate": 325.904045,
+                            "total": 325.904045,
+                            "amount": 1.0
+                        },
+                        {
+                            "orderNumber": "1.7.1513",
+                            "type": "sell",
+                            "rate": 319.45050000000003,
+                            "total": 31945.05,
+                            "amount": 1020486.2195025001
                         }
-                    ],
-                    "GOLD_BTS": []
+                    ]
                 }
 
-            .. note:: Ths method will not show orders of markets that
-                      are **not** in the ``watch_markets`` array!
+    
         """
         account = self.rpc.get_account(self.config.account)
         r = {}
@@ -592,24 +634,26 @@ class GrapheneExchange(GrapheneClient) :
                 if (o["sell_price"]["base"]["asset_id"] == m["base"] and
                         o["sell_price"]["quote"]["asset_id"] == m["quote"]):
                     " selling "
-                    amount = float(o["for_sale"]) / 10 ** base_asset["precision"] * self._get_price(o["sell_price"])
+                    amount = float(o["for_sale"]) / 10 ** quote_asset["precision"] * self._get_price(o["sell_price"])
                     rate = self._get_price(o["sell_price"])
                     t = "sell"
-                    total = amount / rate
+                    total = amount * rate
+                    for_sale = o["for_sale"] / 10 ** quote_asset["precision"]
                 elif (o["sell_price"]["base"]["asset_id"] == m["quote"] and
                         o["sell_price"]["quote"]["asset_id"] == m["base"]):
                     " buying "
-                    amount = float(o["for_sale"]) / 10 ** quote_asset["precision"]
+                    amount = float(o["for_sale"]) / 10 ** base_asset["precision"]
                     rate = 1 / self._get_price(o["sell_price"])
                     t = "buy"
-                    total = amount / rate
+                    total = amount * rate
+                    for_sale = o["for_sale"] / 10 ** base_asset["precision"]
                 else :
                     continue
                 r[market].append({"rate" : rate,
                                   "amount" : amount,
                                   "total" : total,
                                   "type" : t,
-                                  "amount_to_sell" : o["for_sale"],
+                                  "amount_to_sell" : for_sale,
                                   "orderNumber" : o["id"]})
         return r
 
@@ -624,13 +668,40 @@ class GrapheneExchange(GrapheneClient) :
             Output Parameters:
 
                 - `type`: sell or buy
-                - `rate`: price for `quote` denoted in `base` ($50c per BTS = 0.5 USD/BTS)
+                - `rate`: price for `quote` denoted in `base` per `quote`
                 - `amount`: amount of quote
                 - `total`: amount of base at asked price (amount/price)
 
             Sample output:
 
             .. code-block:: json
+
+{
+    "PEG.FAKEUSD_TEST": [
+        {
+            "rate": 328.7310979618672,
+            "type": "buy",
+            "total": 0.03042,
+            "amount": 10.0,
+            "date": "2016-01-25T13:41:05"
+        },
+        {
+            "rate": 0.003118781312073666,
+            "type": "buy",
+            "total": 3196.40879,
+            "amount": 9.9689,
+            "date": "2016-01-25T13:23:10"
+        },
+        {
+            "rate": 0.00311,
+            "type": "buy",
+            "total": 10.0,
+            "amount": 0.0311,
+            "date": "2016-01-25T13:22:20"
+        }
+    ]
+}
+      
 
                 {'USD_BTS': [{'date': '2016-01-10T17:02:33', 'total':
                 0.41650060606060607, 'rate': 0.0030303030303030303,
@@ -671,7 +742,7 @@ class GrapheneExchange(GrapheneClient) :
                 else :
                     data["type"]   = "sell"
                     data["amount"] = f["op"]["pays"]["amount"] / 10 ** quote["precision"]
-                data["total"]  = data["amount"] / data["rate"]
+                data["total"]  = data["amount"] * data["rate"]
                 trades.append(data)
 
             r.update({market : trades})
@@ -682,41 +753,6 @@ class GrapheneExchange(GrapheneClient) :
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
             method will return the order creating (signed) transaction.
-
-            Example Output:
-
-            .. code-block:: json
-
-                {
-                    "expiration": "2016-01-10T18:39:21",
-                    "ref_block_prefix": 3510238034,
-                    "extensions": [],
-                    "ref_block_num": 55601,
-                    "signatures": [],
-                    "operations": [
-                        [
-                            1,
-                            {
-                                "seller": "1.2.22517",
-                                "expiration": "2016-01-17T18:38:50",
-                                "amount_to_sell": {
-                                    "amount": 1000000000,
-                                    "asset_id": "1.3.0"
-                                },
-                                "fee": {
-                                    "amount": 1000000,
-                                    "asset_id": "1.3.0"
-                                },
-                                "fill_or_kill": false,
-                                "min_to_receive": {
-                                    "amount": 100000,
-                                    "asset_id": "1.3.121"
-                                },
-                                "extensions": []
-                            }
-                        ]
-                    ]
-                }
         """
         if self.safe_mode :
             print("Safe Mode enabled!")
@@ -726,15 +762,11 @@ class GrapheneExchange(GrapheneClient) :
         base = self.rpc.get_asset(base_symbol)
         quote = self.rpc.get_asset(quote_symbol)
         # Check amount > 0
-        amountBase = '{:.{prec}f}'.format(amount * rate, prec=base["precision"])
-        zero = '{:.{prec}f}'.format(0, prec=base["precision"])
-        if amountBase == zero:
-            raise ValueError("You are asking for too little! Check amounts")
         return self.rpc.sell_asset(self.config.account,
+                                   '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
+                                   base_symbol,
                                    '{:.{prec}f}'.format(amount, prec=quote["precision"]),
                                    quote_symbol,
-                                   '{:.{prec}f}'.format(amount / rate, prec=base["precision"]),
-                                   base_symbol,
                                    7 * 24 * 60 * 60,
                                    False,
                                    not self.safe_mode)
@@ -744,43 +776,6 @@ class GrapheneExchange(GrapheneClient) :
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
             method will return the order creating (signed) transaction.
-
-            Example Output:
-
-            .. code-block:: json
-
-                {
-                    "expiration": "2016-01-10T18:39:21",
-                    "ref_block_prefix": 3510238034,
-                    "extensions": [],
-                    "ref_block_num": 55601,
-                    "signatures": [],
-                    "operations": [
-                        [
-                            1,
-                            {
-                                "seller": "1.2.22517",
-                                "expiration": "2016-01-17T18:38:52",
-                                "amount_to_sell": {
-                                    "amount": 100000,
-                                    "asset_id": "1.3.121"
-                                },
-                                "fee": {
-                                    "amount": 1000000,
-                                    "asset_id": "1.3.0"
-                                },
-                                "fill_or_kill": false,
-                                "min_to_receive": {
-                                    "amount": 1000000000,
-                                    "asset_id": "1.3.0"
-                                },
-                                "extensions": []
-                            }
-                        ]
-                    ]
-                }
-
-
         """
         if self.safe_mode :
             print("Safe Mode enabled!")
@@ -789,16 +784,11 @@ class GrapheneExchange(GrapheneClient) :
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.rpc.get_asset(base_symbol)
         quote = self.rpc.get_asset(quote_symbol)
-        # Check amount > 0
-        amountBase = '{:.{prec}f}'.format(amount * rate, prec=base["precision"])
-        zero = '{:.{prec}f}'.format(0, prec=base["precision"])
-        if amountBase == zero:
-            raise ValueError("You are asking for too little! Check amounts")
         return self.rpc.sell_asset(self.config.account,
-                                   '{:.{prec}f}'.format(amount / rate, prec=base["precision"]),
-                                   base_symbol,
                                    '{:.{prec}f}'.format(amount, prec=quote["precision"]),
                                    quote_symbol,
+                                   '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
+                                   base_symbol,
                                    7 * 24 * 60 * 60,
                                    False,
                                    not self.safe_mode)
@@ -870,7 +860,7 @@ class GrapheneExchange(GrapheneClient) :
         # Derive Amount of Collateral
         collateral_asset = self.ws.get_objects([backing_asset_id])[0]
         settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
-        amount_of_collateral = amount * collateral_ratio * settlement_price
+        amount_of_collateral = amount * collateral_ratio / settlement_price
 
         # Verify that enough funds are available
         balances = self.returnBalances()
