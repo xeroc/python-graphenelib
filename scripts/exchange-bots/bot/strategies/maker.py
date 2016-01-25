@@ -18,6 +18,8 @@ class MakerSellBuyWalls(BaseStrategy):
     def place(self) :
         print("Placing Orders:")
         target_price = self.settings["target_price"]
+        only_sell = True if "only_sell" in self.settings and self.settings["only_sell"] else False
+        only_buy = True if "only_buy" in self.settings and self.settings["only_buy"] else False
 
         #: Amount of Funds available for trading (per asset)
         balances = self.dex.returnBalances()
@@ -50,16 +52,18 @@ class MakerSellBuyWalls(BaseStrategy):
                     raise Exception("Pair %s does not have a settlement price!" % m)
 
             quote, base = m.split(self.config.market_separator)
-            if quote in amounts :
+            if quote in amounts and not only_buy:
                 if"symmetric_sides" in self.settings and self.settings["symmetric_sides"]:
-                    self.sell(m, sell_price, min([amounts[quote], amounts[base] * buy_price]))
+                    thisAmount = min([amounts[quote], amounts[base] / buy_price]) if base in amounts else amounts[quote]
+                    self.sell(m, sell_price, thisAmount)
                 else :
                     self.sell(m, sell_price, amounts[quote])
-            if base in amounts :
+            if base in amounts and not only_sell:
                 if"symmetric_sides" in self.settings and self.settings["symmetric_sides"]:
-                    self.buy(m, buy_price, min([amounts[quote], amounts[base] * buy_price]))
+                    thisAmount = min([amounts[quote], amounts[base] / buy_price]) if quote in amounts else amounts[base] / buy_price
+                    self.buy(m, buy_price, thisAmount)
                 else :
-                    self.buy(m, buy_price, amounts[base] * buy_price)
+                    self.buy(m, buy_price, amounts[base] / buy_price)
 
 
 class MakerRamp(BaseStrategy):
@@ -110,7 +114,7 @@ class MakerRamp(BaseStrategy):
             if quote in amounts :
                 price_start  = price_target * (1 + self.settings["spread_percentage"] / 200.0)
                 price_end    = price_target * (1 + self.settings["ramp_price_percentage"] / 100.0)
-                amount           = min([amounts[quote], amounts[base] * (price_start) / 2.0])
+                amount       = min([amounts[quote], amounts[base] / (price_start)]) if base in amounts else amounts[quote]
                 number_orders    = math.floor((self.settings["ramp_price_percentage"] / 100.0 - self.settings["spread_percentage"] / 200.0) / (self.settings["ramp_step_percentage"] / 100.0))
                 if mode == "linear" :
                     for price in linspace(price_start, price_end, number_orders) :
@@ -127,7 +131,7 @@ class MakerRamp(BaseStrategy):
             if base in amounts :
                 price_start  = price_target * (1 - self.settings["spread_percentage"] / 200.0)
                 price_end    = price_target * (1 - self.settings["ramp_price_percentage"] / 100.0)
-                amount           = min([amounts[quote], amounts[base] * (price_start) / 2.0])
+                amount           = min([amounts[quote], amounts[base] / (price_start)]) if quote in amounts else amounts[base] / (price_start)
                 number_orders    = math.floor((self.settings["ramp_price_percentage"] / 100.0 - self.settings["spread_percentage"] / 200.0) / (self.settings["ramp_step_percentage"] / 100.0))
                 if mode == "linear" :
                     for price in linspace(price_start, price_end, number_orders) :
