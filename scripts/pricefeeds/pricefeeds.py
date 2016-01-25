@@ -171,7 +171,7 @@ def update_feed(rpc, feeds):
     rpc.set_fees_on_builder_transaction(handle, "1.3.0")
 
     # Signing and Broadcast
-    rpc.sign_builder_transaction(handle, False)
+    rpc.sign_builder_transaction(handle, True)
 
     if wallet_was_unlocked :
         print("Relocking wallet")
