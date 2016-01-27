@@ -6,8 +6,18 @@ import time
 class BotProtocol(GrapheneWebsocketProtocol):
     """ Bot Protocol to interface with websocket notifications
     """
-    pass
 
+    def onAccountUpdate(self, data):
+        pass
+
+    def onMarketUpdate(self, data):
+        pass
+
+    def onBlock(self, data) :
+        pass
+
+    def onRegisterDatabase(self):
+        pass
 
 class Bot():
     """ Main Bot Architecture that deals with non market related,
@@ -15,18 +25,22 @@ class Bot():
     """
 
     def __init__(self, config, **kwargs):
-        botProtocol = BotProtocol
+        """
+        """
+        self.botProtocol = BotProtocol
 
         # Take the configuration variables and put them in the current
         # instance of BotProtocol. This step is required to let
         # GrapheneExchange know most of our variables as well!
         # We will also be able to hook into websocket messages from
         # within the configuration file!
-        [setattr(botProtocol, key, config.__dict__[key]) for key in config.__dict__.keys()]
+        [setattr(self.botProtocol, key, config.__dict__[key]) for key in config.__dict__.keys()]
 
         # Additionally store the whole configuration
         self.config = config
-        self.dex    = GrapheneExchange(botProtocol, safe_mode=config.safe_mode)
+
+        # Connect to the DEX
+        self.dex    = GrapheneExchange(self.botProtocol, safe_mode=config.safe_mode)
 
         # Initialize all bots
         self.bots = {}
@@ -59,3 +73,10 @@ class Bot():
             self.bots[name].loadMarket()
             self.bots[name].tick()
             self.bots[name].store()
+
+    def run(self):
+        """ This call will run the bot in **continous mode** and make it
+            receive notification from the network
+        """
+        # self.dex.run()
+        raise NotImplementedError

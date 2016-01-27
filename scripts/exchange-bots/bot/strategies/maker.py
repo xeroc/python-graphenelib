@@ -151,7 +151,7 @@ class MakerRamp(BaseStrategy):
                 else :
                     raise Exception("Pair %s does not have a settlement price!" % m)
 
-                base_price = 1.0 * (1 + self.settings["target_price_offset_percentage"] / 100)
+                base_price = base_price * (1 + self.settings["target_price_offset_percentage"] / 100)
 
             if quote in amounts :
                 price_start  = base_price * (1 + self.settings["spread_percentage"] / 200.0)
