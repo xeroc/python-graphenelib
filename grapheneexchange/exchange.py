@@ -135,23 +135,37 @@ class GrapheneExchange(GrapheneClient) :
         """
         return datetime.utcfromtimestamp(time.time() + int(secs)).strftime('%Y-%m-%dT%H:%M:%S')
 
-    def _get_market_name_from_ids(self, base_id, quote_id) :
+    def _get_market_name_from_ids(self, quote_id, base_id,) :
         """ Returns the properly formated name of a market given base
             and quote ids
-        """
-        quote, base  = self.ws.get_objects([quote_id, base_id])
-        return {"quote" : quote, "base" : base}
 
-    def _get_assets_from_ids(self, base_id, quote_id) :
-        """ Returns assets of a market given base
-            and quote ids
+            :param str quote_id: Object ID of the quote asset
+            :param str base_id: Object ID of the base asset
+            :return: Market name with proper separator
+            :rtype: str
         """
         quote, base  = self.ws.get_objects([quote_id, base_id])
         return quote["symbol"] + self.market_separator + quote["symbol"]
 
-    def _get_market_ids_from_name(self, market) :
+    def _get_assets_from_ids(self, base_id, quote_id) :
+        """ Returns assets of a market given base
+            and quote ids
+
+            :param str quote_id: Object ID of the quote asset
+            :param str base_id: Object ID of the base asset
+            :return: object that contains `quote` and `base` asset objects
+            :rtype: json
+        """
+        quote, base  = self.ws.get_objects([quote_id, base_id])
+        return {"quote" : quote, "base" : base}
+
+    def _get_asset_ids_from_name(self, market) :
         """ Returns the  base and quote ids given a properly formated
             market name
+
+            :param str market: Market name (properly separated)
+            :return: object that contains `quote` asset id and `base` asset id
+            :rtype: json
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
         quote  = self.rpc.get_asset(quote_symbol)
@@ -161,6 +175,10 @@ class GrapheneExchange(GrapheneClient) :
     def _get_assets_from_market(self, market) :
         """ Returns the  base and quote assets given a properly formated
             market name
+
+            :param str market: Market name (properly separated)
+            :return: object that contains `quote` and `base` asset objects
+            :rtype: json
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
         quote  = self.rpc.get_asset(quote_symbol)
@@ -171,9 +189,13 @@ class GrapheneExchange(GrapheneClient) :
         """ Given an object with `quote` and `base`, derive the correct
             price.
 
+            :param Object o: Blockchain object that contains `quote` and `asset` amounts and asset ids.
+            :return: price derived as `base`/`quote`
+
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
-            Example: in the USD_BTS market, a price of 300 means
+
+            **Example:** in the USD_BTS market, a price of 300 means
             a USD is worth 300 BTS
 
             .. note::
@@ -194,6 +216,10 @@ class GrapheneExchange(GrapheneClient) :
     def _get_price_filled(self, f, m):
         """ A filled order has `receives` and `pays` ops which serve as
             `base` and `quote` depending on sell or buy
+
+            :param Object f: Blockchain object for filled orders
+            :param str m: Market
+            :return: Price
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -224,6 +250,10 @@ class GrapheneExchange(GrapheneClient) :
         """ A newly place limit order has `amount_to_sell` and
             `min_to_receive` which serve as `base` and `quote` depending
             on sell or buy
+
+            :param Object f: Blockchain object for historical orders
+            :param str m: Market
+            :return: Price
         """
         r = {}
         if f["min_to_receive"]["asset_id"] == m["base"] :
@@ -573,6 +603,8 @@ class GrapheneExchange(GrapheneClient) :
         """ Returns your open orders for a given market, specified by
             the "currencyPair.
 
+            :param str currencyPair: Return results for a particular market only (default: "all")
+
             Output Parameters:
 
                 - `type`: sell or buy order for `quote`
@@ -704,6 +736,22 @@ class GrapheneExchange(GrapheneClient) :
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
             method will return the order creating (signed) transaction.
+
+            :param str currencyPair: Return results for a particular market only (default: "all")
+            :param float price: price denoted in ``base``/``quote``
+            :param number amount: Amount of ``quote`` to buy
+
+            Prices/Rates are denoted in 'base', i.e. the USD_BTS market
+            is priced in BTS per USD.
+
+            **Example:** in the USD_BTS market, a price of 300 means
+            a USD is worth 300 BTS
+
+            .. note::
+
+                All prices returned are in the **reveresed** orientation as the
+                market. I.e. in the BTC/BTS market, prices are BTS per BTS.
+                That way you can multiply prices with `1.05` to get a +5%.
         """
         if self.safe_mode :
             print("Safe Mode enabled!")
@@ -727,6 +775,22 @@ class GrapheneExchange(GrapheneClient) :
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
             method will return the order creating (signed) transaction.
+
+            :param str currencyPair: Return results for a particular market only (default: "all")
+            :param float price: price denoted in ``base``/``quote``
+            :param number amount: Amount of ``quote`` to sell
+
+            Prices/Rates are denoted in 'base', i.e. the USD_BTS market
+            is priced in BTS per USD.
+
+            **Example:** in the USD_BTS market, a price of 300 means
+            a USD is worth 300 BTS
+
+            .. note::
+
+                All prices returned are in the **reveresed** orientation as the
+                market. I.e. in the BTC/BTS market, prices are BTS per BTS.
+                That way you can multiply prices with `1.05` to get a +5%.
         """
         if self.safe_mode :
             print("Safe Mode enabled!")
@@ -744,7 +808,38 @@ class GrapheneExchange(GrapheneClient) :
                                    False,
                                    not self.safe_mode)
 
-    def adjust_collateral(self):
+    def close_debt_position(self, symbol):
+        """ Close a debt position and reclaim the collateral
+
+            :param str symbol: Symbol to close debt position for
+            :raises ValueError: if symbol is not a bitasset
+            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
+            :raises ValueError: if required amounts of collateral are not available
+        """
+        raise NotImplementedError  # TODO
+
+    def adjust_debt(self, delta_debt, symbol, new_collateral_ratio=None):
+        """ Adjust the amount of debt for an asset
+
+            :param float delta_debt: Delta of the debt (-10 means reduce debt by 10, +10 means borrow another 10)
+            :param str symbol: Asset to borrow
+            :param float new_collateral_ratio: collateral ratio to maintain (optional, by default tries to maintain old ratio)
+            :raises ValueError: if symbol is not a bitasset
+            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
+            :raises ValueError: if required amounts of collateral are not available
+        """
+        raise NotImplementedError  # TODO
+
+    def adjust_collateral_ratio(self, amount, symbol, target_collateral_ratio):
+        """ Adjust the collataral ratio of a debt position
+
+            :param float amount: Amount to borrow (denoted in 'asset')
+            :param str symbol: Asset to borrow
+            :param float target_collateral_ratio: desired collateral ratio
+            :raises ValueError: if symbol is not a bitasset
+            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
+            :raises ValueError: if required amounts of collateral are not available
+        """
         raise NotImplementedError  # TODO
 
     def borrow(self, amount, symbol, collateral_ratio):
@@ -832,6 +927,8 @@ class GrapheneExchange(GrapheneClient) :
         """ Cancels an order you have placed in a given market. Requires
             only the "orderNumber". An order number takes the form
             ``1.7.xxx``.
+
+            :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
         if self.safe_mode :
             print("Safe Mode enabled!")
