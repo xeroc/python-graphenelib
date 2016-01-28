@@ -895,7 +895,16 @@ class GrapheneExchange(GrapheneClient) :
         if self.safe_mode :
             print("Safe Mode enabled!")
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
-        return self.rpc.cancel_order(orderNumber, not self.safe_mode)
+        # return self.rpc.cancel_order(orderNumber, not self.safe_mode)
+
+        account = self.rpc.get_account(self.config.account)
+        op          = self.rpc.get_prototype_operation("limit_order_cancel_operation")
+        op[1]["fee_paying_account"] = account["id"]
+        op[1]["order"] = orderNumber
+        buildHandle = self.rpc.begin_builder_transaction()
+        self.rpc.add_operation_to_builder_transaction(buildHandle, op)
+        self.rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
+        return self.rpc.sign_builder_transaction(buildHandle, True)
 
     def withdraw(self, currency, amount, address):
         """ This Method makes no sense in a decentralized exchange
