@@ -26,6 +26,12 @@ class LimitedSizeDict(OrderedDict):
             while len(self) > self.size_limit:
                 self.popitem(last=False)
 
+    def __getitem__(self, key):
+        """ keep the element longer in the memory by moving it to the end
+        """
+        self.move_to_end(key)
+        return OrderedDict.__getitem__(self, key)
+
 
 class ExampleConfig() :
     """ The behavior of your program (e.g. reactions on messages) can be

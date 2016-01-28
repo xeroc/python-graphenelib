@@ -30,9 +30,9 @@ unlock = ""              # password to unlock the wallet if the cli-wallet is lo
 ask_confirmation             = True # if true, a manual confirmation is required
 
 ################################################################################
-## Witness Feed Publish Parameters
+## Feed Producer Name
 ################################################################################
-witness_name                 = "init0"
+producer_name                 = "init0"
 
 ################################################################################
 ## Publishing Criteria
