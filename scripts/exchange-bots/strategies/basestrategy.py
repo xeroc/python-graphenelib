@@ -2,6 +2,7 @@ from grapheneexchange import GrapheneExchange
 import json
 import os
 
+
 class MissingSettingsException(Exception):
     pass
 
@@ -204,7 +205,6 @@ class BaseStrategy():
             still open orders. Calls ``orderMatched(orderid)`` for orders no
             longer open (i.e. fully filled)
         """
-        print("Loading market")
         #: Load Open Orders for the markets and store them for later
         self.opened_orders = self.dex.returnOpenOrdersIds()
 
@@ -215,9 +215,10 @@ class BaseStrategy():
             if market in old_orders:
                 for orderid in old_orders[market] :
                     if orderid not in cur_orders[market] :
-                        self.orderMatched(orderid)
                         # Remove it from the state
                         self.state["orders"][market].remove(orderid)
+                        # Execute orderMatched call
+                        self.orderMatched(orderid)
 
     def sell(self, market, price, amount):
         """ Places a sell order in a given market (sell ``quote``, buy
@@ -242,7 +243,7 @@ class BaseStrategy():
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         quote, base = market.split(self.config.market_separator)
-        print(" - Selling %f %s for %s @%f %s/%s" % (amount, quote, base, price, quote, base))
+        print(" - Selling %f %s for %s @%f %s/%s" % (amount, quote, base, price, base, quote))
         self.dex.sell(market, price, amount)
 
     def buy(self, market, price, amount):
@@ -268,13 +269,18 @@ class BaseStrategy():
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         quote, base = market.split(self.config.market_separator)
-        print(" - Buying %f %s with %s @%f %s/%s" % (amount, quote, base, price, quote, base))
+        print(" - Buying %f %s with %s @%f %s/%s" % (amount, quote, base, price, base, quote))
         self.dex.buy(market, price, amount)
 
     def init(self) :
         """ Initialize the bot's individual settings
         """
         print("Initializing %s" % self.name)
+
+    def tick(self) :
+        """ Tick every block
+        """
+        print("New block. Bot %s has been notified" % self.name)
 
     def orderMatched(self, oid):
         """ An order has been machted

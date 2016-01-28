@@ -28,9 +28,10 @@ class MakerSellBuyWalls(BaseStrategy):
         if "symmetric_sides" not in self.settings:
             self.settings["symmetric_sides"] = True
 
-    def tick(self) :
-        self.cancel_mine()
-        self.place()
+#    def orderMatched(self, oid):
+#        print("order matched %s ?!?!?!?!" % oid)
+#        # self.cancel_mine()
+#        # self.place()
 
     def place(self) :
         print("Placing Orders:")
@@ -88,10 +89,6 @@ class MakerRamp(BaseStrategy):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def tick(self) :
-        self.cancel_mine()
-        self.place()
-
     def init(self) :
         #: set default offset
         if "target_price_offset_percentage" not in self.settings:
@@ -114,6 +111,11 @@ class MakerRamp(BaseStrategy):
 
         if "ramp_mode" not in self.settings:
             self.settings["ramp_mode"] = "linear"
+
+#    def orderMatched(self, oid):
+#        print("order matched %s ?!?!?!?!" % oid)
+#        # self.cancel_mine()
+#        # self.place()
 
     def place(self) :
         print("Placing Orders:")

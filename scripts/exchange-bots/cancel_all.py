@@ -1,6 +1,5 @@
-from bot import Bot
+import bot
 import config
-
 if __name__ == '__main__':
-    bot = Bot(config)
+    bot.init(config)
     bot.cancel_all()
