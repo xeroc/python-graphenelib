@@ -71,13 +71,13 @@ class MakerSellBuyWalls(BaseStrategy):
 
             quote, base = m.split(self.config.market_separator)
             if quote in amounts and not only_buy:
-                if"symmetric_sides" in self.settings and self.settings["symmetric_sides"]:
+                if "symmetric_sides" in self.settings and self.settings["symmetric_sides"] and not only_sell:
                     thisAmount = min([amounts[quote], amounts[base] / buy_price]) if base in amounts else amounts[quote]
                     self.sell(m, sell_price, thisAmount)
                 else :
                     self.sell(m, sell_price, amounts[quote])
             if base in amounts and not only_sell:
-                if"symmetric_sides" in self.settings and self.settings["symmetric_sides"]:
+                if "symmetric_sides" in self.settings and self.settings["symmetric_sides"] and not only_buy:
                     thisAmount = min([amounts[quote], amounts[base] / buy_price]) if quote in amounts else amounts[base] / buy_price
                     self.buy(m, buy_price, thisAmount)
                 else :
@@ -125,6 +125,8 @@ class MakerRamp(BaseStrategy):
         else :
             mode = self.settings["ramp_mode"]
         target_price = self.settings["target_price"]
+        only_sell = True if "only_sell" in self.settings and self.settings["only_sell"] else False
+        only_buy = True if "only_buy" in self.settings and self.settings["only_buy"] else False
 
         balances = self.dex.returnBalances()
         asset_ids = []
@@ -143,7 +145,7 @@ class MakerRamp(BaseStrategy):
 
             quote, base = m.split(self.config.market_separator)
             if isinstance(target_price, float):
-                base_price = 1.0
+                base_price = target_price
             elif (isinstance(target_price, str) and
                   target_price is "settlement_price" or
                   target_price is "feed" or
@@ -155,10 +157,13 @@ class MakerRamp(BaseStrategy):
 
                 base_price = base_price * (1 + self.settings["target_price_offset_percentage"] / 100)
 
-            if quote in amounts :
+            if quote in amounts and not only_buy:
                 price_start  = base_price * (1 + self.settings["spread_percentage"] / 200.0)
                 price_end    = base_price * (1 + self.settings["ramp_price_percentage"] / 100.0)
-                amount       = min([amounts[quote], amounts[base] / (price_start)]) if base in amounts else amounts[quote]
+                if not only_sell :
+                    amount       = min([amounts[quote], amounts[base] / (price_start)]) if base in amounts else amounts[quote]
+                else:
+                    amount = amounts[quote]
                 number_orders = math.floor((self.settings["ramp_price_percentage"] / 100.0 - self.settings["spread_percentage"] / 200.0) / (self.settings["ramp_step_percentage"] / 100.0))
                 if mode == "linear" :
                     for price in linspace(price_start, price_end, number_orders) :
@@ -172,10 +177,13 @@ class MakerRamp(BaseStrategy):
                 else :
                     raise Exception("ramp_mode '%s' not known" % mode)
 
-            if base in amounts :
+            if base in amounts and not only_sell:
                 price_start  = base_price * (1 - self.settings["spread_percentage"] / 200.0)
                 price_end    = base_price * (1 - self.settings["ramp_price_percentage"] / 100.0)
-                amount       = min([amounts[quote], amounts[base] / (price_start)]) if quote in amounts else amounts[base] / (price_start)
+                if not only_buy:
+                    amount       = min([amounts[quote], amounts[base] / (price_start)]) if quote in amounts else amounts[base] / (price_start)
+                else:
+                    amount = amounts[base] / price_start
                 number_orders = math.floor((self.settings["ramp_price_percentage"] / 100.0 - self.settings["spread_percentage"] / 200.0) / (self.settings["ramp_step_percentage"] / 100.0))
                 if mode == "linear" :
                     for price in linspace(price_start, price_end, number_orders) :
