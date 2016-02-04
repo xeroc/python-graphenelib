@@ -32,7 +32,7 @@ ask_confirmation             = True # if true, a manual confirmation is required
 ################################################################################
 ## Feed Producer Name
 ################################################################################
-producer_name                 = "init0"
+producer_name                = "init0"
 
 ################################################################################
 ## Publishing Criteria
@@ -59,6 +59,7 @@ change_max                   = 5.0    # Percentage of price change to cause a wa
 ################################################################################
 ## Asset specific Settings
 ################################################################################
+core_symbol = "BTS"
 asset_config = {
                    "default" : { ## DEFAULT BEHAVIOR
                        #
@@ -160,20 +161,20 @@ secondary_mpas = {
 ################################################################################
 feedSources = {}
 feedSources["yahoo"]    = feedsources.Yahoo()
-feedSources["btcavg"]   = feedsources.BitcoinAverage()
+feedSources["btcavg"]   = feedsources.BitcoinAverage(quotes=["BTC"], bases=["USD", "EUR", "CNY"])
 
-feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True)
-feedSources["ccedk"]    = feedsources.Ccedk(allowFailure=True)
-feedSources["bittrex"]  = feedsources.Bittrex(allowFailure=True)
-feedSources["yunbi"]    = feedsources.Yunbi(allowFailure=True)
-feedSources["btc38"]    = feedsources.Btc38(allowFailure=True)
+feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True, quotes=["BTS"], bases=["BTC"])
+feedSources["ccedk"]    = feedsources.Ccedk(allowFailure=True, quotes=["BTS"], bases=["BTC", "USD", "EUR", "CNY"])
+feedSources["bittrex"]  = feedsources.Bittrex(allowFailure=True, quotes=["BTS"], bases=["BTC"])
+feedSources["yunbi"]    = feedsources.Yunbi(allowFailure=True, quotes=["BTS"], bases=["CNY"])
+feedSources["btc38"]    = feedsources.Btc38(allowFailure=True, quotes=["BTS"], bases=["BTC", "CNY"])
 
-feedSources["btcchina"] = feedsources.BtcChina(allowFailure=True)
-feedSources["okcoin"]   = feedsources.Okcoin(allowFailure=True)
-feedSources["huobi"]    = feedsources.Huobi(allowFailure=True)
+feedSources["btcchina"] = feedsources.BtcChina(allowFailure=True, quotes=["BTC"], bases=["CNY"])
+feedSources["okcoin"]   = feedsources.Okcoin(allowFailure=True, quotes=["BTC"], bases=["CNY", "USD"])
+feedSources["huobi"]    = feedsources.Huobi(allowFailure=True, quotes=["BTC"], bases=["CNY"])
 
-#feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True)
-#feedSources["bter"]     = feedsources.Bter(allowFailure=True)
+#feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True, quotes=["BTS"], bases=["BTC"])
+#feedSources["bter"]     = feedsources.Bter(allowFailure=True, quotes=["BTC", "BTS"], bases=["BTC", "CNY", "USD"])
 
 ################################################################################
 # Blame mode allows to verify old published prices
