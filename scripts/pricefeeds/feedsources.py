@@ -1,6 +1,7 @@
 import requests
 import sys
 import config
+from grapheneexchange import GrapheneExchange
 
 _request_headers = {'content-type': 'application/json',
                     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
@@ -29,13 +30,16 @@ class FeedSource() :
                  allowFailure=False,
                  timeout=20,
                  quotes=[],
-                 bases=[]):
+                 bases=[],
+                 **kwargs):
         self.scaleVolumeBy = scaleVolumeBy
         self.enabled       = enable
         self.allowFailure  = allowFailure
         self.timeout       = timeout
         self.bases         = bases
         self.quotes        = quotes
+
+        [setattr(self, key, kwargs[key]) for key in kwargs]
         # Why fail if the scaleVolumeBy is 0
         if self.scaleVolumeBy == 0.0 :
             self.allowFailure = True
@@ -51,6 +55,8 @@ class BitcoinIndonesia(FeedSource) :
             for base in self.bases:
                 feed[base] = {}
                 for quote in self.quotes :
+                    if quote == base:
+                        continue
                     url = "https://vip.bitcoin.co.id/api/%s_%s/ticker" % (quote.lower(), base.lower())
                     response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
                     result = response.json()["ticker"]
@@ -78,6 +84,8 @@ class Ccedk(FeedSource) :
         try :
             for base in self.bases :
                 quote = self.quotes[0]
+                if quote == base:
+                    continue
                 if base not in bts_markets or quote != config.core_symbol:
                     print("Base %s has its base not implemented here!" % base)
                     return
@@ -326,6 +334,8 @@ class BtcChina(FeedSource) :
             for base in self.bases :
                 feed[base] = {}
                 for quote in self.quotes :
+                    if quote == base:
+                        continue
                     url = "https://data.btcchina.com/data/ticker?base=%s%s" % (quote.lower(), base.lower())
                     response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
                     result = response.json()
@@ -350,6 +360,8 @@ class Huobi(FeedSource) :
             for base in self.bases :
                 feed[base] = {}
                 for quote in self.quotes :
+                    if quote == base:
+                        continue
                     url = "http://api.huobi.com/staticmarket/ticker_%s_json.js" % (quote.lower())
                     response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
                     result = response.json()
@@ -374,6 +386,8 @@ class Okcoin(FeedSource) :
             for base in self.bases :
                 feed[base] = {}
                 for quote in self.quotes :
+                    if quote == base:
+                        continue
                     if base == "USD" :
                         url = "https://www.okcoin.com/api/v1/ticker.do?symbol=%s_%s" % (quote.lower(), base.lower())
                     elif base == "CNY" :
@@ -385,6 +399,54 @@ class Okcoin(FeedSource) :
                     feed[base]["response"] = result
                     feed[base][quote] = {"price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"]) * self.scaleVolumeBy)}
+        except Exception as e:
+            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+            if not self.allowFailure:
+                sys.exit("\nExiting due to exchange importance!")
+            return
+        return feed
+
+
+class GrapheneRawTemplate():
+    wallet_host           = ""
+    wallet_port           = ""
+    wallet_user           = ""
+    wallet_password       = ""
+    witness_url           = ""  # "wss://bitshares.openledger.info/ws"
+    watch_markets         = []
+    market_separator      = ":"
+
+
+class Graphene(FeedSource):
+    def __init__(self, *args, **kwargs) :
+        super().__init__(*args, **kwargs)
+        conn = GrapheneRawTemplate
+        markets = []
+        for base in self.bases:
+            for quote in self.quotes:
+                if quote == base:
+                    continue
+                markets.append("%s:%s" % (quote, base))
+        conn.watch_markets = markets
+        if (not hasattr(self, "wallet_host") or
+                not hasattr(self, "wallet_port") or
+                not hasattr(self, "witness_url")):
+            raise Exception("BitShares FeedSource requires 'wallet_host', 'wallet_port' and witness_url'!")
+        setattr(conn, "wallet_host", self.wallet_host)
+        setattr(conn, "wallet_port", self.wallet_port)
+        setattr(conn, "witness_url", self.witness_url)
+        self.dex   = GrapheneExchange(conn, safe_mode=False)
+
+    def fetch(self):
+        feed  = {}
+        try :
+            ticker = self.dex.returnTicker()
+            for market in ticker:
+                quote, base = market.split(":")
+                feed[base] = {}
+                feed[base][quote] = {"price"  : (float(ticker[market]["last"])),
+                                     "volume" : (float(ticker[market]["quoteVolume"]) * self.scaleVolumeBy)}
+                feed[base]["response"] = ticker[market]
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
             if not self.allowFailure:
