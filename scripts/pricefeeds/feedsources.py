@@ -6,24 +6,6 @@ from grapheneexchange import GrapheneExchange
 _request_headers = {'content-type': 'application/json',
                     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
 
-_yahoo_base  = ["USD", "EUR", "CNY", "JPY", "HKD"]
-_yahoo_quote = ["XAG", "XAU", "TRY", "SGD", "HKD", "NZD", "CNY",
-                "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"]  # "RUB", "SEK"
-_yahoo_indices = {}
-# "399106.SZ" : config.core_symbol,  #"CNY",  # SHENZHEN
-# "^HSI"      : config.core_symbol,  #"HKD",  # HANGSENG
-# "^IXIC"     : config.core_symbol,  #"USD",  # NASDAQC
-# "^N225"     : config.core_symbol   #"JPY"   # NIKKEI
-_bts_yahoo_map = {"XAU"       : "GOLD",
-                  "XAG"       : "SILVER",
-                  "399106.SZ" : "SHENZHEN",
-                  "000001.SS" : "SHANGHAI",
-                  "^HSI"      : "HANGSENG",
-                  "^IXIC"     : "NASDAQC",
-                  "^N225"     : "NIKKEI"
-                  }
-
-
 class FeedSource() :
     def __init__(self, scaleVolumeBy=1.0,
                  enable=True,
@@ -60,6 +42,8 @@ class BitcoinIndonesia(FeedSource) :
                     url = "https://vip.bitcoin.co.id/api/%s_%s/ticker" % (quote.lower(), base.lower())
                     response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
                     result = response.json()["ticker"]
+                    if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                        quote = self.quoteNames[quote]
                     feed[base][quote]  = {"price"  : float(result["last"]),
                                           "volume" : float(result["vol_" + quote.lower()]) * self.scaleVolumeBy}
                     feed[base]["response"] = response.json()
@@ -98,6 +82,8 @@ class Ccedk(FeedSource) :
                 if ("response" in result and result["response"] and "entity" in result["response"]):
                     if ("last_price" in result["response"]["entity"] and
                             "vol" in result["response"]["entity"]):
+                        if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                            quote = self.quoteNames[quote]
                         feed[base][quote]  = {"price"  : float(result["response"]["entity"]["last_price"]),
                                               "volume" : float(result["response"]["entity"]["vol"]) * self.scaleVolumeBy}
         except Exception as e:
@@ -127,7 +113,11 @@ class Yunbi(FeedSource) :
                     if quote == base :
                         continue
                     marketName = quote.lower() + base.lower()
+                    if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                        quote = self.quoteNames[quote]
                     if marketName in result :
+                        if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                            quote = self.quoteNames[quote]
                         feed[base][quote] = {"price"  : (float(result[marketName]["ticker"]["last"])),
                                              "volume" : (float(result[marketName]["ticker"]["vol"]) * self.scaleVolumeBy)}
         except Exception as e:
@@ -158,6 +148,8 @@ class Btc38(FeedSource) :
                     if "ticker" in result and \
                        "last" in result["ticker"] and \
                        "vol" in result["ticker"] :
+                        if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                            quote = self.quoteNames[quote]
                         feed[base][quote] = {"price"  : (float(result["ticker"]["last"])),
                                              "volume" : (float(result["ticker"]["vol"]) * self.scaleVolumeBy)}
                     else :
@@ -188,6 +180,8 @@ class Bter(FeedSource) :
                     if quote == base :
                         continue
                     if quote.lower() + "_" + base.lower() in result :
+                        if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                            quote = self.quoteNames[quote]
                         feed[base][quote] = {"price"  : (float(result[quote.lower() + "_" + base.lower()]["last"])),
                                              "volume" : (float(result[quote.lower() + "_" + base.lower()]["vol_" + base.lower()]) * self.scaleVolumeBy)}
         except Exception as e:
@@ -216,6 +210,8 @@ class Poloniex(FeedSource) :
                         continue
                     marketName = base + "_" + quote
                     if marketName in result :
+                        if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                            quote = self.quoteNames[quote]
                         feed[base][quote] = {"price"  : (float(result[marketName]["last"])),
                                              "volume" : (float(result[marketName]["quoteVolume"]) * self.scaleVolumeBy)}
         except Exception as e:
@@ -244,6 +240,8 @@ class Bittrex(FeedSource) :
                         if quote == base :
                             continue
                         if thisMarket["MarketName"] == base + "-" + quote :
+                            if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                                quote = self.quoteNames[quote]
                             feed[base][quote] = {"price" : (float(thisMarket["Last"])),
                                                  "volume" : (float(thisMarket["Volume"]) * self.scaleVolumeBy)}
         except Exception as e:
@@ -258,27 +256,23 @@ class Yahoo(FeedSource) :
     def __init__(self, *args, **kwargs) :
         super().__init__(*args, **kwargs)
 
-    def bts_yahoo_map(self, asset) :
-        if asset in _bts_yahoo_map:
-            return _bts_yahoo_map[asset]
-        else :
-            return asset
-
     def fetch(self):
         feed = {}
         feed[config.core_symbol] = {}
         try :
             # Currencies and commodities
-            for base in _yahoo_base :
+            for base in self.bases :
                 feed[base] = {}
-                yahooAssets = ",".join([a + base + "=X" for a in _yahoo_quote])
+                yahooAssets = ",".join([a + base + "=X" for a in self.quotes])
                 url = "http://download.finance.yahoo.com/d/quotes.csv"
                 params = {'s' : yahooAssets, 'f' : 'l1', 'e' : '.csv'}
                 response = requests.get(url=url, headers=_request_headers, timeout=self.timeout, params=params)
                 yahooprices = response.text.replace('\r', '').split('\n')
-                for i, a in enumerate(_yahoo_quote) :
+                for i, quote in enumerate(self.quotes) :
                     if float(yahooprices[i]) > 0 :
-                        feed[base][self.bts_yahoo_map(a)] = {"price"  : (float(yahooprices[i])),
+                        if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                            quote = self.quoteNames[quote]
+                        feed[base][quote] = {"price"  : (float(yahooprices[i])),
                                                              "volume" : 1.0}
 #                # indices
 #                yahooAssets = ",".join(_yahoo_indices.keys())
@@ -313,6 +307,8 @@ class BitcoinAverage(FeedSource) :
                         continue
                     response = requests.get(url=url + base, headers=_request_headers, timeout=self.timeout)
                     result = response.json()
+                    if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                        quote = self.quoteNames[quote]
                     feed[base]["response"] = result
                     feed[base][quote] = {"price"  : (float(result["last"])),
                                          "volume" : (float(result["total_vol"]))}
@@ -339,6 +335,8 @@ class BtcChina(FeedSource) :
                     url = "https://data.btcchina.com/data/ticker?base=%s%s" % (quote.lower(), base.lower())
                     response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
                     result = response.json()
+                    if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                        quote = self.quoteNames[quote]
                     feed[base]["response"] = result
                     feed[base][quote] = {"price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"]) * self.scaleVolumeBy)}
@@ -365,6 +363,8 @@ class Huobi(FeedSource) :
                     url = "http://api.huobi.com/staticmarket/ticker_%s_json.js" % (quote.lower())
                     response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
                     result = response.json()
+                    if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                        quote = self.quoteNames[quote]
                     feed[base]["response"] = result
                     feed[base][quote] = {"price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"]) * self.scaleVolumeBy)}
@@ -396,6 +396,8 @@ class Okcoin(FeedSource) :
                         sys.exit("\n%s does not know base type %s" % (type(self).__name__, base))
                     response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
                     result = response.json()
+                    if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                        quote = self.quoteNames[quote]
                     feed[base]["response"] = result
                     feed[base][quote] = {"price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"]) * self.scaleVolumeBy)}
@@ -443,6 +445,8 @@ class Graphene(FeedSource):
             ticker = self.dex.returnTicker()
             for market in ticker:
                 quote, base = market.split(":")
+                if hasattr(self, "quoteNames") and quote in self.quoteNames:
+                    quote = self.quoteNames[quote]
                 feed[base] = {}
                 feed[base][quote] = {"price"  : (float(ticker[market]["last"])),
                                      "volume" : (float(ticker[market]["quoteVolume"]) * self.scaleVolumeBy)}

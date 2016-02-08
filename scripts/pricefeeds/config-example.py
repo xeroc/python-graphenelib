@@ -159,7 +159,17 @@ secondary_mpas = {"TCNY" : {"sameas" : "CNY"},
 #                script on error
 ################################################################################
 feedSources = {}
-feedSources["yahoo"]    = feedsources.Yahoo(scaleVolumeBy=1e7)  # dominant volume for FOREX
+feedSources["yahoo"]    = feedsources.Yahoo(scaleVolumeBy=1e7,
+                                            quotes=["XAG", "XAU", "TRY", "SGD", "HKD", "NZD", "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"],
+                                            quoteNames={"XAU"       : "GOLD",
+                                                        "XAG"       : "SILVER",
+                                                        # "399106.SZ" : "SHENZHEN",
+                                                        # "000001.SS" : "SHANGHAI",
+                                                        # "^HSI"      : "HANGSENG",
+                                                        # "^IXIC"     : "NASDAQC",
+                                                        # "^N225"     : "NIKKEI"
+                                                        },
+                                            bases=["USD", "EUR", "CNY", "JPY", "HKD"])
 feedSources["btcavg"]   = feedsources.BitcoinAverage(quotes=["BTC"], bases=["USD", "EUR", "CNY"])
 
 feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True, quotes=["BTS"], bases=["BTC"])
