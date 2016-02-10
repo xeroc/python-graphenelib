@@ -111,42 +111,42 @@ class BaseStrategy():
         return numCanceled
 
     def cancel_all_sell_orders(self):
-        """ ``self.cancel_all("sell")``
+        """ alias for ``self.cancel_all("sell")``
         """
         return self.cancel_all("sell")
 
     def cancel_all_buy_orders(self):
-        """ self.cancel_all("buy")
+        """ alias for ``self.cancel_all("buy")``
         """
         return self.cancel_all("buy")
 
     def cancel_my_sell_orders(self):
-        """ self.cancel_mine("sell")
+        """ alias for ``self.cancel_mine("sell")``
         """
         return self.cancel_mine("sell")
 
     def cancel_my_buy_orders(self):
-        """ self.cancel_mine("buy")
+        """ alias for ``self.cancel_mine("buy")``
         """
         return self.cancel_mine("buy")
 
     def cancel_all_bid_orders(self):
-        """ self.cancel_all("buy")
+        """ alias for ``self.cancel_all("buy")``
         """
         return self.cancel_all("buy")
 
     def cancel_all_ask_orders(self):
-        """ self.cancel_all("sell")
+        """ alias for ``self.cancel_all("sell")``
         """
         return self.cancel_all("sell")
 
     def cancel_my_bid_orders(self):
-        """ self.cancel_my_buys()
+        """ alias for ``self.cancel_my_buys()``
         """
         return self.cancel_my_buys()
 
     def cancel_my_ask_orders(self):
-        """ self.cancel_my_sells()
+        """ alias for ``self.cancel_my_sells()``
         """
         return self.cancel_my_sells()
 
