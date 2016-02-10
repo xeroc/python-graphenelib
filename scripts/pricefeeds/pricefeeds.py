@@ -36,6 +36,7 @@ from grapheneapi import GrapheneAPI
 import os.path
 from concurrent import futures
 import config
+from config import _all_assets, _bases, core_symbol
 
 
 def publish_rule(rpc, asset):
@@ -182,7 +183,7 @@ def derive_prices(feed):
     """ calculate feed prices in BTS for all assets given the exchange prices in USD,CNY,BTC,...
     """
     price_result = {}
-    for asset in _all_bts_assets + [core_symbol]:
+    for asset in _all_assets + [core_symbol]:
         price_result[asset]    = {}
 
     # secondary assets requirements
@@ -202,10 +203,10 @@ def derive_prices(feed):
         # Reset prices
         price = {}
         volume = {}
-        for base in _all_bts_assets  + [core_symbol]:
+        for base in _all_assets  + [core_symbol]:
             price[base]            = {}
             volume[base]           = {}
-            for quote in _all_bts_assets + [core_symbol]:
+            for quote in _all_assets + [core_symbol]:
                 price[base][quote]    = []
                 volume[base][quote]   = []
 
@@ -227,7 +228,7 @@ def derive_prices(feed):
                         continue
                     # Skip markets with zero trades in the last 24h
                     if feed[datasource][base][quote]["volume"] == 0.0:
-                        print("Skipping %s's %s:%s market due to 0 volume in the last 24h" % (datasource, base, quote))
+                        # print("Skipping %s's %s:%s market due to 0 volume in the last 24h" % (datasource, base, quote))
                         continue
 
                     # Original price/volume
@@ -393,7 +394,7 @@ def update_price_feed() :
     global derived_prices, config
     state = {}
 
-    for asset in _all_bts_assets + [core_symbol]:
+    for asset in _all_assets + [core_symbol]:
         price_median_blockchain[asset] = 0.0
         lastUpdate[asset]              = datetime.utcnow()
         myCurrentFeed[asset]           = {}
@@ -452,7 +453,7 @@ def update_price_feed() :
         price_metric      = this_asset_config["metric"] if "metric" in this_asset_config else config.asset_config["default"]["metric"]
 
         if asset not in derived_prices or price_metric not in derived_prices[asset] :
-            print("Warning: Asset %s has not derived price!" % asset)
+            print("Warning: Asset %s has no derived price!" % asset)
             continue
         if float(derived_prices[asset][price_metric]) > 0.0:
             quote_precision = assets[asset]["precision"]
@@ -557,14 +558,9 @@ def update_price_feed() :
 # Initialize global variables
 # ----------------------------------------------------------------------------
 configFile = config
-core_symbol = "BTS"
-_all_bts_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
-                   "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-                   "KRW", "TCNY"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
-_bases = ["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
 
 # Call Parameters ###########################################################
-asset_list_publish = _all_bts_assets
+asset_list_publish = _all_assets
 if len(sys.argv) > 1 :
     if sys.argv[1] != "ALL":
         asset_list_publish = sys.argv

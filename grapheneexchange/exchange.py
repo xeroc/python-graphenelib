@@ -1,6 +1,7 @@
 from grapheneapi.grapheneclient import GrapheneClient
 from datetime import datetime
 import time
+import math
 
 
 class ExampleConfig() :
@@ -276,9 +277,9 @@ class GrapheneExchange(GrapheneClient) :
 
             Example Output:
 
-            .. code-block:: json
+            .. code-block:: js
 
-            {'BTS': {'issuer': '1.2.3', 'id': '1.3.0', 'dynamic_asset_data_id': '2.3.0', 'precision': 5, 'symbol': 'BTS', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.0', 'amount': 1}, 'quote': {'asset_id': '1.3.0', 'amount': 1}}, 'flags': 0, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 0, 'max_supply': '360057050210207'}}, 'GOLD': {'issuer': '1.2.0', 'id': '1.3.106', 'dynamic_asset_data_id': '2.3.106', 'precision': 6, 'bitasset_data_id': '2.4.6', 'symbol': 'GOLD', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '1 troy ounce .999 fine gold', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.106', 'amount': 1}, 'quote': {'asset_id': '1.3.0', 'amount': 34145}}, 'flags': 128, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 511, 'max_supply': '1000000000000000'}}, 'USD': {'issuer': '1.2.0', 'id': '1.3.121', 'dynamic_asset_data_id': '2.3.121', 'precision': 4, 'bitasset_data_id': '2.4.21', 'symbol': 'USD', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '1 United States dollar', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.121', 'amount': 5}, 'quote': {'asset_id': '1.3.0', 'amount': 15751}}, 'flags': 128, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 511, 'max_supply': '1000000000000000'}}}
+                {'BTS': {'issuer': '1.2.3', 'id': '1.3.0', 'dynamic_asset_data_id': '2.3.0', 'precision': 5, 'symbol': 'BTS', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.0', 'amount': 1}, 'quote': {'asset_id': '1.3.0', 'amount': 1}}, 'flags': 0, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 0, 'max_supply': '360057050210207'}}, 'GOLD': {'issuer': '1.2.0', 'id': '1.3.106', 'dynamic_asset_data_id': '2.3.106', 'precision': 6, 'bitasset_data_id': '2.4.6', 'symbol': 'GOLD', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '1 troy ounce .999 fine gold', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.106', 'amount': 1}, 'quote': {'asset_id': '1.3.0', 'amount': 34145}}, 'flags': 128, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 511, 'max_supply': '1000000000000000'}}, 'USD': {'issuer': '1.2.0', 'id': '1.3.121', 'dynamic_asset_data_id': '2.3.121', 'precision': 4, 'bitasset_data_id': '2.4.21', 'symbol': 'USD', 'options': {'max_market_fee': '1000000000000000', 'blacklist_authorities': [], 'blacklist_markets': [], 'description': '1 United States dollar', 'whitelist_authorities': [], 'market_fee_percent': 0, 'core_exchange_rate': {'base': {'asset_id': '1.3.121', 'amount': 5}, 'quote': {'asset_id': '1.3.0', 'amount': 15751}}, 'flags': 128, 'extensions': [], 'whitelist_markets': [], 'issuer_permissions': 511, 'max_supply': '1000000000000000'}}}
 
         """
         r = {}
@@ -299,7 +300,7 @@ class GrapheneExchange(GrapheneClient) :
 
             Example output:
 
-            .. code-block:: json
+            .. code-block:: js
 
                 {'proposal_create': {'fee': 400000.0},
                 'asset_publish_feed': {'fee': 1000.0}, 'account_create':
@@ -357,7 +358,7 @@ class GrapheneExchange(GrapheneClient) :
 
             Sample Output:
 
-            .. code-block:: json
+            .. code-block:: js
 
                 {
                     "BTS_USD": {
@@ -452,7 +453,7 @@ class GrapheneExchange(GrapheneClient) :
 
             Sample output:
 
-            .. code-block:: json
+            .. code-block:: js
 
                 {
                     "USD_BTS": {
@@ -506,7 +507,7 @@ class GrapheneExchange(GrapheneClient) :
 
             Sample output:
 
-            .. code-block:: json
+            .. code-block:: js
 
                 {'USD_BTS': {'asks': [[0.0003787878787878788, 203.1935],
                 [0.0003799587270281197, 123.65374999999999]], 'bids':
@@ -534,12 +535,12 @@ class GrapheneExchange(GrapheneClient) :
             for o in orders:
                 if o["sell_price"]["base"]["asset_id"] == m["base"] :
                     price = self._get_price(o["sell_price"])
-                    volume = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
-                    asks.append([price, volume])
-                else :
-                    price = 1 / self._get_price(o["sell_price"])
                     volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
                     bids.append([price, volume])
+                else :
+                    price = 1 / self._get_price(o["sell_price"])
+                    volume = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
+                    asks.append([price, volume])
 
             data = {"asks" : asks, "bids" : bids}
             r.update({market : data})
@@ -550,7 +551,7 @@ class GrapheneExchange(GrapheneClient) :
 
             Example Output:
 
-            .. code-block:: json
+            .. code-block:: js
 
                 {
                     "BROWNIE.PTS": 2499.9999,
@@ -619,7 +620,8 @@ class GrapheneExchange(GrapheneClient) :
 
             Example:
 
-            ::
+            .. code-block:: js
+
                 {
                     "USD_BTS": [
                         {
@@ -855,7 +857,7 @@ class GrapheneExchange(GrapheneClient) :
 
             Example Output:
 
-            .. code-block:: json
+            .. code-block:: js
 
                 {
                     "ref_block_num": 14705,
@@ -948,3 +950,187 @@ class GrapheneExchange(GrapheneClient) :
         """ This Method makes no sense in a decentralized exchange
         """
         raise NotImplementedError
+
+    def get_lowest_ask(self, currencyPair="all"):
+        """ Returns the lowest asks (including amount) for the selected
+            markets.
+
+            :param str currencyPair: Market for which to get the lowest ask
+            :return: lowest asks and amounts
+            :rtype: json
+
+            .. code-block:: js
+
+                {'TRADE.BTC_BTC': [0.8695652173913043, 0.0207]}
+
+        """
+        orders = self.returnOrderBook(currencyPair, limit=1)
+        r = {}
+        for market in orders:
+            if len(orders[market]["asks"]) > 0:
+                r[market] = orders[market]["asks"][0]
+        return r
+
+    def get_lowest_bid(self, currencyPair="all"):
+        """ Returns the highest bids (including amount) for the selected
+            markets.
+
+            :param str currencyPair: Market for which to get the highest bid
+            :return: highest bid and amounts
+            :rtype: json
+
+            Example:
+
+            .. code-block:: js
+
+                {'TRADE.BTC_BTC': [1.0055304172951232, 0.009945]}
+
+        """
+        orders = self.returnOrderBook(currencyPair, limit=1)
+        r = {}
+        for market in orders:
+            if len(orders[market]["bids"]) > 0:
+                r[market] = orders[market]["bids"][0]
+        return r
+
+    def get_bids_less_than(self, market, price, limit=25):
+        """ Returns those bids (order ids) that have a price smaller than ``price``
+            together with volume and actual price.
+
+            :param str market: Market to consider
+            :param float price: Price threshold
+            :param number limit: Limit to x bids (defaults to 25)
+
+            Example output:
+
+            .. code-block:: js
+
+                {
+                    "1.7.32562": [
+                        1.1500000000000001,
+                        0.018
+                    ]
+                }
+        """
+        m = self.markets[market]
+        orders = self.ws.get_limit_orders(
+            m["quote"], m["base"], limit)
+        quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
+        bids = {}
+        for o in orders:
+            if o["sell_price"]["base"]["asset_id"] == m["base"] :
+                price = self._get_price(o["sell_price"])
+                volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
+                bids[o["id"]] = [price, volume]
+        return bids
+
+    def get_asks_more_than(self, market, price, limit=25):
+        """ Returns those asks (order ids) that have a price higher than ``price``
+            together with volume and actual price.
+
+            :param str market: Market to consider
+            :param float price: Price threshold
+            :param number limit: Limit to x bids (defaults to 25)
+
+            Example output:
+
+            .. code-block:: js
+
+                {
+                    "1.7.32504": [
+                        0.9945,
+                        0.01
+                    ],
+                    "1.7.25548": [
+                        0.9900000120389315,
+                        0.79741296
+                    ]
+                }
+        """
+        m = self.markets[market]
+        orders = self.ws.get_limit_orders(
+            m["quote"], m["base"], limit)
+        quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
+        asks = {}
+        for o in orders:
+            if o["sell_price"]["base"]["asset_id"] == m["quote"] :
+                price = self._get_price(o["sell_price"])
+                volume = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
+                asks[o["id"]] = [price, volume]
+        return asks
+
+    def get_my_bids_less_than(self, market, price):
+        """ This call will return those open orders that have a price
+            that is less than ``price``
+        """
+        myOrders = self.returnOpenOrders(market)
+        r = []
+        for order in myOrders[market]:
+            if order["type"] == "buy" and order["rate"] < price:
+                r.append(order)
+        return r
+
+    def get_my_asks_higher_than(self, market, price):
+        """ This call will return those open orders that have a price
+            that is higher than ``price``
+        """
+        myOrders = self.returnOpenOrders(market)
+        r = []
+        for order in myOrders[market]:
+            if order["type"] == "sell" and order["rate"] > price:
+                r.append(order)
+        return r
+
+    def get_my_bids_out_of_range(self, market, price, tolerance):
+        """ This call will return those open bid orders that have a price
+            that is more than ``tolerance`` away from price
+        """
+        myOrders = self.returnOpenOrders(market)
+        r = []
+        for order in myOrders[market]:
+            if order["type"] == "buy" and math.fabs(order["rate"] - price) > tolerance:
+                r.append(order)
+        return r
+
+    def get_my_asks_out_of_range(self, market, price, tolerance):
+        """ This call will return those open ask orders that have a price
+            that is more than ``tolerance`` away from price
+        """
+        myOrders = self.returnOpenOrders(market)
+        r = []
+        for order in myOrders[market]:
+            if order["type"] == "sell" and math.fabs(order["rate"] - price) > tolerance:
+                r.append(order)
+        return r
+
+    def cancel_bids_less_than(self, market, price):
+        orders = self.get_my_bids_less_than(market, price)
+        canceledOrders = []
+        for order in orders:
+            self.cancel(order["orderNumber"])
+            canceledOrders.append(order["orderNumber"])
+        return canceledOrders
+
+    def cancel_asks_higher_than(self, market, price):
+        orders = self.get_my_asks_higher_than(market, price)
+        canceledOrders = []
+        for order in orders:
+            self.cancel(order["orderNumber"])
+            canceledOrders.append(order["orderNumber"])
+        return canceledOrders
+
+    def cancel_bids_out_of_range(self, market, price, tolerance):
+        orders = self.get_my_bids_out_of_range(market, price, tolerance)
+        canceledOrders = []
+        for order in orders:
+            self.cancel(order["orderNumber"])
+            canceledOrders.append(order["orderNumber"])
+        return canceledOrders
+
+    def cancel_asks_out_of_range(self, market, price, tolerance):
+        orders = self.get_my_asks_out_of_range(market, price, tolerance)
+        canceledOrders = []
+        for order in orders:
+            self.cancel(order["orderNumber"])
+            canceledOrders.append(order["orderNumber"])
+        return canceledOrders
