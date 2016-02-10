@@ -13,11 +13,16 @@ bot place orders with
     python3 main.py
 ```
 
+After that, you can watch your orders ans have them replaced with 
+
+```python
+    python3 run_cont.py
+```
+
 ## Developing
 
 ### TODO
 
-* [General] Connect the bot to the websocket notification interface
 * [General] Add more strategies
 * [General] Monitor and adjust collateral
 * [General] Borrow and sell on high premiums

@@ -2,39 +2,50 @@ from grapheneapi.graphenewsprotocol import GrapheneWebsocketProtocol
 from grapheneexchange import GrapheneExchange
 import time
 
+config = None
+bots = {}
+dex = None
+
 
 class BotProtocol(GrapheneWebsocketProtocol):
-    """ Bot Protocol to interface with websocket notifications
+    """ Bot Protocol to interface with websocket notifications and
+        forward notices to the bots
     """
 
     def onAccountUpdate(self, data):
+        """ If the account updates, reload every market
+        """
+        print("Account Update! Notifying bots:")
         for name in bots:
+            print(" - %s" % name)
             bots[name].loadMarket()
             bots[name].store()
 
     def onMarketUpdate(self, data):
+        """ If a Market updates upgrades, reload every market
+        """
+        print("Market Update! Notifying bots:")
         for name in bots:
+            print(" - %s" % name)
             bots[name].loadMarket()
             bots[name].store()
 
     def onBlock(self, data) :
+        """ Every block let the bots know via ``tick()``
+        """
         for name in bots:
             bots[name].loadMarket()
             bots[name].tick()
             bots[name].store()
 
     def onRegisterDatabase(self):
-        print("Run")
-
-config = None
-bots = {}
-dex = None
+        print("Websocket successfully iInitialized!")
 
 
 def init(conf, **kwargs):
+    """ Initialize the Bot Infrastructure and setup connection to the
+        network
     """
-    """
-
     global dex, bots, config
 
     botProtocol = BotProtocol
@@ -75,7 +86,7 @@ def cancel_all():
     """ Cancel all orders of all markets that are served by the bots
     """
     for name in bots:
-        bots[name].loadMarket()
+        bots[name].loadMarket(False)
         bots[name].cancel_this_markets()
         bots[name].store()
 
@@ -94,5 +105,4 @@ def run():
     """ This call will run the bot in **continous mode** and make it
         receive notification from the network
     """
-    # raise Exception("Not Implemented yet")
     dex.run()

@@ -196,6 +196,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             account_ids.append("2.6.%s" % a.split(".")[2])  # account history
             account_ids.append("1.2.%s" % a.split(".")[2])  # account
         try:
+            " Object Subscriptions "
             if (oid in self.database_callbacks_ids and
                callable(self.database_callbacks_ids[oid])):
                 self.database_callbacks_ids[oid](self, notice)

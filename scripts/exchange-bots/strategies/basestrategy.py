@@ -200,9 +200,9 @@ class BaseStrategy():
                 state = json.load(fp)
                 self.setFullState(state)
 
-    def loadMarket(self):
+    def loadMarket(self, notify=True):
         """ Load the markets and compare the stored orders with the
-            still open orders. Calls ``orderMatched(orderid)`` for orders no
+            still open orders. Calls ``orderFilled(orderid)`` for orders no
             longer open (i.e. fully filled)
         """
         #: Load Open Orders for the markets and store them for later
@@ -217,8 +217,9 @@ class BaseStrategy():
                     if orderid not in cur_orders[market] :
                         # Remove it from the state
                         self.state["orders"][market].remove(orderid)
-                        # Execute orderMatched call
-                        self.orderMatched(orderid)
+                        # Execute orderFilled call
+                        if notify :
+                            self.orderFilled(orderid)
 
     def sell(self, market, price, amount):
         """ Places a sell order in a given market (sell ``quote``, buy
@@ -275,23 +276,30 @@ class BaseStrategy():
     def init(self) :
         """ Initialize the bot's individual settings
         """
-        print("Initializing %s" % self.name)
+        print("Init. Please define `%s.init()`" % self.name)
 
     def tick(self) :
         """ Tick every block
         """
-        print("New block. Bot %s has been notified" % self.name)
+        print("New block. Please define `%s.tick()`" % self.name)
 
-    def orderMatched(self, oid):
-        """ An order has been machted
+    def orderFilled(self, oid):
+        """ An order has been fully filled
 
             :param str oid: The order object id
         """
-        print("An order has been matched: %s" % oid)
+        print("Order Filled. Please define `%s.orderFilled(%s)`" % (self.name, oid))
+
+#    def orderMatched(self, oid):
+#        """ An order has been machted / partially filled
+#
+#            :param str oid: The order object id
+#        """
+#        print("An order has been matched: %s" % oid)
 
     def orderPlaced(self, oid):
         """ An order has been placed
 
             :param str oid: The order object id
         """
-        print("New Order %s" % oid)
+        print("New Order. Please define `%s.orderFilled(%s)`" % (self.name, oid))
