@@ -746,7 +746,7 @@ class GrapheneExchange(GrapheneClient) :
             r.update({market : trades})
         return r
 
-    def buy(self, currencyPair, rate, amount):
+    def buy(self, currencyPair, rate, amount, expiration=7 * 24 * 60 * 60, killfill=False):
         """ Places a buy order in a given market (buy ``quote``, sell
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -755,6 +755,8 @@ class GrapheneExchange(GrapheneClient) :
             :param str currencyPair: Return results for a particular market only (default: "all")
             :param float price: price denoted in ``base``/``quote``
             :param number amount: Amount of ``quote`` to buy
+            :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
+            :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -780,8 +782,8 @@ class GrapheneExchange(GrapheneClient) :
                                           base_symbol,
                                           '{:.{prec}f}'.format(amount, prec=quote["precision"]),
                                           quote_symbol,
-                                          7 * 24 * 60 * 60,
-                                          False,
+                                          expiration,
+                                          killfill,
                                           not (self.safe_mode or self.propose_only))
         if self.propose_only:
             [self.propose_operations.append(o) for o in transaction["operations"]]
@@ -789,7 +791,7 @@ class GrapheneExchange(GrapheneClient) :
         else:
             return transaction
 
-    def sell(self, currencyPair, rate, amount):
+    def sell(self, currencyPair, rate, amount, expiration=7 * 24 * 60 * 60, killfill=False):
         """ Places a sell order in a given market (sell ``quote``, buy
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -798,6 +800,8 @@ class GrapheneExchange(GrapheneClient) :
             :param str currencyPair: Return results for a particular market only (default: "all")
             :param float price: price denoted in ``base``/``quote``
             :param number amount: Amount of ``quote`` to sell
+            :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
+            :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -823,8 +827,8 @@ class GrapheneExchange(GrapheneClient) :
                                           quote_symbol,
                                           '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
                                           base_symbol,
-                                          7 * 24 * 60 * 60,
-                                          False,
+                                          expiration,
+                                          killfill,
                                           not (self.safe_mode or self.propose_only))
         if self.propose_only:
             [self.propose_operations.append(o) for o in transaction["operations"]]
