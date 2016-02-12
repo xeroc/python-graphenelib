@@ -1164,7 +1164,12 @@ class GrapheneExchange(GrapheneClient) :
         return canceledOrders
 
     def propose_all(self, expiration=None, proposer=None):
-        """ If ``proposal_only`` is set  FIXME
+        """ If ``proposal_only`` is set True, this method needs to be
+            called to **actuctually** propose the operations on the
+            chain.
+
+            :param time expiration: expiration time formated as ``%Y-%m-%dT%H:%M:%S`` (defaults to 24h)
+            :param string proposer: name of the account that pays the proposer fee
         """
         if not proposer:
             proposer = self.config.account
@@ -1176,3 +1181,8 @@ class GrapheneExchange(GrapheneClient) :
                                            expiration,
                                            account["id"],
                                            broadcast=not self.safe_mode)
+
+    def proposals_clear(self):
+        """ Clear stored proposals
+        """
+        self.propose_operations = []
