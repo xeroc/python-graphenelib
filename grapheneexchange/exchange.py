@@ -409,8 +409,8 @@ class GrapheneExchange(GrapheneClient) :
             else :
                 data["last"] = -1
             if len(orders) > 1:
-                data["lowestAsk"]     = self._get_price(orders[1]["sell_price"])
-                data["highestBid"]    = (1 / self._get_price(orders[0]["sell_price"]))
+                data["lowestAsk"]     = (1 / self._get_price(orders[0]["sell_price"]))
+                data["highestBid"]    = self._get_price(orders[1]["sell_price"])
             else :
                 data["lowestAsk"]     = -1
                 data["highestBid"]    = -1
