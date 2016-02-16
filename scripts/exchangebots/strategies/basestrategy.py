@@ -302,4 +302,4 @@ class BaseStrategy():
 
             :param str oid: The order object id
         """
-        print("New Order. Please define `%s.orderFilled(%s)`" % (self.name, oid))
+        print("New Order. Please define `%s.orderPlaced(%s)`" % (self.name, oid))
