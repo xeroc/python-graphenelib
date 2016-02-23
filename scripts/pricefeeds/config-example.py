@@ -63,7 +63,7 @@ change_max                   = 5.0       # Percentage of price change to cause a
 ################################################################################
 _all_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
                "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-               "KRW", "TCNY"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
+               "KRW", "TCNY", "TUSD" ]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
 _bases = ["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
 
 asset_config = {"default" : {  # DEFAULT BEHAVIOR
