@@ -204,8 +204,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             " Account Notifications "
             if (callable(self.accounts_callback) and
                     (oid in account_ids or  # account updates
-                     inst == "1" and _type == "10" or  # proposals
-                     inst == "1" and _type == "11")):  # history
+                     inst == "1" and _type == "10")):  # proposals
                 self.accounts_callback(notice)
 
             " Market notifications "
