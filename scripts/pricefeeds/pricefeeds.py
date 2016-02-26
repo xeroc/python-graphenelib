@@ -363,7 +363,7 @@ def print_stats(feeds) :
                      "publish"])
     t.align                   = 'c'
     t.border                  = True
-    for asset in asset_list_publish :
+    for asset in feeds :
         # Get Final Price according to price metric
         this_asset_config = config.asset_config[asset] if asset in config.asset_config else config.asset_config["default"]
         price_metric      = this_asset_config["metric"] if "metric" in this_asset_config else config.asset_config["default"]["metric"]
