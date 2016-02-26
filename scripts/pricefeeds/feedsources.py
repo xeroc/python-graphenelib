@@ -448,9 +448,10 @@ class Graphene(FeedSource):
                 if hasattr(self, "quoteNames") and quote in self.quoteNames:
                     quote = self.quoteNames[quote]
                 feed[base] = {}
-                feed[base][quote] = {"price"  : (float(ticker[market]["last"])),
-                                     "volume" : (float(ticker[market]["quoteVolume"]) * self.scaleVolumeBy)}
-                feed[base]["response"] = ticker[market]
+                if (float(ticker[market]["last"])) > 0 and float(ticker[market]["quoteVolume"]) > 0:
+                    feed[base][quote] = {"price"  : (float(ticker[market]["last"])),
+                                         "volume" : (float(ticker[market]["quoteVolume"]) * self.scaleVolumeBy)}
+                    feed[base]["response"] = ticker[market]
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
             if not self.allowFailure:

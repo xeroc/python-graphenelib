@@ -246,16 +246,37 @@ def derive_prices(feed):
         # This loop adds prices going via 2 markets:
         # E.g. : CNY:BTC -> BTC:BTS = CNY:BTS
         # I.e. : BTS : interasset -> interasset : targetasset
-        for targetasset in [asset] :
-            for interasset in _bases :
-                if interasset == targetasset :
-                    continue
-                for ratio in price[targetasset][interasset] :
-                    for idx in range(0, len(price[interasset][core_symbol])) :
-                        if volume[interasset][core_symbol][idx] == 0 :
-                            continue
-                        price[targetasset][core_symbol].append((float(price[interasset][core_symbol][idx] * ratio)))
-                        volume[targetasset][core_symbol].append((float(volume[interasset][core_symbol][idx] * ratio)))
+        for interasset in _bases :
+            if interasset == asset :
+                continue
+            for ratio in price[asset][interasset] :
+                for idx in range(0, len(price[interasset][core_symbol])) :
+                    if volume[interasset][core_symbol][idx] == 0 :
+                        continue
+                    price[asset][core_symbol].append((float(price[interasset][core_symbol][idx] * ratio)))
+                    volume[asset][core_symbol].append((float(volume[interasset][core_symbol][idx] * ratio)))
+
+        # derive BTS prices for all assets in asset_list_publish
+        # This loop adds prices going via 3 markets:
+        # E.g. : GOLD:USD -> USD:BTC -> BTC:BTS = GOLD:BTS
+        # I.e. : BTS : interassetA -> interassetA : interassetB -> asset : interassetB
+        if "derive_across_3markets" in this_asset_config and this_asset_config["derive_across_3markets"] :
+            for interassetA in _bases :
+                for interassetB in _bases :
+                    if interassetB == asset :
+                        continue
+                    if interassetA == asset :
+                        continue
+                    if interassetA == interassetB :
+                        continue
+
+                    for ratioA in price[interassetB][interassetA] :
+                        for ratioB in price[asset][interassetB] :
+                            for idx in range(0, len(price[interassetA][core_symbol])) :
+                                if volume[interassetA][core_symbol][idx] == 0 :
+                                    continue
+                                price[asset][core_symbol].append((float(price[interassetA][core_symbol][idx] * ratioA * ratioB)))
+                                volume[asset][core_symbol].append((float(volume[interassetA][core_symbol][idx] * ratioA * ratioB)))
 
         # Derive all prices and pick the right one later
         assetvolume = [v for v in volume[asset][core_symbol]]
@@ -500,6 +521,9 @@ def update_price_feed() :
                                    "feed":     price_feed,
                                    "publish":  asset_update_required
                                    }
+        else :
+            print("Warning: Asset %s has a negative derived price of %f (%s metric)!" % (asset, float(derived_prices[asset][price_metric]), price_metric))
+            continue
 
     if not debug :
         # Print some stats ##########################################################
