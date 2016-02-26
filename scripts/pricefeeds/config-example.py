@@ -103,6 +103,10 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                     # Stop calling when collateral only pays off 110% of the debt
                     # This is denoted as: 1100 = 110% = 1.10
                     "maximum_short_squeeze_ratio"   : 1100,
+                    # If set to True, prices are also derived via 3
+                    # markets instead of just two:
+                    # E.g. : GOLD:USD -> USD:BTC -> BTC:BTS = GOLD:BTS
+                    "derive_across_3markets" : False
                 },
                 # Exchanges trading BTC/BTS directly
                 # (this does not include any other trading pairs)
