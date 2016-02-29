@@ -90,8 +90,8 @@ operations["transfer_from_blind"] = 41
 operations["asset_settle_cancel"] = 42
 operations["asset_claim_fees"] = 43
 
-chainid        = "ff3444b85c2185e1e53dcaa2bba7a898d8730a1a3bb6827d3718c24e6c45e51f"
-prefix         = "BTS"
+chainid        = "b8d1603965b3eb1acba27e62ff59f74efa3154d43a4188d381088ac7cdf35539"
+prefix         = "GPH"
 
 def getOperationNameForId(i):
     for key in operations:
@@ -200,6 +200,7 @@ class Optional():
     def __init__(self,d)  : self.data = d
     def __bytes__(self)   : return bytes(Bool(1)) + bytes(self.data) if bytes(self.data) else bytes(Bool(0))
     def __str__(self)     : return str(self.data)
+    def isempty(self)     : return bool(self.data)
 class Static_variant():
     def __init__(self,d,type_id)  : self.data = d; self.type_id = type_id
     def __bytes__(self)   : return varint(self.type_id) + bytes(self.data)
@@ -220,7 +221,7 @@ class Operation() :
         self.opId = operations[self.name]
     def __bytes__(self)   :
         return bytes(Id(self.opId)) + bytes(self.op)
-    def __str__(self)     :  
+    def __str__(self)     :
         return json.dumps([self.opId, JsonObj(self.op)])
 
 # Graphene objects
@@ -241,6 +242,8 @@ class GrapheneObject(object) :
         if self.data == None : return {}
         d = {} ## JSON output is *not* ordered
         for name, value in self.data.items():
+            if isinstance(value, Optional) and value.isempty():
+                continue
             try : 
                 d.update( { name : JsonObj(value) } )
             except :
@@ -270,7 +273,7 @@ class Protocol_id_type() :
 class Asset(GrapheneObject) :
     def __init__(self, _amount, _asset_id):
         super().__init__(OrderedDict([
-                       ('amount',   Uint64(_amount)),
+                       ('amount',   Int64(_amount)),
                        ('asset_id', Protocol_id_type("asset",_asset_id) )
                     ]))
 
@@ -294,6 +297,7 @@ class Signed_Transaction(GrapheneObject) :
                       ('ref_block_prefix', Uint32(refPrefix)),
                       ('expiration', PointInTime(expiration)),
                       ('operations', Array(operations)),
+                      ('extensions', Set([])),
                       ('signatures', Void()),
                     ]))
 
@@ -308,12 +312,12 @@ class Signed_Transaction(GrapheneObject) :
 
     def recoverPubkeyParameter(self, digest, signature, pubkey) :
         for i in range(0,4) :
-            p = self.signature_to_public_key(digest, signature, i)
+            p = self.recover_public_key(digest, signature, i)
             if p.to_string() == pubkey.to_string() :
                 return i
         return None
 
-    def signature_to_public_key(self, digest, signature, i):
+    def recover_public_key(self, digest, signature, i):
         # See http://www.secg.org/download/aid-780/sec1-v2.pdf section 4.1.6 primarily
         curve = ecdsa.SECP256k1.curve
         G     = ecdsa.SECP256k1.generator
@@ -332,14 +336,14 @@ class Signed_Transaction(GrapheneObject) :
             y = beta
         else :
             y = curve.p() - beta
-        # 1.4 Constructor of Point is supposed to check if nR is at infinity. 
+        # 1.4 Constructor of Point is supposed to check if nR is at infinity.
         R = ecdsa.ellipticcurve.Point(curve, x, y, order)
         # 1.5 Compute e
         e = ecdsa.util.string_to_number(digest)
         # 1.6 Compute Q = r^-1(sR - eG)
         Q = ecdsa.numbertheory.inverse_mod(r, order) * (s * R + (-e % order) * G)
         # Not strictly necessary, but let's verify the message for paranoia's sake.
-        if ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1).verify_digest(signature, digest, sigdecode=ecdsa.util.sigdecode_string) != True:
+        if not ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1).verify_digest(signature, digest, sigdecode=ecdsa.util.sigdecode_string) :
             return None
         return ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1)
 
@@ -354,9 +358,10 @@ class Signed_Transaction(GrapheneObject) :
             p     = bytes(PrivateKey(wif))
             sk    = ecdsa.SigningKey.from_string(p, curve=ecdsa.SECP256k1)
             cnt   = 0
+            i     = 0
             while 1 :
                 cnt += 1
-                assert cnt<10, "Something wired happend while signing the transaction"
+                assert cnt<10, "Warning: %d attempgs to find canonical signature" % cnt
                 ## Sign message
                 k         = ecdsa.rfc6979.generate_k(sk.curve.generator.order(), sk.privkey.secret_multiplier, hashlib.sha256, self.digest+bytes(cnt))
                 sigder    = sk.sign_digest(self.digest, sigencode=ecdsa.util.sigencode_der, k=k)
@@ -364,16 +369,17 @@ class Signed_Transaction(GrapheneObject) :
                 signature = unhexlify(hexSig)
                 ## Recovery parameter
                 r, s      = ecdsa.util.sigdecode_string(signature, ecdsa.SECP256k1.order)
-                if ecdsa.curves.orderlen( r ) is 32 or ecdsa.curves.orderlen( s ) is 32 : ## Verify length or r and s
+                if (ecdsa.curves.orderlen( r ) is 32 and
+                    ecdsa.curves.orderlen( s ) is 32) : ## Verify length or r and s
                     i = self.recoverPubkeyParameter(self.digest, signature, sk.get_verifying_key())
                     i += 4  # compressed
                     i += 27 # compact
                     break
-            sigstr = struct.pack("<B",i)
+            sigstr = struct.pack("<B", i)
             sigstr += signature
             sigs.append( Signature(sigstr) )
 
-        self.data["signature"] = Array(sigs)
+        self.data["signatures"] = Array(sigs)
         return self
 
 class Transfer(GrapheneObject) :
@@ -383,7 +389,8 @@ class Transfer(GrapheneObject) :
                       ('from'      , Protocol_id_type("account",_from)),
                       ('to'        , Protocol_id_type("account",_to)),
                       ('amount'    , _amountObj),
-                      ('memo'      , Optional(_memo))
+                      ('memo'      , Optional(_memo)),
+                      ('extensions', Set([])),
                     ]))
 
 

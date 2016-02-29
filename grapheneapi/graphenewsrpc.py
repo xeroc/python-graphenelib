@@ -40,6 +40,7 @@ class GrapheneWebsocketRPC(object):
         self.login("", "", api_id=1)
         self.api_id["database"] = self.database(api_id=1)
         self.api_id["history"] = self.history(api_id=1)
+        self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
 
     def get_call_id(self):
         """ Get the ID for the next RPC call """
