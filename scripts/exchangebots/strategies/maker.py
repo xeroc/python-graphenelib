@@ -55,8 +55,8 @@ class MakerSellBuyWalls(BaseStrategy):
         ticker = self.dex.returnTicker()
         for m in self.settings["markets"]:
 
-            if isinstance(target_price, float):
-                base_price = target_price * (1 + self.settings["target_price_offset_percentage"] / 100)
+            if isinstance(target_price, float) or isinstance(target_price, int):
+                base_price = float(target_price) * (1 + self.settings["target_price_offset_percentage"] / 100)
             elif (isinstance(target_price, str) and
                   target_price is "settlement_price" or
                   target_price is "feed" or
@@ -144,8 +144,8 @@ class MakerRamp(BaseStrategy):
         for m in self.settings["markets"]:
 
             quote, base = m.split(self.config.market_separator)
-            if isinstance(target_price, float):
-                base_price = target_price
+            if isinstance(target_price, float) or isinstance(target_price, int):
+                base_price = float(target_price)
             elif (isinstance(target_price, str) and
                   target_price is "settlement_price" or
                   target_price is "feed" or
