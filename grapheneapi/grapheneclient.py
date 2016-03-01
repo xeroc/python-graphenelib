@@ -458,6 +458,38 @@ class GrapheneClient() :
         elif core_asset["symbol"] == "CORE" :
             self.prefix = "GPH"
 
+    """ Get network configuration
+    """
+    def getChainInfo(self):
+        """ Returns some information about the connected chain.
+
+            :return: Blockchain data
+            :rtype: json
+
+            .. warning:: Note, this does not verify if the cli-wallet is
+                         on the same network as the witness node!
+
+            Example:
+
+            .. code-block:: s
+
+                {'chain_id': 'b8d1603965b3eb1acba27e62ff59f74efa3154d43a4188d381088ac7cdf35539',
+                 'core_symbol': 'CORE',
+                 'prefix': 'GPH'}
+
+        """
+        if self.ws:
+            core_asset = self.ws.get_object("1.3.0")
+            chain_id = self.ws.get_chain_id()
+        elif self.rpc:
+            core_asset = self.rpc.get_object("1.3.0")
+            chain_id = self.rpc.info()["chain_id"]
+        else:
+            raise Exception("Neither either ws or rpc connection!")
+        return { "prefix" : self.prefix,
+                 "core_symbol" : core_asset["symbol"],
+                 "chain_id" : chain_id}
+
     """ Forward these calls to Websocket API
     """
     def setEventCallbacks(self, callbacks):
