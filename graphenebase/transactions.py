@@ -321,7 +321,7 @@ class ObjectId() :
             space, type, id = object_str.split(".")
             self.space = int(space)
             self.type = int(type)
-            self.instance = int(id)
+            self.instance = Id(int(id))
             self.Id = object_str
             if type_verify:
                 assert object_type[type_verify] == int(type), "Object id does not match object type!"
@@ -331,46 +331,6 @@ class ObjectId() :
         return bytes(self.instance)  # only yield instance
     def __str__(self) :
         return self.Id
-
-"""##############################################################
-         Actual Objects are coming below this line
-##############################################################"""
-
-class Asset(GrapheneObject) :
-    """ Asset object
-
-        usage:::
-
-            fee      = Asset(<amount>, <asset_id>)
-            fee      = Asset(10, 15)
-    """
-    def __init__(self, _amount, _asset_id):
-        super().__init__(OrderedDict([
-                       ('amount',   Int64(_amount)),
-                       ('asset_id', ObjectId(_asset_id, "asset") )
-                    ]))
-
-
-class Memo(GrapheneObject) :
-    def __init__(self, _from=None, _to=None, _nonce=None, _message=None, chain="BTS"):
-        if _message :
-            if isinstance(chain, str) and chain in known_chains:
-                chain_params = known_chains[chain]
-            elif isinstance(chain, dict):
-                chain_params = chain
-            else:
-                raise Exception("Memo() only takes a string or a dict as chain!")
-            if "prefix" not in chain_params:
-                raise Exception("Memo() needs a 'prefix' in chain params!")
-            prefix = chain_params["prefix"]
-            super().__init__(OrderedDict([
-                           ('from',    PublicKey(_from, prefix=prefix)),
-                           ('to',      PublicKey(_to, prefix=prefix)),
-                           ('nonce',   Uint64(_nonce)),
-                           ('message', Bytes(_message))
-                         ]))
-        else : 
-            super().__init__(None)
 
 
 class Signed_Transaction(GrapheneObject) :
@@ -384,6 +344,13 @@ class Signed_Transaction(GrapheneObject) :
                       ('signatures', Void()),
                     ]))
 
+    def recoverPubkeyParameter(self, digest, signature, pubkey) :
+        for i in range(0,4) :
+            p = self.recover_public_key(digest, signature, i)
+            if p.to_string() == pubkey.to_string() :
+                return i
+        return None
+
     def derSigToHexSig(self, s):
         s, junk = ecdsa.der.remove_sequence(unhexlify(s))
         if junk :
@@ -392,13 +359,6 @@ class Signed_Transaction(GrapheneObject) :
         x, s = ecdsa.der.remove_integer(s)
         y, s = ecdsa.der.remove_integer(s)
         return '%064x%064x' % (x, y)
-
-    def recoverPubkeyParameter(self, digest, signature, pubkey) :
-        for i in range(0,4) :
-            p = self.recover_public_key(digest, signature, i)
-            if p.to_string() == pubkey.to_string() :
-                return i
-        return None
 
     def recover_public_key(self, digest, signature, i):
         # See http://www.secg.org/download/aid-780/sec1-v2.pdf section 4.1.6 primarily
@@ -440,12 +400,21 @@ class Signed_Transaction(GrapheneObject) :
             raise Exception("sign() only takes a string or a dict as chain!")
         if "chain_id" not in chain_params:
             raise Exception("sign() needs a 'chain_id' in chain params!")
+
+        # Get Unique private keys
         self.privkeys = []
-        [self.privkeys.append(item) for item in wifkeys if item not in self.privkeys] # Unique private keys
+        [self.privkeys.append(item) for item in wifkeys if item not in self.privkeys]
+
+        # Chain ID
         self.chainid  = chain_params["chain_id"]
-        # self.chainid  = "b8d1603965b3eb1acba27e62ff59f74efa3154d43a4188d381088ac7cdf35539"
+
+        # Get message to sign
+        #   bytes(self) will give the wire formated data according to
+        #   GrapheneObject and the data given in __init__()
         self.message  = unhexlify(self.chainid) + bytes(self)
         self.digest   = hashlib.sha256(self.message).digest()
+
+        # Sign the message with every private key given!
         sigs = []
         for wif in self.privkeys :
             p     = bytes(PrivateKey(wif))
@@ -454,26 +423,89 @@ class Signed_Transaction(GrapheneObject) :
             i     = 0
             while 1 :
                 cnt += 1
-                assert cnt<10, "Warning: %d attempgs to find canonical signature" % cnt
-                ## Sign message
-                k         = ecdsa.rfc6979.generate_k(sk.curve.generator.order(), sk.privkey.secret_multiplier, hashlib.sha256, self.digest+bytes(cnt))
-                sigder    = sk.sign_digest(self.digest, sigencode=ecdsa.util.sigencode_der, k=k)
-                hexSig    = self.derSigToHexSig(hexlify(sigder))  # DER decode
-                signature = unhexlify(hexSig)
-                ## Recovery parameter
-                r, s      = ecdsa.util.sigdecode_string(signature, ecdsa.SECP256k1.order)
-                if (ecdsa.curves.orderlen( r ) is 32 and
-                    ecdsa.curves.orderlen( s ) is 32) :  # Verify length of r and s
+                if not cnt % 10:
+                    print("Still searching for a canonical signature. Tried %d times already!" % cnt)
+
+                # Deterministic k
+                #
+                #k         = ecdsa.rfc6979.generate_k(sk.curve.generator.order(),
+                #                                     sk.privkey.secret_multiplier,
+                #                                     hashlib.sha256,
+                #                                     self.digest + (b'%x' % cnt))
+
+                # Sign message
+                #
+                sigder    = sk.sign_digest(self.digest,
+                                           sigencode=ecdsa.util.sigencode_der)
+                    # k=k)
+
+                # Reformating of signature
+                #
+                r, s = ecdsa.util.sigdecode_der(sigder, sk.curve.generator.order())
+                signature = ecdsa.util.sigencode_string(r, s, sk.curve.generator.order())
+
+                # Make sure signature is canonical!
+                #
+                lenR = sigder[3]
+                lenS = sigder[5+lenR]
+                if lenR is 32 and lenS is 32:
+                    # Derive the recovery parameter
+                    #
                     i = self.recoverPubkeyParameter(self.digest, signature, sk.get_verifying_key())
                     i += 4   # compressed
                     i += 27  # compact
                     break
+
+            # pack signature
+            #
             sigstr = struct.pack("<B", i)
             sigstr += signature
+
             sigs.append( Signature(sigstr) )
 
         self.data["signatures"] = Array(sigs)
         return self
+
+"""##############################################################
+         Actual Objects are coming below this line
+##############################################################"""
+
+
+class Asset(GrapheneObject) :
+    """ Asset object
+
+        usage:::
+
+            fee      = Asset(<amount>, <asset_id>)
+            fee      = Asset(10, "1.3.0")
+    """
+    def __init__(self, _amount, _asset_id):
+        super().__init__(OrderedDict([
+                       ('amount',   Int64(_amount)),
+                       ('asset_id', ObjectId(_asset_id, "asset") )
+                    ]))
+
+
+class Memo(GrapheneObject) :
+    def __init__(self, _from=None, _to=None, _nonce=None, _message=None, chain="BTS"):
+        if _message :
+            if isinstance(chain, str) and chain in known_chains:
+                chain_params = known_chains[chain]
+            elif isinstance(chain, dict):
+                chain_params = chain
+            else:
+                raise Exception("Memo() only takes a string or a dict as chain!")
+            if "prefix" not in chain_params:
+                raise Exception("Memo() needs a 'prefix' in chain params!")
+            prefix = chain_params["prefix"]
+            super().__init__(OrderedDict([
+                           ('from',    PublicKey(_from, prefix=prefix)),
+                           ('to',      PublicKey(_to, prefix=prefix)),
+                           ('nonce',   Uint64(_nonce)),
+                           ('message', Bytes(_message))
+                         ]))
+        else : 
+            super().__init__(None)
 
 
 class Transfer(GrapheneObject) :
