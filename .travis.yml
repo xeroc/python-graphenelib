@@ -6,6 +6,4 @@ script:
  - tox
 env:
   - TOXENV=py35
-  - TOXENV=stats
-  - TOXENV=lint
   - TOXENV=docs
