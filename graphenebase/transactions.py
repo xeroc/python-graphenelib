@@ -428,16 +428,16 @@ class Signed_Transaction(GrapheneObject) :
 
                 # Deterministic k
                 #
-                #k         = ecdsa.rfc6979.generate_k(sk.curve.generator.order(),
-                #                                     sk.privkey.secret_multiplier,
-                #                                     hashlib.sha256,
-                #                                     self.digest + (b'%x' % cnt))
+                k         = ecdsa.rfc6979.generate_k(sk.curve.generator.order(),
+                                                     sk.privkey.secret_multiplier,
+                                                     hashlib.sha256,
+                                                     hashlib.sha256(self.digest + (b'%x' % cnt)).digest())
 
                 # Sign message
                 #
                 sigder    = sk.sign_digest(self.digest,
-                                           sigencode=ecdsa.util.sigencode_der)
-                    # k=k)
+                                           sigencode=ecdsa.util.sigencode_der,
+                                           k=k)
 
                 # Reformating of signature
                 #
