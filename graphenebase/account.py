@@ -7,7 +7,7 @@ import re
 import os
 
 from graphenebase.base58 import ripemd160, Base58
-from .dictionary import words as BrainKeyDictionary
+from graphenebase.dictionary import words as BrainKeyDictionary
 
 """ This class and the methods require python3 """
 assert sys.version_info[0] == 3, "graphenelib requires python3"
@@ -93,6 +93,7 @@ class Address(object):
 
     """
     def __init__(self, address=None, pubkey=None, prefix="BTS"):
+        self.prefix = prefix
         if pubkey is not None :
             self._pubkey  = Base58(pubkey, prefix=prefix)
             self._address = None
@@ -125,7 +126,7 @@ class Address(object):
         """ Returns the readable Graphene address. This call is equivalent to
             ``format(Address, "BTS")``
         """
-        return format(self, "BTS")
+        return format(self, self.prefix)
 
     def __format__(self, _format) :
         """  May be issued to get valid "MUSE", "PLAY" or any other Graphene compatible
@@ -164,6 +165,7 @@ class PublicKey(Address):
 
     """
     def __init__(self, pk, prefix=None):
+        self.prefix  = prefix
         self._pk     = Base58(pk, prefix=prefix)
         self.address = Address(pubkey=pk, prefix=prefix)
         self.pubkey = self._pk
@@ -205,14 +207,14 @@ class PublicKey(Address):
         """ Returns the readable Graphene public key. This call is equivalent to
             ``format(PublicKey, "BTS")``
         """
-        return format(self._pk, "BTS")
+        return format(self._pk, self.prefix)
 
     def __format__(self, _format) :
         """ Formats the instance of :doc:`Base58 <base58>` according to ``_format`` """
         return format(self._pk, _format)
 
     def __bytes__(self) :
-        """ Returns the raw public key """
+        """ Returns the raw public key (has length 33)"""
         return bytes(self._pk)
 
 
