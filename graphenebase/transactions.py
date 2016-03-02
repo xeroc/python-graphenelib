@@ -467,6 +467,40 @@ class Signed_Transaction(GrapheneObject) :
         return self
 
 """##############################################################
+         Auxiliary calls that require a websocket connection!
+##############################################################"""
+
+
+def addRequiresFees(ws, ops, asset_id):
+    fees             = ws.get_required_fees([JsonObj(i) for i in ops], asset_id)
+    for i,d in enumerate(ops):
+        ops[i].op.data["fee"] = Asset(fees[i]["amount"], fees[i]["asset_id"])
+    return ops
+
+
+def getBlockParams(ws):
+    dynBCParams      = ws.get_object("2.1.0")
+    ref_block_num    = dynBCParams["head_block_number"]
+    ref_block_prefix = struct.unpack_from("<I", unhexlify(dynBCParams["head_block_id"]), 4)[0]
+    return ref_block_num, ref_block_prefix
+
+"""##############################################################
+         Other auxiliary calls
+##############################################################"""
+
+
+def formatTimeFromNow(secs=0):
+    """ Properly Format Time that is `x` seconds in the future
+
+        :param int secs: Seconds to go in the future (`x>0`) or the
+                         past (`x<0`)
+        :return: Properly formated time for Graphene (`%Y-%m-%dT%H:%M:%S`)
+        :rtype: str
+
+    """
+    return datetime.utcfromtimestamp(time.time() + int(secs)).strftime('%Y-%m-%dT%H:%M:%S')
+
+"""##############################################################
          Actual Objects are coming below this line
 ##############################################################"""
 
