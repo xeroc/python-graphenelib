@@ -42,17 +42,13 @@ Documentation
 
 Thanks to readthedocs.org, the documentation can be viewed at:
 
- * http://python-graphenelib.readthedocs.org/en/latest/
+* http://python-graphenelib.readthedocs.org/en/latest/
 
 Documentation is written with the help of `sphinx` and can be compile to
-`html` with:
+`html` with::
 
-::
     cd docs
     make html
-
-An online version is also available [here](http://python-graphenelib.readthedocs.org/en/latest/).
-
 
 Licence
 #######
