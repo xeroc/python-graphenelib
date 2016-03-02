@@ -11,6 +11,7 @@ Python library for Graphene 2.0!
 
 Install with `pip`:
 
+    sudo apt-get install libffi-dev libssl-dev python-dev
     pip install --user -r requirements.txt graphenelib
 
 Manual installation:
