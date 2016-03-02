@@ -1,11 +1,11 @@
 language: python
+python: "3.5"
 install:
  - pip install tox
 script:
  - tox
 env:
   - TOXENV=py35
-  - TOXENV=py37
   - TOXENV=stats
   - TOXENV=lint
   - TOXENV=docs
