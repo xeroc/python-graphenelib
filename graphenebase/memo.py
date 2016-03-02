@@ -70,8 +70,11 @@ def encode_memo(priv, pub, nonce, message) :
     " Padding "
     BS    = 16
     " FIXME: this adds 16 bytes even if not required "
-    pad   = lambda s : s + (BS - len(s) % BS) * b' '
-    raw   = (pad(raw))
+    if len(raw) % BS:
+        import struct
+        numBytes = (BS - len(raw) % BS)
+        pad   = lambda s : s + numBytes * struct.pack('B', numBytes)
+        raw   = (pad(raw))
     " Encryption "
     return hexlify(aes.encrypt(raw)).decode('ascii')
 

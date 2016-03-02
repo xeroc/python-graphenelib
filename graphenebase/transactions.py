@@ -197,7 +197,7 @@ class Bytes():
             self.length = length
         else :
             self.length = len(self.data)
-    def __bytes__(self)   : return varint(self.length) + bytes(self.data, 'utf-8')
+    def __bytes__(self)   : d = unhexlify(bytes(self.data, 'utf-8')); return varint(len(d)) + d
     def __str__(self)     : return str(self.data)
 
 
@@ -245,7 +245,7 @@ class Optional():
     def __init__(self,d)  : self.data = d
     def __bytes__(self)   : return bytes(Bool(1)) + bytes(self.data) if bytes(self.data) else bytes(Bool(0))
     def __str__(self)     : return str(self.data)
-    def isempty(self)     : return bool(self.data)
+    def isempty(self)     : return not bool(bytes(self.data))
 
 
 class Static_variant():
@@ -535,7 +535,7 @@ class Memo(GrapheneObject) :
             super().__init__(OrderedDict([
                            ('from',    PublicKey(_from, prefix=prefix)),
                            ('to',      PublicKey(_to, prefix=prefix)),
-                           ('nonce',   Uint64(_nonce)),
+                           ('nonce',   Uint64(int(_nonce))),
                            ('message', Bytes(_message))
                          ]))
         else : 
