@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from setuptools import setup
+from pip.req import parse_requirements
 
 VERSION = '0.3.3'
 
@@ -28,5 +29,7 @@ setup(name='graphenelib',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Financial and Insurance Industry',
                    'Topic :: Office/Business :: Financial',
-                   ]
+                   ],
+      setup_requires=['pytest-runner'],
+      tests_require=['pytest'],
       )
