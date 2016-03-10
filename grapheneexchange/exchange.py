@@ -836,15 +836,59 @@ class GrapheneExchange(GrapheneClient) :
         else:
             return transaction
 
+    def list_debt_positions(self):
+        """ List Call Positions (borrowed assets and amounts)
+
+            :return: Struct of assets with amounts and call price
+            :rtype: json
+
+            **Example**:
+
+            .. code-block: js
+
+                {'USD': {'collateral': '865893.75000',
+                         'collateral_asset': 'BTS',
+                         'debt': 120.00000}
+
+        """
+        account = self.rpc.get_account(self.config.account)
+        debts = self.ws.get_full_accounts([account["id"]], False)[0][1]["call_orders"]
+        r = {}
+        for debt in debts:
+            base  = self.getObject(debt["call_price"]["base"]["asset_id"])
+            quote = self.getObject(debt["call_price"]["quote"]["asset_id"])
+            call_price = self._get_price(debt["call_price"])
+            r[quote["symbol"]] = {"collateral_asset" : base["symbol"],
+                                  "collateral" : int(debt["collateral"]) / 10 ** base["precision"],
+                                  "debt" : debt["debt"] / 10 ** quote["precision"]}
+        return r
+
     def close_debt_position(self, symbol):
         """ Close a debt position and reclaim the collateral
 
             :param str symbol: Symbol to close debt position for
-            :raises ValueError: if symbol is not a bitasset
-            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
-            :raises ValueError: if required amounts of collateral are not available
+            :raises ValueError: if symbol has no open call position
         """
-        raise NotImplementedError  # TODO
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+        debts = self.list_debt_positions()
+        if symbol not in debts:
+            raise ValueError("No call position open for %s" % symbol)
+        debt = debts[symbol]
+        asset = self.rpc.get_asset(symbol)
+        collateral_asset = self.rpc.get_asset(debt["collateral_asset"])
+
+        transaction = self.rpc.borrow_asset(self.config.account,
+                                            '{:.{prec}f}'.format(-debt["debt"], prec=asset["precision"]),
+                                            symbol,
+                                            '{:.{prec}f}'.format(-debt["collateral"], prec=collateral_asset["precision"]),
+                                            not (self.safe_mode or self.propose_only))
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
 
     def adjust_debt(self, delta_debt, symbol, new_collateral_ratio=None):
         """ Adjust the amount of debt for an asset
@@ -856,9 +900,53 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
             :raises ValueError: if required amounts of collateral are not available
         """
-        raise NotImplementedError  # TODO
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+        # We sell quote and pay with base
+        asset = self.rpc.get_asset(symbol)
+        if "bitasset_data_id" not in asset:
+            raise ValueError("%s is not a bitasset!" % symbol)
+        bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
 
-    def adjust_collateral_ratio(self, amount, symbol, target_collateral_ratio):
+        # Check minimum collateral ratio
+        backing_asset_id = bitasset["options"]["short_backing_asset"]
+        maintenance_col_ratio = bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000
+        if maintenance_col_ratio > new_collateral_ratio:
+            raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
+
+        # Derive Amount of Collateral
+        collateral_asset = self.ws.get_objects([backing_asset_id])[0]
+        settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
+
+        current_debts = self.list_debt_positions()
+        if symbol not in current_debts:
+            raise ValueError("No Call position available to adjust! Please borrow first!")
+
+        amount_of_collateral = (current_debts[symbol]["debt"] + delta_debt) * new_collateral_ratio / settlement_price
+        amount_of_collateral -= current_debts[symbol]["collateral"]
+
+        # Verify that enough funds are available
+        balances = self.returnBalances()
+        fundsNeeded = amount_of_collateral + self.returnFees()["call_order_update"]["fee"]
+        fundsHave = balances[collateral_asset["symbol"]]
+        if fundsHave <= fundsNeeded:
+            raise ValueError("Not enough funds available. Need %f %s, but only %f %s are available" %
+                             (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
+
+        # Borrow
+        transaction = self.rpc.borrow_asset(self.config.account,
+                                            '{:.{prec}f}'.format(delta_debt, prec=asset["precision"]),
+                                            symbol,
+                                            '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
+                                            not (self.safe_mode or self.propose_only))
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
+
+    def adjust_collateral_ratio(self, symbol, target_collateral_ratio):
         """ Adjust the collataral ratio of a debt position
 
             :param float amount: Amount to borrow (denoted in 'asset')
@@ -868,7 +956,7 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
             :raises ValueError: if required amounts of collateral are not available
         """
-        raise NotImplementedError  # TODO
+        return self.adjust_debt(0, symbol, target_collateral_ratio)
 
     def borrow(self, amount, symbol, collateral_ratio):
         """ Borrow bitassets/smartcoins from the network by putting up
