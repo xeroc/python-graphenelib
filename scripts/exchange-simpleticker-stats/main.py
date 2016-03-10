@@ -7,7 +7,8 @@ class Config():
     wallet_port           = 8092
     wallet_user           = ""
     wallet_password       = ""
-    witness_url           = "ws://10.0.0.16:8090/"
+    witness_url           = "wss://bitshares.openledger.info/ws/"
+    # witness_url           = "ws://10.0.0.16:8090/"
     # witness_url           = "ws://testnet.bitshares.eu/ws"
     witness_user          = ""
     witness_password      = ""
