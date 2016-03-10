@@ -2,6 +2,7 @@ from grapheneapi.grapheneclient import GrapheneClient
 from datetime import datetime
 import time
 import math
+from grapheneextra.proposal import Proposal
 
 
 class ExampleConfig() :
@@ -120,8 +121,20 @@ class GrapheneExchange(GrapheneClient) :
     account = ""
     wallet = None
 
-    def __init__(self, config, safe_mode=True) :
-        self.safe_mode = safe_mode
+    def __init__(self, config, **kwargs) :
+        # Defaults:
+        self.safe_mode = True
+
+        #: Propose transactions (instead of broadcasting every order, we
+        #  here propose every order in a single proposal
+        self.propose_only          = False
+        self.propose_operations    = []
+
+        if "safe_mode" in kwargs:
+            self.safe_mode = kwargs["safe_mode"]
+        if "propose_only" in kwargs:
+            self.propose_only = kwargs["propose_only"]
+
         self.config = config
         super().__init__(config)
 
@@ -733,7 +746,7 @@ class GrapheneExchange(GrapheneClient) :
             r.update({market : trades})
         return r
 
-    def buy(self, currencyPair, rate, amount):
+    def buy(self, currencyPair, rate, amount, expiration=7 * 24 * 60 * 60, killfill=False):
         """ Places a buy order in a given market (buy ``quote``, sell
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -742,6 +755,8 @@ class GrapheneExchange(GrapheneClient) :
             :param str currencyPair: Return results for a particular market only (default: "all")
             :param float price: price denoted in ``base``/``quote``
             :param number amount: Amount of ``quote`` to buy
+            :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
+            :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -762,17 +777,21 @@ class GrapheneExchange(GrapheneClient) :
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.rpc.get_asset(base_symbol)
         quote = self.rpc.get_asset(quote_symbol)
-        # Check amount > 0
-        return self.rpc.sell_asset(self.config.account,
-                                   '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
-                                   base_symbol,
-                                   '{:.{prec}f}'.format(amount, prec=quote["precision"]),
-                                   quote_symbol,
-                                   7 * 24 * 60 * 60,
-                                   False,
-                                   not self.safe_mode)
+        transaction = self.rpc.sell_asset(self.config.account,
+                                          '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
+                                          base_symbol,
+                                          '{:.{prec}f}'.format(amount, prec=quote["precision"]),
+                                          quote_symbol,
+                                          expiration,
+                                          killfill,
+                                          not (self.safe_mode or self.propose_only))
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
 
-    def sell(self, currencyPair, rate, amount):
+    def sell(self, currencyPair, rate, amount, expiration=7 * 24 * 60 * 60, killfill=False):
         """ Places a sell order in a given market (sell ``quote``, buy
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -781,6 +800,8 @@ class GrapheneExchange(GrapheneClient) :
             :param str currencyPair: Return results for a particular market only (default: "all")
             :param float price: price denoted in ``base``/``quote``
             :param number amount: Amount of ``quote`` to sell
+            :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
+            :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -801,24 +822,73 @@ class GrapheneExchange(GrapheneClient) :
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.rpc.get_asset(base_symbol)
         quote = self.rpc.get_asset(quote_symbol)
-        return self.rpc.sell_asset(self.config.account,
-                                   '{:.{prec}f}'.format(amount, prec=quote["precision"]),
-                                   quote_symbol,
-                                   '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
-                                   base_symbol,
-                                   7 * 24 * 60 * 60,
-                                   False,
-                                   not self.safe_mode)
+        transaction = self.rpc.sell_asset(self.config.account,
+                                          '{:.{prec}f}'.format(amount, prec=quote["precision"]),
+                                          quote_symbol,
+                                          '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
+                                          base_symbol,
+                                          expiration,
+                                          killfill,
+                                          not (self.safe_mode or self.propose_only))
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
+
+    def list_debt_positions(self):
+        """ List Call Positions (borrowed assets and amounts)
+
+            :return: Struct of assets with amounts and call price
+            :rtype: json
+
+            **Example**:
+
+            .. code-block: js
+
+                {'USD': {'collateral': '865893.75000',
+                         'collateral_asset': 'BTS',
+                         'debt': 120.00000}
+
+        """
+        account = self.rpc.get_account(self.config.account)
+        debts = self.ws.get_full_accounts([account["id"]], False)[0][1]["call_orders"]
+        r = {}
+        for debt in debts:
+            base  = self.getObject(debt["call_price"]["base"]["asset_id"])
+            quote = self.getObject(debt["call_price"]["quote"]["asset_id"])
+            call_price = self._get_price(debt["call_price"])
+            r[quote["symbol"]] = {"collateral_asset" : base["symbol"],
+                                  "collateral" : int(debt["collateral"]) / 10 ** base["precision"],
+                                  "debt" : debt["debt"] / 10 ** quote["precision"]}
+        return r
 
     def close_debt_position(self, symbol):
         """ Close a debt position and reclaim the collateral
 
             :param str symbol: Symbol to close debt position for
-            :raises ValueError: if symbol is not a bitasset
-            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
-            :raises ValueError: if required amounts of collateral are not available
+            :raises ValueError: if symbol has no open call position
         """
-        raise NotImplementedError  # TODO
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+        debts = self.list_debt_positions()
+        if symbol not in debts:
+            raise ValueError("No call position open for %s" % symbol)
+        debt = debts[symbol]
+        asset = self.rpc.get_asset(symbol)
+        collateral_asset = self.rpc.get_asset(debt["collateral_asset"])
+
+        transaction = self.rpc.borrow_asset(self.config.account,
+                                            '{:.{prec}f}'.format(-debt["debt"], prec=asset["precision"]),
+                                            symbol,
+                                            '{:.{prec}f}'.format(-debt["collateral"], prec=collateral_asset["precision"]),
+                                            not (self.safe_mode or self.propose_only))
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
 
     def adjust_debt(self, delta_debt, symbol, new_collateral_ratio=None):
         """ Adjust the amount of debt for an asset
@@ -830,9 +900,53 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
             :raises ValueError: if required amounts of collateral are not available
         """
-        raise NotImplementedError  # TODO
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+        # We sell quote and pay with base
+        asset = self.rpc.get_asset(symbol)
+        if "bitasset_data_id" not in asset:
+            raise ValueError("%s is not a bitasset!" % symbol)
+        bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
 
-    def adjust_collateral_ratio(self, amount, symbol, target_collateral_ratio):
+        # Check minimum collateral ratio
+        backing_asset_id = bitasset["options"]["short_backing_asset"]
+        maintenance_col_ratio = bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000
+        if maintenance_col_ratio > new_collateral_ratio:
+            raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
+
+        # Derive Amount of Collateral
+        collateral_asset = self.ws.get_objects([backing_asset_id])[0]
+        settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
+
+        current_debts = self.list_debt_positions()
+        if symbol not in current_debts:
+            raise ValueError("No Call position available to adjust! Please borrow first!")
+
+        amount_of_collateral = (current_debts[symbol]["debt"] + delta_debt) * new_collateral_ratio / settlement_price
+        amount_of_collateral -= current_debts[symbol]["collateral"]
+
+        # Verify that enough funds are available
+        balances = self.returnBalances()
+        fundsNeeded = amount_of_collateral + self.returnFees()["call_order_update"]["fee"]
+        fundsHave = balances[collateral_asset["symbol"]]
+        if fundsHave <= fundsNeeded:
+            raise ValueError("Not enough funds available. Need %f %s, but only %f %s are available" %
+                             (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
+
+        # Borrow
+        transaction = self.rpc.borrow_asset(self.config.account,
+                                            '{:.{prec}f}'.format(delta_debt, prec=asset["precision"]),
+                                            symbol,
+                                            '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
+                                            not (self.safe_mode or self.propose_only))
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
+
+    def adjust_collateral_ratio(self, symbol, target_collateral_ratio):
         """ Adjust the collataral ratio of a debt position
 
             :param float amount: Amount to borrow (denoted in 'asset')
@@ -842,7 +956,7 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
             :raises ValueError: if required amounts of collateral are not available
         """
-        raise NotImplementedError  # TODO
+        return self.adjust_debt(0, symbol, target_collateral_ratio)
 
     def borrow(self, amount, symbol, collateral_ratio):
         """ Borrow bitassets/smartcoins from the network by putting up
@@ -919,11 +1033,16 @@ class GrapheneExchange(GrapheneClient) :
                              (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
 
         # Borrow
-        return self.rpc.borrow_asset(self.config.account,
-                                     '{:.{prec}f}'.format(amount, prec=asset["precision"]),
-                                     symbol,
-                                     '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
-                                     not self.safe_mode)
+        transaction = self.rpc.borrow_asset(self.config.account,
+                                            '{:.{prec}f}'.format(amount, prec=asset["precision"]),
+                                            symbol,
+                                            '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
+                                            not (self.safe_mode or self.propose_only))
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
 
     def cancel(self, orderNumber):
         """ Cancels an order you have placed in a given market. Requires
@@ -935,16 +1054,13 @@ class GrapheneExchange(GrapheneClient) :
         if self.safe_mode :
             print("Safe Mode enabled!")
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
-        # return self.rpc.cancel_order(orderNumber, not self.safe_mode)
+        transaction = self.rpc.cancel_order(orderNumber, not (self.safe_mode or self.propose_only))
 
-        account = self.rpc.get_account(self.config.account)
-        op          = self.rpc.get_prototype_operation("limit_order_cancel_operation")
-        op[1]["fee_paying_account"] = account["id"]
-        op[1]["order"] = orderNumber
-        buildHandle = self.rpc.begin_builder_transaction()
-        self.rpc.add_operation_to_builder_transaction(buildHandle, op)
-        self.rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
-        return self.rpc.sign_builder_transaction(buildHandle, True)
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
 
     def withdraw(self, currency, amount, address):
         """ This Method makes no sense in a decentralized exchange
@@ -1134,3 +1250,27 @@ class GrapheneExchange(GrapheneClient) :
             self.cancel(order["orderNumber"])
             canceledOrders.append(order["orderNumber"])
         return canceledOrders
+
+    def propose_all(self, expiration=None, proposer=None):
+        """ If ``proposal_only`` is set True, this method needs to be
+            called to **actuctually** propose the operations on the
+            chain.
+
+            :param time expiration: expiration time formated as ``%Y-%m-%dT%H:%M:%S`` (defaults to 24h)
+            :param string proposer: name of the account that pays the proposer fee
+        """
+        if not proposer:
+            proposer = self.config.account
+        if not expiration:
+            expiration = datetime.utcfromtimestamp(time.time() + 60 * 60 * 24).strftime('%Y-%m-%dT%H:%M:%S')
+        account = self.rpc.get_account(proposer)
+        proposal = Proposal(self)
+        return proposal.propose_operations(self.propose_operations,
+                                           expiration,
+                                           account["id"],
+                                           broadcast=not self.safe_mode)
+
+    def proposals_clear(self):
+        """ Clear stored proposals
+        """
+        self.propose_operations = []

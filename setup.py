@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 from setuptools import setup
+from pip.req import parse_requirements
 
-VERSION = '0.3.3'
+VERSION = '0.3.4'
 
 setup(name='graphenelib',
       version=VERSION,
       description='Python library for graphene-based blockchains',
-      long_description=open('README.md').read(),
+      long_description=open('README.rst').read(),
       download_url='https://github.com/xeroc/python-graphenelib/tarball/' + VERSION,
       author='Fabian Schuh',
       author_email='<Fabian@BitShares.eu>',
@@ -28,5 +29,7 @@ setup(name='graphenelib',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Financial and Insurance Industry',
                    'Topic :: Office/Business :: Financial',
-                   ]
+                   ],
+      setup_requires=['pytest-runner'],
+      tests_require=['pytest'],
       )

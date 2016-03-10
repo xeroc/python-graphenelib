@@ -40,11 +40,25 @@ class GrapheneWebsocketRPC(object):
         self.login("", "", api_id=1)
         self.api_id["database"] = self.database(api_id=1)
         self.api_id["history"] = self.history(api_id=1)
+        self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
 
     def get_call_id(self):
         """ Get the ID for the next RPC call """
         self.call_id += 1
         return self.call_id
+
+    def get_account(self, name):
+        if "." in name:
+            return self.get_objects([name])[0]
+        else :
+            return self.get_account_by_name(name)
+
+    def get_asset(self, name):
+        if "." in name:
+            return self.get_objects([name])[0]
+        else :
+            return self.lookup_asset_symbols([name])[0]
+
 
     def rpcexec(self, payload):
         """ Execute a call by sending the payload

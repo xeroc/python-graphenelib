@@ -1,6 +1,8 @@
 from datetime import datetime
 import time
 
+# from graphenebase.transactions import operations
+
 
 class Proposal(object) :
     """ Manage Proposals
@@ -70,3 +72,56 @@ class Proposal(object) :
         self.client.rpc.propose_builder_transaction2(buildHandle, proposer["name"], exp_time, 0, False)
         self.client.rpc.set_fees_on_builder_transaction(buildHandle, asset["id"])
         return self.client.rpc.sign_builder_transaction(buildHandle, broadcast)
+
+    def propose_operations(self, ops, expiration, proposer_account, preview=0, broadcast=False):
+        """ Propose several operations
+
+            :param Array ops: Array of operations
+            :param time expiration: Expiration time in format '%Y-%m-%dT%H:%M:%S'
+            :param proposer_account: Account name or id of the proposer (pays the proposal fee)
+            :param number preview: Preview period (in seconds)
+            :param bool broadcast: If true, broadcasts the transaction
+            :return: Signed transaction
+            :rtype: json
+
+            Once a proposal has been signed, the corresponding
+            transaction hash can be obtained via:
+
+            .. code-block:: python
+
+                print(rpc.get_transaction_id(tx))
+        """
+
+        proposer         = self.client.rpc.get_account(proposer_account)
+        buildHandle = self.client.rpc.begin_builder_transaction()
+        for op in ops:
+            self.client.rpc.add_operation_to_builder_transaction(buildHandle, op)
+        self.client.rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
+        self.client.rpc.propose_builder_transaction2(buildHandle, proposer["name"], expiration, preview, False)
+        self.client.rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
+        return self.client.rpc.sign_builder_transaction(buildHandle, broadcast)
+
+#         ## Alternative implementation building the transactions
+#         ## manually. Not yet working though
+#         op = self.client.rpc.get_prototype_operation("proposal_create_operation")
+#         for o in ops :
+#             op[1]["proposed_ops"].append(o)
+#         op[1]["expiration_time"] = expiration
+#         op[1]["fee_paying_account"] = payee_id
+#         op[1]["fee"] = self.get_operations_fee(op, "1.3.0")
+#         buildHandle = self.client.rpc.begin_builder_transaction()
+#         from pprint import pprint
+#         pprint(op)
+#         self.client.rpc.add_operation_to_builder_transaction(buildHandle, op)
+#         # print(self.client.rpc.preview_builder_transaction(buildHandle))
+#         return self.client.rpc.sign_builder_transaction(buildHandle, broadcast)
+
+#     def get_operations_fee(self, op, asset_id):
+#         global_parameters = self.client.rpc.get_object("2.0.0")[0]["parameters"]["current_fees"]
+#         parameters = global_parameters["parameters"]
+#         scale = global_parameters["scale"] / 1e4
+#         opID = op[0]
+#         assert asset_id == "1.3.0", "asset_id has to be '1.3.0'"
+#         # FIXME limition to "fee"-only! Need to evaluate every other as well
+#         return {"amount": parameters[opID][1]["fee"],
+#                 "asset_id": asset_id}
