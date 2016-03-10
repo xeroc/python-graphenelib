@@ -68,7 +68,8 @@ class Base58(object) :
         elif _format.lower() == "gph" :
             return _format.upper() + str(self)
         else :
-            raise Exception("Format %s unkown." % _format)
+            sys.stderr.write("Format %s unkown. You've been warned!\n" % _format)
+            return _format.upper() + str(self)
 
     def __repr__(self) :
         """ Returns hex value of object
