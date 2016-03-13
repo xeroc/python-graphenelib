@@ -30,8 +30,8 @@ class MakerSellBuyWalls(BaseStrategy):
 
     def orderFilled(self, oid):
         print("order filled %s" % oid)
-        self.cancel_mine()
-        self.place()
+        #self.cancel_mine()
+        #self.place()
 
     def place(self) :
         print("Placing Orders:")
@@ -114,8 +114,8 @@ class MakerRamp(BaseStrategy):
 
     def orderFilled(self, oid):
         print("order filled %s" % oid)
-        self.cancel_mine()
-        self.place()
+        #self.cancel_mine()
+        #self.place()
 
     def place(self) :
         print("Placing Orders:")
