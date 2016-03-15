@@ -23,8 +23,13 @@ from binascii import hexlify
 
 class Testcases(unittest.TestCase) :
     def setUp(self):
-        self.client = GrapheneClient(Config)
-        self.connected_chain = self.client.getChainInfo()
+        try:
+            self.client = GrapheneClient(Config)
+            self.connected_chain = self.client.getChainInfo()
+            self.skipTests = False
+        except:
+            print("[Warning] Couldn't connect to witness node or cli-wallet. Skipping tests")
+            self.skipTests = True
 
     def constructWireFormat(self, ops):
         ops        = transactions.addRequiresFees(self.client.ws, ops, "1.3.0")
@@ -35,6 +40,8 @@ class Testcases(unittest.TestCase) :
         return w
 
     def test_Transfer(self):
+        if self.skipTests:
+            return
         to_account   = self.client.ws.get_account(Config.to_account_name)
         from_account = self.client.ws.get_account(Config.from_account_name)
         asset        = self.client.ws.get_asset(Config.asset_name)
