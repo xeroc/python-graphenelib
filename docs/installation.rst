@@ -16,7 +16,7 @@ This library requires some dependencies to be installed:
 
 .. code-block:: bash
 
-    pip3 install--user autobahn requests pycrypto scrypt
+    pip3 install --user autobahn requests pycrypto scrypt
 
 Installation
 ############
