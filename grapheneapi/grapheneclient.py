@@ -486,9 +486,9 @@ class GrapheneClient() :
             chain_id = self.rpc.info()["chain_id"]
         else:
             raise Exception("Neither either ws or rpc connection!")
-        return { "prefix" : self.prefix,
-                 "core_symbol" : core_asset["symbol"],
-                 "chain_id" : chain_id}
+        return {"prefix" : self.prefix,
+                "core_symbol" : core_asset["symbol"],
+                "chain_id" : chain_id}
 
     """ Forward these calls to Websocket API
     """

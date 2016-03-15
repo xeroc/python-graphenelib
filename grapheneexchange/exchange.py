@@ -606,8 +606,8 @@ class GrapheneExchange(GrapheneClient) :
             for market in markets :
                 m = self.markets[market]
                 if ((o["sell_price"]["base"]["asset_id"] == m["base"] and
-                    o["sell_price"]["quote"]["asset_id"] == m["quote"])
-                    or (o["sell_price"]["base"]["asset_id"] == m["quote"] and
+                    o["sell_price"]["quote"]["asset_id"] == m["quote"]) or
+                    (o["sell_price"]["base"]["asset_id"] == m["quote"] and
                         o["sell_price"]["quote"]["asset_id"] ==
                         m["base"])):
                     r[market].append(o["id"])
@@ -860,7 +860,8 @@ class GrapheneExchange(GrapheneClient) :
             call_price = self._get_price(debt["call_price"])
             r[quote["symbol"]] = {"collateral_asset" : base["symbol"],
                                   "collateral" : int(debt["collateral"]) / 10 ** base["precision"],
-                                  "debt" : debt["debt"] / 10 ** quote["precision"]}
+                                  "debt" : debt["debt"] / 10 ** quote["precision"],
+                                  "call_price" : call_price}
         return r
 
     def close_debt_position(self, symbol):

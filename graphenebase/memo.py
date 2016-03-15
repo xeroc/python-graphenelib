@@ -50,6 +50,12 @@ def init_aes(shared_secret, nonce) :
     return AES.new(key, AES.MODE_CBC, iv)
 
 
+def _pad(s, BS):
+    import struct
+    numBytes = (BS - len(s) % BS)
+    return s + numBytes * struct.pack('B', numBytes)
+
+
 def encode_memo(priv, pub, nonce, message) :
     """ Encode a message with a shared secret between Alice and Bob
 
@@ -71,10 +77,7 @@ def encode_memo(priv, pub, nonce, message) :
     BS    = 16
     " FIXME: this adds 16 bytes even if not required "
     if len(raw) % BS:
-        import struct
-        numBytes = (BS - len(raw) % BS)
-        pad   = lambda s : s + numBytes * struct.pack('B', numBytes)
-        raw   = (pad(raw))
+        raw = _pad(raw, BS)
     " Encryption "
     return hexlify(aes.encrypt(raw)).decode('ascii')
 

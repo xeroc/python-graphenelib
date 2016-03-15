@@ -4,7 +4,7 @@ from functools import partial
 try:
     from autobahn.asyncio.websocket import WebSocketClientProtocol
 except ImportError:
-    raise ImportError("Missing dependency: python-autobahn")
+    raise ImportError("Missing dependency 'autobahn'.")
 
 
 class GrapheneWebsocketProtocol(WebSocketClientProtocol):
