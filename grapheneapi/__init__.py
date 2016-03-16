@@ -1,12 +1,12 @@
-__all__ = ['graphenewsprotocol', 'graphenews', 'grapheneapi', 'grapheneclient', 'graphenewsrpc']
+from grapheneapi.grapheneapi import GrapheneAPI
+from grapheneapi.graphenewsprotocol import GrapheneWebsocketProtocol
+from grapheneapi.graphenews import GrapheneWebsocket
+from grapheneapi.graphenewsrpc import GrapheneWebsocketRPC
+from grapheneapi.grapheneclient import GrapheneClient
 
-## HTTP-JSON-RPC API
-from .grapheneapi import GrapheneAPI
-
-## Websocket API
-from .graphenewsprotocol import GrapheneWebsocketProtocol
-from .graphenews import GrapheneWebsocket
-from .graphenewsrpc import GrapheneWebsocketRPC
-
-## General Abstraction Layer
-from .grapheneclient import GrapheneClient
+__all__ = ['graphenewsprotocol',
+           'graphenews',
+           'grapheneapi',
+           'grapheneclient',
+           'graphenewsrpc'
+           ]

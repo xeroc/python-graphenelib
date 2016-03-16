@@ -2,6 +2,9 @@ from grapheneapi.grapheneclient import GrapheneClient
 from graphenebase import transactions, memo, account
 import random
 import unittest
+from pprint import pprint
+from binascii import hexlify
+
 
 class Config():
     wallet_host       = "localhost"
@@ -15,10 +18,6 @@ class Config():
     asset_name        = "CORE"
     message           = "abcdefgABCDEFG0123456789"
     prefix            = "GPH"
-
-
-from pprint import pprint
-from binascii import hexlify
 
 
 class Testcases(unittest.TestCase) :
@@ -61,14 +60,14 @@ class Testcases(unittest.TestCase) :
                                          to_account["id"],
                                          amount,
                                          memoObj)
-        ops    = [ transactions.Operation(transfer) ]
+        ops    = [transactions.Operation(transfer)]
         tx     = self.constructWireFormat(ops)
         txJson = transactions.JsonObj(tx)
 
         # Let client sign the tx
         clienttxJson = txJson.copy()
         clienttxJson["signatures"] = []
-        clienttxJson = self.client.rpc.sign_transaction(clienttxJson,False)
+        clienttxJson = self.client.rpc.sign_transaction(clienttxJson, False)
         clienttxWire = self.client.rpc.serialize_transaction(clienttxJson)
 
         # Fix Expiration and other tx data

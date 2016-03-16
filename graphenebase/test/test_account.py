@@ -2,6 +2,7 @@ import unittest
 from graphenebase.base58 import Base58
 from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey
 
+
 class Testcases(unittest.TestCase) :
     def test_B85hexgetb58_btc(self):
         self.assertEqual(["5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd",
