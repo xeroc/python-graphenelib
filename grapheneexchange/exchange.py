@@ -858,10 +858,19 @@ class GrapheneExchange(GrapheneClient) :
             base  = self.getObject(debt["call_price"]["base"]["asset_id"])
             quote = self.getObject(debt["call_price"]["quote"]["asset_id"])
             call_price = self._get_price(debt["call_price"])
+
+            bitasset = self.getObject(quote["bitasset_data_id"])
+            settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
+
+            collateral_amount = int(debt["collateral"]) / 10 ** base["precision"]
+            debt_amount = int(debt["debt"]) / 10 ** quote["precision"]
+
             r[quote["symbol"]] = {"collateral_asset" : base["symbol"],
-                                  "collateral" : int(debt["collateral"]) / 10 ** base["precision"],
-                                  "debt" : debt["debt"] / 10 ** quote["precision"],
-                                  "call_price" : call_price}
+                                  "collateral" : collateral_amount,
+                                  "debt" : debt_amount,
+                                  "call_price" : call_price,
+                                  "settlement_price": settlement_price,
+                                  "ratio" : collateral_amount / debt_amount * settlement_price}
         return r
 
     def close_debt_position(self, symbol):
