@@ -2,27 +2,33 @@
 Installation
 ************
 
-Download
-########
-
-.. code-block:: bash
-
-    git clone http://github.com/xeroc/python-graphenelib
-
 Dependencies
 ############
 
-This library requires some dependencies to be installed:
+::
+    $ sudo apt-get install libffi-dev libssl-dev python-dev
 
-.. code-block:: bash
 
-    pip3 install --user autobahn requests pycrypto scrypt
+Install Library
+###############
 
-Installation
-############
+Install with `pip`:
 
-The graphene library itself can be installed by issuing:
+::
 
-.. code-block:: bash
+    $ pip3 install graphenelib
 
-    python3 setup.py install --user
+Manual installation:
+
+::
+
+    $ git clone https://github.com/xeroc/python-graphenlib/
+    $ cd python-graphenlib
+    $ python3 setup.py install --user -r requirements.txt
+
+Upgrade
+#######
+
+::
+
+   $ pip install --user --upgrade -r requirements.txt graphenelib
