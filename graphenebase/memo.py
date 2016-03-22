@@ -2,7 +2,8 @@ import sys
 import hashlib
 from binascii import hexlify, unhexlify
 from Crypto.Cipher import AES
-from .account import PrivateKey, PublicKey
+from graphenebase.account import PrivateKey, PublicKey
+import struct
 
 " This class and the methods require python3 "
 assert sys.version_info[0] == 3, "graphenelib requires python3"
@@ -50,6 +51,18 @@ def init_aes(shared_secret, nonce) :
     return AES.new(key, AES.MODE_CBC, iv)
 
 
+def _pad(s, BS):
+    numBytes = (BS - len(s) % BS)
+    return s + numBytes * struct.pack('B', numBytes)
+
+
+def _unpad(s, BS):
+    count = int(struct.unpack('B', bytes(s[-1], 'ascii'))[0])
+    if bytes(s[-count::], 'ascii') == count * struct.pack('B', count):
+        return s[:-count]
+    return s
+
+
 def encode_memo(priv, pub, nonce, message) :
     """ Encode a message with a shared secret between Alice and Bob
 
@@ -71,10 +84,7 @@ def encode_memo(priv, pub, nonce, message) :
     BS    = 16
     " FIXME: this adds 16 bytes even if not required "
     if len(raw) % BS:
-        import struct
-        numBytes = (BS - len(raw) % BS)
-        pad   = lambda s : s + numBytes * struct.pack('B', numBytes)
-        raw   = (pad(raw))
+        raw = _pad(raw, BS)
     " Encryption "
     return hexlify(aes.encrypt(raw)).decode('ascii')
 
@@ -100,7 +110,7 @@ def decode_memo(priv, pub, nonce, message) :
     " TODO, verify checksum "
     message = cleartext[4:]
     try :
-        return message.decode('utf8').strip()
+        return _unpad(message.decode('utf8'), 16)
     except :
         raise ValueError(message)
 

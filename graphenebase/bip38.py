@@ -4,7 +4,6 @@ from Crypto.Cipher import AES
 import scrypt
 import hashlib
 from binascii import hexlify, unhexlify
-import unittest
 import sys
 from graphenebase.account import PrivateKey
 from graphenebase.base58 import Base58, base58decode

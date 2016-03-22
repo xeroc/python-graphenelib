@@ -59,7 +59,6 @@ class GrapheneWebsocketRPC(object):
         else :
             return self.lookup_asset_symbols([name])[0]
 
-
     def rpcexec(self, payload):
         """ Execute a call by sending the payload
 

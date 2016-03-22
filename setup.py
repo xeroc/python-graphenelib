@@ -3,7 +3,7 @@
 from setuptools import setup
 from pip.req import parse_requirements
 
-VERSION = '0.3.4'
+VERSION = '0.3.5'
 
 setup(name='graphenelib',
       version=VERSION,

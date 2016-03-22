@@ -300,6 +300,3 @@ def keyinfo(private_key) :
     print("BTS PubKey              : " + format(private_key.pubkey, "BTS"))
     print("BTS Address             : " + format(private_key.address, "BTS"))
     print("-" * 80)
-
-if __name__ == '__main__':
-    unittest.main()

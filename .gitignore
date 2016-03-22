@@ -1,5 +1,3 @@
-scripts/pricefeeds/blame/*.json
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -23,6 +21,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+*.eggs
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -51,11 +50,17 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+docs/html
 
 # PyBuilder
 target/
 
+# Configuration Files
 *config.py
+
+# Vim temp files
 *.swp
 
+# script data
 data_*.json
+scripts/pricefeeds/blame/*.json

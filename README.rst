@@ -20,7 +20,7 @@ Install with `pip`:
 ::
 
     $ sudo apt-get install libffi-dev libssl-dev python-dev
-    $ pip install --user -r requirements.txt graphenelib
+    $ pip3 install graphenelib
 
 Manual installation:
 
