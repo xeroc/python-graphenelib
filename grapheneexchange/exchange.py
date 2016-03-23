@@ -415,7 +415,7 @@ class GrapheneExchange(GrapheneClient) :
             orders = self.rpc.get_limit_orders(
                 m["quote"], m["base"], 1)
             filled = self.ws.get_fill_order_history(
-                m["quote"], m["base"], 0, api="history")
+                m["quote"], m["base"], 1, api="history")
             # Price and ask/bids
             if filled :
                 data["last"] = self._get_price_filled(filled[0], m)
@@ -445,14 +445,15 @@ class GrapheneExchange(GrapheneClient) :
                 if marketHistory[0]["key"]["quote"] == m["quote"] :
                     data["baseVolume"]    = float(marketHistory[0]["base_volume"])  / (10 ** base_asset["precision"])
                     data["quoteVolume"]   = float(marketHistory[0]["quote_volume"]) / (10 ** quote_asset["precision"])
-                    price24h = ((float(marketHistory[0]["open_quote"]) / 10 ** quote_asset["precision"]) /
-                                (float(marketHistory[0]["open_base"])  / 10 ** base_asset["precision"]))
+                    price24h = ((float(marketHistory[0]["open_base"])  / 10 ** base_asset["precision"]) /
+                                (float(marketHistory[0]["open_quote"]) / 10 ** quote_asset["precision"]))
                 else :
                     #: Looks weird but is correct:
                     data["baseVolume"]    = float(marketHistory[0]["quote_volume"]) / (10 ** base_asset["precision"])
                     data["quoteVolume"]   = float(marketHistory[0]["base_volume"])  / (10 ** quote_asset["precision"])
-                    price24h = ((float(marketHistory[0]["open_base"])  / 10 ** quote_asset["precision"]) /
-                                (float(marketHistory[0]["open_quote"]) / 10 ** base_asset["precision"]))
+                    price24h = ((float(marketHistory[0]["open_quote"]) / 10 ** base_asset["precision"]) /
+                                (float(marketHistory[0]["open_base"])  / 10 ** quote_asset["precision"]))
+                # data["price24h"] = price24h
                 data["percentChange"] = ((data["last"] / price24h - 1) * 100)
             else :
                 data["baseVolume"]    = 0
@@ -552,7 +553,7 @@ class GrapheneExchange(GrapheneClient) :
                     bids.append([price, volume])
                 else :
                     price = 1 / self._get_price(o["sell_price"])
-                    volume = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
+                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"] / self._get_price(o["sell_price"])
                     asks.append([price, volume])
 
             data = {"asks" : asks, "bids" : bids}
@@ -680,11 +681,11 @@ class GrapheneExchange(GrapheneClient) :
                 if (o["sell_price"]["base"]["asset_id"] == m["base"] and
                         o["sell_price"]["quote"]["asset_id"] == m["quote"]):
                     " selling "
-                    amount = float(o["for_sale"]) / 10 ** quote_asset["precision"] * self._get_price(o["sell_price"])
+                    amount = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
                     rate = self._get_price(o["sell_price"])
                     t = "buy"
                     total = amount * rate
-                    for_sale = float(o["for_sale"]) / 10 ** quote_asset["precision"]
+                    for_sale = float(o["for_sale"]) / 10 ** base_asset["precision"]
                 elif (o["sell_price"]["base"]["asset_id"] == m["quote"] and
                         o["sell_price"]["quote"]["asset_id"] == m["base"]):
                     " buying "
