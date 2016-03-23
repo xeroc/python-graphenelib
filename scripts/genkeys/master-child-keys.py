@@ -1,10 +1,19 @@
-from prettytable import PrettyTable
+from prettytable import PrettyTable, ALL
 from graphenebase.account import BrainKey
 import graphenebase.bip38 as bip38
 import argparse
 import csv
+import qrcode
+from io import StringIO
 
 prefix = "BTS"
+
+"""
+Usage:
+
+    $ python3 master-child-keys.py --number 2 | paps --font="Monospace 7" | lp -d samsung
+
+"""
 
 
 def main() :
@@ -41,12 +50,30 @@ def main() :
                 raise Exception("Error encoding the privkey for pubkey %s.  Already encrypted?" % pub)
             assert format(b.get_private(), 'wif') == format(bip38.decrypt(wif, pw), 'wif')
 
-        t.add_row([wif, pub, b.sequence])
+        qrwif = StringIO()
+        qr = qrcode.QRCode(error_correction=qrcode.ERROR_CORRECT_H)
+        qr.add_data(wif)
+        qr.print_ascii(out=qrwif, tty=False, invert=False)
+
+        qrpub = StringIO()
+        qr = qrcode.QRCode(error_correction=qrcode.ERROR_CORRECT_H)
+        qr.add_data(pub)
+        qr.print_ascii(out=qrpub, tty=False, invert=False)
+
+        t.add_row(["%s%s" % (qrwif.getvalue(), wif),
+                   "%s%s" % (qrpub.getvalue(), pub),
+                   b.sequence])
         b.next_sequence()
 
     print("This is your (unencrypted) Brainkey. Make sure to store it savely:")
     print("\n\n\t%s\n\n" % b.get_brainkey())
-    print(t.get_string())
+
+    t.hrules = 1
+    t.vrules = 1
+    t.padding_width = 1
+    t.header = False
+    data = t.get_string()
+    print(data)
 
     if args.filename :
         with open(args.filename, 'w') as file:
