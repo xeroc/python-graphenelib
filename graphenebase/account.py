@@ -283,20 +283,3 @@ class PrivateKey(PublicKey):
     def __bytes__(self) :
         """ Returns the raw private key """
         return bytes(self._wif)
-
-
-def keyinfo(private_key) :
-    print("-" * 80)
-    print("Private Key             : " + format(private_key, "WIF"))
-    print("Secret Exponent (hex)   : " + repr(private_key))
-    print("-" * 80)
-    print("BTC uncomp. Pubkey (hex): " + repr(private_key.uncompressed.pubkey))
-    print("BTC Address (uncompr)   : " + format(private_key.uncompressed.address, "BTC"))
-    print("-" * 80)
-    print("BTC comp. Pubkey (hex)  : " + repr(private_key.pubkey))
-    print("BTC Address (compr)     : " + format(private_key.address, "BTC"))
-    print("-" * 80)
-    print("BTS PubKey (hex)        : " + repr(private_key.pubkey))
-    print("BTS PubKey              : " + format(private_key.pubkey, "BTS"))
-    print("BTS Address             : " + format(private_key.address, "BTS"))
-    print("-" * 80)
