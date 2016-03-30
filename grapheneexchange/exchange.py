@@ -413,8 +413,6 @@ class GrapheneExchange(GrapheneClient) :
                 self.formatTimeFromNow(-24 * 60 * 60),
                 self.formatTimeFromNow(),
                 api="history")
-            orders = self.rpc.get_limit_orders(
-                m["quote"], m["base"], 1)
             filled = self.ws.get_fill_order_history(
                 m["quote"], m["base"], 1, api="history")
             # Price and ask/bids
@@ -422,25 +420,33 @@ class GrapheneExchange(GrapheneClient) :
                 data["last"] = self._get_price_filled(filled[0], m)
             else :
                 data["last"] = -1
+
+            orders = self.rpc.get_limit_orders(
+                m["quote"], m["base"], 1)
             if len(orders) > 1:
                 data["lowestAsk"]     = (1 / self._get_price(orders[0]["sell_price"]))
                 data["highestBid"]    = self._get_price(orders[1]["sell_price"])
             else :
                 data["lowestAsk"]     = -1
                 data["highestBid"]    = -1
+
+            # Core Exchange rate
+            if quote_asset["id"] != "1.3.0":
+                data["core_exchange_rate"] = 1.0 / self._get_price(quote_asset["options"]["core_exchange_rate"])
+            else:
+                data["core_exchange_rate"] = self._get_price(base_asset["options"]["core_exchange_rate"])
+
             # smartcoin stuff
             if "bitasset_data_id" in quote_asset :
                 bitasset = self.ws.get_objects([quote_asset["bitasset_data_id"]])[0]
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == base_asset["id"]:
                     data["settlement_price"] = 1 / self._get_price(bitasset["current_feed"]["settlement_price"])
-                    data["core_exchange_rate"] = 1 / self._get_price(bitasset["current_feed"]["core_exchange_rate"])
             elif "bitasset_data_id" in base_asset :
                 bitasset = self.ws.get_objects([base_asset["bitasset_data_id"]])[0]
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == quote_asset["id"]:
                     data["settlement_price"] = self._get_price(bitasset["current_feed"]["settlement_price"])
-                    data["core_exchange_rate"] = self._get_price(bitasset["current_feed"]["core_exchange_rate"])
 
             if len(marketHistory) :
                 if marketHistory[0]["key"]["quote"] == m["quote"] :
