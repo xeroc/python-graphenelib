@@ -43,6 +43,10 @@ class CoreExchangeRateTracker(BaseStrategy):
                 )
         self.quote_asset = m.split(self.dex.market_separator)[0]
 
+        """ After startup, execute one tick()
+        """
+        self.tick()
+
     def update_asset_cer(self, asset_name, new_cer):
         asset = self.dex.rpc.get_asset(asset_name)
         options = asset["options"]
@@ -63,7 +67,7 @@ class CoreExchangeRateTracker(BaseStrategy):
 
     def update_cer(self, market):
         asset = self.quote_asset
-        print("Updating CER for %s" % asset)
+        print("Updating CER of %s" % asset)
 
         ticker = self.dex.returnTicker()[market]
         premium = self.settings["target_premium_percentage"] / 100.0
@@ -90,7 +94,7 @@ class CoreExchangeRateTracker(BaseStrategy):
         if (self.block_counter % self.settings["skip_blocks"]) == 0:
             ticker = self.dex.returnTicker()
             for m in ticker:
-                print("Checking CER for %s" % self.quote_asset)
+                print("Checking CER of %s" % self.quote_asset)
                 cer = ticker[m]["core_exchange_rate"]
                 price24h = ticker[m]["price24h"]
                 highest_bid = ticker[m]["highestBid"]
