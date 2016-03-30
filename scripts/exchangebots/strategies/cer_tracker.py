@@ -27,7 +27,6 @@ class CoreExchangeRateTracker(BaseStrategy):
                               }
     """
 
-
     block_counter = 0
 
     def __init__(self, *args, **kwargs):
@@ -41,7 +40,6 @@ class CoreExchangeRateTracker(BaseStrategy):
                 raise Exception(
                     "Base needs to be core asset %s" % sym
                 )
-        self.quote_asset = m.split(self.dex.market_separator)[0]
 
         """ After startup, execute one tick()
         """
@@ -66,7 +64,7 @@ class CoreExchangeRateTracker(BaseStrategy):
         pprint(self.dex.rpc.update_asset(asset["symbol"], None, options, True))
 
     def update_cer(self, market):
-        asset = self.quote_asset
+        asset = market.split(self.dex.market_separator)[0]
         print("Updating CER of %s" % asset)
 
         ticker = self.dex.returnTicker()[market]
@@ -94,7 +92,7 @@ class CoreExchangeRateTracker(BaseStrategy):
         if (self.block_counter % self.settings["skip_blocks"]) == 0:
             ticker = self.dex.returnTicker()
             for m in ticker:
-                print("Checking CER of %s" % self.quote_asset)
+                print("Checking CER of %s" % m.split(self.dex.market_separator)[0])
                 cer = ticker[m]["core_exchange_rate"]
                 price24h = ticker[m]["price24h"]
                 highest_bid = ticker[m]["highestBid"]
