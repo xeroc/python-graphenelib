@@ -1,5 +1,7 @@
+import threading
 from websocket import create_connection
 import json
+import time
 
 
 class RPCError(Exception):
@@ -41,6 +43,20 @@ class GrapheneWebsocketRPC(object):
         self.api_id["database"] = self.database(api_id=1)
         self.api_id["history"] = self.history(api_id=1)
         self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
+        # self.enable_pings()
+
+    def _send_ping(self, interval, event):
+        while not event.wait(interval):
+            self.last_ping_tm = time.time()
+            if self.sock:
+                self.sock.ping()
+
+    def enable_pings(self):
+        event = threading.Event()
+        ping_interval = 30
+        thread = threading.Thread(target=self._send_ping, args=(ping_interval, event))
+        thread.setDaemon(True)
+        thread.start()
 
     def get_call_id(self):
         """ Get the ID for the next RPC call """

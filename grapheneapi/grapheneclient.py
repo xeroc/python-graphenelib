@@ -364,7 +364,7 @@ class GrapheneClient() :
                                  self.wallet_user,
                                  self.wallet_password)
 
-            core_asset = self.rpc.get_object("1.3.0")[0]
+            self.core_asset = self.rpc.get_object("1.3.0")[0]
 
         # Connect to Witness Node
         if "witness_url" in available_features:
@@ -446,16 +446,16 @@ class GrapheneClient() :
                     {"registered-network-broadcast":
                      config.onRegisterNetworkBroadcast})
 
-            core_asset = self.ws.get_object("1.3.0")
+            self.core_asset = self.ws.get_object("1.3.0")
 
-        if not core_asset :
+        if not self.core_asset :
             raise Exception("Neither WS nor RPC propery configured!")
 
-        if core_asset["symbol"] == "BTS" :
+        if self.core_asset["symbol"] == "BTS" :
             self.prefix = "BTS"
-        elif core_asset["symbol"] == "MUSE" :
+        elif self.core_asset["symbol"] == "MUSE" :
             self.prefix = "MUSE"
-        elif core_asset["symbol"] == "CORE" :
+        elif self.core_asset["symbol"] == "CORE" :
             self.prefix = "GPH"
 
     """ Get network configuration
