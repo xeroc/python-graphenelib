@@ -356,6 +356,7 @@ class GrapheneExchange(GrapheneClient) :
             * ``percentChange``: 24h change percentage (in %)
             * ``settlement_price``: Settlement Price for borrow/settlement
             * ``core_exchange_rate``: Core exchange rate for payment of fee in non-BTS asset
+            * ``price24h``: the price 24h ago
 
             .. note::
 
@@ -453,7 +454,7 @@ class GrapheneExchange(GrapheneClient) :
                     data["quoteVolume"]   = float(marketHistory[0]["base_volume"])  / (10 ** quote_asset["precision"])
                     price24h = ((float(marketHistory[0]["open_quote"]) / 10 ** base_asset["precision"]) /
                                 (float(marketHistory[0]["open_base"])  / 10 ** quote_asset["precision"]))
-                # data["price24h"] = price24h
+                data["price24h"] = price24h
                 data["percentChange"] = ((data["last"] / price24h - 1) * 100)
             else :
                 data["baseVolume"]    = 0
