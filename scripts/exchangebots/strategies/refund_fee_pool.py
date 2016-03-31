@@ -3,21 +3,37 @@ from pprint import pprint
 
 
 class RefundFeePool(BaseStrategy):
-    """
-    Configuration:
+    """ Keep an asset's fee pool funded
 
-    ::
+        This "strategy" takes the quote of the market and watches the
+        asset's fee pool. If it passes the lower threshold, it will
+        automatically try to refill it back to the specified balance.
 
-        bots["PoolRefill"] = {"bot" : RefundFeePool,
-                              # markets to serve
-                              "markets" : ["MKR : BTS", "OPEN.BTC : BTS"],
-                              # target_price to place Ramps around (floating number or "feed")
-                              "target_fill_rate" : 5000.0,  # in BTS
-                              # lower threshold for refil
-                              "lower_threshold" : 100.0,  # in BTS
-                              # Skip blocks in continuous mode (not smaller than 1)
-                              "skip_blocks" : 1,
-                              }
+        .. note:: You will receive a warning if the quote is the core
+                  asset and the base is not the core asset:
+
+                  * USD:BTS - working
+                  * BTS:USD - not working
+                  * GOLD:SILVER - not working
+
+        **Settings**:
+
+        * **target_fill_rate**: target balance of the fee pool (in BTS). The bot will not put more than this into the pool
+        * **lower_threshold**: lower threshold of the core asset (e.g.  BTS). If this is reached, the bot will try to refill the pool
+
+        Only used if run in continuous mode (e.g. with ``run_conf.py``):
+
+        * **skip_blocks**: Checks the CER only every x blocks
+
+        .. code-block:: python
+
+            bots["PoolRefill"] = {"bot" : RefundFeePool,
+                                  "markets" : ["MKR : BTS", "OPEN.BTC : BTS"],
+                                  "target_fill_rate" : 5000.0,  # in BTS
+                                  "lower_threshold" : 100.0,  # in BTS
+                                  "skip_blocks" : 1,
+                                  }
+
 
     """
 
@@ -27,7 +43,8 @@ class RefundFeePool(BaseStrategy):
         super().__init__(*args, **kwargs)
 
     def init(self):
-        #: Verify that the markets are against the core asset
+        """ Verify that the markets are against the core asset
+        """
         sym = self.dex.core_asset["symbol"]
         for m in self.settings["markets"]:
             if sym != m.split(self.dex.market_separator)[1]:
@@ -40,6 +57,8 @@ class RefundFeePool(BaseStrategy):
         self.tick()
 
     def refill_fee_pool(self, quote_symbol, amount):
+        """ Actually refill the fee pool
+        """
         pprint(self.dex.rpc.fund_asset_fee_pool(
             self.config.account,
             quote_symbol,
@@ -49,6 +68,9 @@ class RefundFeePool(BaseStrategy):
 
 
     def tick(self):
+        """ We can check every block if the fee pool goes belos the
+            lower threshold and initiate a refill
+        """
         self.block_counter += 1
         if (self.block_counter % self.settings["skip_blocks"]) == 0:
             for m in self.settings["markets"]:
@@ -69,7 +91,9 @@ class RefundFeePool(BaseStrategy):
 
 
     def orderFilled(self, oid):
+        """ Do nothing """
         pass
 
     def place(self) :
+        """ Do nothing """
         pass

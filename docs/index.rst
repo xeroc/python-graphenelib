@@ -38,6 +38,17 @@ Scripts
 
    scripts-monitor
    scripts-pricefeed
+
+Trading Bot Infrastructure
+--------------------------
+.. toctree::
+   :maxdepth: 1
+
+   exchange
+   scripts-exchange-bot-tutorial
+   scripts-exchange-bot-maker
+   scripts-exchange-bot-cer-tracker
+   scripts-exchange-bot-refund-fee-pool
    scripts-exchange-bot
 
 Tutorials

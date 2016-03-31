@@ -3,28 +3,42 @@ from pprint import pprint
 
 
 class CoreExchangeRateTracker(BaseStrategy):
-    """
-    Configuration:
+    """ Play Buy/Sell Walls into a market
 
-    ::
+        This "strategy" takes the quote of the market and watches the
+        core exchange rate. It can be used to keep the core exchange
+        rate tracking different price metrics closely over time.
 
-        bots["CERTracker"] = {"bot" : CoreExchangeRateTracker,
-                              # markets to serve (as to have BTS as base)
-                              "markets" : ["MKR : BTS"],
-                              # target premium over relative asset (below)
-                              "target_premium_percentage" : 2.0,
-                              # relative to "highest_bid", "last", "price24h", "midprice"
-                              "target_relative_to" : "highest_bid",
-                              # thresholds in percent (CER will be
-                              # updated if not between upper/lower)
-                              "upper_bound_threshold" : 15,
-                              "lower_bound_threshold" : 4,
-                              # Skip blocks (not smaller than 1)
-                              # Only check every x blocks
-                              "skip_blocks" : 20 * 5,
-                              # Force CER to be smaller than highest bid!
-                              "force_lower_than_higest_bid" : True,
-                              }
+        .. note:: You will receive a warning if the quote is the core
+                  asset and the base is not the core asset:
+
+                  * USD:BTS - working
+                  * BTS:USD - not working
+                  * GOLD:SILVER - not working
+
+        **Settings**:
+
+        * **target_premium_percentage**: target premium relative to specified price metric
+        * **target_relative_to**: relative to "highest_bid", "last", "price24h", "midprice"
+        * **upper_bound_threshold**: thresholds in percent (CER will be updated if not between upper/lower)
+        * **lower_bound_threshold**: thresholds in percent (CER will be updated if not between upper/lower)
+        * **force_lower_than_higest_bid**: Force CER to be smaller than highest bid!
+
+        Only used if run in continuous mode (e.g. with ``run_conf.py``):
+
+        * **skip_blocks**: Checks the CER only every x blocks
+
+        .. code-block:: python
+
+            bots["CERTracker"] = {"bot" : CoreExchangeRateTracker,
+                                  "markets" : ["MKR : BTS"],
+                                  "target_premium_percentage" : 2.0,
+                                  "target_relative_to" : "highest_bid",
+                                  "upper_bound_threshold" : 15,
+                                  "lower_bound_threshold" : 4,
+                                  "force_lower_than_higest_bid" : True,
+                                  "skip_blocks" : 20 * 5,
+                                  }
     """
 
     block_counter = 0
@@ -33,7 +47,8 @@ class CoreExchangeRateTracker(BaseStrategy):
         super().__init__(*args, **kwargs)
 
     def init(self):
-        #: Verify that the markets are against the core asset
+        """ Verify that the markets are against the core asset
+        """
         sym = self.dex.core_asset["symbol"]
         for m in self.settings["markets"]:
             if sym != m.split(self.dex.market_separator)[1]:
@@ -46,6 +61,8 @@ class CoreExchangeRateTracker(BaseStrategy):
         self.tick()
 
     def update_asset_cer(self, asset_name, new_cer):
+        """ Actually update the asset's cer
+        """
         asset = self.dex.rpc.get_asset(asset_name)
         options = asset["options"]
         core_asset = self.dex.core_asset
@@ -64,6 +81,8 @@ class CoreExchangeRateTracker(BaseStrategy):
         pprint(self.dex.rpc.update_asset(asset["symbol"], None, options, True))
 
     def update_cer(self, market):
+        """ Calcualte the new CER
+        """
         asset = market.split(self.dex.market_separator)[0]
         print("Updating CER of %s" % asset)
 
@@ -88,6 +107,9 @@ class CoreExchangeRateTracker(BaseStrategy):
         self.update_asset_cer(asset, new_cer)
 
     def tick(self):
+        """ Every block, see if we should check CER and update it if
+            required
+        """
         self.block_counter += 1
         if (self.block_counter % self.settings["skip_blocks"]) == 0:
             ticker = self.dex.returnTicker()
@@ -121,7 +143,9 @@ class CoreExchangeRateTracker(BaseStrategy):
                     self.update_cer(m)
 
     def orderFilled(self, oid):
+        """ Do nothing """
         pass
 
     def place(self) :
+        """ Do nothing """
         pass
