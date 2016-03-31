@@ -2,17 +2,43 @@ from .basestrategy import BaseStrategy, MissingSettingsException
 import math
 from numpy import linspace
 
-"""
-"""
-
 
 class MakerSellBuyWalls(BaseStrategy):
+    """ Play Buy/Sell Walls into a market
+
+        **Settings**:
+
+        * **target_price**: target_price to place Ramps around (floating number or "feed")
+        * **target_price_offset_percentage**: +-percentage offset from target_price
+        * **spread_percentage**: Another "offset". Allows a spread. The lowest orders will be placed here
+        * **volume_percentage**: The amount of funds (%) you want to use
+        * **symmetric_sides**: (boolean) Place symmetric walls on both sides?
+        * **only_buy**: Serve only on of both sides 
+        * **only_sell**: Serve only on of both sides 
+
+        .. code-block:: python
+
+            bots["MakerWall"] = {"bot" : MakerSellBuyWalls,
+                                 "markets" : ["USD : BTS"],
+                                 "target_price" : "feed",
+                                 "target_price_offset_percentage" : 5,
+                                 "spread_percentage" : 5,
+                                 "volume_percentage" : 10,
+                                 "symmetric_sides" : True,
+                                 "only_buy" : False,
+                                 "only_sell" : False,
+                                 }
+
+        .. note:: This module does not watch your orders, all it does is
+                  place new orders!
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def init(self):
-        #: set default offset
+        """ set default settings
+        """
         if "target_price_offset_percentage" not in self.settings:
             self.settings["target_price_offset_percentage"] = 0.0
 
@@ -28,12 +54,17 @@ class MakerSellBuyWalls(BaseStrategy):
         if "symmetric_sides" not in self.settings:
             self.settings["symmetric_sides"] = True
 
+        # Place orders
+        self.place()
+
     def orderFilled(self, oid):
-        print("order filled %s" % oid)
-        #self.cancel_mine()
-        #self.place()
+        """ Do nothing, when an order is Filled
+        """
+        pass
 
     def place(self) :
+        """ Place all orders according to the settings.
+        """
         print("Placing Orders:")
         target_price = self.settings["target_price"]
         only_sell = True if "only_sell" in self.settings and self.settings["only_sell"] else False
@@ -86,11 +117,46 @@ class MakerSellBuyWalls(BaseStrategy):
 
 class MakerRamp(BaseStrategy):
 
+    """ Play Buy/Sell Walls into a market
+
+        **Settings**:
+
+        * **target_price**: target_price to place Ramps around (floating number or "feed")
+        * **target_price_offset_percentage**: +-percentage offset from target_price
+        * **spread_percentage**: Another "offset". Allows a spread. The lowest orders will be placed here
+        * **volume_percentage**: The amount of funds (%) you want to use
+        * **only_buy**: Serve only on of both sides 
+        * **only_sell**: Serve only on of both sides 
+        * **ramp_mode**: "linear" ramp (equal amounts) or "exponential" (linearily increasing amounts)
+        * **ramp_price_percentage**: Ramp goes up with volume up to a price increase of x%
+        * **ramp_step_percentage**: from spread/2 to ramp_price, place an order every x%
+
+        .. code-block:: python
+
+            bots["MakerRexp"] = {"bot" : MakerRamp,
+                                 "markets" : ["USD : BTS"],
+                                 "target_price" : "feed",
+                                 "target_price_offset_percentage" : 5,
+                                 "spread_percentage" : 0.2,
+                                 "volume_percentage" : 30,
+                                 "ramp_price_percentage" : 2,
+                                 "ramp_step_percentage" : 0.3,
+                                 "ramp_mode" : "linear",
+                                 "only_buy" : False,
+                                 "only_sell" : False,
+                                 }
+
+        .. note:: This module does not watch your orders, all it does is
+                  place new orders!
+
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def init(self) :
-        #: set default offset
+        """ set default settings
+        """
         if "target_price_offset_percentage" not in self.settings:
             self.settings["target_price_offset_percentage"] = 0.0
 
@@ -112,12 +178,17 @@ class MakerRamp(BaseStrategy):
         if "ramp_mode" not in self.settings:
             self.settings["ramp_mode"] = "linear"
 
+        # Place orders
+        self.place()
+
     def orderFilled(self, oid):
-        print("order filled %s" % oid)
-        #self.cancel_mine()
-        #self.place()
+        """ Do nothing, when an order is Filled
+        """
+        pass
 
     def place(self) :
+        """ Place all orders according to the settings.
+        """
         print("Placing Orders:")
         #: Amount of Funds available for trading (per asset)
         if "ramp_mode" not in self.settings:

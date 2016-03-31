@@ -113,13 +113,3 @@ def decode_memo(priv, pub, nonce, message) :
         return _unpad(message.decode('utf8'), 16)
     except :
         raise ValueError(message)
-
-if __name__ == '__main__':
-    memo = {"from": "GPH6Co3ctgs6BSsGkti3iVcArMKywbwhnzKDAgmkb6J3Cad7ykDYX",
-            "to": "GPH7gU4pHJ9rTUfVA6q6dEgCxgMGVLmq1YM3HRAKpj1VnTzJhrAn2",
-            "nonce": "9729217759611568577",
-            "message": "aac432f92a8bf52828ac1fda8a3bf6e3"}
-    priv = PrivateKey("WIF-KEY")
-    pub = PublicKey("OTHERS-PUBKEY", prefix="GPH")
-    dec = decode_memo(priv, pub, memo["nonce"], memo["message"])
-    print(dec)

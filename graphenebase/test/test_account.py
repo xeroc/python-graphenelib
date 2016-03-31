@@ -139,5 +139,31 @@ class Testcases(unittest.TestCase) :
                           "5HqSHfckRKmZLqqWW7p2iU18BYvyjxQs2sksRWhXMWXsNEtxPZU",
                           ])
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_BrainKey_normalize(self):
+        b = "COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN MATZO"
+        self.assertEqual([BrainKey(b + "").get_brainkey(),
+                          BrainKey(b + " ").get_brainkey(),
+                          BrainKey(b + "  ").get_brainkey(),
+                          BrainKey(b + "\t").get_brainkey(),
+                          BrainKey(b + "\t\t").get_brainkey(),
+                          BrainKey(b.replace(" ", "\t")).get_brainkey(),
+                          BrainKey(b.replace(" ", "  ")).get_brainkey(),
+                          ],
+                         [b, b, b, b, b, b, b])
+
+
+    def test_BrainKey(self):
+        b = BrainKey("COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN MATZO")
+        keys = ["5Hsbn6kXio4bb7eW5bX7kTp2sdkmbzP8kGWoau46Cf7en7T1RRE",
+                "5K9MHEyiSye5iFL2srZu3ZVjzAZjcQxUgUvuttcVrymovFbU4cc",
+                "5JBXhzDWQdYPAzRxxuGtzqM7ULLKPK7GZmktHTyF9foGGfbtDLT",
+                "5Kbbfbs6DmJFNddWiP1XZfDKwhm5dkn9KX5AENQfQke2RYBBDcz",
+                "5JUqLwgxn8f7myNz4gDwo5e77HZgopHMDHv4icNVww9Rxu1GDG5",
+                "5JNBVj5QVh86N8MUUwY3EVUmsZwChZftxnuJx22DzEtHWC4rmvK",
+                "5JdvczYtxPPjQdXMki1tpNvuSbvPMxJG5y4ndEAuQsC5RYMQXuC",
+                "5HsUSesU2YB4EA3dmpGtHh8aPAwEdkdhidG8hcU2Nd2tETKk85t",
+                "5JpveiQd1mt91APyQwvsCdAXWJ7uag3JmhtSxpGienic8vv1k2W",
+                "5KDGhQUqQmwcGQ9tegimSyyT4vmH8h2fMzoNe1MT9bEGvRvR6kD"]
+        for i in keys:
+            p = b.next_sequence().get_private()
+            self.assertEqual(str(p), i)
