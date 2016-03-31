@@ -75,6 +75,96 @@ class GrapheneWebsocketRPC(object):
         else :
             return self.lookup_asset_symbols([name])[0]
 
+    def getFullAccountHistory(self, account, begin=0, limit=100, sort="block"):
+        """ Get History of an account
+
+            :param string account: account name or account id
+            :param number begin: sequence number of first element
+            :param number limit: limit number of entries
+            :param string sort: Either "block" or "reversed"
+
+
+            **Example:**
+
+            The following code will give you you the first 110
+            operations for the account ``faucet`` starting at the first
+            operation:
+
+            .. code-block:: python
+
+                client = GrapheneClient(config)
+                client.ws.getAccountHistory(
+                    "faucet",
+                    begin=1,
+                    limit=110,
+                )
+
+        """
+        if account[0:4] == "1.2." :
+            account_id = account
+        else:
+            account_id = self.get_account_by_name(account)["id"]
+
+        if begin < 1:
+            raise ValueError("begin cannot be smaller than 1")
+
+        if sort != "block":
+            raise Exception("'sort' can currently only be 'block' " +
+                            "due to backend API issues")
+
+        r = []
+        if limit <= 100:
+            if sort == "block":
+                ret = self.get_relative_account_history(
+                    account_id,
+                    begin,
+                    limit,
+                    begin + limit,
+                    api="history"
+                )
+                [r.append(a) for a in ret[::-1]]
+            else:
+                ret = self.get_relative_account_history(
+                    account_id,
+                    begin,
+                    limit,
+                    0,
+                    api="history"
+                )
+                [r.append(a) for a in ret]
+        else :
+            while True:
+
+                if len(r) + 100 > limit:
+                    thislimit = limit - len(r)
+                else:
+                    thislimit = 100
+
+                if sort == "block":
+                    ret = self.get_relative_account_history(
+                        account_id,
+                        begin,
+                        thislimit,
+                        begin + thislimit,
+                        api="history"
+                    )
+                    [r.append(a) for a in ret[::-1]]
+                    begin += thislimit
+                else:
+                    ret = self.get_relative_account_history(
+                        account_id,
+                        begin,
+                        thislimit,
+                        0,
+                        api="history"
+                    )
+                    [r.append(a) for a in ret]
+
+                if len(ret) < 100 :
+                    break
+
+        return r
+
     def rpcexec(self, payload):
         """ Execute a call by sending the payload
 
