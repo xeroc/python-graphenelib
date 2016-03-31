@@ -3,6 +3,16 @@
 from setuptools import setup
 from pip.req import parse_requirements
 
+# Work around mbcs bug in distutils.
+# http://bugs.python.org/issue10945
+import codecs
+try:
+    codecs.lookup('mbcs')
+except LookupError:
+    ascii = codecs.lookup('ascii')
+    func = lambda name, enc=ascii: {True: enc}.get(name=='mbcs')
+    codecs.register(func)
+
 VERSION = '0.3.5'
 
 setup(name='graphenelib',
