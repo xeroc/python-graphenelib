@@ -18,6 +18,7 @@ class MakerSellBuyWalls(BaseStrategy):
 
         .. code-block:: python
 
+            from strategies.maker import MakerSellBuyWalls
             bots["MakerWall"] = {"bot" : MakerSellBuyWalls,
                                  "markets" : ["USD : BTS"],
                                  "target_price" : "feed",
@@ -132,6 +133,8 @@ class MakerRamp(BaseStrategy):
         * **ramp_step_percentage**: from spread/2 to ramp_price, place an order every x%
 
         .. code-block:: python
+
+            from strategies.maker import MakerRamp
 
             bots["MakerRexp"] = {"bot" : MakerRamp,
                                  "markets" : ["USD : BTS"],
