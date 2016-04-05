@@ -1131,7 +1131,7 @@ class GrapheneExchange(GrapheneClient) :
         return r
 
     def get_bids_more_than(self, market, price, limit=25):
-        """ Returns those bids (order ids) that have a price higher than ``price``
+        """ Returns those bids (order ids) that have a price more than ``price``
             together with volume and actual price.
 
             :param str market: Market to consider
@@ -1169,7 +1169,7 @@ class GrapheneExchange(GrapheneClient) :
         return bids
 
     def get_asks_less_than(self, market, price, limit=25):
-        """ Returns those asks (order ids) that have a price lower than ``price``
+        """ Returns those asks (order ids) that have a price less than ``price``
             together with volume and actual price.
 
             :param str market: Market to consider
@@ -1206,9 +1206,9 @@ class GrapheneExchange(GrapheneClient) :
                 asks.append(o)
         return asks
 
-    def get_my_bids_less_than(self, market, price):
+    def get_my_bids_more_than(self, market, price):
         """ This call will return those open orders that have a price
-            that is less than ``price``
+            that is more than ``price``
         """
         myOrders = self.returnOpenOrders(market)
         r = []
@@ -1217,9 +1217,9 @@ class GrapheneExchange(GrapheneClient) :
                 r.append(order)
         return r
 
-    def get_my_asks_higher_than(self, market, price):
+    def get_my_asks_less_than(self, market, price):
         """ This call will return those open orders that have a price
-            that is higher than ``price``
+            that is less than ``price``
         """
         myOrders = self.returnOpenOrders(market)
         r = []
@@ -1250,16 +1250,16 @@ class GrapheneExchange(GrapheneClient) :
                 r.append(order)
         return r
 
-    def cancel_bids_less_than(self, market, price):
-        orders = self.get_my_bids_less_than(market, price)
+    def cancel_bids_more_than(self, market, price):
+        orders = self.get_my_bids_more_than(market, price)
         canceledOrders = []
         for order in orders:
             self.cancel(order["orderNumber"])
             canceledOrders.append(order["orderNumber"])
         return canceledOrders
 
-    def cancel_asks_higher_than(self, market, price):
-        orders = self.get_my_asks_higher_than(market, price)
+    def cancel_asks_less_than(self, market, price):
+        orders = self.get_my_asks_less_than(market, price)
         canceledOrders = []
         for order in orders:
             self.cancel(order["orderNumber"])
