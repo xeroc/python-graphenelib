@@ -145,7 +145,7 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
     def connect(self) :
         """ Create websocket factory by Autobahn
         """
-        self.factory          = WebSocketClientFactory(self.url, debug=False)
+        self.factory          = WebSocketClientFactory(self.url)
         self.factory.protocol = self.proto
 
     def run_forever(self) :
