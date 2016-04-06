@@ -1,4 +1,3 @@
-from grapheneapi.grapheneclient import GrapheneClient
 from graphenebase import transactions, memo, account
 import random
 import unittest
@@ -7,74 +6,84 @@ from binascii import hexlify
 
 
 class Config():
-    wallet_host       = "localhost"
-    wallet_port       = 8092
-
     witness_url       = "ws://localhost:8090/"
-    wif               = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
-    from_account_name = "nathan"
-    to_account_name   = "init0"
-    amount            = 10
-    asset_name        = "CORE"
-    message           = "abcdefgABCDEFG0123456789"
-    prefix            = "GPH"
 
 
 class Testcases(unittest.TestCase) :
-    def setUp(self):
-        try:
-            self.client = GrapheneClient(Config)
-            self.connected_chain = self.client.getChainInfo()
-            self.skipTests = False
-        except:
-            print("[Warning] Couldn't connect to witness node or cli-wallet. Skipping tests")
-            self.skipTests = True
-
-    def constructWireFormat(self, ops):
-        ops        = transactions.addRequiresFees(self.client.ws, ops, "1.3.0")
-        ref_block_num, ref_block_prefix = transactions.getBlockParams(self.client.ws)
-        expiration = transactions.formatTimeFromNow(30)
-        signed     = transactions.Signed_Transaction(ref_block_num, ref_block_prefix, expiration, ops)
-        w          = signed.sign([Config.wif], chain=self.connected_chain)
-        return w
 
     def test_Transfer(self):
-        if self.skipTests:
-            return
-        to_account   = self.client.ws.get_account(Config.to_account_name)
-        from_account = self.client.ws.get_account(Config.from_account_name)
-        asset        = self.client.ws.get_asset(Config.asset_name)
-        fee          = transactions.Asset(0, "1.3.0")
-        amount       = transactions.Asset(int(Config.amount * 10 ** asset["precision"]), "1.3.0")
-        nonce        = str(random.getrandbits(64))
-        encrypted_memo = memo.encode_memo(account.PrivateKey(Config.wif),
-                                          account.PublicKey(to_account["options"]["memo_key"], prefix=Config.prefix),
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+        pub              = format(account.PrivateKey(wif).pubkey, prefix)
+        from_account_id  = "1.2.0"
+        to_account_id    = "1.2.1"
+        amount           = 1000000
+        asset_id         = "1.3.4"
+        message          = "abcdefgABCDEFG0123456789"
+        nonce            = "5862723643998573708"
+        ref_block_num    = 34294
+        ref_block_prefix = 3707022213
+        expiration       = "2016-04-06T08:29:27"
+
+        fee          = transactions.Asset(amount=0, asset_id="1.3.0")
+        amount       = transactions.Asset(amount=int(amount), asset_id=asset_id)
+        encrypted_memo = memo.encode_memo(account.PrivateKey(wif),
+                                          account.PublicKey(pub, prefix=prefix),
                                           nonce,
-                                          Config.message)
-        memoObj  = transactions.Memo(from_account["options"]["memo_key"],
-                                     to_account["options"]["memo_key"],
-                                     nonce, encrypted_memo,
-                                     chain=self.connected_chain)
-        transfer = transactions.Transfer(fee,
-                                         from_account["id"],
-                                         to_account["id"],
-                                         amount,
-                                         memoObj)
+                                          message)
+        memoStruct = {"from": pub,
+                      "to": pub,
+                      "nonce": nonce,
+                      "message": encrypted_memo,
+                      "chain": prefix}
+        memoObj  = transactions.Memo(**memoStruct)
+        transferStruct = {"fee": fee,
+                          "from": from_account_id,
+                          "to": to_account_id,
+                          "amount": amount,
+                          "memo": memoObj
+                          }
+        transfer = transactions.Transfer(**transferStruct)
         ops    = [transactions.Operation(transfer)]
-        tx     = self.constructWireFormat(ops)
-        txJson = transactions.JsonObj(tx)
-
-        # Let client sign the tx
-        clienttxJson = txJson.copy()
-        clienttxJson["signatures"] = []
-        clienttxJson = self.client.rpc.sign_transaction(clienttxJson, False)
-        clienttxWire = self.client.rpc.serialize_transaction(clienttxJson)
-
-        # Fix Expiration and other tx data
-        tx.data["expiration"] = transactions.PointInTime(clienttxJson["expiration"])
-        tx.data["ref_block_num"] = transactions.Uint16(clienttxJson["ref_block_num"])
-        tx.data["ref_block_prefix"] = transactions.Uint32(clienttxJson["ref_block_prefix"])
+        tx     = transactions.Signed_Transaction(ref_block_num, ref_block_prefix, expiration, ops)
+        tx     = tx.sign([wif], chain=prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
 
-        # Compare
-        self.assertEqual(clienttxWire[:-130], txWire[:-130])
+        compare = "f68585abf4dce7c804570100000000000000000000000140420f0000000000040102c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cf02c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cf8c94d19817945c5120fa5b6e83079a878e499e2e52a76a7739e9de40986a8e3bd8a68ce316cee50b210000011f39e3fa7071b795491e3b6851d61e7c959be92cc7deb5d8491cf1c3c8c99a1eb44553c348fb8f5001a78b18233ac66727e32fc776d48e92d9639d64f68e641948"
+        self.assertEqual(compare[:-130], txWire[:-130])
+
+    def test_pricefeed(self):
+
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+        ref_block_num    = 34294
+        ref_block_prefix = 3707022213
+        expiration       = "2016-04-06T08:29:27"
+
+        feed = transactions.PriceFeed(**{
+            "settlement_price" : transactions.Price(
+                base=transactions.Asset(amount=214211, asset_id="1.3.0"),
+                quote=transactions.Asset(amount=1241, asset_id="1.3.14"),
+            ),
+            "core_exchange_rate" : transactions.Price(
+                base=transactions.Asset(amount=1241, asset_id="1.3.0"),
+                quote=transactions.Asset(amount=6231, asset_id="1.3.14"),
+            ),
+            "maximum_short_squeeze_ratio" : 1100,
+            "maintenance_collateral_ratio" : 1750,
+            })
+
+        pFeed = transactions.Asset_publish_feed(
+            fee=transactions.Asset(amount=100, asset_id="1.3.0"),
+            publisher="1.2.0",
+            asset_id="1.3.3",
+            feed=feed
+        )
+
+        ops    = [transactions.Operation(pFeed)]
+        tx     = transactions.Signed_Transaction(ref_block_num, ref_block_prefix, expiration, ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+
+        compare = "f68585abf4dce7c8045701136400000000000000000003c34403000000000000d9040000000000000ed6064c04d9040000000000000057180000000000000e0000012009e13f9066fedc3c8c1eb2ac33b15dc67ecebf708890d0f8ab62ec8283d1636002315a189f1f5aa8497b41b8e6bb7c4dc66044510fae25d8f6aebb02c7cdef10"
+        self.assertEqual(compare[:-130], txWire[:-130])
