@@ -27,6 +27,8 @@ class RefundFeePool(BaseStrategy):
 
         .. code-block:: python
 
+            from strategies.refund_fee_pool import RefundFeePool
+
             bots["PoolRefill"] = {"bot" : RefundFeePool,
                                   "markets" : ["MKR : BTS", "OPEN.BTC : BTS"],
                                   "target_fill_rate" : 5000.0,  # in BTS

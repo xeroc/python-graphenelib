@@ -224,8 +224,11 @@ class GrapheneExchange(GrapheneClient) :
         base_id      = o["base"]["asset_id"]
         quote, base  = self.ws.get_objects([quote_id, base_id])
         # invert price!
-        return float((base_amount / 10 ** base["precision"]) /
-                     (quote_amount / 10 ** quote["precision"]))
+        if (quote_amount / 10 ** quote["precision"]) > 0.0:
+            return float((base_amount / 10 ** base["precision"]) /
+                         (quote_amount / 10 ** quote["precision"]))
+        else:
+            return None
 
     def _get_price_filled(self, f, m):
         """ A filled order has `receives` and `pays` ops which serve as
@@ -521,7 +524,7 @@ class GrapheneExchange(GrapheneClient) :
 
             Ouput is formated as:::
 
-                [price, amount]
+                [price, amount, orderid]
 
             * price is denoted in base per quote
             * amount is in quote
@@ -557,11 +560,11 @@ class GrapheneExchange(GrapheneClient) :
                 if o["sell_price"]["base"]["asset_id"] == m["base"] :
                     price = self._get_price(o["sell_price"])
                     volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
-                    bids.append([price, volume])
+                    bids.append([price, volume, o["id"]])
                 else :
                     price = 1 / self._get_price(o["sell_price"])
                     volume = float(o["for_sale"]) / 10 ** quote_asset["precision"] / self._get_price(o["sell_price"])
-                    asks.append([price, volume])
+                    asks.append([price, volume, o["id"]])
 
             data = {"asks" : asks, "bids" : bids}
             r.update({market : data})
@@ -1127,75 +1130,85 @@ class GrapheneExchange(GrapheneClient) :
                 r[market] = orders[market]["bids"][0]
         return r
 
-    def get_bids_less_than(self, market, price, limit=25):
-        """ Returns those bids (order ids) that have a price smaller than ``price``
+    def get_bids_more_than(self, market, price, limit=25):
+        """ Returns those bids (order ids) that have a price more than ``price``
             together with volume and actual price.
 
             :param str market: Market to consider
             :param float price: Price threshold
             :param number limit: Limit to x bids (defaults to 25)
 
+            Output format:
+
+            .. code-block:: js
+
+                [[price, volume, id], [price, volume, id], ...]
+
             Example output:
 
             .. code-block:: js
 
                 {
-                    "1.7.32562": [
-                        1.1500000000000001,
-                        0.018
+                    [
+                        0.9945,
+                        0.01,
+                        "1.7.32504"
+                    ],
+                    [
+                        0.9900000120389315,
+                        0.79741296,
+                        "1.7.25548"
                     ]
                 }
         """
-        m = self.markets[market]
-        orders = self.ws.get_limit_orders(
-            m["quote"], m["base"], limit)
-        quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
-        bids = {}
-        for o in orders:
-            if o["sell_price"]["base"]["asset_id"] == m["base"] :
-                price = self._get_price(o["sell_price"])
-                volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
-                bids[o["id"]] = [price, volume]
+        orders = self.returnOrderBook(market, limit)
+        bids = []
+        for o in orders[market]["bids"]:
+            if o[0] > price:
+                bids.append(o)
         return bids
 
-    def get_asks_more_than(self, market, price, limit=25):
-        """ Returns those asks (order ids) that have a price higher than ``price``
+    def get_asks_less_than(self, market, price, limit=25):
+        """ Returns those asks (order ids) that have a price less than ``price``
             together with volume and actual price.
 
             :param str market: Market to consider
             :param float price: Price threshold
             :param number limit: Limit to x bids (defaults to 25)
 
+            Output format:
+
+            .. code-block:: js
+
+                [[price, volume, id], [price, volume, id], ...]
+
             Example output:
 
             .. code-block:: js
 
                 {
-                    "1.7.32504": [
+                    [
                         0.9945,
-                        0.01
+                        0.01,
+                        "1.7.32504"
                     ],
-                    "1.7.25548": [
+                    [
                         0.9900000120389315,
-                        0.79741296
+                        0.79741296,
+                        "1.7.25548"
                     ]
                 }
         """
-        m = self.markets[market]
-        orders = self.ws.get_limit_orders(
-            m["quote"], m["base"], limit)
-        quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
-        asks = {}
-        for o in orders:
-            if o["sell_price"]["base"]["asset_id"] == m["quote"] :
-                price = self._get_price(o["sell_price"])
-                volume = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
-                asks[o["id"]] = [price, volume]
+        orders = self.returnOrderBook(market, limit)
+        asks = []
+        for o in orders[market]["asks"]:
+            if o[0] < price:
+                asks.append(o)
         return asks
 
-    def get_my_bids_less_than(self, market, price):
+    def get_my_bids_more_than(self, market, price):
         """ This call will return those open orders that have a price
-            that is less than ``price``
+            that is more than ``price``
         """
         myOrders = self.returnOpenOrders(market)
         r = []
@@ -1204,9 +1217,9 @@ class GrapheneExchange(GrapheneClient) :
                 r.append(order)
         return r
 
-    def get_my_asks_higher_than(self, market, price):
+    def get_my_asks_less_than(self, market, price):
         """ This call will return those open orders that have a price
-            that is higher than ``price``
+            that is less than ``price``
         """
         myOrders = self.returnOpenOrders(market)
         r = []
@@ -1237,16 +1250,16 @@ class GrapheneExchange(GrapheneClient) :
                 r.append(order)
         return r
 
-    def cancel_bids_less_than(self, market, price):
-        orders = self.get_my_bids_less_than(market, price)
+    def cancel_bids_more_than(self, market, price):
+        orders = self.get_my_bids_more_than(market, price)
         canceledOrders = []
         for order in orders:
             self.cancel(order["orderNumber"])
             canceledOrders.append(order["orderNumber"])
         return canceledOrders
 
-    def cancel_asks_higher_than(self, market, price):
-        orders = self.get_my_asks_higher_than(market, price)
+    def cancel_asks_less_than(self, market, price):
+        orders = self.get_my_asks_less_than(market, price)
         canceledOrders = []
         for order in orders:
             self.cancel(order["orderNumber"])

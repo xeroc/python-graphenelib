@@ -64,13 +64,13 @@ class GrapheneWebsocketRPC(object):
         return self.call_id
 
     def get_account(self, name):
-        if "." in name:
+        if len(name.split(".")) == 3:
             return self.get_objects([name])[0]
         else :
             return self.get_account_by_name(name)
 
     def get_asset(self, name):
-        if "." in name:
+        if len(name.split(".")) == 3:
             return self.get_objects([name])[0]
         else :
             return self.lookup_asset_symbols([name])[0]

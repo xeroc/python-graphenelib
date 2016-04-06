@@ -30,6 +30,8 @@ class CoreExchangeRateTracker(BaseStrategy):
 
         .. code-block:: python
 
+            from strategies.cer_tracker import CoreExchangeRateTracker
+
             bots["CERTracker"] = {"bot" : CoreExchangeRateTracker,
                                   "markets" : ["MKR : BTS"],
                                   "target_premium_percentage" : 2.0,

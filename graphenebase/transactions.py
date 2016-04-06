@@ -7,7 +7,9 @@ import hashlib
 import json
 import struct
 import time
-from .account import PrivateKey, PublicKey
+from graphenebase.account import PrivateKey, PublicKey
+
+timeformat = '%Y-%m-%dT%H:%M:%S%Z'
 
 #: Reserved spaces for object ids
 reserved_spaces = {}
@@ -89,9 +91,9 @@ vote_type["witness"] = 1
 vote_type["worker"] = 2
 
 # : Networks
-known_chains = {"BTS" : {"chain_id" : "",
-                         "core_symbol" : "",
-                         "prefix" : ""},
+known_chains = {"BTS" : {"chain_id" : "4018d7844c78f6a6c41c6a552b898022310fc5dec06da467ee7905a8dad512c8",
+                         "core_symbol" : "BTS",
+                         "prefix" : "BTS"},
                 "GPH" : {"chain_id" : "b8d1603965b3eb1acba27e62ff59f74efa3154d43a4188d381088ac7cdf35539",
                          "core_symbol" : "CORE",
                          "prefix" : "GPH"},
@@ -265,7 +267,7 @@ class PointInTime() :
         self.data = d
 
     def __bytes__(self) :
-        return struct.pack("<I", timegm(time.strptime((self.data + "UTC"), '%Y-%m-%dT%H : %M : %S%Z')))
+        return struct.pack("<I", timegm(time.strptime((self.data + "UTC"), timeformat)))
 
     def __str__(self) :
         return self.data
@@ -538,7 +540,7 @@ class Signed_Transaction(GrapheneObject) :
             i = 0
             while 1 :
                 cnt += 1
-                if not cnt % 10 :
+                if not cnt % 20 :
                     print("Still searching for a canonical signature. Tried %d times already!" % cnt)
 
                 # Deterministic k
@@ -588,13 +590,16 @@ class Signed_Transaction(GrapheneObject) :
 ##############################################################"""
 
 
-def addRequiresFees(ws, ops, asset_id) :
+def addRequiredFees(ws, ops, asset_id) :
     """ Auxiliary method to obtain the required fees for a set of
         operations. Requires a websocket connection to a witness node!
     """
     fees = ws.get_required_fees([JsonObj(i) for i in ops], asset_id)
     for i, d in enumerate(ops) :
-        ops[i].op.data["fee"] = Asset(fees[i]["amount"], fees[i]["asset_id"])
+        ops[i].op.data["fee"] = Asset(
+            amount=fees[i]["amount"],
+            asset_id=fees[i]["asset_id"]
+        )
     return ops
 
 
@@ -604,7 +609,7 @@ def getBlockParams(ws) :
         witness node!
     """
     dynBCParams = ws.get_object("2.1.0")
-    ref_block_num = dynBCParams["head_block_number"]
+    ref_block_num = dynBCParams["head_block_number"] & 0xFFFF
     ref_block_prefix = struct.unpack_from("<I", unhexlify(dynBCParams["head_block_id"]), 4)[0]
     return ref_block_num, ref_block_prefix
 
@@ -617,11 +622,11 @@ def formatTimeFromNow(secs=0) :
     """ Properly Format Time that is `x` seconds in the future
 
      :param int secs: Seconds to go in the future (`x>0`) or the past (`x<0`)
-     :return: Properly formated time for Graphene (`%Y-%m-%dT%H : %M : %S`)
+     :return: Properly formated time for Graphene (`%Y-%m-%dT%H:%M:%S`)
      :rtype: str
 
     """
-    return datetime.utcfromtimestamp(time.time() + int(secs)).strftime('%Y-%m-%dT%H : %M : %S')
+    return datetime.utcfromtimestamp(time.time() + int(secs)).strftime(timeformat)
 
 """##############################################################
          Actual Objects are coming below this line
@@ -636,11 +641,15 @@ class Asset(GrapheneObject) :
             fee = Asset(<amount>, <asset_id>)
             fee = Asset(10, "1.3.0")
     """
-    def __init__(self, _amount, _asset_id) :
-        super().__init__(OrderedDict([
-            ('amount',   Int64(_amount)),
-            ('asset_id', ObjectId(_asset_id, "asset"))
-        ]))
+    def __init__(self, *args, **kwargs) :
+        if (len(args) == 1 and
+            type(args[0]).__name__ == type(self).__name__):
+            self.data = args[0].data
+        else:
+            super().__init__(OrderedDict([
+                ('amount',   Int64(kwargs["amount"])),
+                ('asset_id', ObjectId(kwargs["asset_id"], "asset"))
+            ]))
 
 
 class Memo(GrapheneObject) :
@@ -659,25 +668,69 @@ class Memo(GrapheneObject) :
                 nonce, encrypted_memo,
                 chain=self.connected_chain)
      """
-    def __init__(self, _from=None, _to=None, _nonce=None, _message=None, chain="BTS") :
-        if _message :
-            if isinstance(chain, str) and chain in known_chains :
-                chain_params = known_chains[chain]
-            elif isinstance(chain, dict) :
-                chain_params = chain
+    def __init__(self, *args, chain="BTS", **kwargs) :
+        if (len(args) == 1 and
+            type(args[0]).__name__ == type(self).__name__):
+            self.data = args[0].data
+        else:
+            if "message" in kwargs and kwargs["message"] :
+                if isinstance(chain, str) and chain in known_chains :
+                    chain_params = known_chains[chain]
+                elif isinstance(chain, dict) :
+                    chain_params = chain
+                else :
+                    raise Exception("Memo() only takes a string or a dict as chain!")
+                if "prefix" not in chain_params :
+                    raise Exception("Memo() needs a 'prefix' in chain params!")
+                prefix = chain_params["prefix"]
+                super().__init__(OrderedDict([
+                    ('from',    PublicKey(kwargs["from"], prefix=prefix)),
+                    ('to',      PublicKey(kwargs["to"], prefix=prefix)),
+                    ('nonce',   Uint64(int(kwargs["nonce"]))),
+                    ('message', Bytes(kwargs["message"]))
+                ]))
             else :
-                raise Exception("Memo() only takes a string or a dict as chain!")
-            if "prefix" not in chain_params :
-                raise Exception("Memo() needs a 'prefix' in chain params!")
-            prefix = chain_params["prefix"]
+                super().__init__(None)
+
+
+class Price(GrapheneObject):
+    """ Price Object.
+
+        Usage:::
+
+            quote = Asset(<amount>, <asset_id>)
+            base  = Asset(<amount>, <asset_id>)
+            price = Price(quote, base)
+            
+
+    """
+    def __init__(self, *args, **kwargs) :
+        if (len(args) == 1 and
+            type(args[0]).__name__ == type(self).__name__):
+            self.data = args[0].data
+        else:
             super().__init__(OrderedDict([
-                ('from',    PublicKey(_from, prefix=prefix)),
-                ('to',      PublicKey(_to, prefix=prefix)),
-                ('nonce',   Uint64(int(_nonce))),
-                ('message', Bytes(_message))
+                ('base', Asset(kwargs["base"])),
+                ('quote', Asset(kwargs["quote"]))
             ]))
-        else :
-            super().__init__(None)
+
+
+class PriceFeed(GrapheneObject):
+    def __init__(self, *args, **kwargs) :
+        if (len(args) == 1 and
+            type(args[0]).__name__ == type(self).__name__):
+            self.data = args[0].data
+        else:
+            super().__init__(OrderedDict([
+                ('settlement_price', Price(kwargs["settlement_price"])),
+                ('maintenance_collateral_ratio', Uint16(kwargs["maintenance_collateral_ratio"])),
+                ('maximum_short_squeeze_ratio', Uint16(kwargs["maximum_short_squeeze_ratio"])),
+                ('core_exchange_rate', Price(kwargs["core_exchange_rate"])),
+            ]))
+
+"""
+             O P E R A T I O N S
+"""
 
 
 class Transfer(GrapheneObject) :
@@ -692,12 +745,31 @@ class Transfer(GrapheneObject) :
                 amount,
                 memoObj)
     """
-    def __init__(self, _feeObj, _from, _to, _amountObj, _memo=None) :
-        super().__init__(OrderedDict([
-            ('fee'       , _feeObj),
-            ('from'      , ObjectId(_from, "account")),
-            ('to'        , ObjectId(_to, "account")),
-            ('amount'    , _amountObj),
-            ('memo'      , Optional(_memo)),
-            ('extensions', Set([])),
-        ]))
+    def __init__(self, *args, **kwargs) :
+        if (len(args) == 1 and
+            type(args[0]).__name__ == type(self).__name__):
+            self.data = args[0].data
+        else:
+            super().__init__(OrderedDict([
+                ('fee'       , Asset(kwargs["fee"])),
+                ('from'      , ObjectId(kwargs["from"], "account")),
+                ('to'        , ObjectId(kwargs["to"], "account")),
+                ('amount'    , Asset(kwargs["amount"])),
+                ('memo'      , Optional(Memo(kwargs["memo"]))),
+                ('extensions', Set([])),
+            ]))
+
+
+class Asset_publish_feed(GrapheneObject):
+    def __init__(self, *args, **kwargs) :
+        if (len(args) == 1 and
+            type(args[0]).__name__ == type(self).__name__):
+            self.data = args[0].data
+        else:
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('publisher', ObjectId(kwargs["publisher"], "account")),
+                ('asset_id', ObjectId(kwargs["asset_id"], "asset")),
+                ('feed', PriceFeed(kwargs["feed"])),
+                ('extensions', Set([])),
+            ]))

@@ -13,7 +13,7 @@ except LookupError:
     func = lambda name, enc=ascii: {True: enc}.get(name=='mbcs')
     codecs.register(func)
 
-VERSION = '0.3.6'
+VERSION = '0.3.7'
 
 setup(name='graphenelib',
       version=VERSION,
