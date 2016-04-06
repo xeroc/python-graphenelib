@@ -538,7 +538,7 @@ class GrapheneClient() :
             [_instance, _type, _id] = oid.split(".")
             if (not (oid in self.ws.objectMap) or
                     _instance == "1" and _type == "7"):  # force refresh orders
-                data = self.rpc.get_object(oid)
+                data = self.ws.get_object(oid)
                 self.ws.objectMap[oid] = data
             else:
                 data = self.ws.objectMap[oid]
