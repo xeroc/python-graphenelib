@@ -1,6 +1,6 @@
-********
-Classses
-********
+*******
+Classes
+*******
 
 The library comes with a set of classes that are separated in different
 packages:
