@@ -146,6 +146,10 @@ def JsonObj(data) :
     return json.loads(str(data))
 
 
+def isArgsThisClass(self, args):
+    return (len(args) == 1 and type(args[0]).__name__ == type(self).__name__)
+
+
 class Uint8() :
     def __init__(self, d) :
         self.data = d
@@ -355,9 +359,19 @@ class Id() :
 
 class Operation() :
     def __init__(self, op) :
-        self.op = op
-        self.name = type(self.op).__name__.lower()  # also store name
-        self.opId = operations[self.name]
+        if isinstance(op, list) and len(op) == 2:
+            self.opId = op[0]
+            name = getOperationNameForId(self.opId)
+            self.name = name[0].upper() + name[1:]
+            try:
+                klass = eval(self.name)
+            except:
+                raise NotImplementedError("Unimplemented Operation %s" % self.name)
+            self.op = klass(op[1])
+        else:
+            self.op = op
+            self.name = type(self.op).__name__.lower()  # also store name
+            self.opId = operations[self.name]
 
     def __bytes__(self) :
         return bytes(Id(self.opId)) + bytes(self.op)
@@ -438,15 +452,33 @@ class Signed_Transaction(GrapheneObject) :
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
-    def __init__(self, refNum, refPrefix, expiration, operations) :
-        super().__init__(OrderedDict([
-            ('ref_block_num', Uint16(refNum)),
-            ('ref_block_prefix', Uint32(refPrefix)),
-            ('expiration', PointInTime(expiration)),
-            ('operations', Array(operations)),
-            ('extensions', Set([])),
-            ('signatures', Void()),
-        ]))
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "extensions" not in kwargs:
+                kwargs["extensions"] = Set([])
+            if "signatures" not in kwargs:
+                kwargs["signatures"] = Array([])
+            else:
+                kwargs["signatures"] = Array([Signature(unhexlify(a)) for a in kwargs["signatures"]])
+
+            if "operations" in kwargs:
+                if all([not isinstance(a, Operation) for a in kwargs["operations"]]):
+                    kwargs['operations'] = Array([Operation(a) for a in kwargs["operations"]])
+                else:
+                    kwargs['operations'] = Array(kwargs["operations"])
+
+            super().__init__(OrderedDict([
+                ('ref_block_num', Uint16(kwargs['ref_block_num'])),
+                ('ref_block_prefix', Uint32(kwargs['ref_block_prefix'])),
+                ('expiration', PointInTime(kwargs['expiration'])),
+                ('operations', kwargs['operations']),
+                ('extensions', kwargs['extensions']),
+                ('signatures', kwargs['signatures']),
+            ]))
 
     def recoverPubkeyParameter(self, digest, signature, pubkey) :
         """ Use to derive a number that allows to easily recover the
@@ -634,18 +666,12 @@ def formatTimeFromNow(secs=0) :
 
 
 class Asset(GrapheneObject) :
-    """ Asset object
-
-        usage:::
-
-            fee = Asset(<amount>, <asset_id>)
-            fee = Asset(10, "1.3.0")
-    """
     def __init__(self, *args, **kwargs) :
-        if (len(args) == 1 and
-            type(args[0]).__name__ == type(self).__name__):
-            self.data = args[0].data
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
         else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
             super().__init__(OrderedDict([
                 ('amount',   Int64(kwargs["amount"])),
                 ('asset_id', ObjectId(kwargs["asset_id"], "asset"))
@@ -653,27 +679,17 @@ class Asset(GrapheneObject) :
 
 
 class Memo(GrapheneObject) :
-    """ Memo object
-
-        usage:::
-
-            encrypted_memo = memo.encode_memo(
-                account.PrivateKey(Config.wif),
-                account.PublicKey(to_account["options"]["memo_key"], prefix=Config.prefix),
-                nonce,
-                Config.message)
-            memoObj = transactions.Memo(
-                from_account["options"]["memo_key"],
-                to_account["options"]["memo_key"],
-                nonce, encrypted_memo,
-                chain=self.connected_chain)
-     """
-    def __init__(self, *args, chain="BTS", **kwargs) :
-        if (len(args) == 1 and
-            type(args[0]).__name__ == type(self).__name__):
-            self.data = args[0].data
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
         else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
             if "message" in kwargs and kwargs["message"] :
+                if "chain" not in kwargs:
+                    chain = "BTS"
+                else:
+                    chain = kwargs["chain"]
                 if isinstance(chain, str) and chain in known_chains :
                     chain_params = known_chains[chain]
                 elif isinstance(chain, dict) :
@@ -694,33 +710,24 @@ class Memo(GrapheneObject) :
 
 
 class Price(GrapheneObject):
-    """ Price Object.
-
-        Usage:::
-
-            quote = Asset(<amount>, <asset_id>)
-            base  = Asset(<amount>, <asset_id>)
-            price = Price(quote, base)
-            
-
-    """
     def __init__(self, *args, **kwargs) :
-        if (len(args) == 1 and
-            type(args[0]).__name__ == type(self).__name__):
-            self.data = args[0].data
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
         else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
             super().__init__(OrderedDict([
                 ('base', Asset(kwargs["base"])),
                 ('quote', Asset(kwargs["quote"]))
             ]))
 
-
 class PriceFeed(GrapheneObject):
     def __init__(self, *args, **kwargs) :
-        if (len(args) == 1 and
-            type(args[0]).__name__ == type(self).__name__):
-            self.data = args[0].data
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
         else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
             super().__init__(OrderedDict([
                 ('settlement_price', Price(kwargs["settlement_price"])),
                 ('maintenance_collateral_ratio', Uint16(kwargs["maintenance_collateral_ratio"])),
@@ -734,22 +741,12 @@ class PriceFeed(GrapheneObject):
 
 
 class Transfer(GrapheneObject) :
-    """ Transfer object
-
-        usage:::
-
-            transfer = transactions.Transfer(
-                fee,
-                from_account["id"],
-                to_account["id"],
-                amount,
-                memoObj)
-    """
     def __init__(self, *args, **kwargs) :
-        if (len(args) == 1 and
-            type(args[0]).__name__ == type(self).__name__):
-            self.data = args[0].data
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
         else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
             super().__init__(OrderedDict([
                 ('fee'       , Asset(kwargs["fee"])),
                 ('from'      , ObjectId(kwargs["from"], "account")),
@@ -762,10 +759,11 @@ class Transfer(GrapheneObject) :
 
 class Asset_publish_feed(GrapheneObject):
     def __init__(self, *args, **kwargs) :
-        if (len(args) == 1 and
-            type(args[0]).__name__ == type(self).__name__):
-            self.data = args[0].data
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
         else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
             super().__init__(OrderedDict([
                 ('fee', Asset(kwargs["fee"])),
                 ('publisher', ObjectId(kwargs["publisher"], "account")),
