@@ -70,7 +70,7 @@ print ('')
 price = BTC_altcap_price  # quote assets per backing asset
 
 #: Scale the Core exchange rate
-scale_cer = 1.05 * BTC_BTS / 1000  # * BTC_BTS / 1000 difference in precision ALTCAP / BTS
+scale_cer = 0.95
 
 
 #: Connection Settings
@@ -110,10 +110,10 @@ if __name__ == '__main__':
                        "maximum_short_squeeze_ratio"  : 1069,
                        "core_exchange_rate": {
                        "quote": {"asset_id": "1.3.0",		# CER only works in BTS
-                                 "amount": int(denominator * scale_cer)
+                                 "amount": int(denominator * scale_cer / 1000)
                                  },
                        "base": {"asset_id": asset["id"],
-                                "amount": numerator
+                                "amount": numerator / BTC_BTS
                                 }}}
         handle = graphene.rpc.begin_builder_transaction()
         op = [19,  # id 19 corresponds to price feed update operation
