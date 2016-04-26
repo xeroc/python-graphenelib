@@ -55,7 +55,7 @@ if __name__ == '__main__':
                        "maintenance_collateral_ratio" : 1200,
                        "maximum_short_squeeze_ratio"  : 1100,
                        "core_exchange_rate": {
-                       "quote": {"asset_id": base["id"],
+                       "quote": {"asset_id": "1.3.0",
                                  "amount": int(denominator * scale_cer)
                                  },
                        "base": {"asset_id": asset["id"],

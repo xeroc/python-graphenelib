@@ -151,6 +151,7 @@ class PublicKey(Address):
     """ This class deals with Public Keys and inherits ``Address``.
 
         :param str pk: Base58 encoded public key
+        :param str prefix: Network prefix (defaults to ``BTS``)
 
         Example:::
 
@@ -163,7 +164,7 @@ class PublicKey(Address):
                       PublicKey("xxxxx").unCompressed()
 
     """
-    def __init__(self, pk, prefix=None):
+    def __init__(self, pk, prefix="BTS"):
         self.prefix  = prefix
         self._pk     = Base58(pk, prefix=prefix)
         self.address = Address(pubkey=pk, prefix=prefix)
@@ -222,6 +223,7 @@ class PrivateKey(PublicKey):
         constructs two instances of ``PublicKey``:
 
         :param str wif: Base58check-encoded wif key
+        :param str prefix: Network prefix (defaults to ``BTS``)
 
         Example:::
 
@@ -238,7 +240,7 @@ class PrivateKey(PublicKey):
             Instance of ``Address`` using uncompressed key.
 
     """
-    def __init__(self, wif=None):
+    def __init__(self, wif=None, prefix="BTS"):
         if wif is None :
             import os
             self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))
@@ -248,10 +250,10 @@ class PrivateKey(PublicKey):
             self._wif = Base58(wif)
         # compress pubkeys only
         self._pubkeyhex, self._pubkeyuncompressedhex = self.compressedpubkey()
-        self.pubkey               = PublicKey(self._pubkeyhex)
-        self.uncompressed         = PublicKey(self._pubkeyuncompressedhex)
-        self.uncompressed.address = Address(pubkey=self._pubkeyuncompressedhex)
-        self.address              = Address(pubkey=self._pubkeyhex)
+        self.pubkey               = PublicKey(self._pubkeyhex, prefix=prefix)
+        self.uncompressed         = PublicKey(self._pubkeyuncompressedhex, prefix=prefix)
+        self.uncompressed.address = Address(pubkey=self._pubkeyuncompressedhex, prefix=prefix)
+        self.address              = Address(pubkey=self._pubkeyhex, prefix=prefix)
 
     def compressedpubkey(self):
         """ Derive uncompressed public key """

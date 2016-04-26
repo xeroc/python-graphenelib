@@ -73,7 +73,9 @@ def init(conf, **kwargs):
                               dex=dex, index=index)
         # Maybe the strategy/bot has some additional customized
         # initialized besides the basestrategy's __init__()
+        bots[name].loadMarket()
         bots[name].init()
+        bots[name].store()
 
 
 def wait_block():

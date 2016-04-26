@@ -1,6 +1,0 @@
-autobahn
-requests
-pycrypto
-scrypt
-ecdsa
-websocket-client

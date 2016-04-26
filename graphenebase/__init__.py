@@ -10,4 +10,10 @@ __all__ = ['account',
            'base58',
            'bip38',
            'transactions',
-           'memo']
+           'memo',
+           'types',
+           'chains',
+           'objects',
+           'operations',
+           'signedtransactions',
+           'objecttypes']

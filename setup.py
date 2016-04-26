@@ -13,7 +13,7 @@ except LookupError:
     func = lambda name, enc=ascii: {True: enc}.get(name=='mbcs')
     codecs.register(func)
 
-VERSION = '0.3.7'
+VERSION = '0.3.8'
 
 setup(name='graphenelib',
       version=VERSION,
@@ -32,6 +32,13 @@ setup(name='graphenelib',
                 "grapheneextra",
                 "grapheneexchange",
                 ],
+      install_requires=["autobahn",
+                        "requests",
+                        "pycrypto",
+                        "scrypt",
+                        "ecdsa",
+                        "websocket-client",
+                        ],
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
                    'Programming Language :: Python :: 3',
