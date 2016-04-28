@@ -46,7 +46,7 @@ dist:
 release: clean check dist steem-readme steem-changelog
 
 steem-readme:
-	piston edit "@xeroc/python-graphenelib-readme" --file README.md
+	piston edit "@xeroc/python-graphenelib-readme" --file README.rst
 
 steem-changelog:
 	git tag -l -n100 $(TAG) | piston post --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category steem --title "[Changelog] python-graphenelib $(TAG)" \
