@@ -7,7 +7,8 @@ Python 3 library for Graphene 2.0!
 
 [![docs master](https://readthedocs.org/projects/python-graphenelib/badge/?version=latest)](http://python-graphenelib.readthedocs.org/en/latest/)
 [![Travis master](https://travis-ci.org/xeroc/python-graphenelib.png?branch=master)](https://travis-ci.org/xeroc/python-graphenelib)
-[![Codecov master](https://img.shields.io/codecov/c/github/xeroc/python-graphenelib/master.svg?maxAge=2592000)]()
+[![codecov](https://codecov.io/gh/xeroc/python-graphenelib/branch/master/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
+
 
 [![PyPI](https://img.shields.io/pypi/dm/graphenelib.svg?maxAge=2592000)]()
 [![PyPI](https://img.shields.io/pypi/dw/graphenelib.svg?maxAge=2592000)]()
@@ -17,7 +18,7 @@ Python 3 library for Graphene 2.0!
 
 [![docs develop](https://readthedocs.org/projects/python-graphenelib/badge/?version=develop)](http://python-graphenelib.readthedocs.org/en/develop/)
 [![Travis develop](https://travis-ci.org/xeroc/python-graphenelib.png?branch=develop)](https://travis-ci.org/xeroc/python-graphenelib)
-[![Codecov develop](https://img.shields.io/codecov/c/github/xeroc/python-graphenelib/develop.svg?maxAge=2592000)]()
+[![codecov develop](https://codecov.io/gh/xeroc/python-graphenelib/branch/develop/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
 
 Installation
 ------------
