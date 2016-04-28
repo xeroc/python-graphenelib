@@ -1,0 +1,56 @@
+Python Library for Graphene
+===========================
+
+Python 3 library for Graphene 2.0!
+
+**Stable**
+
+[![docs master](https://readthedocs.org/projects/python-graphenelib/badge/?version=latest)](http://python-graphenelib.readthedocs.org/en/latest/)
+[![Travis master](https://travis-ci.org/xeroc/python-graphenelib.png?branch=master)](https://travis-ci.org/xeroc/python-graphenelib)
+[![Codecov master](https://img.shields.io/codecov/c/github/xeroc/python-graphenelib/master.svg?maxAge=2592000)]()
+
+[![PyPI](https://img.shields.io/pypi/dm/graphenelib.svg?maxAge=2592000)]()
+[![PyPI](https://img.shields.io/pypi/dw/graphenelib.svg?maxAge=2592000)]()
+[![PyPI](https://img.shields.io/pypi/dd/graphenelib.svg?maxAge=2592000)]()
+
+**Develop**
+
+[![docs develop](https://readthedocs.org/projects/python-graphenelib/badge/?version=develop)](http://python-graphenelib.readthedocs.org/en/develop/)
+[![Travis develop](https://travis-ci.org/xeroc/python-graphenelib.png?branch=develop)](https://travis-ci.org/xeroc/python-graphenelib)
+[![Codecov develop](https://img.shields.io/codecov/c/github/xeroc/python-graphenelib/develop.svg?maxAge=2592000)]()
+
+Installation
+------------
+
+Install with `pip`:
+
+    $ sudo apt-get install libffi-dev libssl-dev python-dev
+    $ pip3 install graphenelib
+
+Manual installation:
+
+    $ git clone https://github.com/xeroc/python-graphenelib/
+    $ cd python-graphenelib
+    $ python3 setup.py install --user
+
+Upgrade
+-------
+
+    $ pip install --user --upgrade graphenelib
+
+Documentation
+-------------
+
+Thanks to readthedocs.org, the documentation can be viewed
+[online](http://python-graphenelib.readthedocs.org/en/latest/)
+
+Documentation is written with the help of sphinx and can be compile to
+html with:
+
+    cd docs
+    make html
+
+Licence
+-------
+
+See `LICENCE.txt`
