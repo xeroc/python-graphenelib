@@ -5,9 +5,14 @@ from collections import OrderedDict
 
 try:
     from autobahn.asyncio.websocket import WebSocketClientFactory
-    from autobahn.websocket.protocol import parseWsUrl
 except ImportError:
     raise ImportError("Missing dependency: python-autobahn")
+
+try:
+    from autobahn.websocket.protocol import parseWsUrl
+except:
+    from autobahn.websocket.util import parse_url as parseWsUrl
+
 from .graphenewsprotocol import GrapheneWebsocketProtocol
 from .graphenewsrpc import GrapheneWebsocketRPC
 
