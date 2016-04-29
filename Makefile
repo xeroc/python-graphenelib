@@ -20,13 +20,6 @@ clean-pyc:
 lint:
 	flake8 grapheneapi/ graphenebase/ grapheneextra/
 
-#test:
-#	py.test tests
-
-#test-all:
-#	tox
-#
-
 build:
 	python3 setup.py build
 
@@ -53,4 +46,4 @@ steem-readme:
 	piston edit "@xeroc/python-graphenelib-readme" --file README.md
 
 steem-changelog:
-	git tag -l -n100 $(TAG) | piston post --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category steem --title "[Changelog] python-graphenelib $(TAG)" \
+	git tag -l -n100 $(TAG) | piston post --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category steem --title "[Changelog] python-graphenelib $(TAG)" --file "-"

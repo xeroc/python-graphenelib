@@ -5,7 +5,7 @@ Python 3 library for Graphene 2.0!
 
 **Stable**
 
-[![docs master](https://readthedocs.org/projects/python-graphenelib/badge/?version=latest)](http://python-graphenelib.readthedocs.org/en/latest/)
+[![docs master](https://readthedocs.io/projects/python-graphenelib/badge/?version=latest)](http://python-graphenelib.readthedocs.io/en/latest/)
 [![Travis master](https://travis-ci.org/xeroc/python-graphenelib.png?branch=master)](https://travis-ci.org/xeroc/python-graphenelib)
 [![codecov](https://codecov.io/gh/xeroc/python-graphenelib/branch/master/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
 
@@ -16,7 +16,7 @@ Python 3 library for Graphene 2.0!
 
 **Develop**
 
-[![docs develop](https://readthedocs.org/projects/python-graphenelib/badge/?version=develop)](http://python-graphenelib.readthedocs.org/en/develop/)
+[![docs develop](https://readthedocs.io/projects/python-graphenelib/badge/?version=develop)](http://python-graphenelib.readthedocs.io/en/develop/)
 [![Travis develop](https://travis-ci.org/xeroc/python-graphenelib.png?branch=develop)](https://travis-ci.org/xeroc/python-graphenelib)
 [![codecov develop](https://codecov.io/gh/xeroc/python-graphenelib/branch/develop/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
 
@@ -42,8 +42,8 @@ Upgrade
 Documentation
 -------------
 
-Thanks to readthedocs.org, the documentation can be viewed
-[online](http://python-graphenelib.readthedocs.org/en/latest/)
+Thanks to readthedocs.io, the documentation can be viewed
+[online](http://python-graphenelib.readthedocs.io/en/latest/)
 
 Documentation is written with the help of sphinx and can be compile to
 html with:
