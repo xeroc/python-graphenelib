@@ -227,9 +227,10 @@ class PrivateKey(PublicKey):
 
         Example:::
 
-           PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")
+            PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")
 
         Compressed vs. Uncompressed:
+
         * ``PrivateKey("w-i-f").pubkey``:
             Instance of ``PublicKey`` using compressed key.
         * ``PrivateKey("w-i-f").pubkey.address``:
