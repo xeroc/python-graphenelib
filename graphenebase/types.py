@@ -172,7 +172,13 @@ class Array() :
         return bytes(self.length) + b"".join([bytes(a) for a in self.data])
 
     def __str__(self) :
-        return json.dumps([JsonObj(a) for a in self.data])
+        r = []
+        for a in self.data:
+            if isinstance(a, ObjectId):
+                r.append(str(a))
+            else:
+                r.append(JsonObj(a))
+        return json.dumps(r)
 
 
 class PointInTime() :
