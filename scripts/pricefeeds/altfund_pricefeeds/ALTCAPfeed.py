@@ -12,53 +12,88 @@ producers = ["altfund"]
 ######################################################################
 # Feed price calculations for ALTCAP
 ######################################################################
+
+btcCaps = []
+altCaps = []
+
 # get coincap prices
 # BTS $ "usdPrice"
 # BTC $ "btcPrice"
-coincap = requests.get('http://www.coincap.io/page/BTS')
-coincap_usdBTS = float(coincap.json()["usdPrice"])
-coincap_usdBTC = float(coincap.json()["btcPrice"])
-coincap_btcCap = float(coincap.json()["btcCap"])
-coincap_altCAP = float(coincap.json()["altCap"])
+try:
+    coincap = requests.get('http://www.coincap.io/page/BTS')
+    coincap_usdBTS = float(coincap.json()["usdPrice"])
+    coincap_usdBTC = float(coincap.json()["btcPrice"])
+    coincap_btcCap = float(coincap.json()["btcCap"])
+    coincap_altCap = float(coincap.json()["altCap"])
+except Exception as e:
+    print("Something went wrong while getting the data from coincap")
+    print(e)
+else:
+    btcCaps.append(coincap_btcCap)
+    altCaps.append(coincap_altCap)
 
-# print prices
-print ('btcCap $',coincap_btcCap)
-print ('altCap $',coincap_altCAP)
+    # print prices
+    print ('btcCap $',coincap_btcCap)
+    print ('altCap $',coincap_altCap)
+    print ('')
+
+    # print prices
+    print ('BTC $',coincap_usdBTC)
+    print ('BTS $',coincap_usdBTS)
+    print ('')
+
+
+    # BTC:BTS  price
+    BTC_BTS = coincap_usdBTC / coincap_usdBTS
+    BTS_BTC = coincap_usdBTS / coincap_usdBTC
+
+    # print BTC BTS price
+    print ('BTC:BTS  ',BTC_BTS)
+    print ('BTS:BTC  ',BTS_BTC)
+    print ('')
+
+    # price calculations
+    BTC_altcap_price = coincap_btcCap / coincap_altCap
+    altcap_BTC_price = coincap_altCap / coincap_btcCap
+
+
+    # ALTCAP:BTS  price
+    ALTCAP_BTS = BTC_BTS / BTC_altcap_price
+    BTS_ALTCAP = BTC_altcap_price / BTC_BTS
+
+    # print ALTCAP:BTS price
+    print ('ALTCAP:BTS  ',ALTCAP_BTS)
+    print ('BTS:ALTCAP  ',BTS_ALTCAP)
+    print ('')
+
+# get coinmarketcap data
+try:
+    cmc_global = requests.get('https://api.coinmarketcap.com/v1/global/').json()
+    cmc_bitcoin = requests.get('https://api.coinmarketcap.com/v1/ticker/bitcoin/').json()[0]
+    cmc_btcCap = cmc_bitcoin['market_cap_usd']
+    cmc_altCap = cmc_global['total_market_cap_usd'] - cmc_bitcoin['market_cap_usd']
+except Exception as e:
+    print("Something went wrong while getting the data from coinmarketcap")
+    print(e)
+else:
+    btcCaps.append(cmc_btcCap)
+    altCaps.append(cmc_altCap)
+
+if len(btcCaps) != 0:
+    btcCapsAverage = sum(btcCaps) / len(btcCaps)
+    altCapsAverage = sum(altCaps) / len(altCaps)
+else:
+    raise Exception("No pricefeeds")
+
+BTC_altcap_price = btcCapsAverage / altCapsAverage
+altcap_BTC_price = altCapsAverage / btcCapsAverage
+
+print('BTC caps:', btcCaps, 'average:', btcCapsAverage)
+print('ALT caps:', altCaps, 'average:', altCapsAverage)
 print ('')
 
-# print prices
-print ('BTC $',coincap_usdBTC)
-print ('BTS $',coincap_usdBTS)
-print ('')
-
-
-# BTC:BTS  price
-BTC_BTS = coincap_usdBTC / coincap_usdBTS
-BTS_BTC = coincap_usdBTS / coincap_usdBTC
-
-# print BTC BTS price 
-print ('BTC:BTS  ',BTC_BTS)
-print ('BTS:BTC  ',BTS_BTC)
-print ('')
-
-
-# price calculations
-BTC_altcap_price = coincap_btcCap / coincap_altCAP
-altcap_BTC_price = coincap_altCAP / coincap_btcCap
-
-# print altcap ratio 
 print ('ALTCAP:BTC  ',altcap_BTC_price)
 print ('BTC:ALTCAP  ',BTC_altcap_price)
-print ('')
-
-
-# ALTCAP:BTS  price
-ALTCAP_BTS = BTC_BTS / BTC_altcap_price
-BTS_ALTCAP = BTC_altcap_price / BTC_BTS
-
-# print ALTCAP:BTS price 
-print ('ALTCAP:BTS  ',ALTCAP_BTS)
-print ('BTS:ALTCAP  ',BTS_ALTCAP)
 print ('')
 
 ######################################################################
