@@ -415,7 +415,7 @@ class CoinmarketcapAltcap(FeedSource) :
     def fetch(self):
         feed = {}
         base = self.bases[0]
-        if base == 'BTS':
+        if base == 'BTC':
             feed[base] = {}
             try :
                 ticker = requests.get('https://api.coinmarketcap.com/v1/ticker/').json()
@@ -452,7 +452,7 @@ class CoincapAltcap(FeedSource) :
     def fetch(self):
         feed = {}
         base = self.bases[0]
-        if base == 'BTS':
+        if base == 'BTC':
             feed[base] = {}
             try :
                 coincap_front = requests.get('http://www.coincap.io/front').json()
