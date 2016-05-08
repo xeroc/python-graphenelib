@@ -193,6 +193,20 @@ feedSources["btcchina"] = feedsources.BtcChina(allowFailure=True, quotes=["BTC"]
 feedSources["okcoin"]   = feedsources.Okcoin(allowFailure=True, quotes=["BTC"], bases=["CNY", "USD"])
 feedSources["huobi"]    = feedsources.Huobi(allowFailure=True, quotes=["BTC"], bases=["CNY"])
 
+#feedSources["openexchangerates"] = feedsources.OpenExchangeRates(api_key="", 
+#                                                                 free_subscription=True,
+#                                                                 allowFailure=True,
+#                                                                 quotes=["ARS", "BTC", "EUR", "JPY"], # more available
+#                                                                 bases=["USD"]) # only USD with free subscription
+#feedSources["currencylayer"] = feedsources.CurrencyLayer(api_key="",
+#                                                                 free_subscription=True,
+#                                                                 allowFailure=True,
+#                                                                 quotes=["ARS", "BTC", "EUR", "JPY"], # more available
+#                                                                 bases=["USD"]) # only USD with free subscription
+#feedSources["fixer"] = feedsources.Fixer(allowFailure=True, quotes=["EUR", "JPY", "SEK", "CNY"], bases=["EUR", "USD", "CNY"]) # more available
+#feedSources["bitcoinvenezuela"] = feedsources.BitcoinVenezuela(allowFailure=True, quotes=["EUR", "USD", "VEF", "ARS", "BTC", "LTC"], bases=["BTC", "LTC", "USD"])
+# feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True, quotes=["BTS"], bases=["BTC"])
+# feedSources["bter"]     = feedsources.Bter(allowFailure=True, quotes=["BTC", "BTS"], bases=["BTC", "CNY", "USD"])
 # feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True, quotes=["BTS"], bases=["BTC"])
 # feedSources["bter"]     = feedsources.Bter(allowFailure=True, quotes=["BTC", "BTS"], bases=["BTC", "CNY", "USD"])
 
