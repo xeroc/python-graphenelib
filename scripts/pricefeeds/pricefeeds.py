@@ -111,9 +111,19 @@ def fetch_from_wallet(rpc):
         assets[asset] = a  # resolve SYMBOL
         assets[a["id"]] = a  # resolve id
 
+    # sorted list with settlement price with bts as quote first
+    result_list_publish_sorted = []
     for asset in asset_list_publish :
         # feeds for asset
         result = rpc.get_bitasset_data(asset)
+        if result['current_feed']['settlement_price']['quote']['asset_id'] == "1.3.0":
+            result_list_publish_sorted.insert(0, result)
+        else:
+            result_list_publish_sorted.append(result)
+
+    for result in result_list_publish_sorted:
+        asset_id = result["current_feed"]["core_exchange_rate"]["base"]["asset_id"]
+        asset = assets[asset_id]["symbol"]
         # defaults
         price_median_blockchain[asset] = 0.0
         myCurrentFeed[asset] = -1.0
@@ -128,7 +138,13 @@ def fetch_from_wallet(rpc):
             quote_precision = assets[quote["asset_id"]]["precision"]
             base_price  = (int(base["amount"]) / 10 ** base_precision)
             quote_price = (int(quote["amount"]) / 10 ** quote_precision)
-            price_median_blockchain[asset] = float(base_price / quote_price)
+
+            quote_asset_id = result['current_feed']['settlement_price']['quote']['asset_id']
+            quote_asset = assets[quote_asset_id]["symbol"]
+            if quote_asset == "BTS":
+                price_median_blockchain[asset] = float(base_price / quote_price)
+            else:
+                price_median_blockchain[asset] = float(base_price / quote_price) * price_median_blockchain[quote_asset]
             # (base should be 1.3.0)BTS) hence price is x USD/BTS)
 
             # my feed specifics
