@@ -203,6 +203,15 @@ feedSources["huobi"]    = feedsources.Huobi(allowFailure=True, quotes=["BTC"], b
 #                                                                 allowFailure=True,
 #                                                                 quotes=["ARS", "BTC", "EUR", "JPY"], # more available
 #                                                                 bases=["USD"]) # only USD with free subscription
+#feedSources["coinmarketcap"]    = feedsources.CoinmarketcapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
+#                                                                    quoteName={"ALTCAP":"ALTCAP", "ALTCAP.X":"ALTCAP.X"},
+#                                                                    bases=["BTS"],
+#                                                                    allowFailure=True)
+#
+#feedSources["coincap"]    = feedsources.CoincapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
+#                                                                    quoteName={"ALTCAP":"ALTCAP", "ALTCAP.X":"ALTCAP.X"},
+#                                                                    bases=["BTS"],
+#                                                                    allowFailure=True)
 #feedSources["fixer"] = feedsources.Fixer(allowFailure=True, quotes=["EUR", "JPY", "SEK", "CNY"], bases=["EUR", "USD", "CNY"]) # more available
 #feedSources["bitcoinvenezuela"] = feedsources.BitcoinVenezuela(allowFailure=True, quotes=["EUR", "USD", "VEF", "ARS", "BTC", "LTC"], bases=["BTC", "LTC", "USD"])
 # feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True, quotes=["BTS"], bases=["BTC"])
