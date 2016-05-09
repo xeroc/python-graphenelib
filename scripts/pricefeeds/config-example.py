@@ -63,7 +63,7 @@ change_max                   = 5.0       # Percentage of price change to cause a
 ################################################################################
 _all_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
                "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-               "KRW", "TCNY"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
+               "KRW"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
 _bases = ["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
 
 asset_config = {"default" : {  # DEFAULT BEHAVIOR
@@ -135,9 +135,6 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                 #
                 # As requested by the issuer, the squeere ratio should be
                 # 100.1%
-                "TCNY" : {
-                    "maximum_short_squeeze_ratio"   : 1001,
-                },
                 "TUSD" : {
                     "maximum_short_squeeze_ratio"   : 1001
                 },
@@ -151,7 +148,7 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
 # Note:
 #  The usual asset specific parameters have to be set in "asset_config",
 #  otherwise they will be ignored!
-secondary_mpas = {"TCNY" : {"sameas" : "CNY"},
+secondary_mpas = {
                   "TUSD" : {"sameas" : "USD"}
                   }
 
