@@ -13,7 +13,7 @@ class MakerSellBuyWalls(BaseStrategy):
         * **spread_percentage**: Another "offset". Allows a spread. The lowest orders will be placed here
         * **volume_percentage**: The amount of funds (%) you want to use
         * **symmetric_sides**: (boolean) Place symmetric walls on both sides?
-        * **only_buy**: Serve only on of both sides 
+        * **only_buy**: Serve only on of both sides
         * **only_sell**: Serve only on of both sides
         * **expiration**: Expiration time of the order in seconds
 
@@ -131,8 +131,8 @@ class MakerRamp(BaseStrategy):
         * **target_price_offset_percentage**: +-percentage offset from target_price
         * **spread_percentage**: Another "offset". Allows a spread. The lowest orders will be placed here
         * **volume_percentage**: The amount of funds (%) you want to use
-        * **only_buy**: Serve only on of both sides 
-        * **only_sell**: Serve only on of both sides 
+        * **only_buy**: Serve only on of both sides
+        * **only_sell**: Serve only on of both sides
         * **ramp_mode**: "linear" ramp (equal amounts) or "exponential" (linearily increasing amounts)
         * **ramp_price_percentage**: Ramp goes up with volume up to a price increase of x%
         * **ramp_step_percentage**: from spread/2 to ramp_price, place an order every x%

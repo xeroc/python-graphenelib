@@ -4,15 +4,20 @@ import unittest
 from pprint import pprint
 from binascii import hexlify
 
-"""
-        ## For verification with cli_wallet
+
+class Testcases(unittest.TestCase) :
+
+    """
+    def test_test(self):
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 
         from grapheneapi.grapheneapi import GrapheneAPI
         rpc = GrapheneAPI("localhost", 8092)
         op = rpc.get_prototype_operation("proposal_update_operation")
-        op[1]["fee_paying_account"] = "1.2.1"
-        op[1]["proposal"] = "1.10.90"
-        op[1]["active_approvals_to_add"] = ["1.2.5"]
+        op[1]["fee_paying_account"] = "1.2.96086"
+        op[1]["proposal"] = "1.10.219"
+        op[1]["active_approvals_to_add"] = ["1.2.96086"]
         buildHandle = rpc.begin_builder_transaction()
         rpc.add_operation_to_builder_transaction(buildHandle, op)
         rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
@@ -28,11 +33,12 @@ from binascii import hexlify
                                                  operations=ops)
         tx     = tx.sign([wif], chain=prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
-        print(txWire)
-"""
+        print("\n")
+        print(txWire[:-130])
+        print(compare[:-130])
 
-
-class Testcases(unittest.TestCase) :
+        self.assertEqual(compare[:-130], txWire[:-130])
+    """
 
     def test_proposal_update(self):
         prefix           = "BTS"
@@ -119,7 +125,7 @@ class Testcases(unittest.TestCase) :
             ),
             "maximum_short_squeeze_ratio" : 1100,
             "maintenance_collateral_ratio" : 1750,
-            })
+        })
 
         pFeed = transactions.Asset_publish_feed(
             fee=transactions.Asset(amount=100, asset_id="1.3.0"),
