@@ -61,6 +61,7 @@ class BaseStrategy():
                         try :
                             print("Canceling %s" % o["orderNumber"])
                             self.dex.cancel(o["orderNumber"])
+                            self.state["orders"][m].remove(o["orderNumber"])
                             numCanceled += 1
                         except:
                             print("An error has occured when trying to cancel order %s!" % o)
@@ -84,6 +85,7 @@ class BaseStrategy():
                         try :
                             print("Canceling %s" % o["orderNumber"])
                             self.dex.cancel(o["orderNumber"])
+                            self.state["orders"][m].remove(o["orderNumber"])
                             numCanceled += 1
                         except:
                             print("An error has occured when trying to cancel order %s!" % o["orderNumber"])
@@ -105,6 +107,7 @@ class BaseStrategy():
                     try :
                         print("Canceling %s" % o["orderNumber"])
                         self.dex.cancel(o["orderNumber"])
+                        self.state["orders"][m].remove(o["orderNumber"])
                         numCanceled += 1
                     except:
                         print("An error has occured when trying to cancel order %s!" % o["orderNumber"])
