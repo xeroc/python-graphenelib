@@ -2,6 +2,8 @@ import threading
 from websocket import create_connection
 import json
 import time
+from itertools import cycle
+
 
 
 class RPCError(Exception):
@@ -35,10 +37,25 @@ class GrapheneWebsocketRPC(object):
     api_id = {}
 
     def __init__(self, url, user="", password=""):
-        self.url = url
+        if isinstance(url, list):
+            self.url_iterator = cycle(url)
+            self.url = next(self.url_iterator)
+        else:
+            self.url = url
+
         self.user = user
         self.password = password
-        self.ws = create_connection(url)
+
+        for num in range(20):
+            try:
+                self.ws = create_connection(self.url)
+                print("WS RPC | Connected to %s" % self.url)
+                break
+            except ConnectionRefusedError as e:
+                print(e)
+                print("WS RPC | Can't connect to %s" % self.url)
+                self.url = next(self.url_iterator)
+
         self.login(user, password, api_id=1)
         self.api_id["database"] = self.database(api_id=1)
         self.api_id["history"] = self.history(api_id=1)
@@ -183,6 +200,8 @@ class GrapheneWebsocketRPC(object):
         except ValueError:
             raise ValueError("Client returned invalid format. Expected JSON!")
         except RPCError as err:
+            self.url = next(self.url_iterator)
+            
             raise err
         else:
             return ret["result"]

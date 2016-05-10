@@ -2,6 +2,8 @@ import time
 import asyncio
 import ssl
 from collections import OrderedDict
+from itertools import cycle
+
 
 try:
     from autobahn.asyncio.websocket import WebSocketClientFactory
@@ -53,9 +55,8 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
 
     def __init__(self, url, username, password,
                  proto=GrapheneWebsocketProtocol):
-        ssl, host, port, resource, path, params = parseWsUrl(url)
         GrapheneWebsocketRPC.__init__(self, url, username, password)
-        self.url      = url
+        ssl, host, port, resource, path, params = parseWsUrl(self.url)
         self.username = username
         self.password = password
         self.ssl      = ssl
@@ -67,6 +68,7 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
         self.objectMap = LimitedSizeDict()
         self.proto.objectMap = self.objectMap  # this is a reference
         self.factory  = None
+
 
     def setObjectCallbacks(self, callbacks) :
         """ Define Callbacks on Objects for websocket connections
@@ -179,6 +181,7 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
                     coro = loop.create_connection(self.factory, self.host,
                                                   self.port, ssl=context)
                 else :
+
                     coro = loop.create_connection(self.factory, self.host,
                                                   self.port, ssl=self.ssl)
 
@@ -189,6 +192,13 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
 
             print("Trying to re-connect in 10 seconds!")
             time.sleep(10)
+
+            try:
+                self.url = next(self.url_iterator)
+                print("Connecting to %s" % self.url)
+                self.connect()
+            except NameError:
+                print("Just one witness configured, reconnecting")
 
         print("Good bye!")
         loop.close()
