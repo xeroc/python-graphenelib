@@ -178,7 +178,7 @@ class PublicKey(Address):
         a, b, p = curve.a(), curve.b(), curve.p()
         alpha = (pow(x, 3, p) + a * x + b) % p
         beta = ecdsa.numbertheory.square_root_mod_prime(alpha, p)
-        if (beta % 2) != is_even :
+        if (beta % 2) == is_even :
             beta = p - beta
         return beta
 
