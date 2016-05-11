@@ -1,12 +1,21 @@
 import ecdsa
 import hashlib
 from binascii import hexlify, unhexlify
+import struct
+from collections import OrderedDict
 
-from graphenebase import PrivateKey
-from graphenebase.types import *
-from graphenebase.objects import *
-from .operations import *
-from .chains import *
+from .account import PrivateKey, PublicKey
+from .types import (
+    Array,
+    Set,
+    Signature,
+    PointInTime,
+    Uint16,
+    Uint32,
+)
+from .objects import GrapheneObject, isArgsThisClass
+from .operations import Operation
+from .chains import known_chains
 
 
 class Signed_Transaction(GrapheneObject) :
@@ -74,20 +83,15 @@ class Signed_Transaction(GrapheneObject) :
         curve = ecdsa.SECP256k1.curve
         G = ecdsa.SECP256k1.generator
         order = ecdsa.SECP256k1.order
-        isYOdd = i % 2
-        isSecondKey = i // 2
-        yp = 0 if (isYOdd) == 0 else 1
+        yp = (i % 2)
         r, s = ecdsa.util.sigdecode_string(signature, order)
         # 1.1
-        x = r + isSecondKey * order
+        x = r + (i // 2) * order
         # 1.3. This actually calculates for either effectively 02||X or 03||X depending on 'k' instead of always for 02||X as specified.
         # This substitutes for the lack of reversing R later on. -R actually is defined to be just flipping the y-coordinate in the elliptic curve.
         alpha = ((x * x * x) + (curve.a() * x) + curve.b()) % curve.p()
         beta = ecdsa.numbertheory.square_root_mod_prime(alpha, curve.p())
-        if (beta - yp) % 2 == 0 :
-            y = beta
-        else :
-            y = curve.p() - beta
+        y = beta if (beta - yp) % 2 == 0 else curve.p() - beta
         # 1.4 Constructor of Point is supposed to check if nR is at infinity.
         R = ecdsa.ellipticcurve.Point(curve, x, y, order)
         # 1.5 Compute e
@@ -99,13 +103,7 @@ class Signed_Transaction(GrapheneObject) :
             return None
         return ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1)
 
-    def sign(self, wifkeys, chain="BTS") :
-        """ Sign the transaction with the provided private keys.
-
-            :param array wifkeys: Array of wif keys
-            :param str chain: identifier for the chain
-
-        """
+    def deriveDigest(self, chain):
         # Which network are we on :
         if isinstance(chain, str) and chain in known_chains :
             chain_params = known_chains[chain]
@@ -116,18 +114,64 @@ class Signed_Transaction(GrapheneObject) :
         if "chain_id" not in chain_params :
             raise Exception("sign() needs a 'chain_id' in chain params!")
 
-        # Get Unique private keys
-        self.privkeys = []
-        [self.privkeys.append(item) for item in wifkeys if item not in self.privkeys]
-
         # Chain ID
         self.chainid = chain_params["chain_id"]
+
+        # Do not serialize signatures
+        sigs = self.data["signatures"]
+        self.data["signatures"] = []
 
         # Get message to sign
         #   bytes(self) will give the wire formated data according to
         #   GrapheneObject and the data given in __init__()
         self.message = unhexlify(self.chainid) + bytes(self)
         self.digest = hashlib.sha256(self.message).digest()
+
+        # restore signatures
+        self.data["signatures"] = sigs
+
+    def verify(self, pubkeys, chain):
+        self.deriveDigest(chain)
+        signatures = self.data["signatures"].data
+        pubKeysFound = []
+
+        for signature in signatures:
+            sig = bytes(signature)[1:]
+            recoverParameter = (bytes(signature)[0]) - 4 - 27  # recover parameter only
+            p = self.recover_public_key(self.digest, sig, recoverParameter)
+            # Will throw an exception of not valid
+            p.verify_digest(
+                sig,
+                self.digest,
+                sigdecode=ecdsa.util.sigdecode_string
+            )
+            phex = hexlify(p.to_string()).decode('ascii')
+            pubKeysFound.append(phex)
+
+        for pubkey in pubkeys:
+            if not isinstance(pubkey, PublicKey):
+                raise Exception("Pubkeys must be array of 'PublicKey'")
+
+            k = pubkey.unCompressed()[2:]
+            if k not in pubKeysFound:
+                k = PublicKey(PublicKey(k).compressed())
+                f = format(k, chain)
+                raise Exception("Signature for %s missing!" % f)
+
+        return True
+
+    def sign(self, wifkeys, chain="STEEM") :
+        """ Sign the transaction with the provided private keys.
+
+            :param array wifkeys: Array of wif keys
+            :param str chain: identifier for the chain
+
+        """
+        self.deriveDigest(chain)
+
+        # Get Unique private keys
+        self.privkeys = []
+        [self.privkeys.append(item) for item in wifkeys if item not in self.privkeys]
 
         # Sign the message with every private key given!
         sigs = []
