@@ -9,7 +9,7 @@ import time
 from .account import PublicKey
 from .chains import known_chains
 from .types import *
-from .signedtransactions import *
+from .signedtransactions import Signed_Transaction
 from .operations import *
 from .objects import *
 
