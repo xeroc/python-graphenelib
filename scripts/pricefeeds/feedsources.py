@@ -409,6 +409,207 @@ class Okcoin(FeedSource) :
         return feed
 
 
+class OpenExchangeRates(FeedSource) : # Hourly updated data with free subscription
+    def __init__(self, *args, **kwargs) :
+        super().__init__(*args, **kwargs)
+        if not hasattr(self, "api_key") or not hasattr(self, "free_subscription"):
+            raise Exception("OpenExchangeRates FeedSource requires 'api_key' and 'free_subscription'")
+
+    def fetch(self):
+        feed  = {}
+        try :
+            for base in self.bases :
+                url = "https://openexchangerates.org/api/latest.json?app_id=%s&base=%s" % (self.api_key, base)
+                if self.free_subscription:
+                    if base == 'USD':
+                        response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
+                        result = response.json()
+                    else:
+                        continue
+                else:
+                    response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
+                    result = response.json()
+                if result["base"] == base:
+                    feed[base] = {}
+                    for quote in self.quotes :
+                        if quote == base:
+                            continue
+                        feed[base][quote] = {"price"  : result["rates"][quote],
+                                            "volume" : 1.0}
+        except Exception as e:
+            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+            if not self.allowFailure:
+                sys.exit("\nExiting due to exchange importance!")
+            return
+        return feed
+
+
+class CurrencyLayer(FeedSource) : # Hourly updated data over http with free subscription
+    def __init__(self, *args, **kwargs) :
+        super().__init__(*args, **kwargs)
+        if not hasattr(self, "api_key") or not hasattr(self, "free_subscription"):
+            raise Exception("OpenExchangeRates FeedSource requires 'api_key' and 'free_subscription'")
+
+    def fetch(self):
+        feed  = {}
+        try :
+            for base in self.bases :
+                url = "http://apilayer.net/api/live?access_key=%s&currencies=%s&source=%s&format=1" % (self.api_key, ",".join(self.quotes), base)
+                if self.free_subscription:
+                    if base == 'USD':
+                        response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
+                        result = response.json()
+                    else:
+                        continue
+                else:
+                    response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
+                    result = response.json()
+                if result["source"] == base:
+                    feed[base] = {}
+                    for quote in self.quotes :
+                        if quote == base:
+                            continue
+                        feed[base][quote] = {"price"  : result["quotes"][base + quote],
+                                            "volume" : 1.0}
+        except Exception as e:
+            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+            if not self.allowFailure:
+                sys.exit("\nExiting due to exchange importance!")
+            return
+        return feed
+
+
+class Fixer(FeedSource): # fixer.io daily updated data from European Central Bank.
+    def __init__(self, *args, **kwargs) :
+        super().__init__(*args, **kwargs)
+
+    def fetch(self):
+        feed  = {}
+        try :
+            for base in self.bases :
+                url = "http://api.fixer.io/latest?base=%s" % base
+                response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
+                result = response.json()
+                feed[base] = {}
+                for quote in self.quotes :
+                    if quote == base:
+                        continue
+                    feed[base][quote] = {"price"  : result["rates"][quote],
+                                            "volume" : 1.0}
+        except Exception as e:
+            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+            if not self.allowFailure:
+                sys.exit("\nExiting due to exchange importance!")
+            return
+        return feed
+
+
+class BitcoinVenezuela(FeedSource):
+    def __init__(self, *args, **kwargs) :
+        super().__init__(*args, **kwargs)
+
+    def fetch(self):
+        feed  = {}
+        try :
+            url = "http://api.bitcoinvenezuela.com"
+            response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
+            result = response.json()
+            for base in self.bases :
+                feed[base] = {}
+                if base == "USD":
+                    for quote in self.quotes:
+                        if quote == base or quote and quote not in ["EUR", "VEF", "ARS"]:
+                            continue
+                        feed[base][quote] = {"price"  : result["exchange_rates"][quote + '_' + base],
+                                            "volume" : 1.0}
+                    continue
+                for quote in self.quotes:
+                    if quote == base:
+                        continue
+                    feed[base][quote] = {"price"  : result[base][quote],
+                                        "volume" : 1.0}
+        except Exception as e:
+            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+            if not self.allowFailure:
+                sys.exit("\nExiting due to exchange importance!")
+            return
+        return feed
+        
+        
+class CoinmarketcapAltcap(FeedSource) :
+    def __init__(self, *args, **kwargs) :
+        super().__init__(*args, **kwargs)
+
+    def fetch(self):
+        feed = {}
+        base = self.bases[0]
+        if base == 'BTC':
+            feed[base] = {}
+            try :
+                ticker = requests.get('https://api.coinmarketcap.com/v1/ticker/').json()
+
+                global_data = requests.get('https://api.coinmarketcap.com/v1/global/').json()
+                bitcoin_data = requests.get('https://api.coinmarketcap.com/v1/ticker/bitcoin/').json()[0]
+                alt_caps_x = [float(coin['market_cap_usd']) for coin in ticker if
+                          coin['rank'] <= 11 and coin['symbol'] != "BTC"]
+                alt_cap = global_data['total_market_cap_usd'] - bitcoin_data['market_cap_usd']
+                alt_cap_x = sum(alt_caps_x)
+                btc_cap = next((coin['market_cap_usd'] for coin in ticker if coin["symbol"] == "BTC"))
+
+                btc_altcap_price = alt_cap / btc_cap
+                btc_altcapx_price = alt_cap_x / btc_cap
+
+                if 'ALTCAP' in self.quotes:
+                    feed[base]['ALTCAP'] = {"price"  : btc_altcap_price,
+                                            "volume" : 1.0}
+                if 'ALTCAP.X' in self.quotes:
+                    feed[base]['ALTCAP.X'] = {"price"  : btc_altcapx_price,
+                                              "volume" : 1.0}
+            except Exception as e:
+                print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+                print(e)
+                if not self.allowFailure:
+                    sys.exit("\nExiting due to exchange importance!")
+                return
+        return feed
+
+
+class CoincapAltcap(FeedSource) :
+    def __init__(self, *args, **kwargs) :
+        super().__init__(*args, **kwargs)
+
+    def fetch(self):
+        feed = {}
+        base = self.bases[0]
+        if base == 'BTC':
+            feed[base] = {}
+            try :
+                coincap_front = requests.get('http://www.coincap.io/front').json()
+                coincap_global = requests.get('http://www.coincap.io/global').json()
+                alt_cap = float(coincap_global["altCap"])
+                alt_caps_x = [float(coin['mktcap']) for coin in coincap_front if
+                                      'position24' in coin and int(coin['position24']) <= 11 and coin['short'] != "BTC"]
+                alt_cap_x = sum(alt_caps_x)
+                btc_cap = float(coincap_global["btcCap"])
+
+                btc_altcap_price = alt_cap / btc_cap
+                btc_altcapx_price = alt_cap_x / btc_cap
+
+                if 'ALTCAP' in self.quotes:
+                    feed[base]['ALTCAP'] = {"price"  : btc_altcap_price,
+                                            "volume" : 1.0}
+                if 'ALTCAP.X' in self.quotes:
+                    feed[base]['ALTCAP.X'] = {"price"  : btc_altcapx_price,
+                                              "volume" : 1.0}
+            except Exception as e:
+                print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
+                print(e)
+                if not self.allowFailure:
+                    sys.exit("\nExiting due to exchange importance!")
+                return
+        return feed
+
+
 class GrapheneRawTemplate():
     wallet_host           = ""
     wallet_port           = ""

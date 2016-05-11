@@ -75,7 +75,7 @@ class GrapheneWebsocketRPC(object):
         else :
             return self.lookup_asset_symbols([name])[0]
 
-    def getFullAccountHistory(self, account, begin=0, limit=100, sort="block"):
+    def getFullAccountHistory(self, account, begin=1, limit=100, sort="block"):
         """ Get History of an account
 
             :param string account: account name or account id

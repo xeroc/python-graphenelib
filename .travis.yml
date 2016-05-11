@@ -1,9 +1,11 @@
 language: python
 python: "3.5"
 install:
- - pip install tox
+ - pip install tox codecov
 script:
  - tox
 env:
   - TOXENV=py35
   - TOXENV=docs
+after_success:
+  - codecov

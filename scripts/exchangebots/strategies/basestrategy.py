@@ -61,6 +61,7 @@ class BaseStrategy():
                         try :
                             print("Canceling %s" % o["orderNumber"])
                             self.dex.cancel(o["orderNumber"])
+                            self.state["orders"][m].remove(o["orderNumber"])
                             numCanceled += 1
                         except:
                             print("An error has occured when trying to cancel order %s!" % o)
@@ -84,6 +85,7 @@ class BaseStrategy():
                         try :
                             print("Canceling %s" % o["orderNumber"])
                             self.dex.cancel(o["orderNumber"])
+                            self.state["orders"][m].remove(o["orderNumber"])
                             numCanceled += 1
                         except:
                             print("An error has occured when trying to cancel order %s!" % o["orderNumber"])
@@ -105,6 +107,7 @@ class BaseStrategy():
                     try :
                         print("Canceling %s" % o["orderNumber"])
                         self.dex.cancel(o["orderNumber"])
+                        self.state["orders"][m].remove(o["orderNumber"])
                         numCanceled += 1
                     except:
                         print("An error has occured when trying to cancel order %s!" % o["orderNumber"])
@@ -221,7 +224,7 @@ class BaseStrategy():
                         if notify :
                             self.orderFilled(orderid)
 
-    def sell(self, market, price, amount):
+    def sell(self, market, price, amount, expiration=60*60*24):
         """ Places a sell order in a given market (sell ``quote``, buy
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -245,9 +248,9 @@ class BaseStrategy():
         """
         quote, base = market.split(self.config.market_separator)
         print(" - Selling %f %s for %s @%f %s/%s" % (amount, quote, base, price, base, quote))
-        self.dex.sell(market, price, amount)
+        self.dex.sell(market, price, amount, expiration)
 
-    def buy(self, market, price, amount):
+    def buy(self, market, price, amount, expiration=60*60*24):
         """ Places a buy order in a given market (buy ``quote``, sell
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -271,7 +274,7 @@ class BaseStrategy():
         """
         quote, base = market.split(self.config.market_separator)
         print(" - Buying %f %s with %s @%f %s/%s" % (amount, quote, base, price, base, quote))
-        self.dex.buy(market, price, amount)
+        self.dex.buy(market, price, amount, expiration)
 
     def init(self) :
         """ Initialize the bot's individual settings

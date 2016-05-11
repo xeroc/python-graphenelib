@@ -9,7 +9,7 @@ import time
 from .account import PublicKey
 from .chains import known_chains
 from .types import *
-from .signedtransactions import *
+from .signedtransactions import Signed_Transaction
 from .operations import *
 from .objects import *
 
@@ -24,7 +24,7 @@ def addRequiredFees(ws, ops, asset_id) :
     """ Auxiliary method to obtain the required fees for a set of
         operations. Requires a websocket connection to a witness node!
     """
-    fees = ws.get_required_fees([i.toJson() for i in ops], asset_id)
+    fees = ws.get_required_fees([JsonObj(i) for i in ops], asset_id)
     for i, d in enumerate(ops) :
         ops[i].op.data["fee"] = Asset(
             amount=fees[i]["amount"],

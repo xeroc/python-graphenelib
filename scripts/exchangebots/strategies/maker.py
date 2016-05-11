@@ -13,8 +13,9 @@ class MakerSellBuyWalls(BaseStrategy):
         * **spread_percentage**: Another "offset". Allows a spread. The lowest orders will be placed here
         * **volume_percentage**: The amount of funds (%) you want to use
         * **symmetric_sides**: (boolean) Place symmetric walls on both sides?
-        * **only_buy**: Serve only on of both sides 
-        * **only_sell**: Serve only on of both sides 
+        * **only_buy**: Serve only on of both sides
+        * **only_sell**: Serve only on of both sides
+        * **expiration**: Expiration time of the order in seconds
 
         .. code-block:: python
 
@@ -28,6 +29,7 @@ class MakerSellBuyWalls(BaseStrategy):
                                  "symmetric_sides" : True,
                                  "only_buy" : False,
                                  "only_sell" : False,
+                                 "expiration" : 60*60*6
                                  }
 
         .. note:: This module does not watch your orders, all it does is
@@ -54,6 +56,9 @@ class MakerSellBuyWalls(BaseStrategy):
 
         if "symmetric_sides" not in self.settings:
             self.settings["symmetric_sides"] = True
+
+        if "expiration" not in self.settings:
+            self.settings["expiration"] = 60*60*24*7
 
         # Place orders
         self.place()
@@ -105,15 +110,15 @@ class MakerSellBuyWalls(BaseStrategy):
             if quote in amounts and not only_buy:
                 if "symmetric_sides" in self.settings and self.settings["symmetric_sides"] and not only_sell:
                     thisAmount = min([amounts[quote], amounts[base] / buy_price]) if base in amounts else amounts[quote]
-                    self.sell(m, sell_price, thisAmount)
+                    self.sell(m, sell_price, thisAmount, self.settings["expiration"])
                 else :
-                    self.sell(m, sell_price, amounts[quote])
+                    self.sell(m, sell_price, amounts[quote], self.settings["expiration"])
             if base in amounts and not only_sell:
                 if "symmetric_sides" in self.settings and self.settings["symmetric_sides"] and not only_buy:
                     thisAmount = min([amounts[quote], amounts[base] / buy_price]) if quote in amounts else amounts[base] / buy_price
-                    self.buy(m, buy_price, thisAmount)
+                    self.buy(m, buy_price, thisAmount, self.settings["expiration"])
                 else :
-                    self.buy(m, buy_price, amounts[base] / buy_price)
+                    self.buy(m, buy_price, amounts[base] / buy_price, self.settings["expiration"])
 
 
 class MakerRamp(BaseStrategy):
@@ -126,11 +131,12 @@ class MakerRamp(BaseStrategy):
         * **target_price_offset_percentage**: +-percentage offset from target_price
         * **spread_percentage**: Another "offset". Allows a spread. The lowest orders will be placed here
         * **volume_percentage**: The amount of funds (%) you want to use
-        * **only_buy**: Serve only on of both sides 
-        * **only_sell**: Serve only on of both sides 
+        * **only_buy**: Serve only on of both sides
+        * **only_sell**: Serve only on of both sides
         * **ramp_mode**: "linear" ramp (equal amounts) or "exponential" (linearily increasing amounts)
         * **ramp_price_percentage**: Ramp goes up with volume up to a price increase of x%
         * **ramp_step_percentage**: from spread/2 to ramp_price, place an order every x%
+        * **expiration**: Expiration time of the order in seconds
 
         .. code-block:: python
 
@@ -147,6 +153,7 @@ class MakerRamp(BaseStrategy):
                                  "ramp_mode" : "linear",
                                  "only_buy" : False,
                                  "only_sell" : False,
+                                 "expiration" : 60*60*6,
                                  }
 
         .. note:: This module does not watch your orders, all it does is
@@ -180,6 +187,9 @@ class MakerRamp(BaseStrategy):
 
         if "ramp_mode" not in self.settings:
             self.settings["ramp_mode"] = "linear"
+
+        if "expiration" not in self.settings:
+            self.settings["expiration"] = 60*60*24*7
 
         # Place orders
         self.place()
@@ -241,13 +251,13 @@ class MakerRamp(BaseStrategy):
                 number_orders = math.floor((self.settings["ramp_price_percentage"] / 100.0 - self.settings["spread_percentage"] / 200.0) / (self.settings["ramp_step_percentage"] / 100.0))
                 if mode == "linear" :
                     for price in linspace(price_start, price_end, number_orders) :
-                        self.sell(m, price, amount / number_orders)
+                        self.sell(m, price, amount / number_orders, self.settings["expiration"])
                 elif mode == "exponential" :
                     k = linspace(1 / number_orders, 1, number_orders)
                     k = [v / sum(k) for v in k]
                     order_amounts = [v * amount for v in k]
                     for i, price in enumerate(linspace(price_start, price_end, number_orders)):
-                        self.sell(m, price, order_amounts[i])
+                        self.sell(m, price, order_amounts[i], self.settings["expiration"])
                 else :
                     raise Exception("ramp_mode '%s' not known" % mode)
 
@@ -261,12 +271,12 @@ class MakerRamp(BaseStrategy):
                 number_orders = math.floor((self.settings["ramp_price_percentage"] / 100.0 - self.settings["spread_percentage"] / 200.0) / (self.settings["ramp_step_percentage"] / 100.0))
                 if mode == "linear" :
                     for price in linspace(price_start, price_end, number_orders) :
-                        self.buy(m, price, amount / number_orders)
+                        self.buy(m, price, amount / number_orders, self.settings["expiration"])
                 elif mode == "exponential" :
                     k = linspace(1 / number_orders, 1, number_orders)
                     k = [v / sum(k) for v in k]
                     order_amounts = [v * amount for v in k]
                     for i, price in enumerate(linspace(price_start, price_end, number_orders)):
-                        self.buy(m, price, order_amounts[i])
+                        self.buy(m, price, order_amounts[i], self.settings["expiration"])
                 else :
                     raise Exception("ramp_mode '%s' not known" % mode)

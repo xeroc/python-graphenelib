@@ -7,6 +7,61 @@ from binascii import hexlify
 
 class Testcases(unittest.TestCase) :
 
+    """
+    def test_test(self):
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+
+        from grapheneapi.grapheneapi import GrapheneAPI
+        rpc = GrapheneAPI("localhost", 8092)
+        op = rpc.get_prototype_operation("proposal_update_operation")
+        op[1]["fee_paying_account"] = "1.2.96086"
+        op[1]["proposal"] = "1.10.219"
+        op[1]["active_approvals_to_add"] = ["1.2.96086"]
+        buildHandle = rpc.begin_builder_transaction()
+        rpc.add_operation_to_builder_transaction(buildHandle, op)
+        rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
+        tx = rpc.sign_builder_transaction(buildHandle, False)
+        compare = rpc.serialize_transaction(tx)
+        ref_block_num    = tx["ref_block_num"]
+        ref_block_prefix = tx["ref_block_prefix"]
+        expiration       = tx["expiration"]
+        ops    = [transactions.Operation(transactions.Proposal_update(**tx["operations"][0][1]))]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        print("\n")
+        print(txWire[:-130])
+        print(compare[:-130])
+
+        self.assertEqual(compare[:-130], txWire[:-130])
+    """
+
+    def test_proposal_update(self):
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+        ref_block_num    = 34294
+        ref_block_prefix = 3707022213
+        expiration       = "2016-04-06T08:29:27"
+        s = {'fee_paying_account': "1.2.1",
+             'proposal': "1.10.90",
+             'active_approvals_to_add': ["1.2.5"],
+             "fee": transactions.Asset(amount=12512, asset_id="1.3.0"),
+             }
+        op = transactions.Proposal_update(**s)
+        ops    = [transactions.Operation(op)]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = "f68585abf4dce7c804570117e03000000000000000015a01050000000000000001203255378db6dc19443e74421c954ad7fdcf23f4ea45fe4fe5a1b078a0f94fb529594819c9799d68efa5cfb5b271a9333a2f516ca4fb5093226275f48a42d9e8cf"
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def test_Transfer(self):
         prefix           = "BTS"
         wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
@@ -70,7 +125,7 @@ class Testcases(unittest.TestCase) :
             ),
             "maximum_short_squeeze_ratio" : 1100,
             "maintenance_collateral_ratio" : 1750,
-            })
+        })
 
         pFeed = transactions.Asset_publish_feed(
             fee=transactions.Asset(amount=100, asset_id="1.3.0"),

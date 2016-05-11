@@ -178,9 +178,18 @@ class PublicKey(Address):
         a, b, p = curve.a(), curve.b(), curve.p()
         alpha = (pow(x, 3, p) + a * x + b) % p
         beta = ecdsa.numbertheory.square_root_mod_prime(alpha, p)
-        if (beta % 2) != is_even :
+        if (beta % 2) == is_even :
             beta = p - beta
         return beta
+
+    def compressed(self):
+        """ Derive compressed public key """
+        order  = ecdsa.SECP256k1.generator.order()
+        p      = ecdsa.VerifyingKey.from_string(bytes(self), curve=ecdsa.SECP256k1).pubkey.point
+        x_str  = ecdsa.util.number_to_string(p.x(), order)
+        y_str  = ecdsa.util.number_to_string(p.y(), order)
+        compressed   = hexlify(bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str).decode('ascii')
+        return(compressed)
 
     def unCompressed(self):
         """ Derive uncompressed key """
@@ -227,9 +236,10 @@ class PrivateKey(PublicKey):
 
         Example:::
 
-           PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")
+            PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")
 
         Compressed vs. Uncompressed:
+
         * ``PrivateKey("w-i-f").pubkey``:
             Instance of ``PublicKey`` using compressed key.
         * ``PrivateKey("w-i-f").pubkey.address``:
