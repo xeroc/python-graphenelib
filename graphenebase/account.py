@@ -182,6 +182,15 @@ class PublicKey(Address):
             beta = p - beta
         return beta
 
+    def compressed(self):
+        """ Derive compressed public key """
+        order  = ecdsa.SECP256k1.generator.order()
+        p      = ecdsa.VerifyingKey.from_string(bytes(self), curve=ecdsa.SECP256k1).pubkey.point
+        x_str  = ecdsa.util.number_to_string(p.x(), order)
+        y_str  = ecdsa.util.number_to_string(p.y(), order)
+        compressed   = hexlify(bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str).decode('ascii')
+        return(compressed)
+
     def unCompressed(self):
         """ Derive uncompressed key """
         public_key = repr(self._pk)
