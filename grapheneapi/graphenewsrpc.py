@@ -2,6 +2,7 @@ import threading
 from websocket import create_connection
 import json
 import time
+import collections
 from itertools import cycle
 
 
@@ -17,7 +18,7 @@ class GrapheneWebsocketRPC(object):
         * database
         * history
 
-        :param str url: Websocket URL
+        :param str or list url: Websocket URL / Websocket URL's
         :param str user: Username for Authentication
         :param str password: Password for Authentication
 
@@ -38,24 +39,25 @@ class GrapheneWebsocketRPC(object):
 
     def __init__(self, url, user="", password=""):
         if isinstance(url, list):
-            self.url_iterator = cycle(url)
+            self.url_list = url
+            if not isinstance(self.url_iterator, collections.Iterable):
+                self.url_iterator = cycle(self.url_list)
             self.url = next(self.url_iterator)
+            for num in range(len(self.url_list)):
+                try:
+                    self.ws = create_connection(self.url)
+                    print("Connected to %s" % self.url)
+                    break
+                except ConnectionRefusedError as e:
+                    print("Can't connect to %s" % self.url)
+                    if num + 1 == len(self.url_list):
+                        raise ConnectionRefusedError
+                    self.url = next(self.url_iterator)
         else:
             self.url = url
-
+            self.ws = create_connection(self.url)
         self.user = user
         self.password = password
-
-        for num in range(20):
-            try:
-                self.ws = create_connection(self.url)
-                print("WS RPC | Connected to %s" % self.url)
-                break
-            except ConnectionRefusedError as e:
-                print(e)
-                print("WS RPC | Can't connect to %s" % self.url)
-                self.url = next(self.url_iterator)
-
         self.login(user, password, api_id=1)
         self.api_id["database"] = self.database(api_id=1)
         self.api_id["history"] = self.history(api_id=1)
@@ -200,8 +202,6 @@ class GrapheneWebsocketRPC(object):
         except ValueError:
             raise ValueError("Client returned invalid format. Expected JSON!")
         except RPCError as err:
-            self.url = next(self.url_iterator)
-            
             raise err
         else:
             return ret["result"]

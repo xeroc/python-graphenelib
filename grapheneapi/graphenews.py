@@ -184,21 +184,18 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
 
                     coro = loop.create_connection(self.factory, self.host,
                                                   self.port, ssl=self.ssl)
-
                 loop.run_until_complete(coro)
                 loop.run_forever()
             except KeyboardInterrupt:
                 break
 
-            print("Trying to re-connect in 10 seconds!")
-            time.sleep(10)
-
             try:
-                self.url = next(self.url_iterator)
-                print("Connecting to %s" % self.url)
+                print("Multiple witnesses configured, trying another witness.")
+                GrapheneWebsocketRPC.__init__(self, self.url_list, self.username, self.password)
+                self.ssl, self.host, self.port, self.resource, self.path, self.params = parseWsUrl(self.url)
                 self.connect()
-            except NameError:
-                print("Just one witness configured, reconnecting")
-
+            except NameError or AttributeError:
+                print("Just one witness configured, trying to re-connect in 10 seconds!")
+                time.sleep(10)
         print("Good bye!")
         loop.close()
