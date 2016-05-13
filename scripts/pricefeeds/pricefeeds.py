@@ -198,7 +198,7 @@ def derive_prices(feed):
             continue
 
         this_asset_config = config.asset_config[asset] if asset in config.asset_config else config.asset_config["default"]
-        sources           = list(feed) if this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
+        sources           = list(feed) if not "sources" in this_asset_config or this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
 
         # Reset prices
         price = {}
