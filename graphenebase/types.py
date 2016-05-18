@@ -288,7 +288,10 @@ class ObjectId() :
             self.instance = Id(int(id))
             self.Id = object_str
             if type_verify :
-                assert object_type[type_verify] == int(type), "Object id does not match object type!"
+                assert object_type[type_verify] == int(type),\
+                        "Object id does not match object type! " +\
+                        "Excpected %d, got %d" %\
+                        (object_type[type_verify], int(type))
         else :
             raise Exception("Object id is invalid")
 
