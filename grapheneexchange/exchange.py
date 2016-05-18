@@ -1,8 +1,13 @@
 from grapheneapi.grapheneclient import GrapheneClient
+from graphenebase import transactions
 from datetime import datetime
 import time
 import math
 from grapheneextra.proposal import Proposal
+
+
+class NoWalletException(Exception):
+    pass
 
 
 class ExampleConfig() :
@@ -130,10 +135,16 @@ class GrapheneExchange(GrapheneClient) :
         self.propose_only          = False
         self.propose_operations    = []
 
+        #: The wif key can be used for creating transactions **if** not
+        # connected to a cli_wallet
+        self.wif = None
+
         if "safe_mode" in kwargs:
             self.safe_mode = kwargs["safe_mode"]
         if "propose_only" in kwargs:
             self.propose_only = kwargs["propose_only"]
+        if "wif" in kwargs:
+            self.wif = kwargs["wif"]
 
         self.config = config
         super().__init__(config)
@@ -788,14 +799,48 @@ class GrapheneExchange(GrapheneClient) :
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.ws.get_asset(base_symbol)
         quote = self.ws.get_asset(quote_symbol)
-        transaction = self.rpc.sell_asset(self.config.account,
-                                          '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
-                                          base_symbol,
-                                          '{:.{prec}f}'.format(amount, prec=quote["precision"]),
-                                          quote_symbol,
-                                          expiration,
-                                          killfill,
-                                          not (self.safe_mode or self.propose_only))
+
+        if self.rpc:
+            transaction = self.rpc.sell_asset(self.config.account,
+                                              '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
+                                              base_symbol,
+                                              '{:.{prec}f}'.format(amount, prec=quote["precision"]),
+                                              quote_symbol,
+                                              expiration,
+                                              killfill,
+                                              not (self.safe_mode or self.propose_only))
+        elif self.wif:
+            account = self.ws.get_account(self.config.account)
+            s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
+                 "seller": account["id"],
+                 "amount_to_sell": {
+                     "amount": int(amount * rate * 10 ** base["precision"]),
+                     "asset_id":base["id"]
+                     },
+                 "min_to_receive": {
+                     "amount": amount * 10 ** quote["precision"],
+                     "asset_id": quote["id"]
+                     },
+                 "expiration": transactions.formatTimeFromNow(expiration),
+                 "fill_or_kill": killfill,
+                 }
+            ops = [transactions.Operation(transactions.Limit_order_create(**s))]
+            expiration = transactions.formatTimeFromNow(30)
+            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+            transaction = transactions.Signed_Transaction(
+                ref_block_num=ref_block_num,
+                ref_block_prefix=ref_block_prefix,
+                expiration=expiration,
+                operations=ops
+            )
+            transaction = transaction.sign([self.wif], "BTS")
+            transaction     = transactions.JsonObj(transaction)
+            if not (self.safe_mode or self.propose_only):
+                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        else:
+            raise NoWalletException()
+
         if self.propose_only:
             [self.propose_operations.append(o) for o in transaction["operations"]]
             return self.propose_operations
@@ -833,14 +878,47 @@ class GrapheneExchange(GrapheneClient) :
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.ws.get_asset(base_symbol)
         quote = self.ws.get_asset(quote_symbol)
-        transaction = self.rpc.sell_asset(self.config.account,
-                                          '{:.{prec}f}'.format(amount, prec=quote["precision"]),
-                                          quote_symbol,
-                                          '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
-                                          base_symbol,
-                                          expiration,
-                                          killfill,
-                                          not (self.safe_mode or self.propose_only))
+        if self.rpc:
+            transaction = self.rpc.sell_asset(self.config.account,
+                                              '{:.{prec}f}'.format(amount, prec=quote["precision"]),
+                                              quote_symbol,
+                                              '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
+                                              base_symbol,
+                                              expiration,
+                                              killfill,
+                                              not (self.safe_mode or self.propose_only))
+        elif self.wif:
+            account = self.ws.get_account(self.config.account)
+            s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
+                 "seller": account["id"],
+                 "amount_to_sell": {
+                     "amount": int(amount * 10 ** quote["precision"]),
+                     "asset_id":quote["id"]
+                     },
+                 "min_to_receive": {
+                     "amount": amount * rate * 10 ** base["precision"],
+                     "asset_id": base["id"]
+                     },
+                 "expiration": transactions.formatTimeFromNow(expiration),
+                 "fill_or_kill": killfill,
+                 }
+            ops = [transactions.Operation(transactions.Limit_order_create(**s))]
+            expiration = transactions.formatTimeFromNow(30)
+            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+            transaction = transactions.Signed_Transaction(
+                ref_block_num=ref_block_num,
+                ref_block_prefix=ref_block_prefix,
+                expiration=expiration,
+                operations=ops
+            )
+            transaction = transaction.sign([self.wif], "BTS")
+            transaction     = transactions.JsonObj(transaction)
+            if not (self.safe_mode or self.propose_only):
+                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        else:
+            raise NoWalletException()
+
         if self.propose_only:
             [self.propose_operations.append(o) for o in transaction["operations"]]
             return self.propose_operations
@@ -900,11 +978,17 @@ class GrapheneExchange(GrapheneClient) :
         asset = self.ws.get_asset(symbol)
         collateral_asset = self.ws.get_asset(debt["collateral_asset"])
 
-        transaction = self.rpc.borrow_asset(self.config.account,
-                                            '{:.{prec}f}'.format(-debt["debt"], prec=asset["precision"]),
-                                            symbol,
-                                            '{:.{prec}f}'.format(-debt["collateral"], prec=collateral_asset["precision"]),
-                                            not (self.safe_mode or self.propose_only))
+        if self.rpc:
+            transaction = self.rpc.borrow_asset(self.config.account,
+                                                '{:.{prec}f}'.format(-debt["debt"], prec=asset["precision"]),
+                                                symbol,
+                                                '{:.{prec}f}'.format(-debt["collateral"], prec=collateral_asset["precision"]),
+                                                not (self.safe_mode or self.propose_only))
+        elif self.wif:
+            pass
+        else:
+            raise NoWalletException()
+
         if self.propose_only:
             [self.propose_operations.append(o) for o in transaction["operations"]]
             return self.propose_operations
@@ -956,11 +1040,38 @@ class GrapheneExchange(GrapheneClient) :
                              (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
 
         # Borrow
-        transaction = self.rpc.borrow_asset(self.config.account,
-                                            '{:.{prec}f}'.format(delta_debt, prec=asset["precision"]),
-                                            symbol,
-                                            '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
-                                            not (self.safe_mode or self.propose_only))
+        if self.rpc:
+            transaction = self.rpc.borrow_asset(self.config.account,
+                                                '{:.{prec}f}'.format(delta_debt, prec=asset["precision"]),
+                                                symbol,
+                                                '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
+                                                not (self.safe_mode or self.propose_only))
+        elif self.wif:
+            account = self.ws.get_account(self.config.account)
+            s = {'fee': {'amount': 0, 'asset_id': '1.3.0'},
+                 'delta_debt': {'amount': int(delta_debt * 10 ** asset["precision"]),
+                                'asset_id': asset["id"]},
+                 'delta_collateral': {'amount': int(amount_of_collateral * 10 ** collateral_asset["precision"]),
+                                      'asset_id': collateral_asset["id"]},
+                 'funding_account': account["id"],
+                 'extensions': []}
+            ops = [transactions.Operation(transactions.Call_order_update(**s))]
+            expiration = transactions.formatTimeFromNow(30)
+            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+            transaction = transactions.Signed_Transaction(
+                ref_block_num=ref_block_num,
+                ref_block_prefix=ref_block_prefix,
+                expiration=expiration,
+                operations=ops
+            )
+            transaction = transaction.sign([self.wif], "BTS")
+            transaction     = transactions.JsonObj(transaction)
+            if not (self.safe_mode or self.propose_only):
+                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        else:
+            raise NoWalletException()
+
         if self.propose_only:
             [self.propose_operations.append(o) for o in transaction["operations"]]
             return self.propose_operations
@@ -1054,11 +1165,38 @@ class GrapheneExchange(GrapheneClient) :
                              (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
 
         # Borrow
-        transaction = self.rpc.borrow_asset(self.config.account,
-                                            '{:.{prec}f}'.format(amount, prec=asset["precision"]),
-                                            symbol,
-                                            '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
-                                            not (self.safe_mode or self.propose_only))
+        if self.rpc:
+            transaction = self.rpc.borrow_asset(self.config.account,
+                                                '{:.{prec}f}'.format(amount, prec=asset["precision"]),
+                                                symbol,
+                                                '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
+                                                not (self.safe_mode or self.propose_only))
+        elif self.wif:
+            account = self.ws.get_account(self.config.account)
+            s = {'fee': {'amount': 0, 'asset_id': '1.3.0'},
+                 'delta_debt': {'amount': int(amount * 10 ** asset["precision"]),
+                                'asset_id': asset["id"]},
+                 'delta_collateral': {'amount': int(amount_of_collateral * 10 ** collateral_asset["precision"]),
+                                      'asset_id': collateral_asset["id"]},
+                 'funding_account': account["id"],
+                 'extensions': []}
+            ops = [transactions.Operation(transactions.Call_order_update(**s))]
+            expiration = transactions.formatTimeFromNow(30)
+            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+            transaction = transactions.Signed_Transaction(
+                ref_block_num=ref_block_num,
+                ref_block_prefix=ref_block_prefix,
+                expiration=expiration,
+                operations=ops
+            )
+            transaction = transaction.sign([self.wif], "BTS")
+            transaction     = transactions.JsonObj(transaction)
+            if not (self.safe_mode or self.propose_only):
+                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        else:
+            raise NoWalletException()
+
         if self.propose_only:
             [self.propose_operations.append(o) for o in transaction["operations"]]
             return self.propose_operations
@@ -1075,7 +1213,31 @@ class GrapheneExchange(GrapheneClient) :
         if self.safe_mode :
             print("Safe Mode enabled!")
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
-        transaction = self.rpc.cancel_order(orderNumber, not (self.safe_mode or self.propose_only))
+        if self.rpc:
+            transaction = self.rpc.cancel_order(orderNumber, not (self.safe_mode or self.propose_only))
+        elif self.wif:
+            account = self.ws.get_account(self.config.account)
+            s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
+                 "fee_paying_account": account["id"],
+                 "order": orderNumber,
+                 "extensions": []
+                 }
+            ops = [transactions.Operation(transactions.Limit_order_cancel(**s))]
+            expiration = transactions.formatTimeFromNow(30)
+            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+            transaction = transactions.Signed_Transaction(
+                ref_block_num=ref_block_num,
+                ref_block_prefix=ref_block_prefix,
+                expiration=expiration,
+                operations=ops
+            )
+            transaction = transaction.sign([self.wif], "BTS")
+            transaction     = transactions.JsonObj(transaction)
+            if not (self.safe_mode or self.propose_only):
+                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        else:
+            raise NoWalletException()
 
         if self.propose_only:
             [self.propose_operations.append(o) for o in transaction["operations"]]
