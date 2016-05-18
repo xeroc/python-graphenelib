@@ -40,6 +40,89 @@ class Testcases(unittest.TestCase) :
         self.assertEqual(compare[:-130], txWire[:-130])
     """
 
+    def test_call_update(self):
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+        ref_block_num    = 34294
+        ref_block_prefix = 3707022213
+        expiration       = "2016-04-06T08:29:27"
+        s = {'fee': {'amount': 100,
+                     'asset_id': '1.3.0'},
+             'delta_debt': {'amount': 10000,
+                            'asset_id': '1.3.22'},
+             'delta_collateral': {'amount': 100000000,
+                                  'asset_id': '1.3.0'},
+             'funding_account': '1.2.29',
+             'extensions': []}
+        ops = [transactions.Operation(transactions.Call_order_update(**s))]
+        tx = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                             ref_block_prefix=ref_block_prefix,
+                                             expiration=expiration,
+                                             operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = "f68585abf4dce7c8045701036400000000000000001d00e1f50500000000001027000000000000160000011f2627efb5c5144440e06ff567f1a09928d699ac6f5122653cd7173362a1ae20205952c874ed14ccec050be1c86c1a300811763ef3b481e562e0933c09b40e31fb"
+        self.assertEqual(compare[:-130], txWire[:-130])
+
+
+    def test_limit_order_create(self):
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+        ref_block_num    = 34294
+        ref_block_prefix = 3707022213
+        expiration       = "2016-04-06T08:29:27"
+        s = {"fee": {
+                 "amount": 100,
+                 "asset_id": "1.3.0"
+                 },
+             "seller": "1.2.29",
+             "amount_to_sell": {
+                 "amount": 100000,
+                 "asset_id": "1.3.0"
+                 },
+             "min_to_receive": {
+                 "amount": 10000,
+                 "asset_id": "1.3.105"
+                 },
+             "expiration": "2016-05-18T09:22:05",
+             "fill_or_kill": False,
+             "extensions": []
+             }
+
+        ops = [transactions.Operation(transactions.Limit_order_create(**s))]
+        tx = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                             ref_block_prefix=ref_block_prefix,
+                                             expiration=expiration,
+                                             operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = "f68585abf4dce7c8045701016400000000000000001da086010000000000001027000000000000693d343c57000000011f75cbfd49ae8d9b04af76cc0a7de8b6e30b71167db7fe8e2197ef9d858df1877043493bc24ffdaaffe592357831c978fd8a296b913979f106debe940d60d77b50"
+        self.assertEqual(compare[:-130], txWire[:-130])
+
+    def test_limit_order_cancel(self):
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+        ref_block_num    = 34294
+        ref_block_prefix = 3707022213
+        expiration       = "2016-04-06T08:29:27"
+        s = {"fee": {
+                 "amount": 0,
+                 "asset_id": "1.3.0"
+                 },
+             "fee_paying_account": "1.2.104",
+             "order": "1.7.51840",
+             "extensions": []
+             }
+        ops = [transactions.Operation(transactions.Limit_order_cancel(**s))]
+        tx = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                             ref_block_prefix=ref_block_prefix,
+                                             expiration=expiration,
+                                             operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = "f68585abf4dce7c804570102000000000000000000688095030000011f3fb754814f3910c1a8845486b86057d2b4588ae559b4c3810828c0d4cbec0e5b23517937cd7e0cc5ee8999d0777af7fe56d3c4b2e587421bfb7400d4efdae97a"
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def test_proposal_update(self):
         prefix           = "BTS"
         wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
@@ -179,3 +262,29 @@ class Testcases(unittest.TestCase) :
         check2 = data2["operations"][0][1]["memo"]
         for key in check1:
             self.assertEqual(check1[key], check2[key])
+
+
+if __name__ == '__main__':
+        prefix           = "BTS"
+        wif              = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+
+        from grapheneapi.grapheneapi import GrapheneAPI
+        rpc = GrapheneAPI("localhost", 8092)
+        tx = rpc.borrow_asset("xeroc", 1, "PEG.FAKEUSD", 1000, False)
+        print(tx)
+        compare = rpc.serialize_transaction(tx)
+        ref_block_num    = tx["ref_block_num"]
+        ref_block_prefix = tx["ref_block_prefix"]
+        expiration       = tx["expiration"]
+        ops    = [transactions.Operation(transactions.Call_order_update(**tx["operations"][0][1]))]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        print("\n")
+        print(txWire[:-130])
+        print(compare[:-130])
+
+        print(compare[:-130] == txWire[:-130])
