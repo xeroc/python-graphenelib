@@ -13,7 +13,6 @@ class ExampleConfig() :
         The config class is used to define several attributes *and*
         methods that will be used during API communication..
 
-
         **Additional Websocket Connections**:
 
         .. code-block:: python
@@ -28,9 +27,10 @@ class ExampleConfig() :
                 witness_password      = ""
 
         All methods within ``graphene.rpc`` are mapped to the
-        corresponding RPC call of the wallet and the parameters are
+        corresponding RPC call of the **wallet** and the parameters are
         handed over directly. Similar behavior is implemented for
-        ``graphene.ws`` which can deal with calls to the witness node.
+        ``graphene.ws`` which can deal with calls to the **witness
+        node**.
 
         This allows the use of rpc commands similar to the
         ``GrapheneAPI`` class:
@@ -40,10 +40,10 @@ class ExampleConfig() :
             graphene = GrapheneExchange(Config)
             # Calls to the cli-wallet
             print(graphene.rpc.info())
-            print(graphene.rpc.get_account("init0"))
-            print(graphene.rpc.get_asset("USD"))
             # Calls to the witness node
-            print(ws.get_account_count())
+            print(graphene.ws.get_account("init0"))
+            print(graphene.ws.get_asset("USD"))
+            print(graphene.ws.get_account_count())
 
     """
 
@@ -182,8 +182,8 @@ class GrapheneExchange(GrapheneClient) :
             :rtype: json
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
-        quote  = self.rpc.get_asset(quote_symbol)
-        base   = self.rpc.get_asset(quote_symbol)
+        quote  = self.ws.get_asset(quote_symbol)
+        base   = self.ws.get_asset(quote_symbol)
         return {"quote" : quote["id"], "base" : base["id"]}
 
     def _get_assets_from_market(self, market) :
@@ -195,8 +195,8 @@ class GrapheneExchange(GrapheneClient) :
             :rtype: json
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
-        quote  = self.rpc.get_asset(quote_symbol)
-        base   = self.rpc.get_asset(quote_symbol)
+        quote  = self.ws.get_asset(quote_symbol)
+        base   = self.ws.get_asset(quote_symbol)
         return {"quote" : quote, "base" : base}
 
     def _get_price(self, o) :
@@ -424,7 +424,7 @@ class GrapheneExchange(GrapheneClient) :
             else :
                 data["last"] = -1
 
-            orders = self.rpc.get_limit_orders(
+            orders = self.ws.get_limit_orders(
                 m["quote"], m["base"], 1)
             if len(orders) > 1:
                 data["lowestAsk"]     = (1 / self._get_price(orders[0]["sell_price"]))
@@ -586,7 +586,7 @@ class GrapheneExchange(GrapheneClient) :
                 }
 
         """
-        account = self.rpc.get_account(self.config.account)
+        account = self.ws.get_account(self.config.account)
         balances = self.ws.get_account_balances(account["id"], [])
         asset_ids = [a["asset_id"] for a in balances]
         assets = self.ws.get_objects(asset_ids)
@@ -601,7 +601,7 @@ class GrapheneExchange(GrapheneClient) :
     def returnOpenOrdersIds(self, currencyPair="all"):
         """ Returns only the ids of open Orders
         """
-        account = self.rpc.get_account(self.config.account)
+        account = self.ws.get_account(self.config.account)
         r = {}
         if currencyPair == "all" :
             markets = list(self.markets.keys())
@@ -673,7 +673,7 @@ class GrapheneExchange(GrapheneClient) :
                 }
 
         """
-        account = self.rpc.get_account(self.config.account)
+        account = self.ws.get_account(self.config.account)
         r = {}
         if currencyPair == "all" :
             markets = list(self.markets.keys())
@@ -786,8 +786,8 @@ class GrapheneExchange(GrapheneClient) :
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
         # We buy quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
-        base = self.rpc.get_asset(base_symbol)
-        quote = self.rpc.get_asset(quote_symbol)
+        base = self.ws.get_asset(base_symbol)
+        quote = self.ws.get_asset(quote_symbol)
         transaction = self.rpc.sell_asset(self.config.account,
                                           '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
                                           base_symbol,
@@ -831,8 +831,8 @@ class GrapheneExchange(GrapheneClient) :
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
         # We sell quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
-        base = self.rpc.get_asset(base_symbol)
-        quote = self.rpc.get_asset(quote_symbol)
+        base = self.ws.get_asset(base_symbol)
+        quote = self.ws.get_asset(quote_symbol)
         transaction = self.rpc.sell_asset(self.config.account,
                                           '{:.{prec}f}'.format(amount, prec=quote["precision"]),
                                           quote_symbol,
@@ -862,7 +862,7 @@ class GrapheneExchange(GrapheneClient) :
                          'debt': 120.00000}
 
         """
-        account = self.rpc.get_account(self.config.account)
+        account = self.ws.get_account(self.config.account)
         debts = self.ws.get_full_accounts([account["id"]], False)[0][1]["call_orders"]
         r = {}
         for debt in debts:
@@ -897,8 +897,8 @@ class GrapheneExchange(GrapheneClient) :
         if symbol not in debts:
             raise ValueError("No call position open for %s" % symbol)
         debt = debts[symbol]
-        asset = self.rpc.get_asset(symbol)
-        collateral_asset = self.rpc.get_asset(debt["collateral_asset"])
+        asset = self.ws.get_asset(symbol)
+        collateral_asset = self.ws.get_asset(debt["collateral_asset"])
 
         transaction = self.rpc.borrow_asset(self.config.account,
                                             '{:.{prec}f}'.format(-debt["debt"], prec=asset["precision"]),
@@ -925,7 +925,7 @@ class GrapheneExchange(GrapheneClient) :
             print("Safe Mode enabled!")
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
         # We sell quote and pay with base
-        asset = self.rpc.get_asset(symbol)
+        asset = self.ws.get_asset(symbol)
         if "bitasset_data_id" not in asset:
             raise ValueError("%s is not a bitasset!" % symbol)
         bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
@@ -1029,7 +1029,7 @@ class GrapheneExchange(GrapheneClient) :
             print("Safe Mode enabled!")
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
         # We sell quote and pay with base
-        asset = self.rpc.get_asset(symbol)
+        asset = self.ws.get_asset(symbol)
         if "bitasset_data_id" not in asset:
             raise ValueError("%s is not a bitasset!" % symbol)
         bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
@@ -1294,7 +1294,7 @@ class GrapheneExchange(GrapheneClient) :
             proposer = self.config.account
         if not expiration:
             expiration = datetime.utcfromtimestamp(time.time() + 60 * 60 * 24).strftime('%Y-%m-%dT%H:%M:%S')
-        account = self.rpc.get_account(proposer)
+        account = self.ws.get_account(proposer)
         proposal = Proposal(self)
         return proposal.propose_operations(self.propose_operations,
                                            expiration,
