@@ -61,6 +61,15 @@ class BrainKey(object) :
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
+    def get_public(self) :
+        return self.get_private().pubkey
+
+    def get_private_key(self) :
+        return self.get_private()
+
+    def get_public_key(self) :
+        return self.get_public()
+
     def suggest(self):
         """ Suggest a new random brain key. Randomness is provided by the
             operating system using ``os.urandom()``.
