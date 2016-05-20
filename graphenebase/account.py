@@ -33,7 +33,7 @@ class BrainKey(object) :
     """
 
     def __init__(self, brainkey=None, sequence=0):
-        if brainkey is None :
+        if not brainkey:
             self.brainkey = self.suggest()
         else :
             self.brainkey = self.normalize(brainkey).strip()
@@ -196,7 +196,7 @@ class PublicKey(Address):
         order  = ecdsa.SECP256k1.generator.order()
         p      = ecdsa.VerifyingKey.from_string(bytes(self), curve=ecdsa.SECP256k1).pubkey.point
         x_str  = ecdsa.util.number_to_string(p.x(), order)
-        y_str  = ecdsa.util.number_to_string(p.y(), order)
+        # y_str  = ecdsa.util.number_to_string(p.y(), order)
         compressed   = hexlify(bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str).decode('ascii')
         return(compressed)
 
