@@ -35,10 +35,14 @@ class GrapheneObject(object) :
         for name, value in self.data.items() :
             if isinstance(value, Optional) and value.isempty() :
                 continue
-            try :
-                d.update({name : JsonObj(value)})
-            except :
-                d.update({name : str(value)})
+
+            if isinstance(value, String) :
+                d.update({name: str(value)})
+            else:
+                try :
+                    d.update({name : JsonObj(value)})
+                except :
+                    d.update({name : str(value)})
         return OrderedDict(d)
 
     def __str__(self) :
