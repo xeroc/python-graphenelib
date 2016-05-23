@@ -389,7 +389,7 @@ class GrapheneClient() :
                     "onAccountUpdate" in available_features):
                 account_ids = []
                 for a in config.watch_accounts:
-                    account = self.rpc.get_account(a)
+                    account = self.ws.get_account(a)
                     if "id" in account:
                         account_ids.append(account["id"])
                     else:
@@ -409,8 +409,8 @@ class GrapheneClient() :
                                          "parse the markets! Please " +
                                          "check your values")
                     try:
-                        quote = self.rpc.get_asset(quote_symbol)
-                        base  = self.rpc.get_asset(base_symbol)
+                        quote = self.ws.get_asset(quote_symbol)
+                        base  = self.ws.get_asset(base_symbol)
                     except:
                         raise Exception("Couldn't load assets for market %s"
                                         % market)

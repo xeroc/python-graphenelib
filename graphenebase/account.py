@@ -33,7 +33,7 @@ class BrainKey(object) :
     """
 
     def __init__(self, brainkey=None, sequence=0):
-        if brainkey is None :
+        if not brainkey:
             self.brainkey = self.suggest()
         else :
             self.brainkey = self.normalize(brainkey).strip()
@@ -60,6 +60,15 @@ class BrainKey(object) :
         a = bytes(encoded, 'ascii')
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
+
+    def get_public(self) :
+        return self.get_private().pubkey
+
+    def get_private_key(self) :
+        return self.get_private()
+
+    def get_public_key(self) :
+        return self.get_public()
 
     def suggest(self):
         """ Suggest a new random brain key. Randomness is provided by the
@@ -187,7 +196,7 @@ class PublicKey(Address):
         order  = ecdsa.SECP256k1.generator.order()
         p      = ecdsa.VerifyingKey.from_string(bytes(self), curve=ecdsa.SECP256k1).pubkey.point
         x_str  = ecdsa.util.number_to_string(p.x(), order)
-        y_str  = ecdsa.util.number_to_string(p.y(), order)
+        # y_str  = ecdsa.util.number_to_string(p.y(), order)
         compressed   = hexlify(bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str).decode('ascii')
         return(compressed)
 

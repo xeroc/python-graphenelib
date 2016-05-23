@@ -256,14 +256,21 @@ class Static_variant() :
 
 
 class Map() :
-    def __init__(self, d) :
-        raise NotImplementedError
+    def __init__(self, data) :
+        self.data = data
 
     def __bytes__(self) :
-        raise NotImplementedError
+        b = b""
+        b += varint(len(self.data))
+        for e in self.data:
+            b += bytes(e[0]) + bytes(e[1])
+        return b
 
     def __str__(self) :
-        raise NotImplementedError
+        r = []
+        for e in self.data:
+            r.append([str(e[0]), str(e[1])])
+        return json.dumps(r)
 
 
 class Id() :
@@ -288,7 +295,10 @@ class ObjectId() :
             self.instance = Id(int(id))
             self.Id = object_str
             if type_verify :
-                assert object_type[type_verify] == int(type), "Object id does not match object type!"
+                assert object_type[type_verify] == int(type),\
+                    "Object id does not match object type! " +\
+                    "Excpected %d, got %d" %\
+                    (object_type[type_verify], int(type))
         else :
             raise Exception("Object id is invalid")
 
