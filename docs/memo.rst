@@ -15,7 +15,7 @@ derived from the receiver's private key and the senders public key.
 The memo public key is part of the account and can be retreived with the
 `get_account` call:
 
-.. code-block:: json
+.. code-block:: js
 
     get_account <accountname>
     {
@@ -34,7 +34,7 @@ Memo Message
 
 The take the following form:
 
-.. code-block:: json
+.. code-block:: js
 
         {
           "from": "GPH5mgup8evDqMnT86L7scVebRYDC2fwAWmygPEUL43LjstQegYCC",

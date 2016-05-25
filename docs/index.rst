@@ -31,25 +31,12 @@ Python-Graphene Libraries
    installation
    classes
 
-Scripts
---------
-.. toctree::
-   :maxdepth: 1
-
-   scripts-monitor
-   scripts-pricefeed
-
-Trading Bot Infrastructure
---------------------------
+Decentralized Exchange (DEX)
+----------------------------
 .. toctree::
    :maxdepth: 1
 
    exchange
-   scripts-exchange-bot-tutorial
-   scripts-exchange-bot-maker
-   scripts-exchange-bot-cer-tracker
-   scripts-exchange-bot-refund-fee-pool
-   scripts-exchange-bot
 
 Tutorials
 ---------
@@ -58,6 +45,14 @@ Tutorials
 
    howto-exchanges
    howto-exchanges-detailed
+
+Scripts
+--------
+.. toctree::
+   :maxdepth: 1
+
+   scripts-monitor
+   scripts-pricefeed
 
 Graphene API
 ------------
