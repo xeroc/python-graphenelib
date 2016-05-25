@@ -188,7 +188,6 @@ class GrapheneExchange(GrapheneClient) :
             )):
                 raise WifNotActive
 
-
     def formatTimeFromNow(self, secs=0):
         """ Properly Format Time that is `x` seconds in the future
 
