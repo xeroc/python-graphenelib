@@ -127,7 +127,11 @@ class Int64() :
 
 class String() :
     def __init__(self, d) :
-        self.data = d
+        # Repalce UTF8 chars with what ever looks closest
+        from unidecode import unidecode
+        self.data = unidecode(d)
+        # FIXME: Allow for real UTF-8 chars to be used
+        # https://github.com/steemit/steem/issues/44
 
     def __bytes__(self) :
         return varint(len(self.data)) + bytes(self.data, 'utf-8')
@@ -145,6 +149,7 @@ class Bytes() :
             self.length = len(self.data)
 
     def __bytes__(self) :
+        # FIXME constraint data to self.length
         d = unhexlify(bytes(self.data, 'utf-8'))
         return varint(len(d)) + d
 

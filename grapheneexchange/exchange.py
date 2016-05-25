@@ -1,5 +1,6 @@
 from grapheneapi.grapheneclient import GrapheneClient
 from graphenebase import transactions
+from graphenebase.account import PrivateKey
 from datetime import datetime
 import time
 import math
@@ -10,19 +11,34 @@ class NoWalletException(Exception):
     pass
 
 
+class InvalidWifKey(Exception):
+    pass
+
+
+class WifNotActive(Exception):
+    pass
+
+
 class ExampleConfig() :
     """ The behavior of your program can be
         defined in a separated class (here called ``ExampleConfig()``. It
         contains the wallet and witness connection parameters:
 
+        Configuration Rules:
+
+        * `witness_url` is required in all cases
+        * If you want to run a bot continuously, the configuration needs
+          to be inherited from `GrapheneWebsocketProtocol`
+        * Either you provide access to a cli_wallet via `wallet_host`
+          (etc.) or your need to provide the **active private key** to the
+          account as `wif`
+
         The config class is used to define several attributes *and*
         methods that will be used during API communication..
 
-        **Additional Websocket Connections**:
-
         .. code-block:: python
 
-            class Config(GrapheneWebsocketProtocol):  ## Note the dependency
+            class Config(GrapheneWebsocketProtocol):  # Note the dependency
                 wallet_host           = "localhost"
                 wallet_port           = 8092
                 wallet_user           = ""
@@ -30,6 +46,7 @@ class ExampleConfig() :
                 witness_url           = "ws://localhost:8090/"
                 witness_user          = ""
                 witness_password      = ""
+                wif                   = None
 
         All methods within ``graphene.rpc`` are mapped to the
         corresponding RPC call of the **wallet** and the parameters are
@@ -65,6 +82,7 @@ class ExampleConfig() :
 
     #: The account used here
     account               = "fabian"
+    wif                   = None
 
     #: Markets to watch.
     watch_markets         = ["USD_BTS"]
@@ -109,7 +127,8 @@ class GrapheneExchange(GrapheneClient) :
 
                 watch_markets         = ["USD_BTS", "GOLD_BTS"]
                 market_separator      = "_"
-                account               = "mindphlux"
+                account               = "fabian"
+                wif                   = None
 
             if __name__ == '__main__':
                 dex   = GrapheneExchange(Config)
@@ -123,7 +142,6 @@ class GrapheneExchange(GrapheneClient) :
                 print(json.dumps(dex.sell("USD_BTS", 0.001, 10),indent=4))
     """
     markets = {}
-    account = ""
     wallet = None
 
     def __init__(self, config, **kwargs) :
@@ -135,19 +153,39 @@ class GrapheneExchange(GrapheneClient) :
         self.propose_only          = False
         self.propose_operations    = []
 
-        #: The wif key can be used for creating transactions **if** not
-        # connected to a cli_wallet
-        self.wif = None
-
         if "safe_mode" in kwargs:
             self.safe_mode = kwargs["safe_mode"]
         if "propose_only" in kwargs:
             self.propose_only = kwargs["propose_only"]
-        if "wif" in kwargs:
-            self.wif = kwargs["wif"]
+
+        if "prefix" in kwargs:
+            self.prefix = kwargs["prefix"]
+        else:
+            self.prefix = "BTS"
+
+        #: The wif key can be used for creating transactions **if** not
+        # connected to a cli_wallet
+        if not getattr(config, "wif"):
+            config.wif = None
+        else:
+            # Test for valid Private Key
+            try:
+                config.wif = str(PrivateKey(config.wif))
+            except:
+                raise InvalidWifKey
 
         self.config = config
         super().__init__(config)
+
+        # Now verify that the given wif key has active permissions:
+        if getattr(config, "wif") and config.wif:
+            account = self.ws.get_account(self.config.account)
+            pubkey = format(PrivateKey(config.wif).pubkey, self.prefix)
+            if not any(filter(
+                lambda x: x[0] == pubkey, account["active"]["key_auths"]
+            )):
+                raise WifNotActive
+
 
     def formatTimeFromNow(self, secs=0):
         """ Properly Format Time that is `x` seconds in the future
@@ -809,18 +847,16 @@ class GrapheneExchange(GrapheneClient) :
                                               expiration,
                                               killfill,
                                               not (self.safe_mode or self.propose_only))
-        elif self.wif:
+        elif self.config.wif:
             account = self.ws.get_account(self.config.account)
             s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
                  "seller": account["id"],
-                 "amount_to_sell": {
-                     "amount": int(amount * rate * 10 ** base["precision"]),
-                     "asset_id":base["id"]
-                     },
-                 "min_to_receive": {
-                     "amount": amount * 10 ** quote["precision"],
-                     "asset_id": quote["id"]
-                     },
+                 "amount_to_sell": {"amount": int(amount * rate * 10 ** base["precision"]),
+                                    "asset_id": base["id"]
+                                    },
+                 "min_to_receive": {"amount": int(amount * 10 ** quote["precision"]),
+                                    "asset_id": quote["id"]
+                                    },
                  "expiration": transactions.formatTimeFromNow(expiration),
                  "fill_or_kill": killfill,
                  }
@@ -834,7 +870,7 @@ class GrapheneExchange(GrapheneClient) :
                 expiration=expiration,
                 operations=ops
             )
-            transaction = transaction.sign([self.wif], "BTS")
+            transaction = transaction.sign([self.config.wif], self.prefix)
             transaction     = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
@@ -887,18 +923,16 @@ class GrapheneExchange(GrapheneClient) :
                                               expiration,
                                               killfill,
                                               not (self.safe_mode or self.propose_only))
-        elif self.wif:
+        elif self.config.wif:
             account = self.ws.get_account(self.config.account)
             s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
                  "seller": account["id"],
-                 "amount_to_sell": {
-                     "amount": int(amount * 10 ** quote["precision"]),
-                     "asset_id":quote["id"]
-                     },
-                 "min_to_receive": {
-                     "amount": amount * rate * 10 ** base["precision"],
-                     "asset_id": base["id"]
-                     },
+                 "amount_to_sell": {"amount": int(amount * 10 ** quote["precision"]),
+                                    "asset_id": quote["id"]
+                                    },
+                 "min_to_receive": {"amount": int(amount * rate * 10 ** base["precision"]),
+                                    "asset_id": base["id"]
+                                    },
                  "expiration": transactions.formatTimeFromNow(expiration),
                  "fill_or_kill": killfill,
                  }
@@ -912,7 +946,7 @@ class GrapheneExchange(GrapheneClient) :
                 expiration=expiration,
                 operations=ops
             )
-            transaction = transaction.sign([self.wif], "BTS")
+            transaction = transaction.sign([self.config.wif], self.prefix)
             transaction     = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
@@ -984,8 +1018,29 @@ class GrapheneExchange(GrapheneClient) :
                                                 symbol,
                                                 '{:.{prec}f}'.format(-debt["collateral"], prec=collateral_asset["precision"]),
                                                 not (self.safe_mode or self.propose_only))
-        elif self.wif:
-            pass
+        elif self.config.wif:
+            account = self.ws.get_account(self.config.account)
+            s = {'fee': {'amount': 0, 'asset_id': '1.3.0'},
+                 'delta_debt': {'amount': int(-debt["debt"] * 10 ** asset["precision"]),
+                                'asset_id': asset["id"]},
+                 'delta_collateral': {'amount': int(-debt["collateral"] * 10 ** collateral_asset["precision"]),
+                                      'asset_id': collateral_asset["id"]},
+                 'funding_account': account["id"],
+                 'extensions': []}
+            ops = [transactions.Operation(transactions.Call_order_update(**s))]
+            expiration = transactions.formatTimeFromNow(30)
+            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+            transaction = transactions.Signed_Transaction(
+                ref_block_num=ref_block_num,
+                ref_block_prefix=ref_block_prefix,
+                expiration=expiration,
+                operations=ops
+            )
+            transaction = transaction.sign([self.config.wif], self.prefix)
+            transaction     = transactions.JsonObj(transaction)
+            if not (self.safe_mode or self.propose_only):
+                self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
             raise NoWalletException()
 
@@ -1046,7 +1101,7 @@ class GrapheneExchange(GrapheneClient) :
                                                 symbol,
                                                 '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
                                                 not (self.safe_mode or self.propose_only))
-        elif self.wif:
+        elif self.config.wif:
             account = self.ws.get_account(self.config.account)
             s = {'fee': {'amount': 0, 'asset_id': '1.3.0'},
                  'delta_debt': {'amount': int(delta_debt * 10 ** asset["precision"]),
@@ -1065,7 +1120,7 @@ class GrapheneExchange(GrapheneClient) :
                 expiration=expiration,
                 operations=ops
             )
-            transaction = transaction.sign([self.wif], "BTS")
+            transaction = transaction.sign([self.config.wif], self.prefix)
             transaction     = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
@@ -1171,7 +1226,7 @@ class GrapheneExchange(GrapheneClient) :
                                                 symbol,
                                                 '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
                                                 not (self.safe_mode or self.propose_only))
-        elif self.wif:
+        elif self.config.wif:
             account = self.ws.get_account(self.config.account)
             s = {'fee': {'amount': 0, 'asset_id': '1.3.0'},
                  'delta_debt': {'amount': int(amount * 10 ** asset["precision"]),
@@ -1190,7 +1245,7 @@ class GrapheneExchange(GrapheneClient) :
                 expiration=expiration,
                 operations=ops
             )
-            transaction = transaction.sign([self.wif], "BTS")
+            transaction = transaction.sign([self.config.wif], self.prefix)
             transaction     = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
@@ -1215,7 +1270,7 @@ class GrapheneExchange(GrapheneClient) :
             print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
         if self.rpc:
             transaction = self.rpc.cancel_order(orderNumber, not (self.safe_mode or self.propose_only))
-        elif self.wif:
+        elif self.config.wif:
             account = self.ws.get_account(self.config.account)
             s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
                  "fee_paying_account": account["id"],
@@ -1232,7 +1287,7 @@ class GrapheneExchange(GrapheneClient) :
                 expiration=expiration,
                 operations=ops
             )
-            transaction = transaction.sign([self.wif], "BTS")
+            transaction = transaction.sign([self.config.wif], self.prefix)
             transaction     = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
