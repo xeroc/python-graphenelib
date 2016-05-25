@@ -165,6 +165,8 @@ class GrapheneExchange(GrapheneClient) :
 
         #: The wif key can be used for creating transactions **if** not
         # connected to a cli_wallet
+        if not hasattr(config, "wif"):
+            setattr(config, "wif", None)
         if not getattr(config, "wif"):
             config.wif = None
         else:
