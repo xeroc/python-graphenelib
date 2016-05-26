@@ -305,7 +305,7 @@ def derive_prices(feed):
             print("[Warning] No market route found for %s. Skipping price" % asset)
             continue
 
-        # price conversion to "price for one quote" i.e.  base=*, quote=core_symbol
+        # price conversion to "price for one BTS" i.e.  base=*, quote=core_symbol
         price_result[asset]['BTS'] = {"mean"    : price_mean,
                                "median"  : price_median,
                                "weighted": price_weighted,
@@ -332,7 +332,7 @@ def derive_prices(feed):
         else :
             print("[Warning] No market route found for %s. Skipping price" % asset)
             continue
-
+        # price conversion to "price for one quote_asset" i.e.  base=*, quote=quote_asset
         price_result[asset]["quote"] = {"mean"    : price_mean,
                                "median"  : price_median,
                                "weighted": price_weighted,
@@ -519,11 +519,11 @@ def update_price_feed() :
             quote_precision_core = assets[asset]["precision"]
             symbol         = assets[asset]["symbol"]
             assert symbol is not asset
-            base_precision_core  = assets[blockchain_feed_quote[asset]]["precision"]  # core asset
-            core_price_core      = derived_prices[asset][core_symbol][price_metric] * 10 ** (quote_precision_core - base_precision_core)
-            core_price_core      = fractions.Fraction.from_float(core_price_core).limit_denominator(100000)
-            denominator_core     = core_price_core.denominator
-            numerator_core       = core_price_core.numerator
+            base_precision_cer  = assets[blockchain_feed_quote[asset]]["precision"]  # core asset
+            core_price_cer      = derived_prices[asset][core_symbol][price_metric] * 10 ** (quote_precision_core - base_precision_cer)
+            core_price_cer      = fractions.Fraction.from_float(core_price_cer).limit_denominator(100000)
+            denominator_cer     = core_price_cer.denominator
+            numerator_cer       = core_price_cer.numerator
 
             quote_precision_settle = assets[asset]["precision"]
             symbol          = assets[asset]["symbol"]
@@ -552,13 +552,13 @@ def update_price_feed() :
                               else config.asset_config["default"]["maximum_short_squeeze_ratio"],
                           "core_exchange_rate": {
                           "quote": {"asset_id": "1.3.0",
-                                    "amount": int(denominator_core * (
+                                    "amount": int(denominator_cer * (
                                         config.asset_config[symbol]["core_exchange_factor"]
                                         if (symbol in config.asset_config and "core_exchange_factor" in config.asset_config[symbol])
                                         else config.asset_config["default"]["core_exchange_factor"]))
                                     },
                           "base": {"asset_id": assets[asset]["id"],
-                                   "amount": numerator_core
+                                   "amount": numerator_cer
                                    }}}
             asset_update_required = publish_rule(rpc, asset)
             if asset_update_required :
