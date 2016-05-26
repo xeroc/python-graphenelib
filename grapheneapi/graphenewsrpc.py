@@ -2,6 +2,7 @@ import threading
 from websocket import create_connection
 import json
 import time
+import logging
 import collections
 from itertools import cycle
 
@@ -43,16 +44,12 @@ class GrapheneWebsocketRPC(object):
             if not isinstance(self.url_iterator, collections.Iterable):
                 self.url_iterator = cycle(self.url_list)
             self.url = next(self.url_iterator)
-            for num in range(len(self.url_list)):
-                try:
-                    self.ws = create_connection(self.url)
-                    print("Connected to %s" % self.url)
-                    break
-                except ConnectionRefusedError as e:
-                    print("Can't connect to %s" % self.url)
-                    if num + 1 == len(self.url_list):
-                        raise ConnectionRefusedError
-                    self.url = next(self.url_iterator)
+            try:
+                self.ws = create_connection(self.url)
+                logging.info("Connected to %s" % self.url)
+            except ConnectionRefusedError:
+                logging.warning("Can't connect to %s" % self.url)
+                self.__init__(self.url_iterator, user, password)
         else:
             self.url = url
             self.ws = create_connection(self.url)
