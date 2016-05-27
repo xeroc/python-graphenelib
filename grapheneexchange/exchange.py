@@ -981,11 +981,17 @@ class GrapheneExchange(GrapheneClient) :
         for debt in debts:
             base  = self.getObject(debt["call_price"]["base"]["asset_id"])
             quote = self.getObject(debt["call_price"]["quote"]["asset_id"])
-            call_price = self._get_price(debt["call_price"])
+
+            if "bitasset_data_id" not in quote:
+                continue
 
             bitasset = self.getObject(quote["bitasset_data_id"])
             settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
 
+            if not settlement_price:
+                continue
+
+            call_price = self._get_price(debt["call_price"])
             collateral_amount = int(debt["collateral"]) / 10 ** base["precision"]
             debt_amount = int(debt["debt"]) / 10 ** quote["precision"]
 
