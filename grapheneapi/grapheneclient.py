@@ -414,6 +414,10 @@ class GrapheneClient() :
                     except:
                         raise Exception("Couldn't load assets for market %s"
                                         % market)
+                    if not quote or not base:
+                        raise Exception("Couldn't load assets for market %s"
+                                        % market)
+
                     if "id" in quote and "id" in base:
                         if "onMarketUpdate" in available_features:
                             self.markets.update({
