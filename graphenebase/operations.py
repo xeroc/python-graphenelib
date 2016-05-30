@@ -194,6 +194,7 @@ class Limit_order_cancel(GrapheneObject):
                 ('extensions', Set([])),
             ]))
 
+
 class Call_order_update(GrapheneObject):
     def __init__(self, *args, **kwargs) :
         if isArgsThisClass(self, args):
@@ -208,3 +209,20 @@ class Call_order_update(GrapheneObject):
                 ('delta_debt', Asset(kwargs["delta_debt"])),
                 ('extensions', Set([])),
             ]))
+
+
+class Asset_fund_fee_pool(GrapheneObject):
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('from_account', ObjectId(kwargs["from_account"], "account")),
+                ('asset_id', ObjectId(kwargs["asset_id"], "asset")),
+                ('amount', Int64(kwargs["amount"])),
+                ('extensions', Set([])),
+            ]))
+

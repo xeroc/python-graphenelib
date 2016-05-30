@@ -1529,3 +1529,48 @@ class GrapheneExchange(GrapheneClient) :
         """ Clear stored proposals
         """
         self.propose_operations = []
+
+    def fund_fee_pool(self, symbol, amount):
+        """ Fund the fee pool of an asset with BTS
+
+            :param str symbol: Symbol of the asset to fund
+            :param float amount: Amount of BTS to use for funding fee pool
+        """
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+        if self.rpc:
+            transaction = self.rpc.fund_asset_fee_pool(self.config.account, symbol, amount, not (self.safe_mode or self.propose_only))
+        elif self.config.wif:
+            account = self.ws.get_account(self.config.account)
+            asset = self.ws.get_asset(symbol)
+            s = {"fee": {"amount": 0,
+                         "asset_id": "1.3.0"
+                         },
+                 "from_account": account["id"],
+                 "asset_id": asset["id"],
+                 "amount": int(amount * 10 ** asset["precision"]),
+                 "extensions": []
+                 }
+            ops = [transactions.Operation(transactions.Asset_fund_fee_pool(**s))]
+            expiration = transactions.formatTimeFromNow(30)
+            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+            transaction = transactions.Signed_Transaction(
+                ref_block_num=ref_block_num,
+                ref_block_prefix=ref_block_prefix,
+                expiration=expiration,
+                operations=ops
+            )
+            transaction = transaction.sign([self.config.wif], self.prefix)
+            transaction     = transactions.JsonObj(transaction)
+            if not (self.safe_mode or self.propose_only):
+                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        else:
+            raise NoWalletException()
+
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
