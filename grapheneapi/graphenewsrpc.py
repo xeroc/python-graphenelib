@@ -38,25 +38,15 @@ class GrapheneWebsocketRPC(object):
         self.url = url
         self.user = user
         self.password = password
-        self.ws = create_connection(url)
-        self.login(user, password, api_id=1)
+
+        self.connect()
+
+    def connect(self):
+        self.ws = create_connection(self.url)
+        self.login(self.user, self.password, api_id=1)
         self.api_id["database"] = self.database(api_id=1)
         self.api_id["history"] = self.history(api_id=1)
         self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
-        # self.enable_pings()
-
-    def _send_ping(self, interval, event):
-        while not event.wait(interval):
-            self.last_ping_tm = time.time()
-            if self.sock:
-                self.sock.ping()
-
-    def enable_pings(self):
-        event = threading.Event()
-        ping_interval = 30
-        thread = threading.Thread(target=self._send_ping, args=(ping_interval, event))
-        thread.setDaemon(True)
-        thread.start()
 
     def get_call_id(self):
         """ Get the ID for the next RPC call """
@@ -173,7 +163,14 @@ class GrapheneWebsocketRPC(object):
             :raises RPCError: if the server returns an error
         """
         try:
-            self.ws.send(json.dumps(payload))
+            try:
+                self.ws.send(json.dumps(payload))
+            except:
+                # retry after reconnect
+                self.ws.close()
+                self.connect()
+                self.ws.send(json.dumps(payload))
+
             ret = json.loads(self.ws.recv())
             if 'error' in ret:
                 if 'detail' in ret['error']:
