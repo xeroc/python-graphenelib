@@ -191,7 +191,7 @@ class Signed_Transaction(GrapheneObject) :
                     sk.curve.generator.order(),
                     sk.privkey.secret_multiplier,
                     hashlib.sha256,
-                    hashlib.sha256(self.digest + (b'%x' % cnt)).digest())
+                    hashlib.sha256(self.digest + bytes([cnt])).digest())
 
                 # Sign message
                 #
