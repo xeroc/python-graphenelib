@@ -2,6 +2,9 @@ import threading
 from websocket import create_connection
 import json
 import time
+import logging
+
+log = logging.getLogger("graphenewsrpc")
 
 
 class RPCError(Exception):
@@ -46,7 +49,7 @@ class GrapheneWebsocketRPC(object):
                 self.ws = create_connection(self.url)
                 break
             except:
-                print("Cannot connect to WS node: %s" % self.url)
+                log.warning("Cannot connect to WS node: %s" % self.url)
                 time.sleep(10)
         self.login(self.user, self.password, api_id=1)
         self.api_id["database"] = self.database(api_id=1)
@@ -168,18 +171,20 @@ class GrapheneWebsocketRPC(object):
             :raises RPCError: if the server returns an error
         """
         try:
-            try:
-                self.ws.send(json.dumps(payload))
-            except:
-                # retry after reconnect
+            while True:
                 try:
-                    self.ws.close()
+                    self.ws.send(json.dumps(payload))
+                    ret = json.loads(self.ws.recv())
+                    break
                 except:
-                    pass
-                self.wsconnect()
-                self.ws.send(json.dumps(payload))
+                    log.warning("Cannot connect to WS node: %s" % self.url)
+                    # retry after reconnect
+                    try:
+                        self.ws.close()
+                        self.wsconnect()
+                    except:
+                        pass
 
-            ret = json.loads(self.ws.recv())
             if 'error' in ret:
                 if 'detail' in ret['error']:
                     raise RPCError(ret['error']['detail'])
