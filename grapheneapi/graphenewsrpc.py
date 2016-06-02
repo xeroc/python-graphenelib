@@ -38,10 +38,9 @@ class GrapheneWebsocketRPC(object):
         self.url = url
         self.user = user
         self.password = password
+        self.wsconnect()
 
-        self.connect()
-
-    def connect(self):
+    def wsconnect(self):
         self.ws = create_connection(self.url)
         self.login(self.user, self.password, api_id=1)
         self.api_id["database"] = self.database(api_id=1)
@@ -167,8 +166,11 @@ class GrapheneWebsocketRPC(object):
                 self.ws.send(json.dumps(payload))
             except:
                 # retry after reconnect
-                self.ws.close()
-                self.connect()
+                try:
+                    self.ws.close()
+                except:
+                    pass
+                self.wsconnect()
                 self.ws.send(json.dumps(payload))
 
             ret = json.loads(self.ws.recv())
