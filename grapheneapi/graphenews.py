@@ -186,6 +186,8 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
                 loop.run_forever()
             except KeyboardInterrupt:
                 break
+            except:
+                pass
 
             print("Trying to re-connect in 10 seconds!")
             time.sleep(10)

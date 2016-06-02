@@ -41,7 +41,13 @@ class GrapheneWebsocketRPC(object):
         self.wsconnect()
 
     def wsconnect(self):
-        self.ws = create_connection(self.url)
+        while True:
+            try:
+                self.ws = create_connection(self.url)
+                break
+            except:
+                print("Cannot connect to WS node: %s" % self.url)
+                time.sleep(10)
         self.login(self.user, self.password, api_id=1)
         self.api_id["database"] = self.database(api_id=1)
         self.api_id["history"] = self.history(api_id=1)

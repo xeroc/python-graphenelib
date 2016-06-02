@@ -323,3 +323,6 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         print("WebSocket connection closed: {0}".format(errmsg))
         self.loop.stop()
         self.eventcallback("connection-closed")
+
+    def onClose(self, wasClean, code, reason):
+        self.connection_lost(reason)
