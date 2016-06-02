@@ -3,8 +3,7 @@ from websocket import create_connection
 import json
 import time
 import logging
-
-log = logging.getLogger("graphenewsrpc")
+log = logging.getLogger("grapheneapi.graphenewsrpc")
 
 
 class RPCError(Exception):

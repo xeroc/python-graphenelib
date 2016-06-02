@@ -1,5 +1,8 @@
 import json
 from functools import partial
+import logging
+log = logging.getLogger("grapheneapi.graphenewsprotocol")
+
 
 try:
     from autobahn.asyncio.websocket import WebSocketClientProtocol
@@ -219,9 +222,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                         market["callback"](self, notice)
 
         except Exception as e:
-            print('Error dispatching notice: %s' % str(e))
-            import traceback
-            traceback.print_exc()
+            log.error('Error dispatching notice: %s' % str(e))
 
     def getObjectcb(self, oid, callback, *args):
         """ Get an Object from the internal object storage if available
@@ -251,7 +252,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             ``connection-init``.
         """
         self.request_id = 1
-        print("Server connected: {0}".format(response.peer))
+        log.debug("Server connected: {0}".format(response.peer))
         self.eventcallback("connection-init")
 
     def onOpen(self):
@@ -259,7 +260,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             requests access to APIs and calls event
             ``connection-opened``.
         """
-        print("WebSocket connection open.")
+        log.debug("WebSocket connection open.")
         self._login()
 
         " Register with database "
@@ -292,7 +293,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             " Resolve answers from RPC calls "
             if "id" in res:
                 if res["id"] not in self.requests:
-                    print("Received answer to an unknown request?!")
+                    log.warning("Received answer to an unknown request?!")
                 else:
                     callbacks = self.requests[res["id"]]["callback"]
                     if callable(callbacks):
@@ -308,7 +309,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                     [self.dispatchNotice(notice)
                         for notice in res["params"][1][0] if "id" in notice]
         else:
-            print("Error! ", res)
+            log.error("Error! ", res)
 
     def setLoop(self, loop):
         """ Define the asyncio loop so that it can be halted on
@@ -320,7 +321,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         """ Is called if the connection is lost. Calls event
             ``connection-closed`` and closes the asyncio main loop.
         """
-        print("WebSocket connection closed: {0}".format(errmsg))
+        log.info("WebSocket connection closed: {0}".format(errmsg))
         self.loop.stop()
         self.eventcallback("connection-closed")
 

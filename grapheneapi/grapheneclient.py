@@ -2,7 +2,8 @@ from .grapheneapi import GrapheneAPI
 from .graphenews import GrapheneWebsocket
 from collections import OrderedDict
 
-import logging as log
+import logging
+log = logging.getLogger("grapheneapi.grapheneclient")
 
 #: max number of objects to chache
 max_cache_objects = 50

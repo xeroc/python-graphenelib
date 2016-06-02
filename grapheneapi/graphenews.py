@@ -16,6 +16,9 @@ except:
 from .graphenewsprotocol import GrapheneWebsocketProtocol
 from .graphenewsrpc import GrapheneWebsocketRPC
 
+import logging
+log = logging.getLogger("grapheneapi.graphenews")
+
 #: max number of objects to chache
 max_cache_objects = 50
 
@@ -189,8 +192,8 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
             except:
                 pass
 
-            print("Trying to re-connect in 10 seconds!")
+            log.error("Trying to re-connect in 10 seconds!")
             time.sleep(10)
 
-        print("Good bye!")
+        log.info("Good bye!")
         loop.close()
