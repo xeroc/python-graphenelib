@@ -16,6 +16,8 @@ from .types import (
 from .objects import GrapheneObject, isArgsThisClass
 from .operations import Operation
 from .chains import known_chains
+import logging
+log = logging.getLogger("graphenebase.signedtransactions")
 
 
 class Signed_Transaction(GrapheneObject) :
@@ -70,7 +72,7 @@ class Signed_Transaction(GrapheneObject) :
         """
         s, junk = ecdsa.der.remove_sequence(unhexlify(s))
         if junk :
-            print('JUNK : %s', hexlify(junk).decode('ascii'))
+            log.debug('JUNK : %s', hexlify(junk).decode('ascii'))
         assert(junk == b'')
         x, s = ecdsa.der.remove_integer(s)
         y, s = ecdsa.der.remove_integer(s)
@@ -183,7 +185,7 @@ class Signed_Transaction(GrapheneObject) :
             while 1 :
                 cnt += 1
                 if not cnt % 20 :
-                    print("Still searching for a canonical signature. Tried %d times already!" % cnt)
+                    log.info("Still searching for a canonical signature. Tried %d times already!" % cnt)
 
                 # Deterministic k
                 #

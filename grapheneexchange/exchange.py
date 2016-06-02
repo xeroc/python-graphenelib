@@ -5,6 +5,8 @@ from datetime import datetime
 import time
 import math
 from grapheneextra.proposal import Proposal
+import logging
+log = logging.getLogger("graphenebase.signedtransactions")
 
 
 class NoWalletException(Exception):
