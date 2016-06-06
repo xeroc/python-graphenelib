@@ -1,5 +1,6 @@
 import json
 from functools import partial
+import warnings
 import logging
 log = logging.getLogger("grapheneapi.graphenewsprotocol")
 
@@ -50,6 +51,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def __init__(self):
         pass
 
+    """ Basic RPC connection
+    """
     def wsexec(self, params, callback=None):
         """ Internally used method to execute calls
 
@@ -68,15 +71,6 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 #        print(json.dumps(request["request"],indent=4))
 #        print(request["request"])
         self.sendMessage(json.dumps(request["request"]).encode('utf8'))
-
-    def eventcallback(self, name):
-        """ Call an event callback
-
-            :param str name: Name of the event
-        """
-        if (name in self.onEventCallbacks and
-           callable(self.onEventCallbacks[name])):
-            self.onEventCallbacks[name](self)
 
     def register_api(self, name):
         """ Register to an API of graphene
@@ -108,6 +102,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         """
         self.wsexec([1, "login", [self.username, self.password]])
 
+    """ Subscriptions
+    """
     def subscribe_to_accounts(self, account_ids, *args):
         """ Subscribe to account ids
 
@@ -149,37 +145,41 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                      "set_subscribe_callback",
                      [self.request_id, False]], handles)
 
-    def getAccountHistory(self, account_id, callback,
-                          start="1.11.0", stop="1.11.0", limit=100):
-        """ Get Account history History and call callback
+    """ Objects
+    """
+    def getObjectcb(self, oid, callback, *args):
+        """ Get an Object from the internal object storage if available
+            or otherwise retrieve it from the API.
 
-            :param account-id account_id: Account ID to read the history for
-            :param fnt callback: Callback to execute with the response
-            :param historyID start: Start of the history (defaults to ``1.11.0``)
-            :param historyID stop: Stop of the history (defaults to ``1.11.0``)
-            :param historyID stop: Limit entries by (defaults to ``100``, max ``100``)
-            :raises ValueError: if the account id is incorrectly formatted
+            :param object-id oid: Object ID to retrieve
+            :param fnt callback: Callback to call if object has been received
         """
-        if account_id[0:4] == "1.2." :
-            self.wsexec([self.api_ids["history"],
-                        "get_account_history",
-                         [account_id, start, 100, stop]],
-                        callback)
-        else :
-            raise ValueError("getAccountHistory expects an account" +
-                             "id of the form '1.2.x'!")
+        if self.objectMap is not None and oid in self.objectMap and callable(callback):
+            callback(self.objectMap[oid])
+        else:
+            handles = [partial(self.setObject, oid)]
+            if callback and callable(callback):
+                handles.append(callback)
+            self.wsexec([self.api_ids["database"],
+                         "get_objects",
+                         [[oid]]], handles)
 
-    def getAccountProposals(self, account_ids, callback):
-        """ Get Account Proposals and call callback
-
-            :param array account_ids: Array containing account ids
-            :param fnt callback: Callback to execute with the response
-
+    def setObject(self, oid, data):
+        """ Set Object in the internal Object Storage
         """
-        self.wsexec([self.api_ids["database"],
-                    "get_proposed_transactions",
-                     account_ids],
-                    callback)
+        if self.objectMap is not None:
+            self.objectMap[oid] = data
+
+    """ Callbacks and dispatcher
+    """
+    def eventcallback(self, name):
+        """ Call an event callback
+
+            :param str name: Name of the event
+        """
+        if (name in self.onEventCallbacks and
+           callable(self.onEventCallbacks[name])):
+            self.onEventCallbacks[name](self)
 
     def dispatchNotice(self, notice):
         """ Main Message Dispatcher for notifications as called by
@@ -223,29 +223,6 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
         except Exception as e:
             log.error('Error dispatching notice: %s' % str(e))
-
-    def getObjectcb(self, oid, callback, *args):
-        """ Get an Object from the internal object storage if available
-            or otherwise retrieve it from the API.
-
-            :param object-id oid: Object ID to retrieve
-            :param fnt callback: Callback to call if object has been received
-        """
-        if self.objectMap is not None and oid in self.objectMap and callable(callback):
-            callback(self.objectMap[oid])
-        else:
-            handles = [partial(self.setObject, oid)]
-            if callback and callable(callback):
-                handles.append(callback)
-            self.wsexec([self.api_ids["database"],
-                         "get_objects",
-                         [[oid]]], handles)
-
-    def setObject(self, oid, data):
-        """ Set Object in the internal Object Storage
-        """
-        if self.objectMap is not None:
-            self.objectMap[oid] = data
 
     def onConnect(self, response):
         """ Is executed on successful connect. Calls event
@@ -327,3 +304,47 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
     def onClose(self, wasClean, code, reason):
         self.connection_lost(reason)
+
+    """ L E G A C Y - C A L L S
+    """
+    def getAccountHistory(self, account_id, callback,
+                          start="1.11.0", stop="1.11.0", limit=100):
+        """ Get Account history History and call callback
+
+            :param account-id account_id: Account ID to read the history for
+            :param fnt callback: Callback to execute with the response
+            :param historyID start: Start of the history (defaults to ``1.11.0``)
+            :param historyID stop: Stop of the history (defaults to ``1.11.0``)
+            :param historyID stop: Limit entries by (defaults to ``100``, max ``100``)
+            :raises ValueError: if the account id is incorrectly formatted
+        """
+        warnings.warn(
+            "getAccountHistory is deprecated! "
+            "Use client.ws.get_account_history() instead",
+            DeprecationWarning
+        )
+        if account_id[0:4] == "1.2." :
+            self.wsexec([self.api_ids["history"],
+                        "get_account_history",
+                         [account_id, start, 100, stop]],
+                        callback)
+        else :
+            raise ValueError("getAccountHistory expects an account" +
+                             "id of the form '1.2.x'!")
+
+    def getAccountProposals(self, account_ids, callback):
+        """ Get Account Proposals and call callback
+
+            :param array account_ids: Array containing account ids
+            :param fnt callback: Callback to execute with the response
+
+        """
+        warnings.warn(
+            "getAccountProposals is deprecated! "
+            "Use client.ws.get_proposed_transactions() instead",
+            DeprecationWarning
+        )
+        self.wsexec([self.api_ids["database"],
+                    "get_proposed_transactions",
+                     account_ids],
+                    callback)

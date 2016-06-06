@@ -5,34 +5,6 @@ from collections import OrderedDict
 import logging
 log = logging.getLogger("grapheneapi.grapheneclient")
 
-#: max number of objects to chache
-max_cache_objects = 50
-
-
-class LimitedSizeDict(OrderedDict):
-    """ This class limits the size of the objectMap
-    """
-
-    def __init__(self, *args, **kwds):
-        self.size_limit = kwds.pop("size_limit", max_cache_objects)
-        OrderedDict.__init__(self, *args, **kwds)
-        self._check_size_limit()
-
-    def __setitem__(self, key, value):
-        OrderedDict.__setitem__(self, key, value)
-        self._check_size_limit()
-
-    def _check_size_limit(self):
-        if self.size_limit is not None:
-            while len(self) > self.size_limit:
-                self.popitem(last=False)
-
-    def __getitem__(self, key):
-        """ keep the element longer in the memory by moving it to the end
-        """
-        self.move_to_end(key)
-        return OrderedDict.__getitem__(self, key)
-
 
 class ExampleConfig() :
     """ The behavior of your program (e.g. reactions on messages) can be
@@ -495,6 +467,30 @@ class GrapheneClient() :
                 "core_symbol" : core_asset["symbol"],
                 "chain_id" : chain_id}
 
+    def getObject(self, oid):
+        """ Get an Object either from Websocket store (if available) or
+            from RPC connection.
+        """
+        if self.ws :
+            [_instance, _type, _id] = oid.split(".")
+            if (not (oid in self.ws.objectMap) or
+                    _instance == "1" and _type == "7"):  # force refresh orders
+                data = self.ws.get_object(oid)
+                self.ws.objectMap[oid] = data
+            else:
+                data = self.ws.objectMap[oid]
+            if len(data) == 1 :
+                return data[0]
+            else:
+                return data
+        else :
+            return self.rpc.get_object(oid)[0]
+
+    def get_object(self, oid):
+        """ Identical to ``getObject``
+        """
+        return self.getObject(oid)
+
     """ Forward these calls to Websocket API
     """
     def setEventCallbacks(self, callbacks):
@@ -518,6 +514,8 @@ class GrapheneClient() :
         """
         self.ws.setMarketCallBack(markets)
 
+    """ Connect to Websocket and run asynchronously
+    """
     def connect(self):
         """ Only *connect* to the websocket server. Does **not** run the
             subsystem.
@@ -534,22 +532,3 @@ class GrapheneClient() :
         """ Connect to Websocket server **and** run the subsystem """
         self.connect()
         self.run_forever()
-
-    def getObject(self, oid):
-        """ Get an Object either from Websocket store (if available) or
-            from RPC connection.
-        """
-        if self.ws :
-            [_instance, _type, _id] = oid.split(".")
-            if (not (oid in self.ws.objectMap) or
-                    _instance == "1" and _type == "7"):  # force refresh orders
-                data = self.ws.get_object(oid)
-                self.ws.objectMap[oid] = data
-            else:
-                data = self.ws.objectMap[oid]
-            if len(data) == 1 :
-                return data[0]
-            else:
-                return data
-        else :
-            return self.rpc.get_object(oid)[0]
