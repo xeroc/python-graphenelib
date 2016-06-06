@@ -611,11 +611,11 @@ class GrapheneExchange(GrapheneClient) :
             for o in orders:
                 if o["sell_price"]["base"]["asset_id"] == m["base"] :
                     price = self._get_price(o["sell_price"])
-                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
+                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"] / self._get_price(o["sell_price"])
                     bids.append([price, volume, o["id"]])
                 else :
                     price = 1 / self._get_price(o["sell_price"])
-                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"] / self._get_price(o["sell_price"])
+                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
                     asks.append([price, volume, o["id"]])
 
             data = {"asks" : asks, "bids" : bids}
