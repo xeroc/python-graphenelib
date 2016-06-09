@@ -201,7 +201,22 @@ class GrapheneExchange(GrapheneClient) :
         """
         return datetime.utcfromtimestamp(time.time() + int(secs)).strftime('%Y-%m-%dT%H:%M:%S')
 
-    def _get_market_name_from_ids(self, quote_id, base_id,) :
+    def normalizePrice(self, market, price):
+        """ Because assets have different precisions and orders are
+            created with a rational price, prices defined in floats will
+            slightly differ from the actual prices on the blockchain.
+            This is a representation issuer between floats being
+            represented as a ratio of integer (satoshis)
+        """
+        m = self._get_assets_from_market(market)
+        base = m["base"]
+        quote = m["quote"]
+        return float(
+            (int(price * 10 ** (base["precision"]-quote["precision"])) /
+            10 ** (base["precision"]-quote["precision"])
+        ))
+
+    def _get_market_name_from_ids(self, quote_id, base_id) :
         """ Returns the properly formated name of a market given base
             and quote ids
 
@@ -840,7 +855,6 @@ class GrapheneExchange(GrapheneClient) :
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.ws.get_asset(base_symbol)
         quote = self.ws.get_asset(quote_symbol)
-
         if self.rpc:
             transaction = self.rpc.sell_asset(self.config.account,
                                               '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
