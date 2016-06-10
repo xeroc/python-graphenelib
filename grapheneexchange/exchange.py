@@ -1,11 +1,12 @@
 from grapheneapi.grapheneclient import GrapheneClient
-from graphenebase import transactions
+from graphenebase import transactions, operations
 from graphenebase.account import PrivateKey
 from datetime import datetime
 import time
 import math
 from grapheneextra.proposal import Proposal
 import logging
+from . import deep_eq
 log = logging.getLogger("graphenebase.signedtransactions")
 
 
@@ -163,7 +164,7 @@ class GrapheneExchange(GrapheneClient) :
         if "prefix" in kwargs:
             self.prefix = kwargs["prefix"]
         else:
-            self.prefix = "BTS"
+            self.prefix = getattr(config, "prefix", "BTS")
 
         #: The wif key can be used for creating transactions **if** not
         # connected to a cli_wallet
@@ -824,7 +825,13 @@ class GrapheneExchange(GrapheneClient) :
             r.update({market : trades})
         return r
 
-    def buy(self, currencyPair, rate, amount, expiration=7 * 24 * 60 * 60, killfill=False):
+    def buy(self,
+            currencyPair,
+            rate,
+            amount,
+            expiration=7 * 24 * 60 * 60,
+            killfill=False,
+            returnID=False):
         """ Places a buy order in a given market (buy ``quote``, sell
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -835,6 +842,7 @@ class GrapheneExchange(GrapheneClient) :
             :param number amount: Amount of ``quote`` to buy
             :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
             :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
+            :param bool returnID: If this flag is True, the call will wait for the order to be included in a block and return it's id
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -877,7 +885,8 @@ class GrapheneExchange(GrapheneClient) :
                  "expiration": transactions.formatTimeFromNow(expiration),
                  "fill_or_kill": killfill,
                  }
-            ops = [transactions.Operation(transactions.Limit_order_create(**s))]
+            order = transactions.Limit_order_create(**s)
+            ops = [transactions.Operation(order)]
             expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
             ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
@@ -888,19 +897,28 @@ class GrapheneExchange(GrapheneClient) :
                 operations=ops
             )
             transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
+            transaction = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
             raise NoWalletException()
 
-        if self.propose_only:
-            [self.propose_operations.append(o) for o in transaction["operations"]]
-            return self.propose_operations
+        if returnID:
+            return self._waitForOperationsConfirmation(transactions.JsonObj(order))
         else:
-            return transaction
+            if self.propose_only:
+                [self.propose_operations.append(o) for o in transaction["operations"]]
+                return self.propose_operations
+            else:
+                return transaction
 
-    def sell(self, currencyPair, rate, amount, expiration=7 * 24 * 60 * 60, killfill=False):
+    def sell(self,
+             currencyPair,
+             rate,
+             amount,
+             expiration=7 * 24 * 60 * 60,
+             killfill=False,
+             returnID=False):
         """ Places a sell order in a given market (sell ``quote``, buy
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -911,6 +929,7 @@ class GrapheneExchange(GrapheneClient) :
             :param number amount: Amount of ``quote`` to sell
             :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
             :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
+            :param bool returnID: If this flag is True, the call will wait for the order to be included in a block and return it's id
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -953,7 +972,8 @@ class GrapheneExchange(GrapheneClient) :
                  "expiration": transactions.formatTimeFromNow(expiration),
                  "fill_or_kill": killfill,
                  }
-            ops = [transactions.Operation(transactions.Limit_order_create(**s))]
+            order = transactions.Limit_order_create(**s)
+            ops = [transactions.Operation(order)]
             expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
             ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
@@ -964,17 +984,34 @@ class GrapheneExchange(GrapheneClient) :
                 operations=ops
             )
             transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
+            transaction = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
             raise NoWalletException()
 
-        if self.propose_only:
-            [self.propose_operations.append(o) for o in transaction["operations"]]
-            return self.propose_operations
+        if returnID:
+            return self._waitForOperationsConfirmation(transactions.JsonObj(order))
         else:
-            return transaction
+            if self.propose_only:
+                [self.propose_operations.append(o) for o in transaction["operations"]]
+                return self.propose_operations
+            else:
+                return transaction
+
+    def _waitForOperationsConfirmation(self, thisop):
+        if self.safe_mode:
+            return "Safe Mode enabled, can't obtain an orderid"
+        counter = -2
+        blocknum = int(self.ws.get_dynamic_global_properties()["head_block_number"])
+        for block in self.ws.block_stream(start=blocknum - 2, mode="head"):
+            counter += 1
+            for tx in block["transactions"]:
+                for i, op in enumerate(tx["operations"]):
+                    if deep_eq.deep_eq(op[1], thisop):
+                        return (tx["operation_results"][i][1])
+            if counter > 10:
+                raise Exception("The operation has not been added after 10 blocks!")
 
     def list_debt_positions(self):
         """ List Call Positions (borrowed assets and amounts)
