@@ -47,7 +47,7 @@ def publish_rule(rpc, asset):
 
     this_asset_config = config.asset_config[asset] if asset in config.asset_config else config.asset_config["default"]
     price_metric      = this_asset_config["metric"] if "metric" in this_asset_config else config.asset_config["default"]["metric"]
-    newPrice          = derived_prices[asset]["quote"][price_metric]
+    newPrice          = derived_prices[asset]["short_backing_asset"][price_metric]
     oldPrice          = myCurrentFeed[asset]
 
     priceChange       = fabs(oldPrice - newPrice) / oldPrice * 100.0
@@ -194,7 +194,7 @@ def derive_prices(feed):
             secondaries.append(config.secondary_mpas[asset]["sameas"])
 
     for asset in asset_list_publish + secondaries:
-        quote_asset = assets[blockchain_feed_quote[asset]]['symbol']
+        short_backing_symbol = assets[blockchain_feed_quote[asset]]['symbol']
 
         # secondary markets are different
         if asset in list(config.secondary_mpas.keys()) :
@@ -250,7 +250,6 @@ def derive_prices(feed):
         # E.g. : CNY:BTC -> BTC:BTS = CNY:BTS
         # I.e. : BTS : interasset -> interasset : targetasset
         for interasset in _bases :
-            print(interasset, asset)
             if interasset == asset :
                 continue
             for ratio in price[asset][interasset] :
@@ -284,69 +283,44 @@ def derive_prices(feed):
 
         # Derive all prices and pick the right one later
 
+        for price_of in [core_symbol, "short_backing_asset"]:
+            if price_of == "short_backing_asset":
+                symbol = short_backing_symbol
+            else:
+                symbol = price_of
 
-        assetvolume = [v for v in volume[asset][core_symbol]]
-        assetprice  = [p for p in price[asset][core_symbol]]
+            assetvolume = [v for v in volume[asset][symbol]]
+            assetprice  = [p for p in price[asset][symbol]]
 
-        if len(assetvolume) > 1 :
-            price_median = statistics.median(price[asset][quote_asset])
-            price_mean   = statistics.mean(price[asset][quote_asset])
-            price_weighted = num.average(assetprice, weights=assetvolume)
-            price_std      = weighted_std(assetprice, assetvolume)
-            if price_std > 0.1 :
-                print("Asset %s shows high variance in fetched prices!" % (asset))
-        elif len(assetvolume) == 1:
-            price_median   = assetprice[0]
-            price_mean     = assetprice[0]
-            price_weighted = assetprice[0]
-            price_std      = 0
-            print("[Warning] Only a single source for the %s price could be identified" % asset)
-        else :
-            print("[Warning] No market route found for %s. Skipping price" % asset)
-            continue
+            if len(assetvolume) > 1 :
+                price_median = statistics.median(price[asset][symbol])
+                price_mean   = statistics.mean(price[asset][symbol])
+                price_weighted = num.average(assetprice, weights=assetvolume)
+                price_std      = weighted_std(assetprice, assetvolume)
+                if price_std > 0.1 :
+                    print("Asset %s shows high variance in fetched prices!" % (asset))
+            elif len(assetvolume) == 1:
+                price_median   = assetprice[0]
+                price_mean     = assetprice[0]
+                price_weighted = assetprice[0]
+                price_std      = 0
+                print("[Warning] Only a single source for the %s price could be identified" % asset)
+            else :
+                print("[Warning] No market route found for %s. Skipping price" % asset)
+                continue
 
-        # price conversion to "price for one BTS" i.e.  base=*, quote=core_symbol
-        price_result[asset]['BTS'] = {"mean"    : price_mean,
-                               "median"  : price_median,
-                               "weighted": price_weighted,
-                               "std"     : price_std * 100,  # percentage
-                               "number"  : len(assetprice),
-                               "quote"   : blockchain_feed_quote[asset],
-                               }
-
-        assetvolume = [v for v in volume[asset][quote_asset]]
-        assetprice  = [p for p in price[asset][quote_asset]]
-        if len(assetvolume) > 1 :
-            price_median = statistics.median(price[asset][quote_asset])
-            price_mean   = statistics.mean(price[asset][quote_asset])
-            price_weighted = num.average(assetprice, weights=assetvolume)
-            price_std      = weighted_std(assetprice, assetvolume)
-            if price_std > 0.1 :
-                print("Asset %s shows high variance in fetched prices!" % (asset))
-        elif len(assetvolume) == 1:
-            price_median   = assetprice[0]
-            price_mean     = assetprice[0]
-            price_weighted = assetprice[0]
-            price_std      = 0
-            print("[Warning] Only a single source for the %s price could be identified" % asset)
-        else :
-            print("[Warning] No market route found for %s. Skipping price" % asset)
-            continue
-        # price conversion to "price for one quote_asset" i.e.  base=*, quote=quote_asset
-        price_result[asset]["quote"] = {"mean"    : price_mean,
-                               "median"  : price_median,
-                               "weighted": price_weighted,
-                               "std"     : price_std * 100,  # percentage
-                               "number"  : len(assetprice),
-                               "quote"   : blockchain_feed_quote[asset],
-                               }
-
-
+            # price conversion to "price for one symbol" i.e.  base=*, quote=symbol
+            price_result[asset][price_of] = {"mean"    : price_mean,
+                                   "median"  : price_median,
+                                   "weighted": price_weighted,
+                                   "std"     : price_std * 100,  # percentage
+                                   "number"  : len(assetprice),
+                                   "short_backing_symbol"   : assets[blockchain_feed_quote[asset]]["symbol"]
+                                   }
     # secondary market pegged assets
     for asset in list(config.secondary_mpas.keys()) :
         if "sameas" in config.secondary_mpas[asset] :
             price_result[asset] = price_result[config.secondary_mpas[asset]["sameas"]]
-
     return price_result
 
 
@@ -425,18 +399,17 @@ def print_stats(feeds) :
         # Get Final Price according to price metric
         this_asset_config = config.asset_config[asset] if asset in config.asset_config else config.asset_config["default"]
         price_metric      = this_asset_config["metric"] if "metric" in this_asset_config else config.asset_config["default"]["metric"]
-        if asset not in derived_prices or price_metric not in derived_prices[asset]["quote"] :
+        if asset not in derived_prices or price_metric not in derived_prices[asset]["short_backing_asset"] :
             continue
-
-        quote_asset             = assets[derived_prices[asset]["quote"]["quote"]]["symbol"]
+        short_backing_symbol    = derived_prices[asset]["short_backing_asset"]["short_backing_symbol"]
         age                     = (str(datetime.utcnow() - lastUpdate[asset])) if not (lastUpdate[asset] == datetime.fromtimestamp(0)) else "infinity"
-        myprice                 = derived_prices[asset]["quote"][price_metric]
-        prices                  = derived_prices[asset]["quote"]
+        myprice                 = derived_prices[asset]["short_backing_asset"][price_metric]
+        prices                  = derived_prices[asset]["short_backing_asset"]
         blockchain              = price_median_blockchain[asset]
         last                    = float(myCurrentFeed[asset])
 
         t.add_row([asset,
-                   ("%s")      % (quote_asset),
+                   ("%s")      % (short_backing_symbol),
                    ("%s"       % formatPrice(myprice)),
                    ("%s (%s)"  % (formatPrice(prices["mean"]), priceChange(myprice, prices["mean"]))),
                    ("%s (%s)"  % (formatPrice(prices["median"]), priceChange(myprice, prices["median"]))),
@@ -505,14 +478,16 @@ def update_price_feed() :
     # Only publish given feeds #################################################
     price_feeds = {}
     update_required = False
+    print(derived_prices)
 
     for asset in asset_list_publish :
 
         # Get Final Price according to price metric
         this_asset_config = config.asset_config[asset] if asset in config.asset_config else config.asset_config["default"]
         price_metric      = this_asset_config["metric"] if "metric" in this_asset_config else config.asset_config["default"]["metric"]
-
-        if asset not in derived_prices or price_metric not in derived_prices[asset][core_symbol] :
+        if (asset not in derived_prices or
+                        core_symbol not in derived_prices[asset] or
+                        price_metric not in derived_prices[asset][core_symbol]) :
             print("Warning: Asset %s has no derived price!" % asset)
             continue
         if float(derived_prices[asset][core_symbol][price_metric]) > 0.0:
@@ -529,7 +504,7 @@ def update_price_feed() :
             symbol          = assets[asset]["symbol"]
             assert symbol is not asset
             base_precision_settle  = assets[blockchain_feed_quote[asset]]["precision"]  # core asset
-            core_price_settle      = derived_prices[asset]["quote"][price_metric] * 10 ** (quote_precision_settle - base_precision_settle)
+            core_price_settle      = derived_prices[asset]["short_backing_asset"][price_metric] * 10 ** (quote_precision_settle - base_precision_settle)
             core_price_settle      = fractions.Fraction.from_float(core_price_settle).limit_denominator(100000)
             denominator_settle     = core_price_settle.denominator
             numerator_settle       = core_price_settle.numerator
@@ -637,19 +612,19 @@ if len(sys.argv) > 1 :
         asset_list_publish.pop(0)
 
 # global variables initialization
-myWitness               = {}
-price_median_blockchain = {}
-blockchain_feed_quote   = {}
-assets                  = {}
-price                   = {}
-volume                  = {}
-lastUpdate              = {}
-myCurrentFeed           = {}
-myCurrentFeedQuote      = {}
-derived_prices          = {}
-derived_prices["BTS"]   = {}
-derived_prices["quote"] = {}
-debug                   = False if configFile.blame == "latest" else True
+myWitness                               = {}
+price_median_blockchain                 = {}
+blockchain_feed_quote                   = {}
+assets                                  = {}
+price                                   = {}
+volume                                  = {}
+lastUpdate                              = {}
+myCurrentFeed                           = {}
+myCurrentFeedQuote                      = {}
+derived_prices                          = {}
+derived_prices[core_symbol]             = {}
+derived_prices["short_backing_asset"]   = {}
+debug                                   = False if configFile.blame == "latest" else True
 
 if __name__ == "__main__":
     update_price_feed()
