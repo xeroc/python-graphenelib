@@ -478,7 +478,6 @@ def update_price_feed() :
     # Only publish given feeds #################################################
     price_feeds = {}
     update_required = False
-    print(derived_prices)
 
     for asset in asset_list_publish :
 
