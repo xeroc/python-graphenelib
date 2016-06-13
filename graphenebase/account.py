@@ -12,6 +12,38 @@ from graphenebase.dictionary import words as BrainKeyDictionary
 assert sys.version_info[0] == 3, "graphenelib requires python3"
 
 
+class PasswordKey(object):
+    """ This class derives a private key given the account name, the
+        role and a password. It leverages the technology of Brainkeys
+        and allows people to have a secure private key by providing a
+        passphrase only.
+    """
+
+    def __init__(self, account, password, role="active"):
+        self.account = account
+        self.role = role
+        self.password = password
+
+    def get_private(self) :
+        """ Derive private key from the brain key and the current sequence
+            number
+        """
+        a = bytes(self.account +
+                  self.role +
+                  self.password, 'ascii')
+        s = hashlib.sha256(a).digest()
+        return PrivateKey(hexlify(s).decode('ascii'))
+
+    def get_public(self) :
+        return self.get_private().pubkey
+
+    def get_private_key(self) :
+        return self.get_private()
+
+    def get_public_key(self) :
+        return self.get_public()
+
+
 class BrainKey(object) :
     """Brainkey implementation similar to the graphene-ui web-wallet.
 
@@ -38,6 +70,12 @@ class BrainKey(object) :
         else :
             self.brainkey = self.normalize(brainkey).strip()
         self.sequence = sequence
+
+    def __next__(self):
+        """ Get the next private key (sequence number increment) for
+            iterators
+        """
+        return self.next_sequence()
 
     def next_sequence(self) :
         """ Increment the sequence number by 1 """

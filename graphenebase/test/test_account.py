@@ -1,6 +1,6 @@
 import unittest
 from graphenebase.base58 import Base58
-from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey
+from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey, PasswordKey
 
 
 class Testcases(unittest.TestCase) :
@@ -151,7 +151,7 @@ class Testcases(unittest.TestCase) :
                           ],
                          [b, b, b, b, b, b, b])
 
-    def test_BrainKey(self):
+    def test_BrainKey_sequences(self):
         b = BrainKey("COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN MATZO")
         keys = ["5Hsbn6kXio4bb7eW5bX7kTp2sdkmbzP8kGWoau46Cf7en7T1RRE",
                 "5K9MHEyiSye5iFL2srZu3ZVjzAZjcQxUgUvuttcVrymovFbU4cc",
@@ -166,3 +166,30 @@ class Testcases(unittest.TestCase) :
         for i in keys:
             p = b.next_sequence().get_private()
             self.assertEqual(str(p), i)
+
+    def test_PasswordKey(self):
+        a = ["Aang7foN3oz1Ungai2qua5toh3map8ladei1eem2ohsh2shuo8aeji9Thoseo7ah",
+             "iep1Mees9eghiifahwei5iidi0Sazae9aigaeT7itho3quoo2dah5zuvobaelau5",
+             "ohBeuyoothae5aer9odaegh5Eeloh1fi7obei9ahSh0haeYuas1sheehaiv5LaiX",
+             "geiQuoo9NeeLoaZee0ain3Ku1biedohsesien4uHo1eib1ahzaesh5shae3iena7",
+             "jahzeice6Ix8ohBo3eik9pohjahgeegoh9sahthai1aeMahs8ki7Iub1oojeeSuo",
+             "eiVahHoh2hi4fazah9Tha8loxeeNgequaquuYee6Shoopo3EiWoosheeX6yohg2o",
+             "PheeCh3ar8xoofoiphoo4aisahjiiPah4vah0eeceiJ2iyeem9wahyupeithah9T",
+             "IuyiibahNgieshei2eeFu8aic1IeMae9ooXi9jaiwaht4Wiengieghahnguang0U",
+             "Ipee1quee7sheughemae4eir8pheix3quac3ei0Aquo9ohieLaeseeh8AhGeM2ew",
+             "Tech5iir0aP6waiMeiHoph3iwoch4iijoogh0zoh9aSh6Ueb2Dee5dang1aa8IiP"
+             ]
+        b = ["STM5NyCrrXHmdikC6QPRAPoDjSHVQJe3WC5bMZuF6YhqhSsfYfjhN",
+             "STM8gyvJtYyv5ZbT2ZxbAtgufQ5ovV2bq6EQp4YDTzQuSwyg7Ckry",
+             "STM7yE71iVPSpaq8Ae2AmsKfyFxA8pwYv5zgQtCnX7xMwRUQMVoGf",
+             "STM5jRgWA2kswPaXsQNtD2MMjs92XfJ1TYob6tjHtsECg2AusF5Wo",
+             "STM6XHwVxcP6zP5NV1jUbG6Kso9m8ZG9g2CjDiPcZpAxHngx6ATPB",
+             "STM59X1S4ofTAeHd1iNHDGxim5GkLo2AdcznksUsSYGU687ywB5WV",
+             "STM6BPPL4iSRbFVVN8v3BEEEyDsC1STRK7Ba9ewQ4Lqvszn5J8VAe",
+             "STM7cdK927wj95ptUrCk6HKWVeF74LG5cTjDTV22Z3yJ4Xw8xc9qp",
+             "STM7VNFRjrE1hs1CKpEAP9NAabdFpwvzYXRKvkrVBBv2kTQCbNHz7",
+             "STM7ZZFhEBjujcKjkmY31i1spPMx6xDSRhkursZLigi2HKLuALe5t",
+             ]
+        for i, pwd in enumerate(a):
+            p = format(PasswordKey("xeroc", pwd, "posting").get_public(), "STM")
+            self.assertEqual(p, b[i])
