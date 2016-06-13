@@ -63,7 +63,7 @@ change_max                   = 5.0       # Percentage of price change to cause a
 ################################################################################
 _all_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
                "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-               "KRW", "TCNY", "TUSD" ]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
+               "KRW"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
 _bases = ["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
 
 asset_config = {"default" : {  # DEFAULT BEHAVIOR
@@ -135,9 +135,6 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                 #
                 # As requested by the issuer, the squeere ratio should be
                 # 100.1%
-                "TCNY" : {
-                    "maximum_short_squeeze_ratio"   : 1001,
-                },
                 "TUSD" : {
                     "maximum_short_squeeze_ratio"   : 1001
                 },
@@ -151,7 +148,7 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
 # Note:
 #  The usual asset specific parameters have to be set in "asset_config",
 #  otherwise they will be ignored!
-secondary_mpas = {"TCNY" : {"sameas" : "CNY"},
+secondary_mpas = {
                   "TUSD" : {"sameas" : "USD"}
                   }
 
@@ -193,6 +190,29 @@ feedSources["btcchina"] = feedsources.BtcChina(allowFailure=True, quotes=["BTC"]
 feedSources["okcoin"]   = feedsources.Okcoin(allowFailure=True, quotes=["BTC"], bases=["CNY", "USD"])
 feedSources["huobi"]    = feedsources.Huobi(allowFailure=True, quotes=["BTC"], bases=["CNY"])
 
+#feedSources["openexchangerates"] = feedsources.OpenExchangeRates(api_key="", 
+#                                                                 free_subscription=True,
+#                                                                 allowFailure=True,
+#                                                                 quotes=["ARS", "BTC", "EUR", "JPY"], # more available
+#                                                                 bases=["USD"]) # only USD with free subscription
+#feedSources["currencylayer"] = feedsources.CurrencyLayer(api_key="",
+#                                                                 free_subscription=True,
+#                                                                 allowFailure=True,
+#                                                                 quotes=["ARS", "BTC", "EUR", "JPY"], # more available
+#                                                                 bases=["USD"]) # only USD with free subscription
+#feedSources["coinmarketcap"]    = feedsources.CoinmarketcapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
+#                                                                    quoteName={"ALTCAP":"ALTCAP", "ALTCAP.X":"ALTCAP.X"},
+#                                                                    bases=["BTS"],
+#                                                                    allowFailure=True)
+#
+#feedSources["coincap"]    = feedsources.CoincapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
+#                                                                    quoteName={"ALTCAP":"ALTCAP", "ALTCAP.X":"ALTCAP.X"},
+#                                                                    bases=["BTS"],
+#                                                                    allowFailure=True)
+#feedSources["fixer"] = feedsources.Fixer(allowFailure=True, quotes=["EUR", "JPY", "SEK", "CNY"], bases=["EUR", "USD", "CNY"]) # more available
+#feedSources["bitcoinvenezuela"] = feedsources.BitcoinVenezuela(allowFailure=True, quotes=["EUR", "USD", "VEF", "ARS", "BTC", "LTC"], bases=["BTC", "LTC", "USD"])
+# feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True, quotes=["BTS"], bases=["BTC"])
+# feedSources["bter"]     = feedsources.Bter(allowFailure=True, quotes=["BTC", "BTS"], bases=["BTC", "CNY", "USD"])
 # feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True, quotes=["BTS"], bases=["BTC"])
 # feedSources["bter"]     = feedsources.Bter(allowFailure=True, quotes=["BTC", "BTS"], bases=["BTC", "CNY", "USD"])
 

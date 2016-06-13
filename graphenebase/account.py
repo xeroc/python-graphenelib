@@ -33,7 +33,7 @@ class BrainKey(object) :
     """
 
     def __init__(self, brainkey=None, sequence=0):
-        if brainkey is None :
+        if not brainkey:
             self.brainkey = self.suggest()
         else :
             self.brainkey = self.normalize(brainkey).strip()
@@ -60,6 +60,15 @@ class BrainKey(object) :
         a = bytes(encoded, 'ascii')
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
+
+    def get_public(self) :
+        return self.get_private().pubkey
+
+    def get_private_key(self) :
+        return self.get_private()
+
+    def get_public_key(self) :
+        return self.get_public()
 
     def suggest(self):
         """ Suggest a new random brain key. Randomness is provided by the
@@ -151,6 +160,7 @@ class PublicKey(Address):
     """ This class deals with Public Keys and inherits ``Address``.
 
         :param str pk: Base58 encoded public key
+        :param str prefix: Network prefix (defaults to ``BTS``)
 
         Example:::
 
@@ -163,7 +173,7 @@ class PublicKey(Address):
                       PublicKey("xxxxx").unCompressed()
 
     """
-    def __init__(self, pk, prefix=None):
+    def __init__(self, pk, prefix="BTS"):
         self.prefix  = prefix
         self._pk     = Base58(pk, prefix=prefix)
         self.address = Address(pubkey=pk, prefix=prefix)
@@ -177,9 +187,18 @@ class PublicKey(Address):
         a, b, p = curve.a(), curve.b(), curve.p()
         alpha = (pow(x, 3, p) + a * x + b) % p
         beta = ecdsa.numbertheory.square_root_mod_prime(alpha, p)
-        if (beta % 2) != is_even :
+        if (beta % 2) == is_even :
             beta = p - beta
         return beta
+
+    def compressed(self):
+        """ Derive compressed public key """
+        order  = ecdsa.SECP256k1.generator.order()
+        p      = ecdsa.VerifyingKey.from_string(bytes(self), curve=ecdsa.SECP256k1).pubkey.point
+        x_str  = ecdsa.util.number_to_string(p.x(), order)
+        # y_str  = ecdsa.util.number_to_string(p.y(), order)
+        compressed   = hexlify(bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str).decode('ascii')
+        return(compressed)
 
     def unCompressed(self):
         """ Derive uncompressed key """
@@ -222,12 +241,14 @@ class PrivateKey(PublicKey):
         constructs two instances of ``PublicKey``:
 
         :param str wif: Base58check-encoded wif key
+        :param str prefix: Network prefix (defaults to ``BTS``)
 
         Example:::
 
-           PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")
+            PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")
 
         Compressed vs. Uncompressed:
+
         * ``PrivateKey("w-i-f").pubkey``:
             Instance of ``PublicKey`` using compressed key.
         * ``PrivateKey("w-i-f").pubkey.address``:
@@ -238,7 +259,7 @@ class PrivateKey(PublicKey):
             Instance of ``Address`` using uncompressed key.
 
     """
-    def __init__(self, wif=None):
+    def __init__(self, wif=None, prefix="BTS"):
         if wif is None :
             import os
             self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))
@@ -248,10 +269,10 @@ class PrivateKey(PublicKey):
             self._wif = Base58(wif)
         # compress pubkeys only
         self._pubkeyhex, self._pubkeyuncompressedhex = self.compressedpubkey()
-        self.pubkey               = PublicKey(self._pubkeyhex)
-        self.uncompressed         = PublicKey(self._pubkeyuncompressedhex)
-        self.uncompressed.address = Address(pubkey=self._pubkeyuncompressedhex)
-        self.address              = Address(pubkey=self._pubkeyhex)
+        self.pubkey               = PublicKey(self._pubkeyhex, prefix=prefix)
+        self.uncompressed         = PublicKey(self._pubkeyuncompressedhex, prefix=prefix)
+        self.uncompressed.address = Address(pubkey=self._pubkeyuncompressedhex, prefix=prefix)
+        self.address              = Address(pubkey=self._pubkeyhex, prefix=prefix)
 
     def compressedpubkey(self):
         """ Derive uncompressed public key """

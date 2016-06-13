@@ -69,7 +69,7 @@ if __name__ == '__main__':
             ),
             "core_exchange_rate" : transactions.Price(
                 base=transactions.Asset(amount=numerator, asset_id=asset["id"]),
-                quote=transactions.Asset(amount=denominator * scale_cer, asset_id=base["id"]),
+                quote=transactions.Asset(amount=denominator * scale_cer, asset_id="1.3.0"),
             ),
             "maximum_short_squeeze_ratio" : 1200,
             "maintenance_collateral_ratio" : 1100,

@@ -24,11 +24,11 @@ Manual installation:
 
     $ git clone https://github.com/xeroc/python-graphenlib/
     $ cd python-graphenlib
-    $ python3 setup.py install --user -r requirements.txt
+    $ python3 setup.py install --user
 
 Upgrade
 #######
 
 ::
 
-   $ pip install --user --upgrade -r requirements.txt graphenelib
+   $ pip install --user --upgrade graphenelib
