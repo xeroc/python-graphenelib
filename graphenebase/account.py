@@ -30,7 +30,7 @@ class PasswordKey(object):
         """
         a = bytes(self.account +
                   self.role +
-                  self.password, 'ascii')
+                  self.password, 'utf8')
         s = hashlib.sha256(a).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
