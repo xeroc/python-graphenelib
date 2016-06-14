@@ -41,18 +41,19 @@ class LimitedSizeDict(OrderedDict):
 
     def __setitem__(self, key, value):
         OrderedDict.__setitem__(self, key, value)
+        self.move_to_end(key, last=False)
         self._check_size_limit()
 
     def _check_size_limit(self):
         if self.size_limit is not None:
             while len(self) > self.size_limit:
-                self.popitem(last=False)
+                self.popitem(last=False)  # False -> FIFO
 
-    def __getitem__(self, key):
-        """ keep the element longer in the memory by moving it to the end
-        """
-        self.move_to_end(key)
-        return OrderedDict.__getitem__(self, key)
+#    def __getitem__(self, key):
+#        """ keep the element longer in the memory by moving it to the end
+#        """
+#        # self.move_to_end(key, last=False)
+#        return OrderedDict.__getitem__(self, key)
 
 
 class GrapheneWebsocket(GrapheneWebsocketRPC):

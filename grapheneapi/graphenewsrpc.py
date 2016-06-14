@@ -54,6 +54,8 @@ class GrapheneWebsocketRPC(object):
             try:
                 self.ws = create_connection(self.url)
                 break
+            except KeyboardInterrupt:
+                break
             except:
                 log.warning("Cannot connect to WS node: %s" % self.url)
                 time.sleep(10)
