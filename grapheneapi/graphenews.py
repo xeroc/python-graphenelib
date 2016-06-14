@@ -222,7 +222,32 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
 
             .. code-block:: python
 
-                setMarketCallBack(["USD:EUR", "GOLD:USD"])
+                market = {"quote" : quote["id"],
+                          "base" : base["id"],
+                          "base_symbol" : base["symbol"],
+                          "quote_symbol" : quote["symbol"],
+                          "callback": print}
+                setMarketCallBack([market])
 
         """
         self.proto.markets = markets
+
+    def setAssetDispatcher(self, assets) :
+        """ Define Callbacks on Asset Events for websocket connections
+
+            :param markets: Array of Assets to register to
+            :type markets: array of asset pairs
+
+            Example
+
+            .. code-block:: python
+
+                asset  = {"id" : "1.3.121",
+                          "bitasset_data_id": "2.4.21",
+                          "dynamic_asset_data_id": "2.3.121",
+                          "symbol" : "USD",
+                          "callback": print}
+                setAssetCallBack([asset])
+
+        """
+        self.proto.assets = assets

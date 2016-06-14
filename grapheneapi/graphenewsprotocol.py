@@ -34,6 +34,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     #: Markets to subscribe to
     markets = []
 
+    #: Assets to subscribe to
+    assets = []
+
     #: Storage of Objects to reduce latency and load
     objectMap = None
 
@@ -51,6 +54,10 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def __init__(self):
         pass
 
+    def _get_request_id(self):
+        self.request_id += 1
+        return self.request_id
+
     """ Basic RPC connection
     """
     def wsexec(self, params, callback=None):
@@ -61,8 +68,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                                  of the answer (defaults to ``None``)
         """
         request = {"request" : {}, "callback" : None}
-        self.request_id += 1
-        request["id"] = self.request_id
+        request["id"] = self._get_request_id()
         request["request"]["id"] = self.request_id
         request["request"]["method"] = "call"
         request["request"]["params"] = params
@@ -118,9 +124,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         """
         for m in self.markets:
             market = self.markets[m]
-            self.request_id += 1
             self.wsexec([0, "subscribe_to_market",
-                         [self.request_id,
+                         [self._get_request_id(),
                           market["quote"],
                           market["base"]]])
 
@@ -129,6 +134,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
             * ``self.database_callbacks``
             * ``self.accounts``
+            * ``self.assets``
 
             and set the subscription callback.
         """
@@ -138,12 +144,20 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             self.database_callbacks_ids.update({
                 handle: self.database_callbacks[handle]})
 
+        asset_ids = set()
+        for m in self.assets:
+            asset_ids.add(m["id"])
+            if "bitasset_data_id" in m:
+                asset_ids.add(m["bitasset_data_id"])
+            if "dynamic_asset_data_id" in m:
+                asset_ids.add(m["dynamic_asset_data_id"])
+        handles.append(partial(self.getObjectscb, list(asset_ids), None))
+
         if self.accounts:
             handles.append(partial(self.subscribe_to_accounts, self.accounts))
-        self.request_id += 1
         self.wsexec([self.api_ids["database"],
                      "set_subscribe_callback",
-                     [self.request_id, False]], handles)
+                     [self._get_request_id(), False]], handles)
 
     """ Objects
     """
@@ -154,21 +168,35 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             :param object-id oid: Object ID to retrieve
             :param fnt callback: Callback to call if object has been received
         """
-        if self.objectMap is not None and oid in self.objectMap and callable(callback):
-            callback(self.objectMap[oid])
-        else:
-            handles = [partial(self.setObject, oid)]
+        self.getObjectscb([oid], callback, *args)
+
+    def getObjectscb(self, oids, callback, *args):
+        # Are they stored in memory already?
+        if self.objectMap is not None:
+            for oid in oids:
+                if oid in self.objectMap and callable(callback):
+                    callback(self.objectMap[oid])
+                    oids.remove(oid)
+        # Let's get those that we haven't found in memory!
+        if oids:
+            handles = [partial(self.setObjects, oids)]
             if callback and callable(callback):
                 handles.append(callback)
             self.wsexec([self.api_ids["database"],
                          "get_objects",
-                         [[oid]]], handles)
+                         [oids]], handles)
 
     def setObject(self, oid, data):
         """ Set Object in the internal Object Storage
         """
-        if self.objectMap is not None:
-            self.objectMap[oid] = data
+        self.setObjects([oid], [data])
+
+    def setObjects(self, oids, datas):
+        if self.objectMap is None:
+            return
+
+        for i, oid in enumerate(oids):
+            self.objectMap[oid] = datas[i]
 
     """ Callbacks and dispatcher
     """
@@ -214,12 +242,25 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             if inst == "1" and _type == "7":
                 for m in self.markets:
                     market = self.markets[m]
+                    if not callable(market["callback"]):
+                        continue
                     if(((market["quote"] == notice["sell_price"]["quote"]["asset_id"] and
                        market["base"] == notice["sell_price"]["base"]["asset_id"]) or
                        (market["base"] == notice["sell_price"]["quote"]["asset_id"] and
-                       market["quote"] == notice["sell_price"]["base"]["asset_id"])) and
-                       callable(market["callback"])):
+                       market["quote"] == notice["sell_price"]["base"]["asset_id"]))):
                         market["callback"](self, notice)
+
+            " Asset notifications "
+            if (inst == "1" and _type == "3" or  # Asset itself
+                    # bitasset and dynamic data
+                    inst == "2" and (_type == "4" or _type == "3")):
+                for asset in self.assets:
+                    if not callable(asset["callback"]):
+                        continue
+                    if (asset.get("id") == notice["id"] or
+                            asset.get("bitasset_data_id", None) == notice["id"] or
+                            asset.get("dynamic_asset_data_id", None) == notice["id"]):
+                        asset["callback"](self, notice)
 
         except Exception as e:
             log.error('Error dispatching notice: %s' % str(e))

@@ -78,6 +78,10 @@ class ExampleConfig() :
     #: ``onAccountUpdate()`` to be called
     watch_accounts        = ["fabian", "nathan"]
 
+    #: Assets you want to watch. Changes will be used to call
+    #: ``onAssetUpdate()``.
+    watch_assets          = ["USD"]
+
     #: Markets to watch. Changes to these will result in the method
     #: ``onMarketUpdate()`` to be called
     watch_markets         = ["USD:CORE"]
@@ -155,6 +159,20 @@ class ExampleConfig() :
                     "lifetime_referrer_fee_percentage": 8000
                 }
             """
+        pass
+
+    def onAssetUpdate(self, data):
+        """ This method is called when any of the assets in watch_assets
+            changes. The changes of the following objects are monitored:
+
+             * Asset object (``1.3.x``)
+             * Dynamic Asset data (``2.3.x``)
+             * Bitasset data (``2.4.x``)
+
+             Hence, this method needs to distinguish these three
+             objects!
+
+        """
         pass
 
     def onMarketUpdate(self, data):
@@ -409,6 +427,19 @@ class GrapheneClient() :
                         log.warn("Market assets could not be found: %s"
                                  % market)
                 self.setMarketCallBack(self.markets)
+
+            if ("watch_assets" in available_features):
+                assets = []
+                for asset in config.watch_assets:
+                    a = self.ws.get_asset(asset)
+                    if not a:
+                        log.warning("The asset %s does not exist!" % a)
+
+                    if ("onAssetUpdate" in available_features):
+                        a["callback"] = config.onAssetUpdate
+                    assets.append(a)
+                self.setAssetDispatcher(assets)
+
             if "onRegisterHistory" in available_features:
                 self.setEventCallbacks(
                     {"registered-history": config.onRegisterHistory})
@@ -513,6 +544,11 @@ class GrapheneClient() :
         """ Internally used to register Market update callbacks
         """
         self.ws.setMarketCallBack(markets)
+
+    def setAssetDispatcher(self, markets):
+        """ Internally used to register Market update callbacks
+        """
+        self.ws.setAssetDispatcher(markets)
 
     """ Connect to Websocket and run asynchronously
     """
