@@ -890,7 +890,6 @@ class GrapheneExchange(GrapheneClient) :
                  "fill_or_kill": killfill,
                  }
             order = transactions.Limit_order_create(**s)
-            jsonOrder = transactions.JsonObj(order)
             ops = [transactions.Operation(order)]
             expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
@@ -903,6 +902,7 @@ class GrapheneExchange(GrapheneClient) :
             )
             transaction = transaction.sign([self.config.wif], self.prefix)
             transaction = transactions.JsonObj(transaction)
+            jsonOrder = transaction["operations"][0][1]
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
@@ -978,7 +978,6 @@ class GrapheneExchange(GrapheneClient) :
                  "fill_or_kill": killfill,
                  }
             order = transactions.Limit_order_create(**s)
-            jsonOrder = transactions.JsonObj(order)
             ops = [transactions.Operation(order)]
             expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
@@ -991,6 +990,7 @@ class GrapheneExchange(GrapheneClient) :
             )
             transaction = transaction.sign([self.config.wif], self.prefix)
             transaction = transactions.JsonObj(transaction)
+            jsonOrder = transaction["operations"][0][1]
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
@@ -1008,6 +1008,8 @@ class GrapheneExchange(GrapheneClient) :
     def _waitForOperationsConfirmation(self, thisop):
         if self.safe_mode:
             return "Safe Mode enabled, can't obtain an orderid"
+
+        log.debug("Waiting for operation to be included in block: %s" % str(thisop))
         counter = -2
         blocknum = int(self.ws.get_dynamic_global_properties()["head_block_number"])
         for block in self.ws.block_stream(start=blocknum - 2, mode="head"):
