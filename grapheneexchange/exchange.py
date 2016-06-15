@@ -869,6 +869,7 @@ class GrapheneExchange(GrapheneClient) :
                                               expiration,
                                               killfill,
                                               not (self.safe_mode or self.propose_only))
+            jsonOrder = transaction["operations"][0][1]
         elif self.config.wif:
             account = self.ws.get_account(self.config.account)
             s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -883,6 +884,7 @@ class GrapheneExchange(GrapheneClient) :
                  "fill_or_kill": killfill,
                  }
             order = transactions.Limit_order_create(**s)
+            jsonOrder = transactions.JsonObj(order)
             ops = [transactions.Operation(order)]
             expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
@@ -901,7 +903,7 @@ class GrapheneExchange(GrapheneClient) :
             raise NoWalletException()
 
         if returnID:
-            return self._waitForOperationsConfirmation(transactions.JsonObj(order))
+            return self._waitForOperationsConfirmation(jsonOrder)
         else:
             if self.propose_only:
                 [self.propose_operations.append(o) for o in transaction["operations"]]
@@ -955,6 +957,7 @@ class GrapheneExchange(GrapheneClient) :
                                               expiration,
                                               killfill,
                                               not (self.safe_mode or self.propose_only))
+            jsonOrder = transaction["operations"][0][1]
         elif self.config.wif:
             account = self.ws.get_account(self.config.account)
             s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -969,6 +972,7 @@ class GrapheneExchange(GrapheneClient) :
                  "fill_or_kill": killfill,
                  }
             order = transactions.Limit_order_create(**s)
+            jsonOrder = transactions.JsonObj(order)
             ops = [transactions.Operation(order)]
             expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
@@ -987,7 +991,7 @@ class GrapheneExchange(GrapheneClient) :
             raise NoWalletException()
 
         if returnID:
-            return self._waitForOperationsConfirmation(transactions.JsonObj(order))
+            return self._waitForOperationsConfirmation(jsonOrder)
         else:
             if self.propose_only:
                 [self.propose_operations.append(o) for o in transaction["operations"]]
