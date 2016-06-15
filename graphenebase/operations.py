@@ -226,3 +226,24 @@ class Asset_fund_fee_pool(GrapheneObject):
                 ('extensions', Set([])),
             ]))
 
+
+class Override_transfer(GrapheneObject) :
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "memo" in kwargs:
+                memo = Optional(Memo(kwargs["memo"]))
+            else:
+                memo = Optional(None)
+            super().__init__(OrderedDict([
+                ('fee'       , Asset(kwargs["fee"])),
+                ('issuer'    , ObjectId(kwargs["issuer"], "account")),
+                ('from'      , ObjectId(kwargs["from"], "account")),
+                ('to'        , ObjectId(kwargs["to"], "account")),
+                ('amount'    , Asset(kwargs["amount"])),
+                ('memo'      , memo),
+                ('extensions', Set([])),
+            ]))

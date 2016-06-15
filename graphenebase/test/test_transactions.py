@@ -218,19 +218,40 @@ class Testcases(unittest.TestCase) :
         compare = "f68585abf4dce7c8045701101127000000000000009a02207662ed00000000000000011f39f7dc7745076c9c7e612d40c68ee92d3f4b2696b1838037ce2a35ac259883ba6c6c49d91ad05a7e78d80bb83482c273dbbc911587487bf468b85fb4f537da3d"
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_override_transfer(self):
+        s = {"fee": {"amount": 0,
+                     "asset_id": "1.3.0"},
+             "issuer": "1.2.29",
+             "from": "1.2.104",
+             "to": "1.2.29",
+             "amount": {"amount": 100000,
+                        "asset_id": "1.3.105"},
+             "extensions": []
+             }
+        op = transactions.Override_transfer(**s)
+        ops    = [transactions.Operation(op)]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = "f68585abf4dce7c8045701260000000000000000001d681da08601000000000069000000012030cc81722c3e67442d2f59deba188f6079c8ba2d8318a642e6a70a125655515f20e2bd3adb2ea886cdbc7f6590c7f8c80818d9176d9085c176c736686ab6c9fd"
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = transactions.Asset_fund_fee_pool(
-            **{"fee": {"amount": 10001,
-                       "asset_id": "1.3.0"
-                       },
-               "from_account": "1.2.282",
-               "asset_id": "1.3.32",
-               "amount": 15557238,
-               "extensions": []
-               }
-        )
+        op = transactions.Override_transfer(**{
+            "fee": {"amount": 0,
+                    "asset_id": "1.3.0"},
+            "issuer": "1.2.29",
+            "from": "1.2.104",
+            "to": "1.2.29",
+            "amount": {"amount": 100000,
+                       "asset_id": "1.3.105"},
+            "extensions": []
+        })
 
         ops = [transactions.Operation(op)]
         tx = transactions.Signed_Transaction(
