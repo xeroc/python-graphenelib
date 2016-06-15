@@ -3,7 +3,7 @@ from websocket import create_connection
 import json
 import time
 import logging
-log = logging.getLogger("grapheneapi.graphenewsrpc")
+log = logging.getLogger(__name__)
 
 
 class RPCError(Exception):
@@ -276,6 +276,7 @@ class GrapheneWebsocketRPC(object):
             :raises RPCError: if the server returns an error
         """
         try:
+            log.debug(payload)
             while True:
                 try:
                     self.ws.send(json.dumps(payload))
@@ -289,6 +290,7 @@ class GrapheneWebsocketRPC(object):
                         self.wsconnect()
                     except:
                         pass
+            log.debug(ret)
 
             if 'error' in ret:
                 if 'detail' in ret['error']:

@@ -7,7 +7,7 @@ import math
 from grapheneextra.proposal import Proposal
 import logging
 from . import deep_eq
-log = logging.getLogger("graphenebase.signedtransactions")
+log = logging.getLogger(__name__)
 
 
 class NoWalletException(Exception):
@@ -213,9 +213,8 @@ class GrapheneExchange(GrapheneClient) :
         base = m["base"]
         quote = m["quote"]
         return float(
-            (int(price * 10 ** (base["precision"]-quote["precision"])) /
-            10 ** (base["precision"]-quote["precision"])
-        ))
+            (int(price * 10 ** (base["precision"] - quote["precision"])) /
+             10 ** (base["precision"] - quote["precision"])))
 
     def _get_market_name_from_ids(self, quote_id, base_id) :
         """ Returns the properly formated name of a market given base
@@ -398,7 +397,6 @@ class GrapheneExchange(GrapheneClient) :
                 'committee_member_create': {'fee': 100000000.0}}
 
         """
-        from graphenebase.transactions import operations
         r = {}
         obj, base = self.ws.get_objects(["2.0.0", "1.3.0"])
         fees = obj["parameters"]["current_fees"]["parameters"]

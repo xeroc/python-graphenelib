@@ -17,7 +17,7 @@ from .objects import GrapheneObject, isArgsThisClass
 from .operations import Operation
 from .chains import known_chains
 import logging
-log = logging.getLogger("graphenebase.signedtransactions")
+log = logging.getLogger(__name__)
 
 
 class Signed_Transaction(GrapheneObject) :

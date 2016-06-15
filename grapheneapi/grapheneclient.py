@@ -3,7 +3,7 @@ from .graphenews import GrapheneWebsocket
 from collections import OrderedDict
 
 import logging
-log = logging.getLogger("grapheneapi.grapheneclient")
+log = logging.getLogger(__name__)
 
 
 class ExampleConfig() :

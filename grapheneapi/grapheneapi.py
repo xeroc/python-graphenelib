@@ -1,7 +1,7 @@
 import sys
 import json
 import logging
-log = logging.getLogger("grapheneapi.grapheneapi")
+log = logging.getLogger(__name__)
 
 try:
     import requests

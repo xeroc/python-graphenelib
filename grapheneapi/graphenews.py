@@ -17,7 +17,7 @@ from .graphenewsprotocol import GrapheneWebsocketProtocol
 from .graphenewsrpc import GrapheneWebsocketRPC
 
 import logging
-log = logging.getLogger("grapheneapi.graphenews")
+log = logging.getLogger(__name__)
 
 #: max number of objects to chache
 

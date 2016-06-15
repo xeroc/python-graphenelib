@@ -2,7 +2,7 @@ import json
 from functools import partial
 import warnings
 import logging
-log = logging.getLogger("grapheneapi.graphenewsprotocol")
+log = logging.getLogger(__name__)
 
 
 try:
@@ -74,8 +74,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         request["request"]["params"] = params
         request["callback"] = callback
         self.requests.update({self.request_id: request})
-#        print(json.dumps(request["request"],indent=4))
-#        print(request["request"])
+        log.debug(request["request"])
         self.sendMessage(json.dumps(request["request"]).encode('utf8'))
 
     def register_api(self, name):
@@ -305,8 +304,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                                   payload
         """
         res = json.loads(payload.decode('utf8'))
-#        print("\n\nServer: " + json.dumps(res,indent=1))
-#        print("\n\nServer: " + str(res))
+        log.debug(res)
         if "error" not in res:
             " Resolve answers from RPC calls "
             if "id" in res:
