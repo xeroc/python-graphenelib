@@ -31,7 +31,7 @@ still support exchanges that require more confirmations for deposits.
 
 We provide a so called *delayed* full node which accepts two additional
 parameters for the configuration besides those already available with the
-standard daemon (read :doc:`full`).
+standard daemon.
 
 * `trusted-node` RPC endpoint of a trusted validating node (required)
 * `delay-block-count` Number of blocks to delay before advancing chain state (required)

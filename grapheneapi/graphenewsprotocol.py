@@ -1,5 +1,9 @@
 import json
 from functools import partial
+import warnings
+import logging
+log = logging.getLogger(__name__)
+
 
 try:
     from autobahn.asyncio.websocket import WebSocketClientProtocol
@@ -30,6 +34,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     #: Markets to subscribe to
     markets = []
 
+    #: Assets to subscribe to
+    assets = []
+
     #: Storage of Objects to reduce latency and load
     objectMap = None
 
@@ -47,6 +54,12 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def __init__(self):
         pass
 
+    def _get_request_id(self):
+        self.request_id += 1
+        return self.request_id
+
+    """ Basic RPC connection
+    """
     def wsexec(self, params, callback=None):
         """ Internally used method to execute calls
 
@@ -55,25 +68,14 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                                  of the answer (defaults to ``None``)
         """
         request = {"request" : {}, "callback" : None}
-        self.request_id += 1
-        request["id"] = self.request_id
+        request["id"] = self._get_request_id()
         request["request"]["id"] = self.request_id
         request["request"]["method"] = "call"
         request["request"]["params"] = params
         request["callback"] = callback
         self.requests.update({self.request_id: request})
-#        print(json.dumps(request["request"],indent=4))
-#        print(request["request"])
+        log.debug(request["request"])
         self.sendMessage(json.dumps(request["request"]).encode('utf8'))
-
-    def eventcallback(self, name):
-        """ Call an event callback
-
-            :param str name: Name of the event
-        """
-        if (name in self.onEventCallbacks and
-           callable(self.onEventCallbacks[name])):
-            self.onEventCallbacks[name](self)
 
     def register_api(self, name):
         """ Register to an API of graphene
@@ -105,6 +107,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         """
         self.wsexec([1, "login", [self.username, self.password]])
 
+    """ Subscriptions
+    """
     def subscribe_to_accounts(self, account_ids, *args):
         """ Subscribe to account ids
 
@@ -119,9 +123,8 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         """
         for m in self.markets:
             market = self.markets[m]
-            self.request_id += 1
             self.wsexec([0, "subscribe_to_market",
-                         [self.request_id,
+                         [self._get_request_id(),
                           market["quote"],
                           market["base"]]])
 
@@ -130,6 +133,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
             * ``self.database_callbacks``
             * ``self.accounts``
+            * ``self.assets``
 
             and set the subscription callback.
         """
@@ -139,44 +143,70 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             self.database_callbacks_ids.update({
                 handle: self.database_callbacks[handle]})
 
+        asset_ids = set()
+        for m in self.assets:
+            asset_ids.add(m["id"])
+            if "bitasset_data_id" in m:
+                asset_ids.add(m["bitasset_data_id"])
+            if "dynamic_asset_data_id" in m:
+                asset_ids.add(m["dynamic_asset_data_id"])
+        handles.append(partial(self.getObjectscb, list(asset_ids), None))
+
         if self.accounts:
             handles.append(partial(self.subscribe_to_accounts, self.accounts))
-        self.request_id += 1
         self.wsexec([self.api_ids["database"],
                      "set_subscribe_callback",
-                     [self.request_id, False]], handles)
+                     [self._get_request_id(), False]], handles)
 
-    def getAccountHistory(self, account_id, callback,
-                          start="1.11.0", stop="1.11.0", limit=100):
-        """ Get Account history History and call callback
+    """ Objects
+    """
+    def getObjectcb(self, oid, callback, *args):
+        """ Get an Object from the internal object storage if available
+            or otherwise retrieve it from the API.
 
-            :param account-id account_id: Account ID to read the history for
-            :param fnt callback: Callback to execute with the response
-            :param historyID start: Start of the history (defaults to ``1.11.0``)
-            :param historyID stop: Stop of the history (defaults to ``1.11.0``)
-            :param historyID stop: Limit entries by (defaults to ``100``, max ``100``)
-            :raises ValueError: if the account id is incorrectly formatted
+            :param object-id oid: Object ID to retrieve
+            :param fnt callback: Callback to call if object has been received
         """
-        if account_id[0:4] == "1.2." :
-            self.wsexec([self.api_ids["history"],
-                        "get_account_history",
-                         [account_id, start, 100, stop]],
-                        callback)
-        else :
-            raise ValueError("getAccountHistory expects an account" +
-                             "id of the form '1.2.x'!")
+        self.getObjectscb([oid], callback, *args)
 
-    def getAccountProposals(self, account_ids, callback):
-        """ Get Account Proposals and call callback
+    def getObjectscb(self, oids, callback, *args):
+        # Are they stored in memory already?
+        if self.objectMap is not None:
+            for oid in oids:
+                if oid in self.objectMap and callable(callback):
+                    callback(self.objectMap[oid])
+                    oids.remove(oid)
+        # Let's get those that we haven't found in memory!
+        if oids:
+            handles = [partial(self.setObjects, oids)]
+            if callback and callable(callback):
+                handles.append(callback)
+            self.wsexec([self.api_ids["database"],
+                         "get_objects",
+                         [oids]], handles)
 
-            :param array account_ids: Array containing account ids
-            :param fnt callback: Callback to execute with the response
-
+    def setObject(self, oid, data):
+        """ Set Object in the internal Object Storage
         """
-        self.wsexec([self.api_ids["database"],
-                    "get_proposed_transactions",
-                     account_ids],
-                    callback)
+        self.setObjects([oid], [data])
+
+    def setObjects(self, oids, datas):
+        if self.objectMap is None:
+            return
+
+        for i, oid in enumerate(oids):
+            self.objectMap[oid] = datas[i]
+
+    """ Callbacks and dispatcher
+    """
+    def eventcallback(self, name):
+        """ Call an event callback
+
+            :param str name: Name of the event
+        """
+        if (name in self.onEventCallbacks and
+           callable(self.onEventCallbacks[name])):
+            self.onEventCallbacks[name](self)
 
     def dispatchNotice(self, notice):
         """ Main Message Dispatcher for notifications as called by
@@ -211,47 +241,35 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             if inst == "1" and _type == "7":
                 for m in self.markets:
                     market = self.markets[m]
+                    if not callable(market["callback"]):
+                        continue
                     if(((market["quote"] == notice["sell_price"]["quote"]["asset_id"] and
                        market["base"] == notice["sell_price"]["base"]["asset_id"]) or
                        (market["base"] == notice["sell_price"]["quote"]["asset_id"] and
-                       market["quote"] == notice["sell_price"]["base"]["asset_id"])) and
-                       callable(market["callback"])):
+                       market["quote"] == notice["sell_price"]["base"]["asset_id"]))):
                         market["callback"](self, notice)
 
+            " Asset notifications "
+            if (inst == "1" and _type == "3" or  # Asset itself
+                    # bitasset and dynamic data
+                    inst == "2" and (_type == "4" or _type == "3")):
+                for asset in self.assets:
+                    if not callable(asset["callback"]):
+                        continue
+                    if (asset.get("id") == notice["id"] or
+                            asset.get("bitasset_data_id", None) == notice["id"] or
+                            asset.get("dynamic_asset_data_id", None) == notice["id"]):
+                        asset["callback"](self, notice)
+
         except Exception as e:
-            print('Error dispatching notice: %s' % str(e))
-            import traceback
-            traceback.print_exc()
-
-    def getObjectcb(self, oid, callback, *args):
-        """ Get an Object from the internal object storage if available
-            or otherwise retrieve it from the API.
-
-            :param object-id oid: Object ID to retrieve
-            :param fnt callback: Callback to call if object has been received
-        """
-        if self.objectMap is not None and oid in self.objectMap and callable(callback):
-            callback(self.objectMap[oid])
-        else:
-            handles = [partial(self.setObject, oid)]
-            if callback and callable(callback):
-                handles.append(callback)
-            self.wsexec([self.api_ids["database"],
-                         "get_objects",
-                         [[oid]]], handles)
-
-    def setObject(self, oid, data):
-        """ Set Object in the internal Object Storage
-        """
-        if self.objectMap is not None:
-            self.objectMap[oid] = data
+            log.error('Error dispatching notice: %s' % str(e))
 
     def onConnect(self, response):
         """ Is executed on successful connect. Calls event
             ``connection-init``.
         """
         self.request_id = 1
-        print("Server connected: {0}".format(response.peer))
+        log.debug("Server connected: {0}".format(response.peer))
         self.eventcallback("connection-init")
 
     def onOpen(self):
@@ -259,7 +277,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             requests access to APIs and calls event
             ``connection-opened``.
         """
-        print("WebSocket connection open.")
+        log.debug("WebSocket connection open.")
         self._login()
 
         " Register with database "
@@ -286,13 +304,12 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                                   payload
         """
         res = json.loads(payload.decode('utf8'))
-#        print("\n\nServer: " + json.dumps(res,indent=1))
-#        print("\n\nServer: " + str(res))
+        log.debug(res)
         if "error" not in res:
             " Resolve answers from RPC calls "
             if "id" in res:
                 if res["id"] not in self.requests:
-                    print("Received answer to an unknown request?!")
+                    log.warning("Received answer to an unknown request?!")
                 else:
                     callbacks = self.requests[res["id"]]["callback"]
                     if callable(callbacks):
@@ -308,7 +325,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                     [self.dispatchNotice(notice)
                         for notice in res["params"][1][0] if "id" in notice]
         else:
-            print("Error! ", res)
+            log.error("Error! ", res)
 
     def setLoop(self, loop):
         """ Define the asyncio loop so that it can be halted on
@@ -320,6 +337,53 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         """ Is called if the connection is lost. Calls event
             ``connection-closed`` and closes the asyncio main loop.
         """
-        print("WebSocket connection closed: {0}".format(errmsg))
+        log.info("WebSocket connection closed: {0}".format(errmsg))
         self.loop.stop()
         self.eventcallback("connection-closed")
+
+    def onClose(self, wasClean, code, reason):
+        self.connection_lost(reason)
+
+    """ L E G A C Y - C A L L S
+    """
+    def getAccountHistory(self, account_id, callback,
+                          start="1.11.0", stop="1.11.0", limit=100):
+        """ Get Account history History and call callback
+
+            :param account-id account_id: Account ID to read the history for
+            :param fnt callback: Callback to execute with the response
+            :param historyID start: Start of the history (defaults to ``1.11.0``)
+            :param historyID stop: Stop of the history (defaults to ``1.11.0``)
+            :param historyID stop: Limit entries by (defaults to ``100``, max ``100``)
+            :raises ValueError: if the account id is incorrectly formatted
+        """
+        warnings.warn(
+            "getAccountHistory is deprecated! "
+            "Use client.ws.get_account_history() instead",
+            DeprecationWarning
+        )
+        if account_id[0:4] == "1.2." :
+            self.wsexec([self.api_ids["history"],
+                        "get_account_history",
+                         [account_id, start, 100, stop]],
+                        callback)
+        else :
+            raise ValueError("getAccountHistory expects an account" +
+                             "id of the form '1.2.x'!")
+
+    def getAccountProposals(self, account_ids, callback):
+        """ Get Account Proposals and call callback
+
+            :param array account_ids: Array containing account ids
+            :param fnt callback: Callback to execute with the response
+
+        """
+        warnings.warn(
+            "getAccountProposals is deprecated! "
+            "Use client.ws.get_proposed_transactions() instead",
+            DeprecationWarning
+        )
+        self.wsexec([self.api_ids["database"],
+                    "get_proposed_transactions",
+                     account_ids],
+                    callback)
