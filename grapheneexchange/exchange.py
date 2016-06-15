@@ -855,8 +855,7 @@ class GrapheneExchange(GrapheneClient) :
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We buy quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.ws.get_asset(base_symbol)
@@ -942,8 +941,7 @@ class GrapheneExchange(GrapheneClient) :
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.ws.get_asset(base_symbol)
@@ -1061,8 +1059,7 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if symbol has no open call position
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         debts = self.list_debt_positions()
         if symbol not in debts:
             raise ValueError("No call position open for %s" % symbol)
@@ -1119,8 +1116,7 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if required amounts of collateral are not available
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
         asset = self.ws.get_asset(symbol)
         if "bitasset_data_id" not in asset:
@@ -1250,8 +1246,7 @@ class GrapheneExchange(GrapheneClient) :
 
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
         asset = self.ws.get_asset(symbol)
         if "bitasset_data_id" not in asset:
@@ -1324,8 +1319,7 @@ class GrapheneExchange(GrapheneClient) :
             :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         if self.rpc:
             transaction = self.rpc.cancel_order(orderNumber, not (self.safe_mode or self.propose_only))
         elif self.config.wif:
@@ -1588,8 +1582,7 @@ class GrapheneExchange(GrapheneClient) :
             :param float amount: Amount of BTS to use for funding fee pool
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         if self.rpc:
             transaction = self.rpc.fund_asset_fee_pool(self.config.account, symbol, amount, not (self.safe_mode or self.propose_only))
         elif self.config.wif:
