@@ -263,8 +263,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                             asset.get("dynamic_asset_data_id", None) == notice["id"]):
                         asset["callback"](self, notice)
 
-        except Exception as e:
-            log.error('Error dispatching notice: %s' % str(e))
+        except:
+            import traceback
+            log.error('Error dispatching notice: %s' % str(traceback.format_exc()))
 
     def onConnect(self, response):
         """ Is executed on successful connect. Calls event
