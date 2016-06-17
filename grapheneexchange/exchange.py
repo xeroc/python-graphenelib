@@ -239,8 +239,9 @@ class GrapheneExchange(GrapheneClient) :
             :return: Market name with proper separator
             :rtype: str
         """
-        quote, base  = self.ws.get_objects([quote_id, base_id])
-        return quote["symbol"] + self.market_separator + quote["symbol"]
+        quote = self._get_asset(quote_id)
+        base = self._get_asset(base_id)
+        return quote["symbol"] + self.market_separator + base["symbol"]
 
     def getMyAccount(self):
         return self.ws.get_account(self.config.account)
@@ -249,8 +250,10 @@ class GrapheneExchange(GrapheneClient) :
         if i in self.assets:
             return self.assets[i]
         else:
-            self.assets[i] = self.ws.get_asset(i)
-            return self.assets[i]
+            asset = self.ws.get_asset(i)
+            self.assets[asset["id"]] = asset
+            self.assets[asset["symbol"]] = asset
+            return asset
 
     def _get_assets_from_ids(self, base_id, quote_id) :
         """ Returns assets of a market given base
@@ -261,7 +264,8 @@ class GrapheneExchange(GrapheneClient) :
             :return: object that contains `quote` and `base` asset objects
             :rtype: json
         """
-        quote, base  = self.ws.get_objects([quote_id, base_id])
+        quote = self._get_asset(quote_id)
+        base = self._get_asset(base_id)
         return {"quote" : quote, "base" : base}
 
     def _get_asset_ids_from_name(self, market) :
@@ -313,7 +317,8 @@ class GrapheneExchange(GrapheneClient) :
         base_amount  = float(o["base"]["amount"])
         quote_id     = o["quote"]["asset_id"]
         base_id      = o["base"]["asset_id"]
-        quote, base  = self.ws.get_objects([quote_id, base_id])
+        base         = self._get_asset(base_id)
+        quote        = self._get_asset(quote_id)
         # invert price!
         if (quote_amount / 10 ** quote["precision"]) > 0.0:
             return float((base_amount / 10 ** base["precision"]) /
@@ -499,7 +504,8 @@ class GrapheneExchange(GrapheneClient) :
         for market in self.markets :
             m = self.markets[market]
             data = {}
-            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
+            quote_asset = self._get_asset(m["quote"])
+            base_asset = self._get_asset(m["base"])
             marketHistory = self.ws.get_market_history(
                 m["quote"], m["base"],
                 24 * 60 * 60,
@@ -531,12 +537,12 @@ class GrapheneExchange(GrapheneClient) :
 
             # smartcoin stuff
             if "bitasset_data_id" in quote_asset :
-                bitasset = self.ws.get_objects([quote_asset["bitasset_data_id"]])[0]
+                bitasset = self.getObject(quote_asset["bitasset_data_id"])
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == base_asset["id"]:
                     data["settlement_price"] = 1 / self._get_price(bitasset["current_feed"]["settlement_price"])
             elif "bitasset_data_id" in base_asset :
-                bitasset = self.ws.get_objects([base_asset["bitasset_data_id"]])[0]
+                bitasset = self.getObject(base_asset["bitasset_data_id"])
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == quote_asset["id"]:
                     data["settlement_price"] = self._get_price(bitasset["current_feed"]["settlement_price"])
@@ -590,7 +596,8 @@ class GrapheneExchange(GrapheneClient) :
                 self.formatTimeFromNow(-24 * 60 * 60),
                 self.formatTimeFromNow(),
                 api="history")
-            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
+            quote_asset = self._get_asset(m["quote"])
+            base_asset = self._get_asset(m["base"])
             data = {}
             if len(marketHistory) :
                 if marketHistory[0]["key"]["quote"] == m["quote"] :
@@ -643,7 +650,8 @@ class GrapheneExchange(GrapheneClient) :
             m = self.markets[market]
             orders = self.ws.get_limit_orders(
                 m["quote"], m["base"], limit)
-            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
+            quote_asset = self._get_asset(m["quote"])
+            base_asset = self._get_asset(m["base"])
             asks = []
             bids = []
             for o in orders:
@@ -773,7 +781,7 @@ class GrapheneExchange(GrapheneClient) :
                 m = self.markets[market]
                 if (o["sell_price"]["base"]["asset_id"] == m["base"] and
                         o["sell_price"]["quote"]["asset_id"] == m["quote"]):
-                    " selling "
+                    # buy
                     amount = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
                     rate = self._get_price(o["sell_price"])
                     t = "buy"
@@ -781,7 +789,7 @@ class GrapheneExchange(GrapheneClient) :
                     for_sale = float(o["for_sale"]) / 10 ** base_asset["precision"]
                 elif (o["sell_price"]["base"]["asset_id"] == m["quote"] and
                         o["sell_price"]["quote"]["asset_id"] == m["base"]):
-                    " buying "
+                    # sell
                     amount = float(o["for_sale"]) / 10 ** base_asset["precision"]
                     rate = 1 / self._get_price(o["sell_price"])
                     t = "sell"
@@ -795,6 +803,48 @@ class GrapheneExchange(GrapheneClient) :
                                   "type" : t,
                                   "amount_to_sell" : for_sale,
                                   "orderNumber" : o["id"]})
+        return r
+
+    def returnOpenOrdersStruct(self, currencyPair="all"):
+        """ This method is similar to ``returnOpenOrders`` but has a different
+            output format:
+
+            Example:
+
+            .. code-block:: js
+
+                {
+                    "USD_BTS": {
+                       "1.7.1505": {
+                            "orderNumber": "1.7.1505",
+                            "type": "buy",
+                            "rate": 341.74559999999997,
+                            "total": 341.74559999999997,
+                            "amount": 1.0
+                        },
+                        "1.7.1512": {
+                            "orderNumber": "1.7.1512",
+                            "type": "buy",
+                            "rate": 325.904045,
+                            "total": 325.904045,
+                            "amount": 1.0
+                        },
+                        "1.7.1513": {
+                            "orderNumber": "1.7.1513",
+                            "type": "sell",
+                            "rate": 319.45050000000003,
+                            "total": 31945.05,
+                            "amount": 1020486.2195025001
+                        }
+                    ]
+                }
+        """
+        orders = self.returnOpenOrders(currencyPair)
+        r = {}
+        for market in orders:
+            r[market] = {}
+            for order in orders[market]:
+                r[market][order["orderNumber"]] = order
         return r
 
     def returnTradeHistory(self, currencyPair="all", limit=25):
@@ -827,7 +877,8 @@ class GrapheneExchange(GrapheneClient) :
                 data = {}
                 data["date"] = f["time"]
                 data["rate"] = self._get_price_filled(f, m)
-                quote, base = self.ws.get_objects([m["quote"], m["base"]])
+                quote = self._get_asset(m["quote"])
+                # base = self._get_asset(m["base"])
                 if f["op"]["pays"]["asset_id"] == m["base"] :
                     data["type"]   = "buy"
                     data["amount"] = f["op"]["receives"]["amount"] / 10 ** quote["precision"]
@@ -1140,7 +1191,7 @@ class GrapheneExchange(GrapheneClient) :
         asset = self._get_asset(symbol)
         if "bitasset_data_id" not in asset:
             raise ValueError("%s is not a bitasset!" % symbol)
-        bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
+        bitasset = self.getObject(asset["bitasset_data_id"])
 
         # Check minimum collateral ratio
         backing_asset_id = bitasset["options"]["short_backing_asset"]
@@ -1149,7 +1200,7 @@ class GrapheneExchange(GrapheneClient) :
             raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
 
         # Derive Amount of Collateral
-        collateral_asset = self.ws.get_objects([backing_asset_id])[0]
+        collateral_asset = self._get_asset(backing_asset_id)
         settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
 
         current_debts = self.list_debt_positions()
@@ -1269,7 +1320,7 @@ class GrapheneExchange(GrapheneClient) :
         asset = self._get_asset(symbol)
         if "bitasset_data_id" not in asset:
             raise ValueError("%s is not a bitasset!" % symbol)
-        bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
+        bitasset = self.getObject(asset["bitasset_data_id"])
 
         # Check minimum collateral ratio
         backing_asset_id = bitasset["options"]["short_backing_asset"]
@@ -1278,7 +1329,7 @@ class GrapheneExchange(GrapheneClient) :
             raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
 
         # Derive Amount of Collateral
-        collateral_asset = self.ws.get_objects([backing_asset_id])[0]
+        collateral_asset = self._get_asset(backing_asset_id)
         settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
         amount_of_collateral = amount * collateral_ratio / settlement_price
 
