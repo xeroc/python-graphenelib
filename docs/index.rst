@@ -43,6 +43,7 @@ Tutorials
 .. toctree::
    :maxdepth: 1
 
+   howto-monitor-operations
    howto-exchanges
    howto-exchanges-detailed
 

@@ -16,27 +16,44 @@ except:
 from .graphenewsprotocol import GrapheneWebsocketProtocol
 from .graphenewsrpc import GrapheneWebsocketRPC
 
+import logging
+log = logging.getLogger(__name__)
+
 #: max number of objects to chache
-max_cache_objects = 50
 
 
 class LimitedSizeDict(OrderedDict):
-    """ This class limits the size of the objectMap
+    """ This class limits the size of the objectMap to
+        ``max_cache_objects`` (default_ 50).
+
+        All objects received are stored in the objectMap and get_object
+        calls will lookup most objects from this structure
     """
 
+    max_cache_objects = 50
+
     def __init__(self, *args, **kwds):
-        self.size_limit = kwds.pop("size_limit", max_cache_objects)
+        if "max_cache_objects" in kwds:
+            self.max_cache_objects = kwds["max_cache_objects"]
+        self.size_limit = kwds.pop("size_limit", self.max_cache_objects)
         OrderedDict.__init__(self, *args, **kwds)
         self._check_size_limit()
 
     def __setitem__(self, key, value):
         OrderedDict.__setitem__(self, key, value)
+        self.move_to_end(key, last=False)
         self._check_size_limit()
 
     def _check_size_limit(self):
         if self.size_limit is not None:
             while len(self) > self.size_limit:
-                self.popitem(last=False)
+                self.popitem(last=False)  # False -> FIFO
+
+#    def __getitem__(self, key):
+#        """ keep the element longer in the memory by moving it to the end
+#        """
+#        # self.move_to_end(key, last=False)
+#        return OrderedDict.__getitem__(self, key)
 
 
 class GrapheneWebsocket(GrapheneWebsocketRPC):
@@ -51,13 +68,25 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
         `autobahn.asyncio.websocket`.
     """
 
-    def __init__(self, url, username, password,
+    def __init__(self, url, username="", password="",
                  proto=GrapheneWebsocketProtocol):
+        """ Open A GrapheneWebsocket connection that can handle
+            notifications though asynchronous calls.
+
+            :param str url: Url to the websocket server
+            :param str username: Username for login
+            :param str password: Password for login
+            :param GrapheneWebsocketProtocol proto: (optional) Protocol that inherits ``GrapheneWebsocketProtocol``
+        """
         ssl, host, port, resource, path, params = parseWsUrl(url)
-        GrapheneWebsocketRPC.__init__(self, url, username, password)
         self.url      = url
         self.username = username
         self.password = password
+
+        # Open another RPC connection to execute calls
+        GrapheneWebsocketRPC.__init__(self, url, username, password)
+
+        # Parameters for another connection for asynchronous notifications
         self.ssl      = ssl
         self.host     = host
         self.port     = port
@@ -67,6 +96,74 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
         self.objectMap = LimitedSizeDict()
         self.proto.objectMap = self.objectMap  # this is a reference
         self.factory  = None
+
+    def get_object(self, oid):
+        """ Get_Object as a passthrough from get_objects([array])
+            Attention: This call requires GrapheneAPI because it is a non-blocking
+            JSON query
+
+            :param str oid: Object ID to fetch
+        """
+        return self.get_objects([oid])[0]
+
+    def getObject(self, oid):
+        """ Lookup objects from the object storage and if not available,
+            request object from the API
+        """
+        if self.objectMap is not None and oid in self.objectMap:
+            return self.objectMap[oid]
+        else:
+            data = self.get_object(oid)
+            self.objectMap[oid] = data
+            return data
+
+    def connect(self) :
+        """ Create websocket factory by Autobahn
+        """
+        self.factory          = WebSocketClientFactory(self.url)
+        self.factory.protocol = self.proto
+
+    def run_forever(self) :
+        """ Run websocket forever and wait for events.
+
+            This method will try to keep the connection alive and try an
+            autoreconnect if the connection closes.
+        """
+        if not issubclass(self.factory.protocol, GrapheneWebsocketProtocol) :
+            raise Exception("When using run(), we need websocket " +
+                            "notifications which requires the " +
+                            "configuration/protocol to inherit " +
+                            "'GrapheneWebsocketProtocol'")
+
+        loop = asyncio.get_event_loop()
+        # forward loop into protocol so that we can issue a reset from the
+        # protocol:
+        self.factory.protocol.setLoop(self.factory.protocol, loop)
+
+        while True :
+            try :
+                if self.ssl :
+                    context = ssl.create_default_context()
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                    coro = loop.create_connection(self.factory, self.host,
+                                                  self.port, ssl=context)
+                else :
+                    coro = loop.create_connection(self.factory, self.host,
+                                                  self.port, ssl=self.ssl)
+
+                loop.run_until_complete(coro)
+                loop.run_forever()
+            except KeyboardInterrupt:
+                break
+            except:
+                pass
+
+            log.error("Trying to re-connect in 10 seconds!")
+            time.sleep(10)
+
+        log.info("Good bye!")
+        loop.close()
 
     def setObjectCallbacks(self, callbacks) :
         """ Define Callbacks on Objects for websocket connections
@@ -125,70 +222,32 @@ class GrapheneWebsocket(GrapheneWebsocketRPC):
 
             .. code-block:: python
 
-                setMarketCallBack(["USD:EUR", "GOLD:USD"])
+                market = {"quote" : quote["id"],
+                          "base" : base["id"],
+                          "base_symbol" : base["symbol"],
+                          "quote_symbol" : quote["symbol"],
+                          "callback": print}
+                setMarketCallBack([market])
 
         """
         self.proto.markets = markets
 
-    def get_object(self, oid):
-        """ Get_Object as a passthrough from get_objects([array])
-            Attention: This call requires GrapheneAPI because it is a non-blocking
-            JSON query
+    def setAssetDispatcher(self, assets) :
+        """ Define Callbacks on Asset Events for websocket connections
 
-            :param str oid: Object ID to fetch
+            :param markets: Array of Assets to register to
+            :type markets: array of asset pairs
+
+            Example
+
+            .. code-block:: python
+
+                asset  = {"id" : "1.3.121",
+                          "bitasset_data_id": "2.4.21",
+                          "dynamic_asset_data_id": "2.3.121",
+                          "symbol" : "USD",
+                          "callback": print}
+                setAssetCallBack([asset])
+
         """
-        return self.get_objects([oid])[0]
-
-    def getObject(self, oid):
-        if self.objectMap is not None and oid in self.objectMap:
-            return self.objectMap[oid]
-        else:
-            data = self.get_object(oid)
-            self.objectMap[oid] = data
-            return data
-
-    def connect(self) :
-        """ Create websocket factory by Autobahn
-        """
-        self.factory          = WebSocketClientFactory(self.url)
-        self.factory.protocol = self.proto
-
-    def run_forever(self) :
-        """ Run websocket forever and wait for events.
-
-            This method will try to keep the connection alive and try an
-            autoreconnect if the connection closes.
-        """
-        if not issubclass(self.factory.protocol, GrapheneWebsocketProtocol) :
-            raise Exception("When using run(), we need websocket " +
-                            "notifications which requires the " +
-                            "configuration/protocol to inherit " +
-                            "'GrapheneWebsocketProtocol'")
-
-        loop = asyncio.get_event_loop()
-        # forward loop into protocol so that we can issue a reset from the
-        # protocol:
-        self.factory.protocol.setLoop(self.factory.protocol, loop)
-
-        while True :
-            try :
-                if self.ssl :
-                    context = ssl.create_default_context()
-                    context.check_hostname = False
-                    context.verify_mode = ssl.CERT_NONE
-                    coro = loop.create_connection(self.factory, self.host,
-                                                  self.port, ssl=context)
-                else :
-                    coro = loop.create_connection(self.factory, self.host,
-                                                  self.port, ssl=self.ssl)
-
-                loop.run_until_complete(coro)
-                loop.run_forever()
-            except KeyboardInterrupt:
-                break
-
-            print("Trying to re-connect in 10 seconds!")
-            time.sleep(10)
-
-        print("Good bye!")
-        loop.close()
+        self.proto.assets = assets

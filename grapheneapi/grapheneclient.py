@@ -2,35 +2,8 @@ from .grapheneapi import GrapheneAPI
 from .graphenews import GrapheneWebsocket
 from collections import OrderedDict
 
-import logging as log
-
-#: max number of objects to chache
-max_cache_objects = 50
-
-
-class LimitedSizeDict(OrderedDict):
-    """ This class limits the size of the objectMap
-    """
-
-    def __init__(self, *args, **kwds):
-        self.size_limit = kwds.pop("size_limit", max_cache_objects)
-        OrderedDict.__init__(self, *args, **kwds)
-        self._check_size_limit()
-
-    def __setitem__(self, key, value):
-        OrderedDict.__setitem__(self, key, value)
-        self._check_size_limit()
-
-    def _check_size_limit(self):
-        if self.size_limit is not None:
-            while len(self) > self.size_limit:
-                self.popitem(last=False)
-
-    def __getitem__(self, key):
-        """ keep the element longer in the memory by moving it to the end
-        """
-        self.move_to_end(key)
-        return OrderedDict.__getitem__(self, key)
+import logging
+log = logging.getLogger(__name__)
 
 
 class ExampleConfig() :
@@ -104,6 +77,10 @@ class ExampleConfig() :
     #: Accounts to watch. Changes on these will result in the method
     #: ``onAccountUpdate()`` to be called
     watch_accounts        = ["fabian", "nathan"]
+
+    #: Assets you want to watch. Changes will be used to call
+    #: ``onAssetUpdate()``.
+    watch_assets          = ["USD"]
 
     #: Markets to watch. Changes to these will result in the method
     #: ``onMarketUpdate()`` to be called
@@ -182,6 +159,20 @@ class ExampleConfig() :
                     "lifetime_referrer_fee_percentage": 8000
                 }
             """
+        pass
+
+    def onAssetUpdate(self, data):
+        """ This method is called when any of the assets in watch_assets
+            changes. The changes of the following objects are monitored:
+
+             * Asset object (``1.3.x``)
+             * Dynamic Asset data (``2.3.x``)
+             * Bitasset data (``2.4.x``)
+
+             Hence, this method needs to distinguish these three
+             objects!
+
+        """
         pass
 
     def onMarketUpdate(self, data):
@@ -414,6 +405,10 @@ class GrapheneClient() :
                     except:
                         raise Exception("Couldn't load assets for market %s"
                                         % market)
+                    if not quote or not base:
+                        raise Exception("Couldn't load assets for market %s"
+                                        % market)
+
                     if "id" in quote and "id" in base:
                         if "onMarketUpdate" in available_features:
                             self.markets.update({
@@ -432,6 +427,19 @@ class GrapheneClient() :
                         log.warn("Market assets could not be found: %s"
                                  % market)
                 self.setMarketCallBack(self.markets)
+
+            if ("watch_assets" in available_features):
+                assets = []
+                for asset in config.watch_assets:
+                    a = self.ws.get_asset(asset)
+                    if not a:
+                        log.warning("The asset %s does not exist!" % a)
+
+                    if ("onAssetUpdate" in available_features):
+                        a["callback"] = config.onAssetUpdate
+                    assets.append(a)
+                self.setAssetDispatcher(assets)
+
             if "onRegisterHistory" in available_features:
                 self.setEventCallbacks(
                     {"registered-history": config.onRegisterHistory})
@@ -490,6 +498,30 @@ class GrapheneClient() :
                 "core_symbol" : core_asset["symbol"],
                 "chain_id" : chain_id}
 
+    def getObject(self, oid):
+        """ Get an Object either from Websocket store (if available) or
+            from RPC connection.
+        """
+        if self.ws :
+            [_instance, _type, _id] = oid.split(".")
+            if (not (oid in self.ws.objectMap) or
+                    _instance == "1" and _type == "7"):  # force refresh orders
+                data = self.ws.get_object(oid)
+                self.ws.objectMap[oid] = data
+            else:
+                data = self.ws.objectMap[oid]
+            if len(data) == 1 :
+                return data[0]
+            else:
+                return data
+        else :
+            return self.rpc.get_object(oid)[0]
+
+    def get_object(self, oid):
+        """ Identical to ``getObject``
+        """
+        return self.getObject(oid)
+
     """ Forward these calls to Websocket API
     """
     def setEventCallbacks(self, callbacks):
@@ -513,6 +545,13 @@ class GrapheneClient() :
         """
         self.ws.setMarketCallBack(markets)
 
+    def setAssetDispatcher(self, markets):
+        """ Internally used to register Market update callbacks
+        """
+        self.ws.setAssetDispatcher(markets)
+
+    """ Connect to Websocket and run asynchronously
+    """
     def connect(self):
         """ Only *connect* to the websocket server. Does **not** run the
             subsystem.
@@ -529,22 +568,3 @@ class GrapheneClient() :
         """ Connect to Websocket server **and** run the subsystem """
         self.connect()
         self.run_forever()
-
-    def getObject(self, oid):
-        """ Get an Object either from Websocket store (if available) or
-            from RPC connection.
-        """
-        if self.ws :
-            [_instance, _type, _id] = oid.split(".")
-            if (not (oid in self.ws.objectMap) or
-                    _instance == "1" and _type == "7"):  # force refresh orders
-                data = self.ws.get_object(oid)
-                self.ws.objectMap[oid] = data
-            else:
-                data = self.ws.objectMap[oid]
-            if len(data) == 1 :
-                return data[0]
-            else:
-                return data
-        else :
-            return self.rpc.get_object(oid)[0]

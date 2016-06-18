@@ -194,6 +194,7 @@ class Limit_order_cancel(GrapheneObject):
                 ('extensions', Set([])),
             ]))
 
+
 class Call_order_update(GrapheneObject):
     def __init__(self, *args, **kwargs) :
         if isArgsThisClass(self, args):
@@ -206,5 +207,43 @@ class Call_order_update(GrapheneObject):
                 ('funding_account', ObjectId(kwargs["funding_account"], "account")),
                 ('delta_collateral', Asset(kwargs["delta_collateral"])),
                 ('delta_debt', Asset(kwargs["delta_debt"])),
+                ('extensions', Set([])),
+            ]))
+
+
+class Asset_fund_fee_pool(GrapheneObject):
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('from_account', ObjectId(kwargs["from_account"], "account")),
+                ('asset_id', ObjectId(kwargs["asset_id"], "asset")),
+                ('amount', Int64(kwargs["amount"])),
+                ('extensions', Set([])),
+            ]))
+
+
+class Override_transfer(GrapheneObject) :
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "memo" in kwargs:
+                memo = Optional(Memo(kwargs["memo"]))
+            else:
+                memo = Optional(None)
+            super().__init__(OrderedDict([
+                ('fee'       , Asset(kwargs["fee"])),
+                ('issuer'    , ObjectId(kwargs["issuer"], "account")),
+                ('from'      , ObjectId(kwargs["from"], "account")),
+                ('to'        , ObjectId(kwargs["to"], "account")),
+                ('amount'    , Asset(kwargs["amount"])),
+                ('memo'      , memo),
                 ('extensions', Set([])),
             ]))

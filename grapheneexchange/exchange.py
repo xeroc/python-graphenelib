@@ -1,10 +1,13 @@
 from grapheneapi.grapheneclient import GrapheneClient
-from graphenebase import transactions
+from graphenebase import transactions, operations
 from graphenebase.account import PrivateKey
 from datetime import datetime
 import time
 import math
 from grapheneextra.proposal import Proposal
+import logging
+from . import deep_eq
+log = logging.getLogger(__name__)
 
 
 class NoWalletException(Exception):
@@ -161,10 +164,12 @@ class GrapheneExchange(GrapheneClient) :
         if "prefix" in kwargs:
             self.prefix = kwargs["prefix"]
         else:
-            self.prefix = "BTS"
+            self.prefix = getattr(config, "prefix", "BTS")
 
         #: The wif key can be used for creating transactions **if** not
         # connected to a cli_wallet
+        if not hasattr(config, "wif"):
+            setattr(config, "wif", None)
         if not getattr(config, "wif"):
             config.wif = None
         else:
@@ -186,7 +191,6 @@ class GrapheneExchange(GrapheneClient) :
             )):
                 raise WifNotActive
 
-
     def formatTimeFromNow(self, secs=0):
         """ Properly Format Time that is `x` seconds in the future
 
@@ -198,7 +202,21 @@ class GrapheneExchange(GrapheneClient) :
         """
         return datetime.utcfromtimestamp(time.time() + int(secs)).strftime('%Y-%m-%dT%H:%M:%S')
 
-    def _get_market_name_from_ids(self, quote_id, base_id,) :
+    def normalizePrice(self, market, price):
+        """ Because assets have different precisions and orders are
+            created with a rational price, prices defined in floats will
+            slightly differ from the actual prices on the blockchain.
+            This is a representation issuer between floats being
+            represented as a ratio of integer (satoshis)
+        """
+        m = self._get_assets_from_market(market)
+        base = m["base"]
+        quote = m["quote"]
+        return float(
+            (int(price * 10 ** (base["precision"] - quote["precision"])) /
+             10 ** (base["precision"] - quote["precision"])))
+
+    def _get_market_name_from_ids(self, quote_id, base_id) :
         """ Returns the properly formated name of a market given base
             and quote ids
 
@@ -245,7 +263,7 @@ class GrapheneExchange(GrapheneClient) :
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
         quote  = self.ws.get_asset(quote_symbol)
-        base   = self.ws.get_asset(quote_symbol)
+        base   = self.ws.get_asset(base_symbol)
         return {"quote" : quote, "base" : base}
 
     def _get_price(self, o) :
@@ -379,7 +397,6 @@ class GrapheneExchange(GrapheneClient) :
                 'committee_member_create': {'fee': 100000000.0}}
 
         """
-        from graphenebase.transactions import operations
         r = {}
         obj, base = self.ws.get_objects(["2.0.0", "1.3.0"])
         fees = obj["parameters"]["current_fees"]["parameters"]
@@ -608,11 +625,11 @@ class GrapheneExchange(GrapheneClient) :
             for o in orders:
                 if o["sell_price"]["base"]["asset_id"] == m["base"] :
                     price = self._get_price(o["sell_price"])
-                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
+                    volume = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
                     bids.append([price, volume, o["id"]])
                 else :
                     price = 1 / self._get_price(o["sell_price"])
-                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"] / self._get_price(o["sell_price"])
+                    volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
                     asks.append([price, volume, o["id"]])
 
             data = {"asks" : asks, "bids" : bids}
@@ -806,7 +823,13 @@ class GrapheneExchange(GrapheneClient) :
             r.update({market : trades})
         return r
 
-    def buy(self, currencyPair, rate, amount, expiration=7 * 24 * 60 * 60, killfill=False):
+    def buy(self,
+            currencyPair,
+            rate,
+            amount,
+            expiration=7 * 24 * 60 * 60,
+            killfill=False,
+            returnID=False):
         """ Places a buy order in a given market (buy ``quote``, sell
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -817,6 +840,7 @@ class GrapheneExchange(GrapheneClient) :
             :param number amount: Amount of ``quote`` to buy
             :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
             :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
+            :param bool returnID: If this flag is True, the call will wait for the order to be included in a block and return it's id
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -837,7 +861,6 @@ class GrapheneExchange(GrapheneClient) :
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
         base = self.ws.get_asset(base_symbol)
         quote = self.ws.get_asset(quote_symbol)
-
         if self.rpc:
             transaction = self.rpc.sell_asset(self.config.account,
                                               '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
@@ -860,7 +883,8 @@ class GrapheneExchange(GrapheneClient) :
                  "expiration": transactions.formatTimeFromNow(expiration),
                  "fill_or_kill": killfill,
                  }
-            ops = [transactions.Operation(transactions.Limit_order_create(**s))]
+            order = transactions.Limit_order_create(**s)
+            ops = [transactions.Operation(order)]
             expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
             ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
@@ -871,19 +895,28 @@ class GrapheneExchange(GrapheneClient) :
                 operations=ops
             )
             transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
+            transaction = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
             raise NoWalletException()
 
-        if self.propose_only:
-            [self.propose_operations.append(o) for o in transaction["operations"]]
-            return self.propose_operations
+        if returnID:
+            return self._waitForOperationsConfirmation(transactions.JsonObj(order))
         else:
-            return transaction
+            if self.propose_only:
+                [self.propose_operations.append(o) for o in transaction["operations"]]
+                return self.propose_operations
+            else:
+                return transaction
 
-    def sell(self, currencyPair, rate, amount, expiration=7 * 24 * 60 * 60, killfill=False):
+    def sell(self,
+             currencyPair,
+             rate,
+             amount,
+             expiration=7 * 24 * 60 * 60,
+             killfill=False,
+             returnID=False):
         """ Places a sell order in a given market (sell ``quote``, buy
             ``base`` in market ``quote_base``). Required POST parameters
             are "currencyPair", "rate", and "amount". If successful, the
@@ -894,6 +927,7 @@ class GrapheneExchange(GrapheneClient) :
             :param number amount: Amount of ``quote`` to sell
             :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
             :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
+            :param bool returnID: If this flag is True, the call will wait for the order to be included in a block and return it's id
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -936,7 +970,8 @@ class GrapheneExchange(GrapheneClient) :
                  "expiration": transactions.formatTimeFromNow(expiration),
                  "fill_or_kill": killfill,
                  }
-            ops = [transactions.Operation(transactions.Limit_order_create(**s))]
+            order = transactions.Limit_order_create(**s)
+            ops = [transactions.Operation(order)]
             expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
             ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
@@ -947,17 +982,34 @@ class GrapheneExchange(GrapheneClient) :
                 operations=ops
             )
             transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
+            transaction = transactions.JsonObj(transaction)
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
             raise NoWalletException()
 
-        if self.propose_only:
-            [self.propose_operations.append(o) for o in transaction["operations"]]
-            return self.propose_operations
+        if returnID:
+            return self._waitForOperationsConfirmation(transactions.JsonObj(order))
         else:
-            return transaction
+            if self.propose_only:
+                [self.propose_operations.append(o) for o in transaction["operations"]]
+                return self.propose_operations
+            else:
+                return transaction
+
+    def _waitForOperationsConfirmation(self, thisop):
+        if self.safe_mode:
+            return "Safe Mode enabled, can't obtain an orderid"
+        counter = -2
+        blocknum = int(self.ws.get_dynamic_global_properties()["head_block_number"])
+        for block in self.ws.block_stream(start=blocknum - 2, mode="head"):
+            counter += 1
+            for tx in block["transactions"]:
+                for i, op in enumerate(tx["operations"]):
+                    if deep_eq.deep_eq(op[1], thisop):
+                        return (tx["operation_results"][i][1])
+            if counter > 10:
+                raise Exception("The operation has not been added after 10 blocks!")
 
     def list_debt_positions(self):
         """ List Call Positions (borrowed assets and amounts)
@@ -980,11 +1032,17 @@ class GrapheneExchange(GrapheneClient) :
         for debt in debts:
             base  = self.getObject(debt["call_price"]["base"]["asset_id"])
             quote = self.getObject(debt["call_price"]["quote"]["asset_id"])
-            call_price = self._get_price(debt["call_price"])
+
+            if "bitasset_data_id" not in quote:
+                continue
 
             bitasset = self.getObject(quote["bitasset_data_id"])
             settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
 
+            if not settlement_price:
+                continue
+
+            call_price = self._get_price(debt["call_price"])
             collateral_amount = int(debt["collateral"]) / 10 ** base["precision"]
             debt_amount = int(debt["debt"]) / 10 ** quote["precision"]
 
@@ -1522,3 +1580,48 @@ class GrapheneExchange(GrapheneClient) :
         """ Clear stored proposals
         """
         self.propose_operations = []
+
+    def fund_fee_pool(self, symbol, amount):
+        """ Fund the fee pool of an asset with BTS
+
+            :param str symbol: Symbol of the asset to fund
+            :param float amount: Amount of BTS to use for funding fee pool
+        """
+        if self.safe_mode :
+            print("Safe Mode enabled!")
+            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+        if self.rpc:
+            transaction = self.rpc.fund_asset_fee_pool(self.config.account, symbol, amount, not (self.safe_mode or self.propose_only))
+        elif self.config.wif:
+            account = self.ws.get_account(self.config.account)
+            asset = self.ws.get_asset(symbol)
+            s = {"fee": {"amount": 0,
+                         "asset_id": "1.3.0"
+                         },
+                 "from_account": account["id"],
+                 "asset_id": asset["id"],
+                 "amount": int(amount * 10 ** asset["precision"]),
+                 "extensions": []
+                 }
+            ops = [transactions.Operation(transactions.Asset_fund_fee_pool(**s))]
+            expiration = transactions.formatTimeFromNow(30)
+            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+            transaction = transactions.Signed_Transaction(
+                ref_block_num=ref_block_num,
+                ref_block_prefix=ref_block_prefix,
+                expiration=expiration,
+                operations=ops
+            )
+            transaction = transaction.sign([self.config.wif], self.prefix)
+            transaction     = transactions.JsonObj(transaction)
+            if not (self.safe_mode or self.propose_only):
+                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        else:
+            raise NoWalletException()
+
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction

@@ -1,5 +1,7 @@
 import sys
 import json
+import logging
+log = logging.getLogger(__name__)
 
 try:
     import requests
@@ -113,8 +115,7 @@ class GrapheneAPI(object):
             rtype: json
             raises RPCConnection: if no connction can be made
             raises UnauthorizedError: if the user is not authorized
-            raise ValueError: if the API returns a non-JSON formated
-                              answer
+            raise ValueError: if the API returns a non-JSON formated answer
 
             It is not recommended to use this method directly, unless
             you know what you are doing. All calls available to the API
