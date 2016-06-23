@@ -61,7 +61,7 @@ change_max                   = 5.0       # Percentage of price change to cause a
 ################################################################################
 # Asset specific Settings
 ################################################################################
-_all_assets = ["BTC", "SILVER", "GOLD", "GRC", "TRY", "SGD", "HKD", "NZD",
+_all_assets = ["BTC", "SILVER", "GOLD", "GRIDCOIN", "TRY", "SGD", "HKD", "NZD",
                "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
                "KRW"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
                "KRW", "TCNY", "TUSD" ]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
@@ -123,7 +123,7 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                 
                 # Adding GRIDCOIN MPA
                 # CCEX currently not supported
-                "GRC" : {
+                "GRIDCOIN" : {
                     "metric" : "weighted",
                     "sources" : ["poloniex",
                                  #"ccex",
@@ -184,9 +184,15 @@ feedSources["yahoo"]    = feedsources.Yahoo(scaleVolumeBy=1e7,
                                             bases=["USD", "EUR", "CNY", "JPY", "HKD"])
 feedSources["btcavg"]   = feedsources.BitcoinAverage(quotes=["BTC"], bases=["USD", "EUR", "CNY"])
 
-feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True, quotes=["BTS", "GRC"], bases=["BTC"])
+feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True, 
+                                              quotes=["BTS", "GRC"],
+                                              quoteNames={"GRC" : "GRIDCOIN"},
+                                              bases=["BTC"])
 feedSources["ccedk"]    = feedsources.Ccedk(allowFailure=True, quotes=["BTS"], bases=["BTC", "USD", "EUR", "CNY"])
-feedSources["bittrex"]  = feedsources.Bittrex(allowFailure=True, quotes=["BTS", "GRC"], bases=["BTC"])
+feedSources["bittrex"]  = feedsources.Bittrex(allowFailure=True,
+                                              quotes=["BTS", "GRC"],
+                                              quoteNames={"GRC" : "GRIDCOIN"},
+                                              bases=["BTC"])
 feedSources["yunbi"]    = feedsources.Yunbi(allowFailure=True, quotes=["BTS", "BTC"], bases=["CNY"])
 feedSources["btc38"]    = feedsources.Btc38(allowFailure=True, quotes=["BTS", "BTC"], bases=["BTC", "CNY"])
 
