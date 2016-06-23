@@ -61,7 +61,7 @@ change_max                   = 5.0       # Percentage of price change to cause a
 ################################################################################
 # Asset specific Settings
 ################################################################################
-_all_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
+_all_assets = ["BTC", "SILVER", "GOLD", "GRC", "TRY", "SGD", "HKD", "NZD",
                "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
                "KRW"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
                "KRW", "TCNY", "TUSD" ]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
@@ -120,6 +120,16 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                                  "yunbi",
                                  ],
                 },
+                
+                # Adding GRIDCOIN MPA
+                # CCEX currently not supported
+                "GRC" : {
+                    "metric" : "weighted",
+                    "sources" : ["poloniex",
+                                 #"ccex",
+                                 "bittrex"
+                                 ],
+                },
                 # Settings for CNY take popular chinese exchanges into
                 # account that let people trade without fees.
                 # Hence, the metric should be median, since the volume could
@@ -174,9 +184,9 @@ feedSources["yahoo"]    = feedsources.Yahoo(scaleVolumeBy=1e7,
                                             bases=["USD", "EUR", "CNY", "JPY", "HKD"])
 feedSources["btcavg"]   = feedsources.BitcoinAverage(quotes=["BTC"], bases=["USD", "EUR", "CNY"])
 
-feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True, quotes=["BTS"], bases=["BTC"])
+feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True, quotes=["BTS", "GRC"], bases=["BTC"])
 feedSources["ccedk"]    = feedsources.Ccedk(allowFailure=True, quotes=["BTS"], bases=["BTC", "USD", "EUR", "CNY"])
-feedSources["bittrex"]  = feedsources.Bittrex(allowFailure=True, quotes=["BTS"], bases=["BTC"])
+feedSources["bittrex"]  = feedsources.Bittrex(allowFailure=True, quotes=["BTS", "GRC"], bases=["BTC"])
 feedSources["yunbi"]    = feedsources.Yunbi(allowFailure=True, quotes=["BTS", "BTC"], bases=["CNY"])
 feedSources["btc38"]    = feedsources.Btc38(allowFailure=True, quotes=["BTS", "BTC"], bases=["BTC", "CNY"])
 
