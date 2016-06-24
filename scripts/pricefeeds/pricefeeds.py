@@ -201,7 +201,7 @@ def derive_prices(feed):
             continue
 
         this_asset_config = config.asset_config[asset] if asset in config.asset_config else config.asset_config["default"]
-        sources           = list(feed) if not "sources" in this_asset_config or this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
+        sources           = list(feed) if "sources" not in this_asset_config or this_asset_config["sources"][0] == '*' else this_asset_config["sources"]
 
         # Reset prices
         price = {}
@@ -311,12 +311,12 @@ def derive_prices(feed):
 
             # price conversion to "price for one symbol" i.e.  base=*, quote=symbol
             price_result[asset][price_of] = {"mean"    : price_mean,
-                                   "median"  : price_median,
-                                   "weighted": price_weighted,
-                                   "std"     : price_std * 100,  # percentage
-                                   "number"  : len(assetprice),
-                                   "short_backing_symbol"   : assets[blockchain_feed_quote[asset]]["symbol"]
-                                   }
+                                             "median"  : price_median,
+                                             "weighted": price_weighted,
+                                             "std"     : price_std * 100,  # percentage
+                                             "number"  : len(assetprice),
+                                             "short_backing_symbol"   : assets[blockchain_feed_quote[asset]]["symbol"]
+                                             }
     # secondary market pegged assets
     for asset in list(config.secondary_mpas.keys()) :
         if "sameas" in config.secondary_mpas[asset] :
@@ -485,8 +485,8 @@ def update_price_feed() :
         this_asset_config = config.asset_config[asset] if asset in config.asset_config else config.asset_config["default"]
         price_metric      = this_asset_config["metric"] if "metric" in this_asset_config else config.asset_config["default"]["metric"]
         if (asset not in derived_prices or
-                        core_symbol not in derived_prices[asset] or
-                        price_metric not in derived_prices[asset][core_symbol]) :
+                core_symbol not in derived_prices[asset] or
+                price_metric not in derived_prices[asset][core_symbol]) :
             print("Warning: Asset %s has no derived price!" % asset)
             continue
         if float(derived_prices[asset][core_symbol][price_metric]) > 0.0:
