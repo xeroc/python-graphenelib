@@ -283,7 +283,7 @@ class GrapheneWebsocketRPC(object):
             :raises RPCError: if the server returns an error
         """
         try:
-            log.debug(payload)
+            log.debug(json.dumps(payload))
             while True:
                 try:
                     self.ws.send(json.dumps(payload))
@@ -297,7 +297,7 @@ class GrapheneWebsocketRPC(object):
                         self.wsconnect()
                     except:
                         pass
-            log.debug(ret)
+            log.debug(json.dumps(ret))
 
             if 'error' in ret:
                 if 'detail' in ret['error']:
