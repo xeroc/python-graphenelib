@@ -316,7 +316,7 @@ class GrapheneWebsocketRPC(object):
             else:
                 api_id = kwargs["api_id"]
             query = {"method": "call",
-                     "params": [api_id, name, args],
+                     "params": [api_id, name, list(args)],
                      "jsonrpc": "2.0",
                      "id": 0}
             r = self.rpcexec(query)
