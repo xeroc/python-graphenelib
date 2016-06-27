@@ -1,5 +1,6 @@
 from grapheneapi.grapheneclient import GrapheneClient
-from graphenebase import transactions, operations
+from graphenebase import transactions
+from graphenebase.operations import operations
 from graphenebase.account import PrivateKey
 from datetime import datetime
 import time
@@ -431,7 +432,7 @@ class GrapheneExchange(GrapheneClient) :
         fees = obj["parameters"]["current_fees"]["parameters"]
         scale = float(obj["parameters"]["current_fees"]["scale"])
         for f in fees:
-            op_name = "unkown %d" % f[0]
+            op_name = "unknown %d" % f[0]
             for name in operations:
                 if operations[name] == f[0]:
                     op_name = name
