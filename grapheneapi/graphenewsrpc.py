@@ -41,13 +41,18 @@ class GrapheneWebsocketRPC(object):
                   subsystem, please use ``GrapheneWebsocket`` instead.
 
     """
-    api_id = {}
-
     def __init__(self, url, user="", password=""):
+        self.api_id = {}
+        self._request_id = 0
         self.url = url
         self.user = user
         self.password = password
         self.wsconnect()
+        self.register_apis()
+
+    def get_request_id(self):
+        self._request_id += 1
+        return self._request_id
 
     def wsconnect(self):
         while True:
@@ -57,9 +62,11 @@ class GrapheneWebsocketRPC(object):
             except KeyboardInterrupt:
                 break
             except:
-                log.warning("Cannot connect to WS node: %s" % self.url)
+                log.warning("Lost connection to node: %s. Retrying in 10 seconds" % self.url)
                 time.sleep(10)
         self.login(self.user, self.password, api_id=1)
+
+    def register_apis(self):
         self.api_id["database"] = self.database(api_id=1)
         self.api_id["history"] = self.history(api_id=1)
         self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
@@ -276,7 +283,7 @@ class GrapheneWebsocketRPC(object):
             :raises RPCError: if the server returns an error
         """
         try:
-            log.debug(payload)
+            log.debug(json.dumps(payload))
             while True:
                 try:
                     self.ws.send(json.dumps(payload))
@@ -290,7 +297,7 @@ class GrapheneWebsocketRPC(object):
                         self.wsconnect()
                     except:
                         pass
-            log.debug(ret)
+            log.debug(json.dumps(ret))
 
             if 'error' in ret:
                 if 'detail' in ret['error']:
@@ -316,9 +323,9 @@ class GrapheneWebsocketRPC(object):
             else:
                 api_id = kwargs["api_id"]
             query = {"method": "call",
-                     "params": [api_id, name, args],
+                     "params": [api_id, name, list(args)],
                      "jsonrpc": "2.0",
-                     "id": 0}
+                     "id": self.get_request_id()}
             r = self.rpcexec(query)
             return r
         return method

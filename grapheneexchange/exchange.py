@@ -147,6 +147,12 @@ class GrapheneExchange(GrapheneClient) :
     markets = {}
     wallet = None
 
+    #: store assets as static variable to speed things up!
+    assets = {}
+
+    #: The trading account
+    myAccount = None
+
     def __init__(self, config, **kwargs) :
         # Defaults:
         self.safe_mode = True
@@ -182,12 +188,20 @@ class GrapheneExchange(GrapheneClient) :
         self.config = config
         super().__init__(config)
 
+        # Get my Account
+        self.myAccount = self.getMyAccount()
+
+        if not self.myAccount:
+            raise ValueError(
+                "Couldn't find account name %s" % self.config.account +
+                " on the chain! Please double-check!"
+            )
+
         # Now verify that the given wif key has active permissions:
         if getattr(config, "wif") and config.wif:
-            account = self.ws.get_account(self.config.account)
             pubkey = format(PrivateKey(config.wif).pubkey, self.prefix)
             if not any(filter(
-                lambda x: x[0] == pubkey, account["active"]["key_auths"]
+                lambda x: x[0] == pubkey, self.myAccount["active"]["key_auths"]
             )):
                 raise WifNotActive
 
@@ -225,8 +239,21 @@ class GrapheneExchange(GrapheneClient) :
             :return: Market name with proper separator
             :rtype: str
         """
-        quote, base  = self.ws.get_objects([quote_id, base_id])
-        return quote["symbol"] + self.market_separator + quote["symbol"]
+        quote = self._get_asset(quote_id)
+        base = self._get_asset(base_id)
+        return quote["symbol"] + self.market_separator + base["symbol"]
+
+    def getMyAccount(self):
+        return self.ws.get_account(self.config.account)
+
+    def _get_asset(self, i):
+        if i in self.assets:
+            return self.assets[i]
+        else:
+            asset = self.ws.get_asset(i)
+            self.assets[asset["id"]] = asset
+            self.assets[asset["symbol"]] = asset
+            return asset
 
     def _get_assets_from_ids(self, base_id, quote_id) :
         """ Returns assets of a market given base
@@ -237,7 +264,8 @@ class GrapheneExchange(GrapheneClient) :
             :return: object that contains `quote` and `base` asset objects
             :rtype: json
         """
-        quote, base  = self.ws.get_objects([quote_id, base_id])
+        quote = self._get_asset(quote_id)
+        base = self._get_asset(base_id)
         return {"quote" : quote, "base" : base}
 
     def _get_asset_ids_from_name(self, market) :
@@ -249,8 +277,8 @@ class GrapheneExchange(GrapheneClient) :
             :rtype: json
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
-        quote  = self.ws.get_asset(quote_symbol)
-        base   = self.ws.get_asset(quote_symbol)
+        quote  = self._get_asset(quote_symbol)
+        base   = self._get_asset(quote_symbol)
         return {"quote" : quote["id"], "base" : base["id"]}
 
     def _get_assets_from_market(self, market) :
@@ -262,8 +290,8 @@ class GrapheneExchange(GrapheneClient) :
             :rtype: json
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
-        quote  = self.ws.get_asset(quote_symbol)
-        base   = self.ws.get_asset(base_symbol)
+        quote  = self._get_asset(quote_symbol)
+        base   = self._get_asset(base_symbol)
         return {"quote" : quote, "base" : base}
 
     def _get_price(self, o) :
@@ -289,7 +317,8 @@ class GrapheneExchange(GrapheneClient) :
         base_amount  = float(o["base"]["amount"])
         quote_id     = o["quote"]["asset_id"]
         base_id      = o["base"]["asset_id"]
-        quote, base  = self.ws.get_objects([quote_id, base_id])
+        base         = self._get_asset(base_id)
+        quote        = self._get_asset(quote_id)
         # invert price!
         if (quote_amount / 10 ** quote["precision"]) > 0.0:
             return float((base_amount / 10 ** base["precision"]) /
@@ -475,7 +504,8 @@ class GrapheneExchange(GrapheneClient) :
         for market in self.markets :
             m = self.markets[market]
             data = {}
-            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
+            quote_asset = self._get_asset(m["quote"])
+            base_asset = self._get_asset(m["base"])
             marketHistory = self.ws.get_market_history(
                 m["quote"], m["base"],
                 24 * 60 * 60,
@@ -507,12 +537,12 @@ class GrapheneExchange(GrapheneClient) :
 
             # smartcoin stuff
             if "bitasset_data_id" in quote_asset :
-                bitasset = self.ws.get_objects([quote_asset["bitasset_data_id"]])[0]
+                bitasset = self.getObject(quote_asset["bitasset_data_id"])
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == base_asset["id"]:
                     data["settlement_price"] = 1 / self._get_price(bitasset["current_feed"]["settlement_price"])
             elif "bitasset_data_id" in base_asset :
-                bitasset = self.ws.get_objects([base_asset["bitasset_data_id"]])[0]
+                bitasset = self.getObject(base_asset["bitasset_data_id"])
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == quote_asset["id"]:
                     data["settlement_price"] = self._get_price(bitasset["current_feed"]["settlement_price"])
@@ -566,7 +596,8 @@ class GrapheneExchange(GrapheneClient) :
                 self.formatTimeFromNow(-24 * 60 * 60),
                 self.formatTimeFromNow(),
                 api="history")
-            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
+            quote_asset = self._get_asset(m["quote"])
+            base_asset = self._get_asset(m["base"])
             data = {}
             if len(marketHistory) :
                 if marketHistory[0]["key"]["quote"] == m["quote"] :
@@ -619,7 +650,8 @@ class GrapheneExchange(GrapheneClient) :
             m = self.markets[market]
             orders = self.ws.get_limit_orders(
                 m["quote"], m["base"], limit)
-            quote_asset, base_asset = self.ws.get_objects([m["quote"], m["base"]])
+            quote_asset = self._get_asset(m["quote"])
+            base_asset = self._get_asset(m["base"])
             asks = []
             bids = []
             for o in orders:
@@ -652,8 +684,7 @@ class GrapheneExchange(GrapheneClient) :
                 }
 
         """
-        account = self.ws.get_account(self.config.account)
-        balances = self.ws.get_account_balances(account["id"], [])
+        balances = self.ws.get_account_balances(self.myAccount["id"], [])
         asset_ids = [a["asset_id"] for a in balances]
         assets = self.ws.get_objects(asset_ids)
         data = {}
@@ -667,19 +698,15 @@ class GrapheneExchange(GrapheneClient) :
     def returnOpenOrdersIds(self, currencyPair="all"):
         """ Returns only the ids of open Orders
         """
-        account = self.ws.get_account(self.config.account)
         r = {}
         if currencyPair == "all" :
             markets = list(self.markets.keys())
         else:
             markets = [currencyPair]
-        orders = self.ws.get_full_accounts([account["id"]], False)[0][1]["limit_orders"]
+        orders = self.ws.get_full_accounts([self.myAccount["id"]], False)[0][1]["limit_orders"]
         for market in markets :
             r[market] = []
         for o in orders:
-            quote_id = o["sell_price"]["quote"]["asset_id"]
-            base_id = o["sell_price"]["base"]["asset_id"]
-            quote_asset, base_asset = self.ws.get_objects([quote_id, base_id])
             for market in markets :
                 m = self.markets[market]
                 if ((o["sell_price"]["base"]["asset_id"] == m["base"] and
@@ -739,24 +766,22 @@ class GrapheneExchange(GrapheneClient) :
                 }
 
         """
-        account = self.ws.get_account(self.config.account)
         r = {}
         if currencyPair == "all" :
             markets = list(self.markets.keys())
         else:
             markets = [currencyPair]
-        orders = self.ws.get_full_accounts([account["id"]], False)[0][1]["limit_orders"]
+        orders = self.ws.get_full_accounts([self.myAccount["id"]], False)[0][1]["limit_orders"]
         for market in markets :
             r[market] = []
         for o in orders:
-            quote_id = o["sell_price"]["quote"]["asset_id"]
             base_id = o["sell_price"]["base"]["asset_id"]
-            quote_asset, base_asset = self.ws.get_objects([quote_id, base_id])
+            base_asset = self._get_asset(base_id)
             for market in markets :
                 m = self.markets[market]
                 if (o["sell_price"]["base"]["asset_id"] == m["base"] and
                         o["sell_price"]["quote"]["asset_id"] == m["quote"]):
-                    " selling "
+                    # buy
                     amount = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
                     rate = self._get_price(o["sell_price"])
                     t = "buy"
@@ -764,7 +789,7 @@ class GrapheneExchange(GrapheneClient) :
                     for_sale = float(o["for_sale"]) / 10 ** base_asset["precision"]
                 elif (o["sell_price"]["base"]["asset_id"] == m["quote"] and
                         o["sell_price"]["quote"]["asset_id"] == m["base"]):
-                    " buying "
+                    # sell
                     amount = float(o["for_sale"]) / 10 ** base_asset["precision"]
                     rate = 1 / self._get_price(o["sell_price"])
                     t = "sell"
@@ -778,6 +803,48 @@ class GrapheneExchange(GrapheneClient) :
                                   "type" : t,
                                   "amount_to_sell" : for_sale,
                                   "orderNumber" : o["id"]})
+        return r
+
+    def returnOpenOrdersStruct(self, currencyPair="all"):
+        """ This method is similar to ``returnOpenOrders`` but has a different
+            output format:
+
+            Example:
+
+            .. code-block:: js
+
+                {
+                    "USD_BTS": {
+                       "1.7.1505": {
+                            "orderNumber": "1.7.1505",
+                            "type": "buy",
+                            "rate": 341.74559999999997,
+                            "total": 341.74559999999997,
+                            "amount": 1.0
+                        },
+                        "1.7.1512": {
+                            "orderNumber": "1.7.1512",
+                            "type": "buy",
+                            "rate": 325.904045,
+                            "total": 325.904045,
+                            "amount": 1.0
+                        },
+                        "1.7.1513": {
+                            "orderNumber": "1.7.1513",
+                            "type": "sell",
+                            "rate": 319.45050000000003,
+                            "total": 31945.05,
+                            "amount": 1020486.2195025001
+                        }
+                    ]
+                }
+        """
+        orders = self.returnOpenOrders(currencyPair)
+        r = {}
+        for market in orders:
+            r[market] = {}
+            for order in orders[market]:
+                r[market][order["orderNumber"]] = order
         return r
 
     def returnTradeHistory(self, currencyPair="all", limit=25):
@@ -810,7 +877,8 @@ class GrapheneExchange(GrapheneClient) :
                 data = {}
                 data["date"] = f["time"]
                 data["rate"] = self._get_price_filled(f, m)
-                quote, base = self.ws.get_objects([m["quote"], m["base"]])
+                quote = self._get_asset(m["quote"])
+                # base = self._get_asset(m["base"])
                 if f["op"]["pays"]["asset_id"] == m["base"] :
                     data["type"]   = "buy"
                     data["amount"] = f["op"]["receives"]["amount"] / 10 ** quote["precision"]
@@ -855,12 +923,11 @@ class GrapheneExchange(GrapheneClient) :
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We buy quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
-        base = self.ws.get_asset(base_symbol)
-        quote = self.ws.get_asset(quote_symbol)
+        base  = self._get_asset(base_symbol)
+        quote = self._get_asset(quote_symbol)
         if self.rpc:
             transaction = self.rpc.sell_asset(self.config.account,
                                               '{:.{prec}f}'.format(amount * rate, prec=base["precision"]),
@@ -870,10 +937,10 @@ class GrapheneExchange(GrapheneClient) :
                                               expiration,
                                               killfill,
                                               not (self.safe_mode or self.propose_only))
+            jsonOrder = transaction["operations"][0][1]
         elif self.config.wif:
-            account = self.ws.get_account(self.config.account)
             s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
-                 "seller": account["id"],
+                 "seller": self.myAccount["id"],
                  "amount_to_sell": {"amount": int(amount * rate * 10 ** base["precision"]),
                                     "asset_id": base["id"]
                                     },
@@ -896,13 +963,14 @@ class GrapheneExchange(GrapheneClient) :
             )
             transaction = transaction.sign([self.config.wif], self.prefix)
             transaction = transactions.JsonObj(transaction)
+            jsonOrder = transaction["operations"][0][1]
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
             raise NoWalletException()
 
         if returnID:
-            return self._waitForOperationsConfirmation(transactions.JsonObj(order))
+            return self._waitForOperationsConfirmation(jsonOrder)
         else:
             if self.propose_only:
                 [self.propose_operations.append(o) for o in transaction["operations"]]
@@ -942,12 +1010,11 @@ class GrapheneExchange(GrapheneClient) :
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
-        base = self.ws.get_asset(base_symbol)
-        quote = self.ws.get_asset(quote_symbol)
+        base = self._get_asset(base_symbol)
+        quote = self._get_asset(quote_symbol)
         if self.rpc:
             transaction = self.rpc.sell_asset(self.config.account,
                                               '{:.{prec}f}'.format(amount, prec=quote["precision"]),
@@ -957,10 +1024,10 @@ class GrapheneExchange(GrapheneClient) :
                                               expiration,
                                               killfill,
                                               not (self.safe_mode or self.propose_only))
+            jsonOrder = transaction["operations"][0][1]
         elif self.config.wif:
-            account = self.ws.get_account(self.config.account)
             s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
-                 "seller": account["id"],
+                 "seller": self.myAccount["id"],
                  "amount_to_sell": {"amount": int(amount * 10 ** quote["precision"]),
                                     "asset_id": quote["id"]
                                     },
@@ -983,13 +1050,14 @@ class GrapheneExchange(GrapheneClient) :
             )
             transaction = transaction.sign([self.config.wif], self.prefix)
             transaction = transactions.JsonObj(transaction)
+            jsonOrder = transaction["operations"][0][1]
             if not (self.safe_mode or self.propose_only):
                 self.ws.broadcast_transaction(transaction, api="network_broadcast")
         else:
             raise NoWalletException()
 
         if returnID:
-            return self._waitForOperationsConfirmation(transactions.JsonObj(order))
+            return self._waitForOperationsConfirmation(jsonOrder)
         else:
             if self.propose_only:
                 [self.propose_operations.append(o) for o in transaction["operations"]]
@@ -1000,6 +1068,8 @@ class GrapheneExchange(GrapheneClient) :
     def _waitForOperationsConfirmation(self, thisop):
         if self.safe_mode:
             return "Safe Mode enabled, can't obtain an orderid"
+
+        log.debug("Waiting for operation to be included in block: %s" % str(thisop))
         counter = -2
         blocknum = int(self.ws.get_dynamic_global_properties()["head_block_number"])
         for block in self.ws.block_stream(start=blocknum - 2, mode="head"):
@@ -1026,8 +1096,7 @@ class GrapheneExchange(GrapheneClient) :
                          'debt': 120.00000}
 
         """
-        account = self.ws.get_account(self.config.account)
-        debts = self.ws.get_full_accounts([account["id"]], False)[0][1]["call_orders"]
+        debts = self.ws.get_full_accounts([self.myAccount["id"]], False)[0][1]["call_orders"]
         r = {}
         for debt in debts:
             base  = self.getObject(debt["call_price"]["base"]["asset_id"])
@@ -1061,14 +1130,13 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if symbol has no open call position
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         debts = self.list_debt_positions()
         if symbol not in debts:
             raise ValueError("No call position open for %s" % symbol)
         debt = debts[symbol]
-        asset = self.ws.get_asset(symbol)
-        collateral_asset = self.ws.get_asset(debt["collateral_asset"])
+        asset = self._get_asset(symbol)
+        collateral_asset = self._get_asset(debt["collateral_asset"])
 
         if self.rpc:
             transaction = self.rpc.borrow_asset(self.config.account,
@@ -1077,13 +1145,12 @@ class GrapheneExchange(GrapheneClient) :
                                                 '{:.{prec}f}'.format(-debt["collateral"], prec=collateral_asset["precision"]),
                                                 not (self.safe_mode or self.propose_only))
         elif self.config.wif:
-            account = self.ws.get_account(self.config.account)
             s = {'fee': {'amount': 0, 'asset_id': '1.3.0'},
                  'delta_debt': {'amount': int(-debt["debt"] * 10 ** asset["precision"]),
                                 'asset_id': asset["id"]},
                  'delta_collateral': {'amount': int(-debt["collateral"] * 10 ** collateral_asset["precision"]),
                                       'asset_id': collateral_asset["id"]},
-                 'funding_account': account["id"],
+                 'funding_account': self.myAccount["id"],
                  'extensions': []}
             ops = [transactions.Operation(transactions.Call_order_update(**s))]
             expiration = transactions.formatTimeFromNow(30)
@@ -1119,13 +1186,12 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if required amounts of collateral are not available
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
-        asset = self.ws.get_asset(symbol)
+        asset = self._get_asset(symbol)
         if "bitasset_data_id" not in asset:
             raise ValueError("%s is not a bitasset!" % symbol)
-        bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
+        bitasset = self.getObject(asset["bitasset_data_id"])
 
         # Check minimum collateral ratio
         backing_asset_id = bitasset["options"]["short_backing_asset"]
@@ -1134,7 +1200,7 @@ class GrapheneExchange(GrapheneClient) :
             raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
 
         # Derive Amount of Collateral
-        collateral_asset = self.ws.get_objects([backing_asset_id])[0]
+        collateral_asset = self._get_asset(backing_asset_id)
         settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
 
         current_debts = self.list_debt_positions()
@@ -1160,13 +1226,12 @@ class GrapheneExchange(GrapheneClient) :
                                                 '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
                                                 not (self.safe_mode or self.propose_only))
         elif self.config.wif:
-            account = self.ws.get_account(self.config.account)
             s = {'fee': {'amount': 0, 'asset_id': '1.3.0'},
                  'delta_debt': {'amount': int(delta_debt * 10 ** asset["precision"]),
                                 'asset_id': asset["id"]},
                  'delta_collateral': {'amount': int(amount_of_collateral * 10 ** collateral_asset["precision"]),
                                       'asset_id': collateral_asset["id"]},
-                 'funding_account': account["id"],
+                 'funding_account': self.myAccount["id"],
                  'extensions': []}
             ops = [transactions.Operation(transactions.Call_order_update(**s))]
             expiration = transactions.formatTimeFromNow(30)
@@ -1250,13 +1315,12 @@ class GrapheneExchange(GrapheneClient) :
 
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
-        asset = self.ws.get_asset(symbol)
+        asset = self._get_asset(symbol)
         if "bitasset_data_id" not in asset:
             raise ValueError("%s is not a bitasset!" % symbol)
-        bitasset = self.ws.get_objects([asset["bitasset_data_id"]])[0]
+        bitasset = self.getObject(asset["bitasset_data_id"])
 
         # Check minimum collateral ratio
         backing_asset_id = bitasset["options"]["short_backing_asset"]
@@ -1265,7 +1329,7 @@ class GrapheneExchange(GrapheneClient) :
             raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
 
         # Derive Amount of Collateral
-        collateral_asset = self.ws.get_objects([backing_asset_id])[0]
+        collateral_asset = self._get_asset(backing_asset_id)
         settlement_price = self._get_price(bitasset["current_feed"]["settlement_price"])
         amount_of_collateral = amount * collateral_ratio / settlement_price
 
@@ -1285,13 +1349,12 @@ class GrapheneExchange(GrapheneClient) :
                                                 '{:.{prec}f}'.format(amount_of_collateral, prec=collateral_asset["precision"]),
                                                 not (self.safe_mode or self.propose_only))
         elif self.config.wif:
-            account = self.ws.get_account(self.config.account)
             s = {'fee': {'amount': 0, 'asset_id': '1.3.0'},
                  'delta_debt': {'amount': int(amount * 10 ** asset["precision"]),
                                 'asset_id': asset["id"]},
                  'delta_collateral': {'amount': int(amount_of_collateral * 10 ** collateral_asset["precision"]),
                                       'asset_id': collateral_asset["id"]},
-                 'funding_account': account["id"],
+                 'funding_account': self.myAccount["id"],
                  'extensions': []}
             ops = [transactions.Operation(transactions.Call_order_update(**s))]
             expiration = transactions.formatTimeFromNow(30)
@@ -1324,14 +1387,12 @@ class GrapheneExchange(GrapheneClient) :
             :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         if self.rpc:
             transaction = self.rpc.cancel_order(orderNumber, not (self.safe_mode or self.propose_only))
         elif self.config.wif:
-            account = self.ws.get_account(self.config.account)
             s = {"fee": {"amount": 0, "asset_id": "1.3.0"},
-                 "fee_paying_account": account["id"],
+                 "fee_paying_account": self.myAccount["id"],
                  "order": orderNumber,
                  "extensions": []
                  }
@@ -1588,17 +1649,15 @@ class GrapheneExchange(GrapheneClient) :
             :param float amount: Amount of BTS to use for funding fee pool
         """
         if self.safe_mode :
-            print("Safe Mode enabled!")
-            print("Please GrapheneExchange(config, safe_mode=False) to remove this and execute the transaction below")
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
         if self.rpc:
             transaction = self.rpc.fund_asset_fee_pool(self.config.account, symbol, amount, not (self.safe_mode or self.propose_only))
         elif self.config.wif:
-            account = self.ws.get_account(self.config.account)
-            asset = self.ws.get_asset(symbol)
+            asset = self._get_asset(symbol)
             s = {"fee": {"amount": 0,
                          "asset_id": "1.3.0"
                          },
-                 "from_account": account["id"],
+                 "from_account": self.myAccount["id"],
                  "asset_id": asset["id"],
                  "amount": int(amount * 10 ** asset["precision"]),
                  "extensions": []

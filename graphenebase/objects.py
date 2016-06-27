@@ -42,7 +42,7 @@ class GrapheneObject(object) :
                 try :
                     d.update({name : JsonObj(value)})
                 except :
-                    d.update({name : str(value)})
+                    d.update({name : value.__str__()})
         return OrderedDict(d)
 
     def __str__(self) :

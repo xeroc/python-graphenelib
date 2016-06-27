@@ -6,6 +6,7 @@ from grapheneexchange import GrapheneExchange
 _request_headers = {'content-type': 'application/json',
                     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
 
+
 class FeedSource() :
     def __init__(self, scaleVolumeBy=1.0,
                  enable=True,
@@ -273,7 +274,7 @@ class Yahoo(FeedSource) :
                         if hasattr(self, "quoteNames") and quote in self.quoteNames:
                             quote = self.quoteNames[quote]
                         feed[base][quote] = {"price"  : (float(yahooprices[i])),
-                                                             "volume" : 1.0}
+                                             "volume" : 1.0}
 #                # indices
 #                yahooAssets = ",".join(_yahoo_indices.keys())
 #                url="http://download.finance.yahoo.com/d/quotes.csv"
@@ -409,7 +410,7 @@ class Okcoin(FeedSource) :
         return feed
 
 
-class OpenExchangeRates(FeedSource) : # Hourly updated data with free subscription
+class OpenExchangeRates(FeedSource):  # Hourly updated data with free subscription
     def __init__(self, *args, **kwargs) :
         super().__init__(*args, **kwargs)
         if not hasattr(self, "api_key") or not hasattr(self, "free_subscription"):
@@ -435,7 +436,7 @@ class OpenExchangeRates(FeedSource) : # Hourly updated data with free subscripti
                         if quote == base:
                             continue
                         feed[base][quote] = {"price"  : result["rates"][quote],
-                                            "volume" : 1.0}
+                                             "volume" : 1.0}
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
             if not self.allowFailure:
@@ -444,7 +445,7 @@ class OpenExchangeRates(FeedSource) : # Hourly updated data with free subscripti
         return feed
 
 
-class CurrencyLayer(FeedSource) : # Hourly updated data over http with free subscription
+class CurrencyLayer(FeedSource):  # Hourly updated data over http with free subscription
     def __init__(self, *args, **kwargs) :
         super().__init__(*args, **kwargs)
         if not hasattr(self, "api_key") or not hasattr(self, "free_subscription"):
@@ -470,7 +471,7 @@ class CurrencyLayer(FeedSource) : # Hourly updated data over http with free subs
                         if quote == base:
                             continue
                         feed[base][quote] = {"price"  : result["quotes"][base + quote],
-                                            "volume" : 1.0}
+                                             "volume" : 1.0}
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
             if not self.allowFailure:
@@ -479,7 +480,7 @@ class CurrencyLayer(FeedSource) : # Hourly updated data over http with free subs
         return feed
 
 
-class Fixer(FeedSource): # fixer.io daily updated data from European Central Bank.
+class Fixer(FeedSource):  # fixer.io daily updated data from European Central Bank.
     def __init__(self, *args, **kwargs) :
         super().__init__(*args, **kwargs)
 
@@ -495,7 +496,7 @@ class Fixer(FeedSource): # fixer.io daily updated data from European Central Ban
                     if quote == base:
                         continue
                     feed[base][quote] = {"price"  : result["rates"][quote],
-                                            "volume" : 1.0}
+                                         "volume" : 1.0}
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
             if not self.allowFailure:
@@ -521,21 +522,21 @@ class BitcoinVenezuela(FeedSource):
                         if quote == base or quote and quote not in ["EUR", "VEF", "ARS"]:
                             continue
                         feed[base][quote] = {"price"  : result["exchange_rates"][quote + '_' + base],
-                                            "volume" : 1.0}
+                                             "volume" : 1.0}
                     continue
                 for quote in self.quotes:
                     if quote == base:
                         continue
                     feed[base][quote] = {"price"  : result[base][quote],
-                                        "volume" : 1.0}
+                                         "volume" : 1.0}
         except Exception as e:
             print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
             if not self.allowFailure:
                 sys.exit("\nExiting due to exchange importance!")
             return
         return feed
-        
-        
+
+
 class CoinmarketcapAltcap(FeedSource) :
     def __init__(self, *args, **kwargs) :
         super().__init__(*args, **kwargs)
@@ -550,8 +551,11 @@ class CoinmarketcapAltcap(FeedSource) :
 
                 global_data = requests.get('https://api.coinmarketcap.com/v1/global/').json()
                 bitcoin_data = requests.get('https://api.coinmarketcap.com/v1/ticker/bitcoin/').json()[0]
-                alt_caps_x = [float(coin['market_cap_usd']) for coin in ticker if
-                          coin['rank'] <= 11 and coin['symbol'] != "BTC"]
+                alt_caps_x = [float(coin['market_cap_usd'])
+                              for coin in ticker if
+                              coin['rank'] <= 11 and
+                              coin['symbol'] != "BTC"
+                              ]
                 alt_cap = global_data['total_market_cap_usd'] - bitcoin_data['market_cap_usd']
                 alt_cap_x = sum(alt_caps_x)
                 btc_cap = next((coin['market_cap_usd'] for coin in ticker if coin["symbol"] == "BTC"))
@@ -587,8 +591,11 @@ class CoincapAltcap(FeedSource) :
                 coincap_front = requests.get('http://www.coincap.io/front').json()
                 coincap_global = requests.get('http://www.coincap.io/global').json()
                 alt_cap = float(coincap_global["altCap"])
-                alt_caps_x = [float(coin['mktcap']) for coin in coincap_front if
-                                      'position24' in coin and int(coin['position24']) <= 11 and coin['short'] != "BTC"]
+                alt_caps_x = [float(coin['mktcap'])
+                              for coin in coincap_front
+                              if 'position24' in coin and
+                              int(coin['position24']) <= 11 and
+                              coin['short'] != "BTC"]
                 alt_cap_x = sum(alt_caps_x)
                 btc_cap = float(coincap_global["btcCap"])
 
@@ -638,6 +645,7 @@ class Graphene(FeedSource):
         setattr(conn, "wallet_host", self.wallet_host)
         setattr(conn, "wallet_port", self.wallet_port)
         setattr(conn, "witness_url", self.witness_url)
+        setattr(conn, "account", config.producer_name)
         self.dex   = GrapheneExchange(conn, safe_mode=False)
 
     def fetch(self):
