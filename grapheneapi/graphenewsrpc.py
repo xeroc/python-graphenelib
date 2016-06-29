@@ -10,6 +10,10 @@ class RPCError(Exception):
     pass
 
 
+class NumRetriesReached(Exception):
+    pass
+
+
 class GrapheneWebsocketRPC(object):
     """ This class allows to call API methods synchronously, without
         callbacks. It logs in and registers to the APIs:
@@ -21,6 +25,7 @@ class GrapheneWebsocketRPC(object):
         :param str user: Username for Authentication
         :param str password: Password for Authentication
         :param Array apis: List of APIs to register to (default: ["database", "network_broadcast"])
+        :param int num_tries: Try x times to num_tries to a node on disconnect, -1 for indefinitely
 
         Available APIs
 
@@ -41,12 +46,14 @@ class GrapheneWebsocketRPC(object):
                   subsystem, please use ``GrapheneWebsocket`` instead.
 
     """
-    def __init__(self, url, user="", password=""):
+    def __init__(self, url, user="", password="", **kwargs):
         self.api_id = {}
         self._request_id = 0
         self.url = url
         self.user = user
         self.password = password
+        self.num_tries = kwargs.get("num_tries", -1)
+
         self.wsconnect()
         self.register_apis()
 
@@ -55,14 +62,23 @@ class GrapheneWebsocketRPC(object):
         return self._request_id
 
     def wsconnect(self):
+        cnt = 0
         while True:
+            cnt += 1
             try:
                 self.ws = create_connection(self.url)
                 break
             except KeyboardInterrupt:
                 break
             except:
-                log.warning("Lost connection to node: %s. Retrying in 10 seconds" % self.url)
+                if (self.num_tries >= 0 and cnt > self.num_tries):
+                    raise NumRetriesReached()
+
+                log.warning(
+                    "Lost connection to node: %s (%d/%d) "
+                    % (self.url, cnt, self.num_tries) +
+                    "Retrying in 10 seconds"
+                )
                 time.sleep(10)
         self.login(self.user, self.password, api_id=1)
 
@@ -284,14 +300,25 @@ class GrapheneWebsocketRPC(object):
         """
         try:
             log.debug(json.dumps(payload))
+            cnt = 0
             while True:
+                cnt += 1
+
                 try:
                     self.ws.send(json.dumps(payload))
                     ret = json.loads(self.ws.recv())
                     break
+                except KeyboardInterrupt:
+                    break
                 except:
-                    log.warning("Cannot connect to WS node: %s" % self.url)
-                    # retry after reconnect
+                    if (self.num_tries > 0 and cnt > self.num_tries):
+                        raise NumRetriesReached()
+
+                    log.warning(
+                        "Cannot connect to WS node: %s (%d/%d)"
+                        % (self.url, cnt, self.num_tries)
+                    )
+                    # retry
                     try:
                         self.ws.close()
                         self.wsconnect()
