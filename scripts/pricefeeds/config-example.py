@@ -61,7 +61,7 @@ change_max                   = 5.0       # Percentage of price change to cause a
 ################################################################################
 _all_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
                "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-               "KRW", "TCNY", "TUSD"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
+               "KRW", "TCNY", "TUSD", "ALTCAP", "ALTCAP.X"]
 _bases = ["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
 
 asset_config = {"default" : {  # DEFAULT BEHAVIOR
@@ -136,22 +136,22 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                 "TUSD" : {
                     "maximum_short_squeeze_ratio"   : 1001
                 },
-                # "ALTCAP" : {
-                #    "metric" : "weighted",
-                #    "sources" : ["coincap",
-                #                 "coinmarketcap",
-                #                 "poloniex",
-                #                 "bittrex",
-                #                 "btc38",]
-                #},
-                #"ALTCAP.X" : {
-                #    "metric" : "weighted",
-                #    "sources" : ["coincap",
-                #                 "coinmarketcap",
-                #                 "poloniex",
-                #                 "bittrex",
-                #                 "btc38",]
-                #},
+                 "ALTCAP" : {
+                    "metric" : "weighted",
+                    "sources" : ["coincap",
+                                 "coinmarketcap",
+                                 "poloniex",
+                                 "bittrex",
+                                 "btc38",]
+                },
+                "ALTCAP.X" : {
+                    "metric" : "weighted",
+                    "sources" : ["coincap",
+                                 "coinmarketcap",
+                                 "poloniex",
+                                 "bittrex",
+                                 "btc38",]
+                },
                }
 
 # Other assets that are derived or something else.
@@ -163,7 +163,8 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
 #  The usual asset specific parameters have to be set in "asset_config",
 #  otherwise they will be ignored!
 secondary_mpas = {
-                  "TUSD" : {"sameas" : "USD"}
+                  "TUSD" : {"sameas" : "USD"},
+                  "TCNY" : {"sameas" : "CNY"}
                   }
 
 ################################################################################
@@ -234,14 +235,12 @@ feedSources["huobi"]    = feedsources.Huobi(allowFailure=True, quotes=["BTC"], b
 #                                                                  allowFailure=True,
 #                                                                  quotes=["ARS", "BTC", "EUR", "JPY"], # more available
 #                                                                  bases=["USD"]) # only USD with free subscription
-# feedSources["coinmarketcap"]    = feedsources.CoinmarketcapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
-#                                                                     quoteName={"ALTCAP":"ALTCAP", "ALTCAP.X":"ALTCAP.X"},
-#                                                                     bases=["BTC"],
-#                                                                     allowFailure=True)
-# feedSources["coincap"]    = feedsources.CoincapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
-#                                                                     quoteName={"ALTCAP":"ALTCAP", "ALTCAP.X":"ALTCAP.X"},
-#                                                                     bases=["BTC"],
-#                                                                     allowFailure=True)
+feedSources["coinmarketcap"]    = feedsources.CoinmarketcapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
+                                                                  bases=["BTC"],
+                                                                  allowFailure=True)
+feedSources["coincap"]    = feedsources.CoincapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
+                                                      bases=["BTC"],
+                                                      allowFailure=True)
 # feedSources["fixer"] = feedsources.Fixer(allowFailure=True, quotes=["EUR", "JPY", "SEK", "CNY"], bases=["EUR", "USD", "CNY"]) # more available
 # feedSources["bitcoinvenezuela"] = feedsources.BitcoinVenezuela(allowFailure=True, quotes=["EUR", "USD", "VEF", "ARS", "BTC", "LTC"], bases=["BTC", "LTC", "USD"])
 # feedSources["btcid"]    = feedsources.BitcoinIndonesia(allowFailure=True, quotes=["BTS"], bases=["BTC"])
