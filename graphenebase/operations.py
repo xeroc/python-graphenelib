@@ -51,6 +51,8 @@ operations["transfer_from_blind"] = 41
 operations["asset_settle_cancel"] = 42
 operations["asset_claim_fees"] = 43
 
+prefix = "BTS"
+
 
 def getOperationNameForId(i) :
     """ Convert an operation id into the corresponding string
@@ -82,6 +84,63 @@ class Operation() :
 
     def __str__(self) :
         return json.dumps([self.opId, self.op.toJson()])
+
+
+class Permission(GrapheneObject):
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            # Sort keys (FIXME: ideally, the sorting is part of Public
+            # Key and not located here)
+            kwargs["key_auths"] = sorted(
+                kwargs["key_auths"],
+                key=lambda x: repr(PublicKey(x[0], prefix=prefix).address),
+                reverse=False,
+            )
+
+            accountAuths = Map([
+                [String(e[0]), Uint16(e[1])]
+                for e in kwargs["account_auths"]
+            ])
+            keyAuths = Map([
+                [PublicKey(e[0], prefix=prefix), Uint16(e[1])]
+                for e in kwargs["key_auths"]
+            ])
+            super().__init__(OrderedDict([
+                ('weight_threshold', Uint32(int(kwargs["weight_threshold"]))),
+                ('account_auths'   , accountAuths),
+                ('key_auths'       , keyAuths),
+                ('extensions'      , Set([])),
+            ]))
+
+
+class AccountOptions(GrapheneObject) :
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            meta = ""
+            if "json_metadata" in kwargs and kwargs["json_metadata"]:
+                if isinstance(kwargs["json_metadata"], dict):
+                    meta = json.dumps(kwargs["json_metadata"])
+                else:
+                    meta = kwargs["json_metadata"]
+            super().__init__(OrderedDict([
+                ('memo_key'         , PublicKey(kwargs["memo_key"])),
+                ('voting_account'   , ObjectId(kwargs["voting_account"], "account")),
+                ('num_witness'      , Uint16(kwargs["num_witness"])),
+                ('num_committee'    , Uint16(kwargs["num_committee"])),
+                ('votes'            , Array([VoteId(o) for o in kwargs["votes"]])),
+                ('extensions'       , Set([])),
+            ]))
+
 
 """
     Actual Operations
@@ -246,4 +305,31 @@ class Override_transfer(GrapheneObject) :
                 ('amount'    , Asset(kwargs["amount"])),
                 ('memo'      , memo),
                 ('extensions', Set([])),
+            ]))
+
+
+class Account_create(GrapheneObject) :
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            meta = ""
+            if "json_metadata" in kwargs and kwargs["json_metadata"]:
+                if isinstance(kwargs["json_metadata"], dict):
+                    meta = json.dumps(kwargs["json_metadata"])
+                else:
+                    meta = kwargs["json_metadata"]
+            super().__init__(OrderedDict([
+                ('fee'              , Asset(kwargs["fee"])),
+                ('registrar'        , ObjectId(kwargs["registrar"], "account")),
+                ('referrer'         , ObjectId(kwargs["referrer"], "account")),
+                ('referrer_percent' , Uint16(kwargs["referrer_percent"])),
+                ('name'             , String(kwargs["name"])),
+                ('owner'            , Permission(kwargs["owner"])),
+                ('active'           , Permission(kwargs["active"])),
+                ('options'          , AccountOptions(kwargs["options"])),
+                ('extensions'       , Set([])),
             ]))
