@@ -17,7 +17,7 @@ class FeedSource() :
     def __init__(self, scaleVolumeBy=1.0,
                  enable=True,
                  allowFailure=False,
-                 timeout=20,
+                 timeout=5,
                  quotes=[],
                  bases=[],
                  **kwargs):
@@ -39,8 +39,12 @@ class FeedSource() :
             self.updateCache(feed)
             return feed
         except Exception as e:
-            print("\nWe encountered an error loading live data. Trying to recover from cache {1}! ({0})".format(str(e), type(self).__name__))
-        return self.recoverFromCache()
+            print("\n{1} We encountered an error loading live data. Trying to recover from cache! ({0})".format(str(e), type(self).__name__))
+        try:
+            return self.recoverFromCache()
+        except:
+            if not self.allowFailure:
+                sys.exit("\nExiting due to exchange importance!")
 
     def today(self):
         return datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d")
@@ -64,7 +68,7 @@ class FeedSource() :
 
     def updateCache(self, feed):
         with open(self.getCacheFileName(), 'w') as fp:
-            state = json.dump(feed, fp)
+            json.dump(feed, fp)
 
 
 class BitcoinIndonesia(FeedSource) :
@@ -88,10 +92,7 @@ class BitcoinIndonesia(FeedSource) :
                                           "volume" : float(result["vol_" + quote.lower()]) * self.scaleVolumeBy}
                     feed[base]["response"] = response.json()
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -127,12 +128,7 @@ class Ccedk(FeedSource) :
                         feed[base][quote]  = {"price"  : float(result["response"]["entity"]["last_price"]),
                                               "volume" : float(result["response"]["entity"]["vol"]) * self.scaleVolumeBy}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            import traceback
-            traceback.print_exc()
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -161,10 +157,7 @@ class Yunbi(FeedSource) :
                         feed[base][quote] = {"price"  : (float(result[marketName]["ticker"]["last"])),
                                              "volume" : (float(result[marketName]["ticker"]["vol"]) * self.scaleVolumeBy)}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -196,10 +189,7 @@ class Btc38(FeedSource) :
                         print("\nFetched data from {0} is empty!".format(type(self).__name__))
                         continue
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -225,10 +215,7 @@ class Bter(FeedSource) :
                         feed[base][quote] = {"price"  : (float(result[quote.lower() + "_" + base.lower()]["last"])),
                                              "volume" : (float(result[quote.lower() + "_" + base.lower()]["vol_" + base.lower()]) * self.scaleVolumeBy)}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -255,10 +242,7 @@ class Poloniex(FeedSource) :
                         feed[base][quote] = {"price"  : (float(result[marketName]["last"])),
                                              "volume" : (float(result[marketName]["quoteVolume"]) * self.scaleVolumeBy)}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -285,10 +269,7 @@ class Bittrex(FeedSource) :
                             feed[base][quote] = {"price" : (float(thisMarket["Last"])),
                                                  "volume" : (float(thisMarket["Volume"]) * self.scaleVolumeBy)}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -325,10 +306,7 @@ class Yahoo(FeedSource) :
 #                        feed[ config.core_symbol ][ self.bts_yahoo_map(a) ] = { "price"  : (1/float(yahooprices[i])),
 #                                                                         "volume" : 1.0, }
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -353,10 +331,7 @@ class BitcoinAverage(FeedSource) :
                     feed[base][quote] = {"price"  : (float(result["last"])),
                                          "volume" : (float(result["total_vol"]))}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -381,10 +356,7 @@ class BtcChina(FeedSource) :
                     feed[base][quote] = {"price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"]) * self.scaleVolumeBy)}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -409,10 +381,7 @@ class Huobi(FeedSource) :
                     feed[base][quote] = {"price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"]) * self.scaleVolumeBy)}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -442,10 +411,7 @@ class Okcoin(FeedSource) :
                     feed[base][quote] = {"price"  : (float(result["ticker"]["last"])),
                                          "volume" : (float(result["ticker"]["vol"]) * self.scaleVolumeBy)}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -477,10 +443,7 @@ class OpenExchangeRates(FeedSource):  # Hourly updated data with free subscripti
                         feed[base][quote] = {"price"  : result["rates"][quote],
                                              "volume" : 1.0}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -512,10 +475,7 @@ class CurrencyLayer(FeedSource):  # Hourly updated data over http with free subs
                         feed[base][quote] = {"price"  : result["quotes"][base + quote],
                                              "volume" : 1.0}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -537,10 +497,7 @@ class Fixer(FeedSource):  # fixer.io daily updated data from European Central Ba
                     feed[base][quote] = {"price"  : result["rates"][quote],
                                          "volume" : 1.0}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -569,10 +526,7 @@ class BitcoinVenezuela(FeedSource):
                     feed[base][quote] = {"price"  : result[base][quote],
                                          "volume" : 1.0}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -609,11 +563,7 @@ class CoinmarketcapAltcap(FeedSource) :
                     feed[base]['ALTCAP.X'] = {"price"  : btc_altcapx_price,
                                               "volume" : 1.0}
             except Exception as e:
-                print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-                print(e)
-                if not self.allowFailure:
-                    sys.exit("\nExiting due to exchange importance!")
-                return
+                raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -648,11 +598,7 @@ class CoincapAltcap(FeedSource) :
                     feed[base]['ALTCAP.X'] = {"price"  : btc_altcapx_price,
                                               "volume" : 1.0}
             except Exception as e:
-                print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-                print(e)
-                if not self.allowFailure:
-                    sys.exit("\nExiting due to exchange importance!")
-                return
+                raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -701,10 +647,7 @@ class Graphene(FeedSource):
                                          "volume" : (float(ticker[market]["quoteVolume"]) * self.scaleVolumeBy)}
                     feed[base]["response"] = ticker[market]
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -741,10 +684,7 @@ class Google(FeedSource):  # Google Finance
                     feed[base][quote] = {"price"  : sum(prices) / len(prices),
                                          "volume" : 1.0}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
 
 
@@ -774,7 +714,7 @@ class Quandl(FeedSource):  # Google Finance
                     )
                     response = requests.get(url=url, headers=_request_headers, timeout=self.timeout)
                     data = response.json()
-                    if not "dataset" in data:
+                    if "dataset" not in data:
                         raise Exception("Feed has not returned a dataset for url: %s" % url)
                     d = data["dataset"]
                     if len(d["data"]):
@@ -783,8 +723,5 @@ class Quandl(FeedSource):  # Google Finance
                 feed[base][quote] = {"price"  : sum(prices) / len(prices),
                                      "volume" : 1.0}
         except Exception as e:
-            print("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
-            return
+            raise Exception("\nError fetching results from {1}! ({0})".format(str(e), type(self).__name__))
         return feed
