@@ -40,11 +40,15 @@ class FeedSource() :
             return feed
         except Exception as e:
             print("\n{1} We encountered an error loading live data. Trying to recover from cache! ({0})".format(str(e), type(self).__name__))
+
+            # Terminate if not allow Failure
+            if not self.allowFailure:
+                sys.exit("\nExiting due to exchange importance!")
+
         try:
             return self.recoverFromCache()
         except:
-            if not self.allowFailure:
-                sys.exit("\nExiting due to exchange importance!")
+            print("We were unable to fetch live or cached data from %s. Skipping", type(self).__name__)
 
     def today(self):
         return datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d")
