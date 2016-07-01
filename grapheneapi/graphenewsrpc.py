@@ -25,7 +25,7 @@ class GrapheneWebsocketRPC(object):
         :param str user: Username for Authentication
         :param str password: Password for Authentication
         :param Array apis: List of APIs to register to (default: ["database", "network_broadcast"])
-        :param int num_tries: Try x times to num_tries to a node on disconnect, -1 for indefinitely
+        :param int num_retries: Try x times to num_retries to a node on disconnect, -1 for indefinitely
 
         Available APIs
 
@@ -52,7 +52,7 @@ class GrapheneWebsocketRPC(object):
         self.url = url
         self.user = user
         self.password = password
-        self.num_tries = kwargs.get("num_tries", -1)
+        self.num_retries = kwargs.get("num_retries", -1)
 
         self.wsconnect()
         self.register_apis()
@@ -71,12 +71,12 @@ class GrapheneWebsocketRPC(object):
             except KeyboardInterrupt:
                 break
             except:
-                if (self.num_tries >= 0 and cnt > self.num_tries):
+                if (self.num_retries >= 0 and cnt > self.num_retries):
                     raise NumRetriesReached()
 
                 log.warning(
                     "Lost connection to node: %s (%d/%d) "
-                    % (self.url, cnt, self.num_tries) +
+                    % (self.url, cnt, self.num_retries) +
                     "Retrying in 10 seconds"
                 )
                 time.sleep(10)
@@ -311,12 +311,13 @@ class GrapheneWebsocketRPC(object):
                 except KeyboardInterrupt:
                     break
                 except:
-                    if (self.num_tries > 0 and cnt > self.num_tries):
+                    if (self.num_retries > -1 and
+                            cnt > self.num_retries):
                         raise NumRetriesReached()
 
                     log.warning(
                         "Cannot connect to WS node: %s (%d/%d)"
-                        % (self.url, cnt, self.num_tries)
+                        % (self.url, cnt, self.num_retries)
                     )
                     # retry
                     try:
@@ -342,6 +343,8 @@ class GrapheneWebsocketRPC(object):
         """ Map all methods to RPC calls and pass through the arguments
         """
         def method(*args, **kwargs):
+
+            # Sepcify the api to talk to
             if "api_id" not in kwargs :
                 if ("api" in kwargs and kwargs["api"] in self.api_id) :
                     api_id = self.api_id[kwargs["api"]]
@@ -349,6 +352,10 @@ class GrapheneWebsocketRPC(object):
                     api_id = 0
             else:
                 api_id = kwargs["api_id"]
+
+            # let's be able to define the num_retries per query
+            self.num_retries = kwargs.get("num_retries", self.num_retries)
+
             query = {"method": "call",
                      "params": [api_id, name, list(args)],
                      "jsonrpc": "2.0",
