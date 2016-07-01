@@ -51,7 +51,7 @@ operations["transfer_from_blind"] = 41
 operations["asset_settle_cancel"] = 42
 operations["asset_claim_fees"] = 43
 
-prefix = "BTS"
+default_prefix = "BTS"
 
 
 def getOperationNameForId(i) :
@@ -88,6 +88,9 @@ class Operation() :
 
 class Permission(GrapheneObject):
     def __init__(self, *args, **kwargs) :
+        # Allow for overwrite of prefix
+        prefix = kwargs.pop("prefix", default_prefix)
+
         if isArgsThisClass(self, args):
                 self.data = args[0].data
         else:
@@ -101,7 +104,6 @@ class Permission(GrapheneObject):
                 key=lambda x: repr(PublicKey(x[0], prefix=prefix).address),
                 reverse=False,
             )
-
             accountAuths = Map([
                 [String(e[0]), Uint16(e[1])]
                 for e in kwargs["account_auths"]
@@ -120,6 +122,9 @@ class Permission(GrapheneObject):
 
 class AccountOptions(GrapheneObject) :
     def __init__(self, *args, **kwargs) :
+        # Allow for overwrite of prefix
+        prefix = kwargs.pop("prefix", default_prefix)
+
         if isArgsThisClass(self, args):
                 self.data = args[0].data
         else:
@@ -133,7 +138,7 @@ class AccountOptions(GrapheneObject) :
                 else:
                     meta = kwargs["json_metadata"]
             super().__init__(OrderedDict([
-                ('memo_key'         , PublicKey(kwargs["memo_key"])),
+                ('memo_key'         , PublicKey(kwargs["memo_key"], prefix=prefix)),
                 ('voting_account'   , ObjectId(kwargs["voting_account"], "account")),
                 ('num_witness'      , Uint16(kwargs["num_witness"])),
                 ('num_committee'    , Uint16(kwargs["num_committee"])),
@@ -310,26 +315,22 @@ class Override_transfer(GrapheneObject) :
 
 class Account_create(GrapheneObject) :
     def __init__(self, *args, **kwargs) :
+        # Allow for overwrite of prefix
+        prefix = kwargs.pop("prefix", default_prefix)
+
         if isArgsThisClass(self, args):
                 self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-
-            meta = ""
-            if "json_metadata" in kwargs and kwargs["json_metadata"]:
-                if isinstance(kwargs["json_metadata"], dict):
-                    meta = json.dumps(kwargs["json_metadata"])
-                else:
-                    meta = kwargs["json_metadata"]
             super().__init__(OrderedDict([
                 ('fee'              , Asset(kwargs["fee"])),
                 ('registrar'        , ObjectId(kwargs["registrar"], "account")),
                 ('referrer'         , ObjectId(kwargs["referrer"], "account")),
                 ('referrer_percent' , Uint16(kwargs["referrer_percent"])),
                 ('name'             , String(kwargs["name"])),
-                ('owner'            , Permission(kwargs["owner"])),
-                ('active'           , Permission(kwargs["active"])),
-                ('options'          , AccountOptions(kwargs["options"])),
+                ('owner'            , Permission(kwargs["owner"], prefix=prefix)),
+                ('active'           , Permission(kwargs["active"],prefix=prefix)),
+                ('options'          , AccountOptions(kwargs["options"], prefix=prefix)),
                 ('extensions'       , Set([])),
             ]))
