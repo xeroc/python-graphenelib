@@ -87,7 +87,7 @@ class GrapheneWebsocketRPC(object):
         self.api_id["history"] = self.history(api_id=1)
         self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
 
-    def get_account(self, name):
+    def get_account(self, name, **kwargs):
         """ Get full account details from account name or id
 
             :param str name: Account name or account id
@@ -95,26 +95,26 @@ class GrapheneWebsocketRPC(object):
         if len(name.split(".")) == 3:
             return self.get_objects([name])[0]
         else :
-            return self.get_account_by_name(name)
+            return self.get_account_by_name(name, **kwargs)
 
-    def get_asset(self, name):
+    def get_asset(self, name, **kwargs):
         """ Get full asset from name of id
 
             :param str name: Symbol name or asset id (e.g. 1.3.0)
         """
         if len(name.split(".")) == 3:
-            return self.get_objects([name])[0]
+            return self.get_objects([name], **kwargs)[0]
         else :
-            return self.lookup_asset_symbols([name])[0]
+            return self.lookup_asset_symbols([name], **kwargs)[0]
 
-    def get_object(self, o):
+    def get_object(self, o, **kwargs):
         """ Get object with id ``o``
 
             :param str o: Full object id
         """
-        return self.get_objects([o])[0]
+        return self.get_objects([o], **kwargs)[0]
 
-    def getFullAccountHistory(self, account, begin=1, limit=100, sort="block"):
+    def getFullAccountHistory(self, account, begin=1, limit=100, sort="block", **kwargs):
         """ Get History of an account
 
             :param string account: account name or account id
@@ -142,7 +142,7 @@ class GrapheneWebsocketRPC(object):
         if account[0:4] == "1.2." :
             account_id = account
         else:
-            account_id = self.get_account_by_name(account)["id"]
+            account_id = self.get_account_by_name(account, **kwargs)["id"]
 
         if begin < 1:
             raise ValueError("begin cannot be smaller than 1")
@@ -159,7 +159,7 @@ class GrapheneWebsocketRPC(object):
                     begin,
                     limit,
                     begin + limit,
-                    api="history"
+                    api="history", **kwargs
                 )
                 [r.append(a) for a in ret[::-1]]
             else:
@@ -185,7 +185,7 @@ class GrapheneWebsocketRPC(object):
                         begin,
                         thislimit,
                         begin + thislimit,
-                        api="history"
+                        api="history", **kwargs
                     )
                     [r.append(a) for a in ret[::-1]]
                     begin += thislimit
@@ -195,7 +195,7 @@ class GrapheneWebsocketRPC(object):
                         begin,
                         thislimit,
                         0,
-                        api="history"
+                        api="history", **kwargs
                     )
                     [r.append(a) for a in ret]
 
@@ -206,7 +206,7 @@ class GrapheneWebsocketRPC(object):
 
     """ Block Streams
     """
-    def block_stream(self, start=None, mode="irreversible"):
+    def block_stream(self, start=None, mode="irreversible", **kwargs):
         """ Yields blocks starting from ``start``.
 
             :param int start: Starting block
@@ -215,11 +215,11 @@ class GrapheneWebsocketRPC(object):
                  * "irreversible": the block that is confirmed by 2/3 of all block producers and is thus irreversible!
         """
         # Let's find out how often blocks are generated!
-        config = self.get_global_properties()
+        config = self.get_global_properties(**kwargs)
         block_interval = config["parameters"]["block_interval"]
 
         if not start:
-            props = self.get_dynamic_global_properties()
+            props = self.get_dynamic_global_properties(**kwargs)
             # Get block number
             if mode == "head":
                 start = props['head_block_number']
@@ -235,7 +235,7 @@ class GrapheneWebsocketRPC(object):
 
             # Get chain properies to identify the
             # head/last reversible block
-            props = self.get_dynamic_global_properties()
+            props = self.get_dynamic_global_properties(**kwargs)
 
             # Get block number
             if mode == "head":
@@ -250,7 +250,7 @@ class GrapheneWebsocketRPC(object):
             # Blocks from start until head block
             for blocknum in range(start, head_block + 1):
                 # Get full block
-                yield self.get_block(blocknum)
+                yield self.get_block(blocknum, **kwargs)
 
             # Set new start
             start = head_block + 1
