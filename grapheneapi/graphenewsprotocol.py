@@ -20,39 +20,36 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
         behavior.
     """
 
-    #: loop will be used to indicate the loss of connection
-    loop = None
-
-    #: Database callbacks and IDs for object subscriptions
-    database_callbacks = {}
-    database_callbacks_ids = {}
-
-    #: Accounts and callbacks for account updates
-    accounts = []
-    accounts_callback = None
-
-    #: Markets to subscribe to
-    markets = []
-
-    #: Assets to subscribe to
-    assets = []
-
-    #: Storage of Objects to reduce latency and load
-    objectMap = None
-
-    #: Event Callback registrations and fnts
-    onEventCallbacks = {}
-
-    #: Registered APIs with corresponding API-IDs
-    api_ids    = {}
-
-    #: Incremental Request ID and request storage (FIXME: request storage
-    #: is not cleaned up)
-    request_id = 0
-    requests   = {}
-
     def __init__(self):
-        pass
+        #: loop will be used to indicate the loss of connection
+        self.loop = None
+
+        #: Database callbacks and IDs for object subscriptions
+        self.database_callbacks = {}
+        self.database_callbacks_ids = {}
+
+        #: Accounts and callbacks for account updates
+        self.accounts = []
+        self.accounts_callback = None
+
+        #: Markets to subscribe to
+        self.markets = []
+
+        #: Assets to subscribe to
+        self.assets = []
+
+        #: Storage of Objects to reduce latency and load
+        self.objectMap = None
+
+        #: Event Callback registrations and fnts
+        self.onEventCallbacks = {}
+
+        #: Registered APIs with corresponding API-IDs
+        self.api_ids    = {}
+
+        #: Incremental Request ID and request storage
+        self.request_id = 0
+        self.requests   = {}
 
     def _get_request_id(self):
         self.request_id += 1
