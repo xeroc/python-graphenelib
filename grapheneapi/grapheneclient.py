@@ -1,6 +1,5 @@
 from .grapheneapi import GrapheneAPI
 from .graphenews import GrapheneWebsocket
-from collections import OrderedDict
 
 import logging
 log = logging.getLogger(__name__)
@@ -315,24 +314,25 @@ class GrapheneClient() :
             graphene.run()
 
     """
-    wallet_host = None
-    wallet_port = None
-    wallet_user = None
-    wallet_password = None
-    witness_url = None
-    witness_user = None
-    witness_password = None
-    prefix = None
-
-    #: RPC connection to the cli-wallet
-    rpc = None
-
-    #: Websocket connection to the witness/full node
-    ws  = None
-
     def __init__(self, config):
-        """ Initialize configuration
-        """
+
+        #: Definition of usual member variables
+        self.wallet_host = None
+        self.wallet_port = None
+        self.wallet_user = None
+        self.wallet_password = None
+        self.witness_url = None
+        self.witness_user = None
+        self.witness_password = None
+        self.prefix = None
+
+        #: RPC connection to the cli-wallet
+        self.rpc = None
+
+        #: Websocket connection to the witness/full node
+        self.ws  = None
+
+        # Initialize configuration
         available_features = dir(config)
 
         if ("wallet_host" in available_features and
