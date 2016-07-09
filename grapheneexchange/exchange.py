@@ -873,21 +873,20 @@ class GrapheneExchange(GrapheneClient) :
             filled = self.ws.get_fill_order_history(
                 m["quote"], m["base"], 2 * limit, api="history")
             trades = []
-            for f in filled[1::2] :  # every second entry "fills" the order
+            for f in filled:
                 data = {}
                 data["date"] = f["time"]
                 data["rate"] = self._get_price_filled(f, m)
                 quote = self._get_asset(m["quote"])
-                # base = self._get_asset(m["base"])
-                if f["op"]["pays"]["asset_id"] == m["base"] :
-                    data["type"]   = "buy"
-                    data["amount"] = f["op"]["receives"]["amount"] / 10 ** quote["precision"]
-                else :
-                    data["type"]   = "sell"
-                    data["amount"] = f["op"]["pays"]["amount"] / 10 ** quote["precision"]
-                data["total"]  = data["amount"] * data["rate"]
-                trades.append(data)
-
+                if f["op"]["account_id"] == self.myAccount["id"]:
+                    if f["op"]["pays"]["asset_id"] == m["base"] :
+                        data["type"]   = "buy"
+                        data["amount"] = f["op"]["receives"]["amount"] / 10 ** quote["precision"]
+                    else :
+                        data["type"]   = "sell"
+                        data["amount"] = int(f["op"]["pays"]["amount"]) / 10 ** quote["precision"]  #here to add int() because the f["op"]["pays"]["amount"] is wrongly returned a string from self.ws.get_fill_order_history
+                    data["total"]  = data["amount"] * data["rate"]
+                    trades.append(data)
             r.update({market : trades})
         return r
 
