@@ -898,7 +898,7 @@ class GrapheneExchange(GrapheneClient) :
                 if f["op"]["account_id"] == self.myAccount["id"]:
                     if f["op"]["pays"]["asset_id"] == m["base"] :
                         data["type"]   = "buy"
-                        data["amount"] = f["op"]["receives"]["amount"] / 10 ** quote["precision"]
+                        data["amount"] = int(f["op"]["receives"]["amount"]) / 10 ** quote["precision"]
                     else :
                         data["type"]   = "sell"
                         data["amount"] = int(f["op"]["pays"]["amount"]) / 10 ** quote["precision"]  #here to add int() because the f["op"]["pays"]["amount"] is wrongly returned a string from self.ws.get_fill_order_history
