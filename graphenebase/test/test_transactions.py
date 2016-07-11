@@ -239,18 +239,122 @@ class Testcases(unittest.TestCase) :
         compare = "f68585abf4dce7c8045701260000000000000000001d681da08601000000000069000000012030cc81722c3e67442d2f59deba188f6079c8ba2d8318a642e6a70a125655515f20e2bd3adb2ea886cdbc7f6590c7f8c80818d9176d9085c176c736686ab6c9fd"
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_create_account(self):
+        s = {"fee": {"amount": 1467634,
+                     "asset_id": "1.3.0"
+                     },
+             "registrar": "1.2.33",
+             "referrer": "1.2.27",
+             "referrer_percent": 3,
+             "name": "foobar-f124",
+             "owner": {"weight_threshold": 1,
+                       "account_auths": [],
+                       'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
+                                     1], [
+                                     'BTS6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp',
+                                     1]],
+                       "address_auths": []
+                       },
+             "active": {"weight_threshold": 1,
+                        "account_auths": [],
+                        'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
+                                       1], [
+                                      'BTS6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp',
+                                      1], [
+                                      'BTS8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7',
+                                      1
+                                      ]],
+                        "address_auths": []
+                        },
+             "options": {"memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
+                         "voting_account": "1.2.5",
+                         "num_witness": 0,
+                         "num_committee": 0,
+                         "votes": [],
+                         "extensions": []
+                         },
+             "extensions": {}
+             }
+        op = transactions.Account_create(**s)
+        ops    = [transactions.Operation(op)]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = "f68585abf4dce7c804570105f26416000000000000211b03000b666f6f6261722d6631323401000000000202fe8cc11cc8251de6977636b55c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c9158990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e01000001000000000303b453f46013fdbccb90b09ba169c388c34d84454a3b9fbec68d5a7819a734fca0010002fe8cc11cc8251de6977636b55c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c9158990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e010000024ab336b4b14ba6d881675d1c782912783c43dbbe31693aa710ac1896bd7c3d61050000000000000000011f61ad276120bc3f1892962bfff7db5e8ce04d5adec9309c80529e3a978a4fa1073225a6d56929e34c9d2a563e67a8f4a227e4fadb4a3bb6ec91bfdf4e57b80efd"
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = transactions.Override_transfer(**{
-            "fee": {"amount": 0,
-                    "asset_id": "1.3.0"},
-            "issuer": "1.2.29",
-            "from": "1.2.104",
-            "to": "1.2.29",
-            "amount": {"amount": 100000,
-                       "asset_id": "1.3.105"},
-            "extensions": []
+        op = transactions.Account_create(**{
+            "fee": {"amount": 1467634,
+                    "asset_id": "1.3.0"
+                    },
+            "registrar": "1.2.33",
+            "referrer": "1.2.27",
+            "referrer_percent": 3,
+            "name": "foobar-f124",
+            "owner": {"weight_threshold": 1,
+                      "account_auths": [],
+                      "key_auths": [["BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE", 1]],
+                      "address_auths": []
+                      },
+            "active": {"weight_threshold": 1,
+                       "account_auths": [],
+                       "key_auths": [["BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE", 1]],
+                       "address_auths": []
+                       },
+            "options": {
+                "memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
+                "voting_account": "1.2.5",
+                "num_witness": 26,
+                "num_committee": 8,
+                "votes": [
+                    "1:22",
+                    "1:23",
+                    "1:24",
+                    "1:25",
+                    "1:26",
+                    "1:27",
+                    "1:28",
+                    "1:30",
+                    "1:31",
+                    "1:32",
+                    "1:34",
+                    "1:35",
+                    "1:36",
+                    "1:37",
+                    "1:38",
+                    "1:40",
+                    "1:41",
+                    "1:44",
+                    "1:45",
+                    "1:49",
+                    "1:51",
+                    "1:56",
+                    "1:60",
+                    "0:76",
+                    "0:84",
+                    "0:87",
+                    "0:88",
+                    "0:91",
+                    "0:141",
+                    "1:143",
+                    "0:147",
+                    "2:148",
+                    "2:150",
+                    "1:165",
+                    "1:166",
+                    "2:171",
+                    "0:173",
+                    "2:179"
+                    ],
+                "extensions": []
+                },
+            "extensions": {}
         })
 
         ops = [transactions.Operation(op)]
@@ -262,6 +366,7 @@ class Testcases(unittest.TestCase) :
         )
         tx     = tx.sign([wif], chain=prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
+        pprint(transactions.JsonObj(tx))
 
         from grapheneapi.grapheneapi import GrapheneAPI
         rpc = GrapheneAPI("localhost", 8092)

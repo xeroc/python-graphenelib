@@ -46,4 +46,4 @@ steem-readme:
 	piston edit "@xeroc/python-graphenelib-readme" --file README.md
 
 steem-changelog:
-	git tag -l -n100 $(TAG) | piston post --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category steem --title "[Changelog] python-graphenelib $(TAG)" --file "-"
+	git tag -l -n100 $(TAG) | piston post --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category graphene --title "[Changelog] python-graphenelib $(TAG)" --file "-"

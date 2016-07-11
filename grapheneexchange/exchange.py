@@ -1,6 +1,8 @@
 from grapheneapi.grapheneclient import GrapheneClient
-from graphenebase import transactions, operations
-from graphenebase.account import PrivateKey
+from graphenebase import transactions
+from graphenebase.operations import operations
+from graphenebase.account import PrivateKey, PublicKey
+from graphenebase import memo as Memo
 from datetime import datetime
 import time
 import math
@@ -145,7 +147,6 @@ class GrapheneExchange(GrapheneClient) :
                 print(json.dumps(dex.sell("USD_BTS", 0.001, 10),indent=4))
     """
     markets = {}
-    wallet = None
 
     #: store assets as static variable to speed things up!
     assets = {}
@@ -185,6 +186,17 @@ class GrapheneExchange(GrapheneClient) :
             except:
                 raise InvalidWifKey
 
+        if not hasattr(config, "memo_wif"):
+            setattr(config, "memo_wif", None)
+        if not getattr(config, "memo_wif"):
+            config.memo_wif = None
+        else:
+            # Test for valid Private Key
+            try:
+                config.memo_wif = str(PrivateKey(config.memo_wif))
+            except:
+                raise InvalidWifKey
+
         self.config = config
         super().__init__(config)
 
@@ -204,6 +216,22 @@ class GrapheneExchange(GrapheneClient) :
                 lambda x: x[0] == pubkey, self.myAccount["active"]["key_auths"]
             )):
                 raise WifNotActive
+
+    def executeOps(self, ops):
+        expiration = transactions.formatTimeFromNow(30)
+        ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
+        ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
+        transaction = transactions.Signed_Transaction(
+            ref_block_num=ref_block_num,
+            ref_block_prefix=ref_block_prefix,
+            expiration=expiration,
+            operations=ops
+        )
+        transaction = transaction.sign([self.config.wif], self.prefix)
+        transaction = transactions.JsonObj(transaction)
+        if not (self.safe_mode or self.propose_only):
+            self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        return transaction
 
     def formatTimeFromNow(self, secs=0):
         """ Properly Format Time that is `x` seconds in the future
@@ -310,7 +338,7 @@ class GrapheneExchange(GrapheneClient) :
             .. note::
 
                 All prices returned are in the **reveresed** orientation as the
-                market. I.e. in the BTC/BTS market, prices are BTS per BTS.
+                market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         quote_amount = float(o["quote"]["amount"])
@@ -342,7 +370,7 @@ class GrapheneExchange(GrapheneClient) :
             .. note::
 
                 All prices returned are in the **reveresed** orientation as the
-                market. I.e. in the BTC/BTS market, prices are BTS per BTS.
+                market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
 
         """
@@ -431,7 +459,7 @@ class GrapheneExchange(GrapheneClient) :
         fees = obj["parameters"]["current_fees"]["parameters"]
         scale = float(obj["parameters"]["current_fees"]["scale"])
         for f in fees:
-            op_name = "unkown %d" % f[0]
+            op_name = "unknown %d" % f[0]
             for name in operations:
                 if operations[name] == f[0]:
                     op_name = name
@@ -460,7 +488,7 @@ class GrapheneExchange(GrapheneClient) :
 
                 All prices returned by ``returnTicker`` are in the **reveresed**
                 orientation as the market. I.e. in the BTC/BTS market, prices are
-                BTS per BTS. That way you can multiply prices with `1.05` to
+                BTS per BTC. That way you can multiply prices with `1.05` to
                 get a +5%.
 
                 The prices in a `quote`/`base` market is denoted in `base` per
@@ -884,7 +912,7 @@ class GrapheneExchange(GrapheneClient) :
                         data["amount"] = int(f["op"]["receives"]["amount"]) / 10 ** quote["precision"]
                     else :
                         data["type"]   = "sell"
-                        data["amount"] = int(f["op"]["pays"]["amount"]) / 10 ** quote["precision"]  #here to add int() because the f["op"]["pays"]["amount"] is wrongly returned a string from self.ws.get_fill_order_history
+                        data["amount"] = int(f["op"]["pays"]["amount"]) / 10 ** quote["precision"]
                     data["total"]  = data["amount"] * data["rate"]
                     trades.append(data)
             r.update({market : trades})
@@ -918,7 +946,7 @@ class GrapheneExchange(GrapheneClient) :
             .. note::
 
                 All prices returned are in the **reveresed** orientation as the
-                market. I.e. in the BTC/BTS market, prices are BTS per BTS.
+                market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         if self.safe_mode :
@@ -951,20 +979,7 @@ class GrapheneExchange(GrapheneClient) :
                  }
             order = transactions.Limit_order_create(**s)
             ops = [transactions.Operation(order)]
-            expiration = transactions.formatTimeFromNow(30)
-            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
-            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
-            transaction = transactions.Signed_Transaction(
-                ref_block_num=ref_block_num,
-                ref_block_prefix=ref_block_prefix,
-                expiration=expiration,
-                operations=ops
-            )
-            transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction = transactions.JsonObj(transaction)
-            jsonOrder = transaction["operations"][0][1]
-            if not (self.safe_mode or self.propose_only):
-                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+            transaction = self.executeOps(ops)
         else:
             raise NoWalletException()
 
@@ -1005,7 +1020,7 @@ class GrapheneExchange(GrapheneClient) :
             .. note::
 
                 All prices returned are in the **reveresed** orientation as the
-                market. I.e. in the BTC/BTS market, prices are BTS per BTS.
+                market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         if self.safe_mode :
@@ -1038,20 +1053,7 @@ class GrapheneExchange(GrapheneClient) :
                  }
             order = transactions.Limit_order_create(**s)
             ops = [transactions.Operation(order)]
-            expiration = transactions.formatTimeFromNow(30)
-            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
-            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
-            transaction = transactions.Signed_Transaction(
-                ref_block_num=ref_block_num,
-                ref_block_prefix=ref_block_prefix,
-                expiration=expiration,
-                operations=ops
-            )
-            transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction = transactions.JsonObj(transaction)
-            jsonOrder = transaction["operations"][0][1]
-            if not (self.safe_mode or self.propose_only):
-                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+            transaction = self.executeOps(ops)
         else:
             raise NoWalletException()
 
@@ -1152,19 +1154,8 @@ class GrapheneExchange(GrapheneClient) :
                  'funding_account': self.myAccount["id"],
                  'extensions': []}
             ops = [transactions.Operation(transactions.Call_order_update(**s))]
-            expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
-            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
-            transaction = transactions.Signed_Transaction(
-                ref_block_num=ref_block_num,
-                ref_block_prefix=ref_block_prefix,
-                expiration=expiration,
-                operations=ops
-            )
-            transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
-            if not (self.safe_mode or self.propose_only):
-                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+            transaction = self.executeOps(ops)
         else:
             raise NoWalletException()
 
@@ -1233,19 +1224,8 @@ class GrapheneExchange(GrapheneClient) :
                  'funding_account': self.myAccount["id"],
                  'extensions': []}
             ops = [transactions.Operation(transactions.Call_order_update(**s))]
-            expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
-            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
-            transaction = transactions.Signed_Transaction(
-                ref_block_num=ref_block_num,
-                ref_block_prefix=ref_block_prefix,
-                expiration=expiration,
-                operations=ops
-            )
-            transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
-            if not (self.safe_mode or self.propose_only):
-                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+            transaction = self.executeOps(ops)
         else:
             raise NoWalletException()
 
@@ -1356,19 +1336,8 @@ class GrapheneExchange(GrapheneClient) :
                  'funding_account': self.myAccount["id"],
                  'extensions': []}
             ops = [transactions.Operation(transactions.Call_order_update(**s))]
-            expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
-            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
-            transaction = transactions.Signed_Transaction(
-                ref_block_num=ref_block_num,
-                ref_block_prefix=ref_block_prefix,
-                expiration=expiration,
-                operations=ops
-            )
-            transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
-            if not (self.safe_mode or self.propose_only):
-                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+            transaction = self.executeOps(ops)
         else:
             raise NoWalletException()
 
@@ -1396,19 +1365,8 @@ class GrapheneExchange(GrapheneClient) :
                  "extensions": []
                  }
             ops = [transactions.Operation(transactions.Limit_order_cancel(**s))]
-            expiration = transactions.formatTimeFromNow(30)
             ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
-            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
-            transaction = transactions.Signed_Transaction(
-                ref_block_num=ref_block_num,
-                ref_block_prefix=ref_block_prefix,
-                expiration=expiration,
-                operations=ops
-            )
-            transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
-            if not (self.safe_mode or self.propose_only):
-                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+            transaction = self.executeOps(ops)
         else:
             raise NoWalletException()
 
@@ -1421,7 +1379,8 @@ class GrapheneExchange(GrapheneClient) :
     def withdraw(self, currency, amount, address):
         """ This Method makes no sense in a decentralized exchange
         """
-        raise NotImplementedError
+        raise NotImplementedError("No withdrawing from the DEX! "
+                                  "Please use 'transfer'!")
 
     def get_lowest_ask(self, currencyPair="all"):
         """ Returns the lowest asks (including amount) for the selected
@@ -1662,19 +1621,72 @@ class GrapheneExchange(GrapheneClient) :
                  "extensions": []
                  }
             ops = [transactions.Operation(transactions.Asset_fund_fee_pool(**s))]
-            expiration = transactions.formatTimeFromNow(30)
-            ops = transactions.addRequiredFees(self.ws, ops, "1.3.0")
-            ref_block_num, ref_block_prefix = transactions.getBlockParams(self.ws)
-            transaction = transactions.Signed_Transaction(
-                ref_block_num=ref_block_num,
-                ref_block_prefix=ref_block_prefix,
-                expiration=expiration,
-                operations=ops
+            transaction = self.executeOps(ops)
+        else:
+            raise NoWalletException()
+
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
+
+    def transfer(self, amount, symbol, recepient, memo=""):
+        """ Fund the fee pool of an asset with BTS
+
+            :param float amount: Amount to transfer
+            :param str symbol: Asset to transfer ("SBD" or "STEEM")
+            :param str recepient: Recepient of the transfer
+            :param str memo: (Optional) Memo attached to the transfer
+
+            If you want to use a memo you need to specify `memo_wif` in
+            the configuration (similar to `wif`).
+        """
+        if self.safe_mode :
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
+        if self.rpc:
+            transaction = self.rpc.transfer(
+                self.config.account,
+                recepient,
+                amount,
+                symbol,
+                memo,
+                not (self.safe_mode or self.propose_only)
             )
-            transaction = transaction.sign([self.config.wif], self.prefix)
-            transaction     = transactions.JsonObj(transaction)
-            if not (self.safe_mode or self.propose_only):
-                self.ws.broadcast_transaction(transaction, api="network_broadcast")
+        elif self.config.wif:
+            from_account = self.myAccount
+            to_account = self.ws.get_account(recepient)
+            asset = self._get_asset(symbol)
+            s = {
+                "fee": {"amount": 0,
+                        "asset_id": "1.3.0"
+                        },
+                "from": from_account["id"],
+                "to": to_account["id"],
+                "amount": {"amount": int(amount * 10 ** asset["precision"]),
+                           "asset_id": asset["id"]
+                           }
+            }
+            if memo:
+                if not self.config.memo_wif:
+                    print("Missing memo private key! "
+                          "Please define `memo_wif` in your configuration")
+                    return
+                import random
+                nonce = str(random.getrandbits(64))
+                encrypted_memo = Memo.encode_memo(PrivateKey(self.config.memo_wif),
+                                                  PublicKey(to_account["options"]["memo_key"]),
+                                                  nonce,
+                                                  memo)
+                memoStruct = {"from": from_account["options"]["memo_key"],
+                              "to": to_account["options"]["memo_key"],
+                              "nonce": nonce,
+                              "message": encrypted_memo,
+                              "chain": "BTS"}
+                s["memo"] = transactions.Memo(**memoStruct)
+
+            ops = [transactions.Operation(transactions.Transfer(**s))]
+            transaction = self.executeOps(ops)
         else:
             raise NoWalletException()
 

@@ -64,3 +64,4 @@ target/
 # script data
 data_*.json
 scripts/pricefeeds/blame/*.json
+scripts/pricefeeds/cache/*

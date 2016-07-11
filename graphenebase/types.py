@@ -181,6 +181,8 @@ class Array() :
         for a in self.data:
             if isinstance(a, ObjectId):
                 r.append(str(a))
+            if isinstance(a, VoteId):
+                r.append(str(a))
             else:
                 r.append(JsonObj(a))
         return json.dumps(r)
@@ -290,6 +292,21 @@ class Id() :
 
     def __str__(self) :
         return str(self.data)
+
+
+class VoteId():
+    def __init__(self, vote) :
+        parts = vote.split(":")
+        assert len(parts) == 2
+        self.type = int(parts[0])
+        self.instance = int(parts[1])
+
+    def __bytes__(self) :
+        binary = (self.type & 0xff) | (self.instance << 8)
+        return struct.pack("<I", binary)
+
+    def __str__(self) :
+        return "%d:%d" % (self.type, self.instance)
 
 
 class ObjectId() :
