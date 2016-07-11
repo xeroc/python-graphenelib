@@ -1,7 +1,7 @@
 from grapheneapi.grapheneclient import GrapheneClient
 from graphenebase import transactions
 from graphenebase.operations import operations
-from graphenebase.account import PrivateKey
+from graphenebase.account import PrivateKey, PublicKey
 from graphenebase import memo as Memo
 from datetime import datetime
 import time
@@ -183,6 +183,17 @@ class GrapheneExchange(GrapheneClient) :
             # Test for valid Private Key
             try:
                 config.wif = str(PrivateKey(config.wif))
+            except:
+                raise InvalidWifKey
+
+        if not hasattr(config, "memo_wif"):
+            setattr(config, "memo_wif", None)
+        if not getattr(config, "memo_wif"):
+            config.memo_wif = None
+        else:
+            # Test for valid Private Key
+            try:
+                config.memo_wif = str(PrivateKey(config.memo_wif))
             except:
                 raise InvalidWifKey
 
@@ -901,7 +912,7 @@ class GrapheneExchange(GrapheneClient) :
                         data["amount"] = int(f["op"]["receives"]["amount"]) / 10 ** quote["precision"]
                     else :
                         data["type"]   = "sell"
-                        data["amount"] = int(f["op"]["pays"]["amount"]) / 10 ** quote["precision"]  #here to add int() because the f["op"]["pays"]["amount"] is wrongly returned a string from self.ws.get_fill_order_history
+                        data["amount"] = int(f["op"]["pays"]["amount"]) / 10 ** quote["precision"]
                     data["total"]  = data["amount"] * data["rate"]
                     trades.append(data)
             r.update({market : trades})
@@ -1627,6 +1638,9 @@ class GrapheneExchange(GrapheneClient) :
             :param str symbol: Asset to transfer ("SBD" or "STEEM")
             :param str recepient: Recepient of the transfer
             :param str memo: (Optional) Memo attached to the transfer
+
+            If you want to use a memo you need to specify `memo_wif` in
+            the configuration (similar to `wif`).
         """
         if self.safe_mode :
             log.warn("Safe Mode enabled! Not broadcasting anything!")
@@ -1654,17 +1668,13 @@ class GrapheneExchange(GrapheneClient) :
                            }
             }
             if memo:
-                memo_public_key = from_account["options"]["memo_key"]
-                if self.wifs and memo_public_key:
-                    memo_key = self.wifs[memo_public_key]
-                else:
-                    memo_key = wallet.getMemoKeyForAccount(from_account["name"])
-                if not memo_key:
-                    print("Missing memo private key!")
+                if not self.config.memo_wif:
+                    print("Missing memo private key! "
+                          "Please define `memo_wif` in your configuration")
                     return
                 import random
                 nonce = str(random.getrandbits(64))
-                encrypted_memo = Memo.encode_memo(PrivateKey(memo_key),
+                encrypted_memo = Memo.encode_memo(PrivateKey(self.config.memo_wif),
                                                   PublicKey(to_account["options"]["memo_key"]),
                                                   nonce,
                                                   memo)
@@ -1673,7 +1683,7 @@ class GrapheneExchange(GrapheneClient) :
                               "nonce": nonce,
                               "message": encrypted_memo,
                               "chain": "BTS"}
-                transferObj["memo"] = transactions.Memo(**memoStruct)
+                s["memo"] = transactions.Memo(**memoStruct)
 
             ops = [transactions.Operation(transactions.Transfer(**s))]
             transaction = self.executeOps(ops)
