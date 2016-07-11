@@ -77,9 +77,9 @@ class GrapheneWebsocketRPC(object):
                 log.warning(
                     "Lost connection to node: %s (%d/%d) "
                     % (self.url, cnt, self.num_retries) +
-                    "Retrying in 10 seconds"
+                    "Retrying in 3 seconds"
                 )
-                time.sleep(10)
+                time.sleep(3)
         self.login(self.user, self.password, api_id=1)
 
     def register_apis(self):
@@ -316,12 +316,14 @@ class GrapheneWebsocketRPC(object):
                         raise NumRetriesReached()
 
                     log.warning(
-                        "Cannot connect to WS node: %s (%d/%d)"
-                        % (self.url, cnt, self.num_retries)
+                        "Lost connection to node: %s (%d/%d) "
+                        % (self.url, cnt, self.num_retries) +
+                        "Retrying in 3 seconds"
                     )
                     # retry
                     try:
                         self.ws.close()
+                        time.sleep(3)
                         self.wsconnect()
                     except:
                         pass
@@ -346,8 +348,16 @@ class GrapheneWebsocketRPC(object):
 
             # Sepcify the api to talk to
             if "api_id" not in kwargs :
-                if ("api" in kwargs and kwargs["api"] in self.api_id) :
-                    api_id = self.api_id[kwargs["api"]]
+                if ("api" in kwargs):
+                    if (kwargs["api"] in self.api_id and
+                            self.api_id[kwargs["api"]]):
+                        api_id = self.api_id[kwargs["api"]]
+                    else:
+                        raise ValueError(
+                            "Unknown API! "
+                            "Verify that you have registered to %s"
+                            % kwargs["api"]
+                        )
                 else:
                     api_id = 0
             else:
