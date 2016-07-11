@@ -2,6 +2,7 @@ from grapheneapi.grapheneclient import GrapheneClient
 from graphenebase import transactions
 from graphenebase.operations import operations
 from graphenebase.account import PrivateKey
+from graphenebase import memo as Memo
 from datetime import datetime
 import time
 import math
@@ -1368,7 +1369,8 @@ class GrapheneExchange(GrapheneClient) :
     def withdraw(self, currency, amount, address):
         """ This Method makes no sense in a decentralized exchange
         """
-        raise NotImplementedError
+        raise NotImplementedError("No withdrawing from the DEX! "
+                                  "Please use 'transfer'!")
 
     def get_lowest_ask(self, currencyPair="all"):
         """ Returns the lowest asks (including amount) for the selected
@@ -1609,6 +1611,72 @@ class GrapheneExchange(GrapheneClient) :
                  "extensions": []
                  }
             ops = [transactions.Operation(transactions.Asset_fund_fee_pool(**s))]
+            transaction = self.executeOps(ops)
+        else:
+            raise NoWalletException()
+
+        if self.propose_only:
+            [self.propose_operations.append(o) for o in transaction["operations"]]
+            return self.propose_operations
+        else:
+            return transaction
+
+    def transfer(self, amount, symbol, recepient, memo=""):
+        """ Fund the fee pool of an asset with BTS
+
+            :param float amount: Amount to transfer
+            :param str symbol: Asset to transfer ("SBD" or "STEEM")
+            :param str recepient: Recepient of the transfer
+            :param str memo: (Optional) Memo attached to the transfer
+        """
+        if self.safe_mode :
+            log.warn("Safe Mode enabled! Not broadcasting anything!")
+        if self.rpc:
+            transaction = self.rpc.transfer(
+                self.config.account,
+                recepient,
+                amount,
+                symbol,
+                memo,
+                not (self.safe_mode or self.propose_only)
+            )
+        elif self.config.wif:
+            from_account = self.myAccount
+            to_account = self.ws.get_account(recepient)
+            asset = self._get_asset(symbol)
+            s = {
+                "fee": {"amount": 0,
+                        "asset_id": "1.3.0"
+                        },
+                "from": from_account["id"],
+                "to": to_account["id"],
+                "amount": {"amount": int(amount * 10 ** asset["precision"]),
+                           "asset_id": asset["id"]
+                           }
+            }
+            if memo:
+                memo_public_key = from_account["options"]["memo_key"]
+                if self.wifs and memo_public_key:
+                    memo_key = self.wifs[memo_public_key]
+                else:
+                    memo_key = wallet.getMemoKeyForAccount(from_account["name"])
+                if not memo_key:
+                    print("Missing memo private key!")
+                    return
+                import random
+                nonce = str(random.getrandbits(64))
+                encrypted_memo = Memo.encode_memo(PrivateKey(memo_key),
+                                                  PublicKey(to_account["options"]["memo_key"]),
+                                                  nonce,
+                                                  memo)
+                memoStruct = {"from": from_account["options"]["memo_key"],
+                              "to": to_account["options"]["memo_key"],
+                              "nonce": nonce,
+                              "message": encrypted_memo,
+                              "chain": "BTS"}
+                transferObj["memo"] = transactions.Memo(**memoStruct)
+
+            ops = [transactions.Operation(transactions.Transfer(**s))]
             transaction = self.executeOps(ops)
         else:
             raise NoWalletException()
