@@ -325,6 +325,7 @@ class GrapheneWebsocketRPC(object):
                         self.ws.close()
                         time.sleep(3)
                         self.wsconnect()
+                        self.register_apis()
                     except:
                         pass
             log.debug(json.dumps(ret))
