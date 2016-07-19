@@ -193,6 +193,12 @@ class Signed_Transaction(GrapheneObject) :
 
         return True
 
+    def _is_canonical(self, sig):
+        return (not (sig[1] & 0x80) and
+                not (sig[1] == 0 and not (sig[2] & 0x80)) and
+                not (sig[33] & 0x80) and
+                not (sig[33] == 0 and not (sig[34] & 0x80)))
+
     def sign(self, wifkeys, chain="BTS") :
         """ Sign the transaction with the provided private keys.
 
@@ -212,14 +218,26 @@ class Signed_Transaction(GrapheneObject) :
             p = bytes(PrivateKey(wif))
             i = 0
             if USE_SECP256K1:
-                privkey = secp256k1.PrivateKey(p, raw=True)
-                # sig = privkey.ecdsa_sign(bytes(self.message))
-                # signature = privkey.ecdsa_serialize_compact(sig)
-                # i = self.recoverPubkeyParameter(self.digest, signature, privkey.pubkey)
-                sig = privkey.ecdsa_sign_recoverable(bytes(self.message))
-                signature, i = privkey.ecdsa_recoverable_serialize(sig)
-                i += 4   # compressed
-                i += 27  # compact
+                ndata = secp256k1.ffi.new("const int *ndata")
+                ndata[0] = 0
+                while True:
+                    ndata[0] += 1
+                    privkey = secp256k1.PrivateKey(p, raw=True)
+                    sig = secp256k1.ffi.new('secp256k1_ecdsa_recoverable_signature *')
+                    signed = secp256k1.lib.secp256k1_ecdsa_sign_recoverable(
+                        privkey.ctx,
+                        sig,
+                        self.digest,
+                        privkey.private_key,
+                        secp256k1.ffi.NULL,
+                        ndata
+                    )
+                    assert signed == 1
+                    signature, i = privkey.ecdsa_recoverable_serialize(sig)
+                    if self._is_canonical(signature):
+                        i += 4   # compressed
+                        i += 27  # compact
+                        break
             else :
                 cnt = 0
                 sk = ecdsa.SigningKey.from_string(p, curve=ecdsa.SECP256k1)
