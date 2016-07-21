@@ -194,10 +194,10 @@ class Signed_Transaction(GrapheneObject) :
         return True
 
     def _is_canonical(self, sig):
-        return (not (sig[1] & 0x80) and
-                not (sig[1] == 0 and not (sig[2] & 0x80)) and
-                not (sig[33] & 0x80) and
-                not (sig[33] == 0 and not (sig[34] & 0x80)))
+        return (not (sig[0] & 0x80) and
+                not (sig[0] == 0 and not (sig[1] & 0x80)) and
+                not (sig[32] & 0x80) and
+                not (sig[32] == 0 and not (sig[33] & 0x80)))
 
     def sign(self, wifkeys, chain="BTS") :
         """ Sign the transaction with the provided private keys.
