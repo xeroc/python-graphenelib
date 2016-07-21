@@ -37,7 +37,7 @@ def varintdecode(data) :
 
 
 def variable_buffer(s) :
-    """ Encode variable length bugger
+    """ Encode variable length buffer
     """
     return varint(len(s)) + s
 

@@ -301,6 +301,7 @@ class GrapheneWebsocketRPC(object):
         try:
             log.debug(json.dumps(payload))
             cnt = 0
+            ret = {}
             while True:
                 cnt += 1
 
