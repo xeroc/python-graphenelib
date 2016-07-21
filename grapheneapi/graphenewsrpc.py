@@ -71,10 +71,8 @@ class GrapheneWebsocketRPC(object):
                 self.ws = create_connection(self.url)
                 break
             except KeyboardInterrupt:
-                print("Cought key interrupt!")
-                sys.exit(1)
-            except Exception as e:
-                print(e)
+                raise
+            except:
                 if (self.num_retries >= 0 and cnt > self.num_retries):
                     raise NumRetriesReached()
 
@@ -312,10 +310,7 @@ class GrapheneWebsocketRPC(object):
                 reply = self.ws.recv()
                 break
             except KeyboardInterrupt:
-                print("Cought key interrupt!")
-                sys.exit(1)
-#            except WebSocketConnectionClosedException:
-#                sys.exit(1)
+                raise
             except:
                 if (self.num_retries > -1 and
                         cnt > self.num_retries):
@@ -336,7 +331,7 @@ class GrapheneWebsocketRPC(object):
 
         ret = {}
         try:
-            ret = json.loads(reply)
+            ret = json.loads(reply, strict=False)
         except ValueError:
             raise ValueError("Client returned invalid format. Expected JSON!")
 
