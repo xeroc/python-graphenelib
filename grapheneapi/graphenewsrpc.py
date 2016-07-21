@@ -1,5 +1,7 @@
+import sys
 import threading
 from websocket import create_connection
+# from websocket._exceptions import WebSocketConnectionClosedException
 import json
 import time
 import logging
@@ -69,13 +71,15 @@ class GrapheneWebsocketRPC(object):
                 self.ws = create_connection(self.url)
                 break
             except KeyboardInterrupt:
-                break
-            except:
+                print("Cought key interrupt!")
+                sys.exit(1)
+            except Exception as e:
+                print(e)
                 if (self.num_retries >= 0 and cnt > self.num_retries):
                     raise NumRetriesReached()
 
                 log.warning(
-                    "Lost connection to node: %s (%d/%d) "
+                    "Lost connection to node durint wsconnect(): %s (%d/%d) "
                     % (self.url, cnt, self.num_retries) +
                     "Retrying in 3 seconds"
                 )
@@ -298,48 +302,51 @@ class GrapheneWebsocketRPC(object):
             :raises ValueError: if the server does not respond in proper JSON format
             :raises RPCError: if the server returns an error
         """
-        try:
-            log.debug(json.dumps(payload))
-            cnt = 0
-            ret = {}
-            while True:
-                cnt += 1
+        log.debug(json.dumps(payload))
+        cnt = 0
+        while True:
+            cnt += 1
 
+            try:
+                self.ws.send(json.dumps(payload))
+                reply = self.ws.recv()
+                break
+            except KeyboardInterrupt:
+                print("Cought key interrupt!")
+                sys.exit(1)
+#            except WebSocketConnectionClosedException:
+#                sys.exit(1)
+            except:
+                if (self.num_retries > -1 and
+                        cnt > self.num_retries):
+                    raise NumRetriesReached()
+                log.warning(
+                    "Lost connection to node during rpcexec(): %s (%d/%d) "
+                    % (self.url, cnt, self.num_retries) +
+                    "Retrying in 3 seconds"
+                )
+                # retry
                 try:
-                    self.ws.send(json.dumps(payload))
-                    ret = json.loads(self.ws.recv())
-                    break
-                except KeyboardInterrupt:
-                    break
+                    self.ws.close()
+                    time.sleep(3)
+                    self.wsconnect()
+                    self.register_apis()
                 except:
-                    if (self.num_retries > -1 and
-                            cnt > self.num_retries):
-                        raise NumRetriesReached()
+                    pass
 
-                    log.warning(
-                        "Lost connection to node: %s (%d/%d) "
-                        % (self.url, cnt, self.num_retries) +
-                        "Retrying in 3 seconds"
-                    )
-                    # retry
-                    try:
-                        self.ws.close()
-                        time.sleep(3)
-                        self.wsconnect()
-                        self.register_apis()
-                    except:
-                        pass
-            log.debug(json.dumps(ret))
-
-            if 'error' in ret:
-                if 'detail' in ret['error']:
-                    raise RPCError(ret['error']['detail'])
-                else:
-                    raise RPCError(ret['error']['message'])
+        ret = {}
+        try:
+            ret = json.loads(reply)
         except ValueError:
             raise ValueError("Client returned invalid format. Expected JSON!")
-        except RPCError as err:
-            raise err
+
+        log.debug(json.dumps(reply))
+
+        if 'error' in ret:
+            if 'detail' in ret['error']:
+                raise RPCError(ret['error']['detail'])
+            else:
+                raise RPCError(ret['error']['message'])
         else:
             return ret["result"]
 
