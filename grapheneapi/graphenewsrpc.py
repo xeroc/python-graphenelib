@@ -76,12 +76,13 @@ class GrapheneWebsocketRPC(object):
                 if (self.num_retries >= 0 and cnt > self.num_retries):
                     raise NumRetriesReached()
 
+                sleeptime = (cnt - 1) * 2 if cnt < 10 else 10
                 log.warning(
-                    "Lost connection to node durint wsconnect(): %s (%d/%d) "
+                    "Lost connection to node during wsconnect(): %s (%d/%d) "
                     % (self.url, cnt, self.num_retries) +
-                    "Retrying in 3 seconds"
+                    "Retrying in %d seconds" % sleeptime
                 )
-                time.sleep(3)
+                time.sleep(sleeptime)
         self.login(self.user, self.password, api_id=1)
 
     def register_apis(self):
@@ -315,15 +316,16 @@ class GrapheneWebsocketRPC(object):
                 if (self.num_retries > -1 and
                         cnt > self.num_retries):
                     raise NumRetriesReached()
+                sleeptime = (cnt - 1) * 2 if cnt < 10 else 10
                 log.warning(
                     "Lost connection to node during rpcexec(): %s (%d/%d) "
                     % (self.url, cnt, self.num_retries) +
-                    "Retrying in 3 seconds"
+                    "Retrying in %d seconds" % sleeptime
                 )
                 # retry
                 try:
                     self.ws.close()
-                    time.sleep(3)
+                    time.sleep(sleeptime)
                     self.wsconnect()
                     self.register_apis()
                 except:
