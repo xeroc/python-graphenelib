@@ -1,7 +1,13 @@
 #!/usr/bin/python
 
-from Crypto.Cipher import AES
-import scrypt
+try:
+    from Crypto.Cipher import AES
+except ImportError:
+    raise ImportError("Missing dependency: pycrypto")
+try:
+    import scrypt
+except ImportError:
+    raise ImportError("Missing dependency: scrypt")
 import hashlib
 from binascii import hexlify, unhexlify
 import sys

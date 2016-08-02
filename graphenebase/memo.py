@@ -1,7 +1,10 @@
 import sys
 import hashlib
 from binascii import hexlify, unhexlify
-from Crypto.Cipher import AES
+try:
+    from Crypto.Cipher import AES
+except ImportError:
+    raise ImportError("Missing dependency: pycrypto")
 from graphenebase.account import PrivateKey, PublicKey
 import struct
 
