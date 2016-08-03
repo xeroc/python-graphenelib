@@ -34,6 +34,7 @@ setup(name='graphenelib',
       install_requires=["ecdsa==0.13",
                         "requests==2.10.0",
                         "websocket-client==0.37.0",
+                        "pylibscrypt==1.5.3",
                         # temporary until UTF8 encoding fixed
                         "Unidecode==0.4.19",
                         ],

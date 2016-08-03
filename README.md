@@ -45,7 +45,7 @@ present:
    * `autobahn>=0.14`
 * `graphenebase.bip38`
    * `pycrypto==2.6.1`
-   * `scrypt==0.7.1`
+   * `scrypt==0.7.1` (to speedup scrypt hashing)
 * `graphenebase.memo`
    * `pycrypto==2.6.1`
 
