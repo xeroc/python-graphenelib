@@ -6,7 +6,7 @@ from collections import OrderedDict
 try:
     from autobahn.asyncio.websocket import WebSocketClientFactory
 except ImportError:
-    raise ImportError("Missing dependency: python-autobahn")
+    raise ImportError("Missing dependency: autobahn")
 
 try:
     from autobahn.websocket.protocol import parseWsUrl

@@ -1,10 +1,11 @@
+from grapheneapi.grapheneclient import GrapheneClient
 from datetime import datetime
 import time
 
 # from graphenebase.transactions import operations
 
 
-class Proposal(object) :
+class Proposal(GrapheneClient) :
     """ Manage Proposals
 
         :param grapheneapi.GrapheneClient grapheneClient: Grapehen
@@ -12,8 +13,8 @@ class Proposal(object) :
                     *and* websocket connection
 
     """
-    def __init__(self, grapheneClient) :
-        self.client           = grapheneClient
+    def __init__(self, *args, **kwargs) :
+        super(Proposal, self).__init__(*args, **kwargs)
 
     def approve_available_proposals(self, from_account, approving_account) :
         """ Approve all proposals for a given account with given approver
@@ -22,9 +23,9 @@ class Proposal(object) :
             :param str approving_account: approving account
 
         """
-        fromAccount        = self.client.rpc.get_account(from_account)
-        approving_account  = self.client.rpc.get_account(approving_account)
-        proposals          = self.client.ws.get_proposed_transactions(fromAccount["id"])
+        fromAccount        = self.rpc.get_account(from_account)
+        approving_account  = self.rpc.get_account(approving_account)
+        proposals          = self.rpc.ws.get_proposed_transactions(fromAccount["id"])
         for proposal in proposals :
             if approving_account["id"] in proposal["available_active_approvals"] :
                 print("%s: Proposal %s already approved. Expires on %s UTC"  %
@@ -32,10 +33,10 @@ class Proposal(object) :
             else :
                 print("%s: Approving Proposal %s ..." %
                       (fromAccount["name"], proposal['id']))
-                self.client.rpc.approve_proposal(approving_account["name"],
-                                                 proposal["id"],
-                                                 {"active_approvals_to_add" : [approving_account["name"]]},
-                                                 True)
+                self.rpc.approve_proposal(approving_account["name"],
+                                          proposal["id"],
+                                          {"active_approvals_to_add" : [approving_account["name"]]},
+                                          True)
 
     def propose_transfer(self, proposer_account, from_account, to_account,
                          amount, asset, expiration=3600, broadcast=True):
@@ -54,11 +55,11 @@ class Proposal(object) :
                         cli_wallet
 
         """
-        proposer         = self.client.rpc.get_account(proposer_account)
-        fromAccount      = self.client.rpc.get_account(from_account)
-        toAccount        = self.client.rpc.get_account(to_account)
-        asset            = self.client.rpc.get_asset(asset)
-        op               = self.client.rpc.get_prototype_operation("transfer_operation")
+        proposer         = self.rpc.get_account(proposer_account)
+        fromAccount      = self.rpc.get_account(from_account)
+        toAccount        = self.rpc.get_account(to_account)
+        asset            = self.rpc.get_asset(asset)
+        op               = self.rpc.get_prototype_operation("transfer_operation")
 
         op[1]["amount"]["amount"]   = int(amount * 10 ** asset["precision"])
         op[1]["amount"]["asset_id"] = asset["id"]
@@ -66,12 +67,12 @@ class Proposal(object) :
         op[1]["to"]                 = toAccount["id"]
 
         exp_time    = datetime.utcfromtimestamp(time.time() + int(expiration)).strftime('%Y-%m-%dT%H:%M:%S')
-        buildHandle = self.client.rpc.begin_builder_transaction()
-        self.client.rpc.add_operation_to_builder_transaction(buildHandle, op)
-        self.client.rpc.set_fees_on_builder_transaction(buildHandle, asset["id"])
-        self.client.rpc.propose_builder_transaction2(buildHandle, proposer["name"], exp_time, 0, False)
-        self.client.rpc.set_fees_on_builder_transaction(buildHandle, asset["id"])
-        return self.client.rpc.sign_builder_transaction(buildHandle, broadcast)
+        buildHandle = self.rpc.begin_builder_transaction()
+        self.rpc.add_operation_to_builder_transaction(buildHandle, op)
+        self.rpc.set_fees_on_builder_transaction(buildHandle, asset["id"])
+        self.rpc.propose_builder_transaction2(buildHandle, proposer["name"], exp_time, 0, False)
+        self.rpc.set_fees_on_builder_transaction(buildHandle, asset["id"])
+        return self.rpc.sign_builder_transaction(buildHandle, broadcast)
 
     def propose_operations(self, ops, expiration, proposer_account, preview=0, broadcast=False):
         """ Propose several operations
@@ -92,32 +93,32 @@ class Proposal(object) :
                 print(rpc.get_transaction_id(tx))
         """
 
-        proposer         = self.client.rpc.get_account(proposer_account)
-        buildHandle = self.client.rpc.begin_builder_transaction()
+        proposer         = self.rpc.get_account(proposer_account)
+        buildHandle = self.rpc.begin_builder_transaction()
         for op in ops:
-            self.client.rpc.add_operation_to_builder_transaction(buildHandle, op)
-        self.client.rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
-        self.client.rpc.propose_builder_transaction2(buildHandle, proposer["name"], expiration, preview, False)
-        self.client.rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
-        return self.client.rpc.sign_builder_transaction(buildHandle, broadcast)
+            self.rpc.add_operation_to_builder_transaction(buildHandle, op)
+        self.rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
+        self.rpc.propose_builder_transaction2(buildHandle, proposer["name"], expiration, preview, False)
+        self.rpc.set_fees_on_builder_transaction(buildHandle, "1.3.0")
+        return self.rpc.sign_builder_transaction(buildHandle, broadcast)
 
 #         ## Alternative implementation building the transactions
 #         ## manually. Not yet working though
-#         op = self.client.rpc.get_prototype_operation("proposal_create_operation")
+#         op = self.rpc.get_prototype_operation("proposal_create_operation")
 #         for o in ops :
 #             op[1]["proposed_ops"].append(o)
 #         op[1]["expiration_time"] = expiration
 #         op[1]["fee_paying_account"] = payee_id
 #         op[1]["fee"] = self.get_operations_fee(op, "1.3.0")
-#         buildHandle = self.client.rpc.begin_builder_transaction()
+#         buildHandle = self.rpc.begin_builder_transaction()
 #         from pprint import pprint
 #         pprint(op)
-#         self.client.rpc.add_operation_to_builder_transaction(buildHandle, op)
-#         # print(self.client.rpc.preview_builder_transaction(buildHandle))
-#         return self.client.rpc.sign_builder_transaction(buildHandle, broadcast)
+#         self.rpc.add_operation_to_builder_transaction(buildHandle, op)
+#         # print(self.rpc.preview_builder_transaction(buildHandle))
+#         return self.rpc.sign_builder_transaction(buildHandle, broadcast)
 
 #     def get_operations_fee(self, op, asset_id):
-#         global_parameters = self.client.rpc.get_object("2.0.0")[0]["parameters"]["current_fees"]
+#         global_parameters = self.rpc.get_object("2.0.0")[0]["parameters"]["current_fees"]
 #         parameters = global_parameters["parameters"]
 #         scale = global_parameters["scale"] / 1e4
 #         opID = op[0]

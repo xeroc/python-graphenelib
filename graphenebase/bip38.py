@@ -1,12 +1,27 @@
-#!/usr/bin/python
-
-from Crypto.Cipher import AES
-import scrypt
 import hashlib
 from binascii import hexlify, unhexlify
 import sys
 from graphenebase.account import PrivateKey
 from graphenebase.base58 import Base58, base58decode
+
+try:
+    from Crypto.Cipher import AES
+except ImportError:
+    raise ImportError("Missing dependency: pycrypto")
+
+SCRYPT_MODULE = None
+if not SCRYPT_MODULE:
+    try:
+        import scrypt
+        SCRYPT_MODULE = "scrypt"
+    except ImportError:
+        try:
+            import pylibscrypt as scrypt
+            SCRYPT_MODULE = "pylibscrypt"
+        except ImportError:
+            raise ImportError(
+                "Missing dependency: scrypt or pylibscrypt"
+            )
 
 """ This class and the methods require python3 """
 assert sys.version_info[0] == 3, "graphenelib requires python3"
@@ -36,7 +51,12 @@ def encrypt(privkey, passphrase) :
     addr          = format(privkey.uncompressed.address, "BTC")
     a             = bytes(addr, 'ascii')
     salt          = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
-    key           = scrypt.hash(passphrase, salt, 16384, 8, 8)
+    if SCRYPT_MODULE == "scrypt":
+        key           = scrypt.hash(passphrase, salt, 16384, 8, 8)
+    elif SCRYPT_MODULE == "pylibscrypt":
+        key           = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
+    else:
+        raise ValueError("No scrypt module loaded")
     (derived_half1, derived_half2) = (key[:32], key[32:])
     aes             = AES.new(derived_half2)
     encrypted_half1 = _encrypt_xor(privkeyhex[:32], derived_half1[:16], aes)
@@ -68,7 +88,12 @@ def decrypt(encrypted_privkey, passphrase):
     assert flagbyte == b'\xc0', "Flagbyte has to be 0xc0"
     salt     = d[0:4]
     d        = d[4:-4]
-    key      = scrypt.hash(passphrase, salt, 16384, 8, 8)
+    if SCRYPT_MODULE == "scrypt":
+        key           = scrypt.hash(passphrase, salt, 16384, 8, 8)
+    elif SCRYPT_MODULE == "pylibscrypt":
+        key           = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
+    else:
+        raise ValueError("No scrypt module loaded")
     derivedhalf1   = key[0:32]
     derivedhalf2   = key[32:64]
     encryptedhalf1 = d[0:16]

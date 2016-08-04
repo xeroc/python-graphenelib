@@ -1,5 +1,7 @@
+import sys
 import threading
 from websocket import create_connection
+# from websocket._exceptions import WebSocketConnectionClosedException
 import json
 import time
 import logging
@@ -69,17 +71,18 @@ class GrapheneWebsocketRPC(object):
                 self.ws = create_connection(self.url)
                 break
             except KeyboardInterrupt:
-                break
+                raise
             except:
                 if (self.num_retries >= 0 and cnt > self.num_retries):
                     raise NumRetriesReached()
 
+                sleeptime = (cnt - 1) * 2 if cnt < 10 else 10
                 log.warning(
-                    "Lost connection to node: %s (%d/%d) "
+                    "Lost connection to node during wsconnect(): %s (%d/%d) "
                     % (self.url, cnt, self.num_retries) +
-                    "Retrying in 3 seconds"
+                    "Retrying in %d seconds" % sleeptime
                 )
-                time.sleep(3)
+                time.sleep(sleeptime)
         self.login(self.user, self.password, api_id=1)
 
     def register_apis(self):
@@ -298,46 +301,49 @@ class GrapheneWebsocketRPC(object):
             :raises ValueError: if the server does not respond in proper JSON format
             :raises RPCError: if the server returns an error
         """
-        try:
-            log.debug(json.dumps(payload))
-            cnt = 0
-            while True:
-                cnt += 1
+        log.debug(json.dumps(payload))
+        cnt = 0
+        while True:
+            cnt += 1
 
+            try:
+                self.ws.send(json.dumps(payload))
+                reply = self.ws.recv()
+                break
+            except KeyboardInterrupt:
+                raise
+            except:
+                if (self.num_retries > -1 and
+                        cnt > self.num_retries):
+                    raise NumRetriesReached()
+                sleeptime = (cnt - 1) * 2 if cnt < 10 else 10
+                log.warning(
+                    "Lost connection to node during rpcexec(): %s (%d/%d) "
+                    % (self.url, cnt, self.num_retries) +
+                    "Retrying in %d seconds" % sleeptime
+                )
+                # retry
                 try:
-                    self.ws.send(json.dumps(payload))
-                    ret = json.loads(self.ws.recv())
-                    break
-                except KeyboardInterrupt:
-                    break
+                    self.ws.close()
+                    time.sleep(sleeptime)
+                    self.wsconnect()
+                    self.register_apis()
                 except:
-                    if (self.num_retries > -1 and
-                            cnt > self.num_retries):
-                        raise NumRetriesReached()
+                    pass
 
-                    log.warning(
-                        "Lost connection to node: %s (%d/%d) "
-                        % (self.url, cnt, self.num_retries) +
-                        "Retrying in 3 seconds"
-                    )
-                    # retry
-                    try:
-                        self.ws.close()
-                        time.sleep(3)
-                        self.wsconnect()
-                    except:
-                        pass
-            log.debug(json.dumps(ret))
-
-            if 'error' in ret:
-                if 'detail' in ret['error']:
-                    raise RPCError(ret['error']['detail'])
-                else:
-                    raise RPCError(ret['error']['message'])
+        ret = {}
+        try:
+            ret = json.loads(reply, strict=False)
         except ValueError:
             raise ValueError("Client returned invalid format. Expected JSON!")
-        except RPCError as err:
-            raise err
+
+        log.debug(json.dumps(reply))
+
+        if 'error' in ret:
+            if 'detail' in ret['error']:
+                raise RPCError(ret['error']['detail'])
+            else:
+                raise RPCError(ret['error']['message'])
         else:
             return ret["result"]
 

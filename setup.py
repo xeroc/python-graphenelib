@@ -12,7 +12,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.4.3'
+VERSION = '0.4.4'
 
 setup(name='graphenelib',
       version=VERSION,
@@ -31,15 +31,12 @@ setup(name='graphenelib',
                 "grapheneextra",
                 "grapheneexchange",
                 ],
-      install_requires=["autobahn>=0.14",
-                        "ecdsa==0.13",
-                        "pycrypto==2.6.1",
+      install_requires=["ecdsa==0.13",
                         "requests==2.10.0",
-                        "scrypt==0.7.1",
-                        "six==1.10.0",
-                        "txaio==2.5.1",
-                        "Unidecode==0.4.19",
                         "websocket-client==0.37.0",
+                        "pylibscrypt==1.5.3",
+                        # temporary until UTF8 encoding fixed
+                        "Unidecode==0.4.19",
                         ],
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',

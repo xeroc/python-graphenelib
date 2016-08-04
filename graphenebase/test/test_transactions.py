@@ -1,4 +1,5 @@
 from graphenebase import transactions, memo, account
+from graphenebase.account import PrivateKey
 import random
 import unittest
 from pprint import pprint
@@ -28,6 +29,7 @@ class Testcases(unittest.TestCase) :
                                              expiration=expiration,
                                              operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         compare = "f68585abf4dce7c8045701036400000000000000001d00e1f50500000000001027000000000000160000011f2627efb5c5144440e06ff567f1a09928d699ac6f5122653cd7173362a1ae20205952c874ed14ccec050be1c86c1a300811763ef3b481e562e0933c09b40e31fb"
         self.assertEqual(compare[:-130], txWire[:-130])
@@ -54,6 +56,7 @@ class Testcases(unittest.TestCase) :
                                              expiration=expiration,
                                              operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         compare = "f68585abf4dce7c8045701016400000000000000001da086010000000000001027000000000000693d343c57000000011f75cbfd49ae8d9b04af76cc0a7de8b6e30b71167db7fe8e2197ef9d858df1877043493bc24ffdaaffe592357831c978fd8a296b913979f106debe940d60d77b50"
         self.assertEqual(compare[:-130], txWire[:-130])
@@ -72,6 +75,7 @@ class Testcases(unittest.TestCase) :
                                              expiration=expiration,
                                              operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         compare = "f68585abf4dce7c804570102000000000000000000688095030000011f3fb754814f3910c1a8845486b86057d2b4588ae559b4c3810828c0d4cbec0e5b23517937cd7e0cc5ee8999d0777af7fe56d3c4b2e587421bfb7400d4efdae97a"
         self.assertEqual(compare[:-130], txWire[:-130])
@@ -89,6 +93,7 @@ class Testcases(unittest.TestCase) :
                                                  expiration=expiration,
                                                  operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         compare = "f68585abf4dce7c804570117e03000000000000000015a01050000000000000001203255378db6dc19443e74421c954ad7fdcf23f4ea45fe4fe5a1b078a0f94fb529594819c9799d68efa5cfb5b271a9333a2f516ca4fb5093226275f48a42d9e8cf"
         self.assertEqual(compare[:-130], txWire[:-130])
@@ -127,6 +132,7 @@ class Testcases(unittest.TestCase) :
                                                  expiration=expiration,
                                                  operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
 
         compare = "f68585abf4dce7c804570100000000000000000000000140420f0000000000040102c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cf02c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cf8c94d19817945c5120fa5b6e83079a878e499e2e52a76a7739e9de40986a8e3bd8a68ce316cee50b210000011f39e3fa7071b795491e3b6851d61e7c959be92cc7deb5d8491cf1c3c8c99a1eb44553c348fb8f5001a78b18233ac66727e32fc776d48e92d9639d64f68e641948"
@@ -159,6 +165,7 @@ class Testcases(unittest.TestCase) :
                                                  expiration=expiration,
                                                  operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
 
         compare = "f68585abf4dce7c8045701136400000000000000000003c34403000000000000d9040000000000000ed6064c04d9040000000000000057180000000000000e0000012009e13f9066fedc3c8c1eb2ac33b15dc67ecebf708890d0f8ab62ec8283d1636002315a189f1f5aa8497b41b8e6bb7c4dc66044510fae25d8f6aebb02c7cdef10"
@@ -214,6 +221,7 @@ class Testcases(unittest.TestCase) :
                                                  expiration=expiration,
                                                  operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         compare = "f68585abf4dce7c8045701101127000000000000009a02207662ed00000000000000011f39f7dc7745076c9c7e612d40c68ee92d3f4b2696b1838037ce2a35ac259883ba6c6c49d91ad05a7e78d80bb83482c273dbbc911587487bf468b85fb4f537da3d"
         self.assertEqual(compare[:-130], txWire[:-130])
@@ -235,6 +243,7 @@ class Testcases(unittest.TestCase) :
                                                  expiration=expiration,
                                                  operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         compare = "f68585abf4dce7c8045701260000000000000000001d681da08601000000000069000000012030cc81722c3e67442d2f59deba188f6079c8ba2d8318a642e6a70a125655515f20e2bd3adb2ea886cdbc7f6590c7f8c80818d9176d9085c176c736686ab6c9fd"
         self.assertEqual(compare[:-130], txWire[:-130])
@@ -282,6 +291,7 @@ class Testcases(unittest.TestCase) :
                                                  expiration=expiration,
                                                  operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         compare = "f68585abf4dce7c804570105f26416000000000000211b03000b666f6f6261722d6631323401000000000202fe8cc11cc8251de6977636b55c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c9158990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e01000001000000000303b453f46013fdbccb90b09ba169c388c34d84454a3b9fbec68d5a7819a734fca0010002fe8cc11cc8251de6977636b55c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c9158990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e010000024ab336b4b14ba6d881675d1c782912783c43dbbe31693aa710ac1896bd7c3d61050000000000000000011f61ad276120bc3f1892962bfff7db5e8ce04d5adec9309c80529e3a978a4fa1073225a6d56929e34c9d2a563e67a8f4a227e4fadb4a3bb6ec91bfdf4e57b80efd"
         self.assertEqual(compare[:-130], txWire[:-130])
@@ -312,48 +322,12 @@ class Testcases(unittest.TestCase) :
                 "voting_account": "1.2.5",
                 "num_witness": 26,
                 "num_committee": 8,
-                "votes": [
-                    "1:22",
-                    "1:23",
-                    "1:24",
-                    "1:25",
-                    "1:26",
-                    "1:27",
-                    "1:28",
-                    "1:30",
-                    "1:31",
-                    "1:32",
-                    "1:34",
-                    "1:35",
-                    "1:36",
-                    "1:37",
-                    "1:38",
-                    "1:40",
-                    "1:41",
-                    "1:44",
-                    "1:45",
-                    "1:49",
-                    "1:51",
-                    "1:56",
-                    "1:60",
-                    "0:76",
-                    "0:84",
-                    "0:87",
-                    "0:88",
-                    "0:91",
-                    "0:141",
-                    "1:143",
-                    "0:147",
-                    "2:148",
-                    "2:150",
-                    "1:165",
-                    "1:166",
-                    "2:171",
-                    "0:173",
-                    "2:179"
-                    ],
-                "extensions": []
-                },
+                "votes": ["1:22", "1:23", "1:24", "1:25", "1:26", "1:27", "1:28", "1:30", "1:31",
+                          "1:32", "1:34", "1:35", "1:36", "1:37", "1:38", "1:40", "1:41", "1:44",
+                          "1:45", "1:49", "1:51", "1:56", "1:60", "0:76", "0:84", "0:87", "0:88",
+                          "0:91", "0:141", "1:143", "0:147", "2:148", "2:150", "1:165", "1:166",
+                          "2:171", "0:173", "2:179"],
+                "extensions": []},
             "extensions": {}
         })
 
@@ -365,6 +339,7 @@ class Testcases(unittest.TestCase) :
             operations=ops
         )
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         pprint(transactions.JsonObj(tx))
 
@@ -395,6 +370,7 @@ class Testcases(unittest.TestCase) :
                                                  expiration=expiration,
                                                  operations=ops)
         tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         print("\n")
         print(txWire[:-130])
