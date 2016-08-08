@@ -1,6 +1,7 @@
 import sys
 import threading
-from websocket import create_connection
+import websocket
+import ssl
 # from websocket._exceptions import WebSocketConnectionClosedException
 import json
 import time
@@ -64,11 +65,17 @@ class GrapheneWebsocketRPC(object):
         return self._request_id
 
     def wsconnect(self):
+        if self.url[:3] == "wss":
+            sslopt_ca_certs = {'cert_reqs': ssl.CERT_NONE}
+            self.ws = websocket.WebSocket(sslopt=sslopt_ca_certs)
+        else:
+            self.ws = websocket.WebSocket()
+
         cnt = 0
         while True:
             cnt += 1
             try:
-                self.ws = create_connection(self.url)
+                self.ws.connect(self.url)
                 break
             except KeyboardInterrupt:
                 raise
