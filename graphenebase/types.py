@@ -127,17 +127,36 @@ class Int64() :
 
 class String() :
     def __init__(self, d) :
-        # Repalce UTF8 chars with what ever looks closest
-        from unidecode import unidecode
-        self.data = unidecode(d)
-        # FIXME: Allow for real UTF-8 chars to be used
-        # https://github.com/steemit/steem/issues/44
+        self.data = d
 
     def __bytes__(self) :
-        return varint(len(self.data)) + bytes(self.data, 'utf-8')
+        d = self.unicodify()
+        return varint(len(d)) + d
 
     def __str__(self) :
         return '%s' % str(self.data)
+
+    def unicodify(self):
+        r = []
+        for s in self.data:
+            o = ord(s)
+            if o == 7:
+                r.append("u%04x" % o)
+            elif o == 8:
+                r.append("b")
+            elif o == 9:
+                r.append("\t")
+            elif o == 10:
+                r.append("\n")
+            elif o == 12:
+                r.append("f")
+            elif o == 13:
+                r.append("\r")
+            elif o > 31 and o < 127:
+                r.append(s)
+            else:
+                r.append("u%04x" % o)
+        return bytes("".join(r), "ascii")
 
 
 class Bytes() :

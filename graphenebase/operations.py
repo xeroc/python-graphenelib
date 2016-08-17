@@ -130,13 +130,6 @@ class AccountOptions(GrapheneObject) :
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-
-            meta = ""
-            if "json_metadata" in kwargs and kwargs["json_metadata"]:
-                if isinstance(kwargs["json_metadata"], dict):
-                    meta = json.dumps(kwargs["json_metadata"])
-                else:
-                    meta = kwargs["json_metadata"]
             super().__init__(OrderedDict([
                 ('memo_key'         , PublicKey(kwargs["memo_key"], prefix=prefix)),
                 ('voting_account'   , ObjectId(kwargs["voting_account"], "account")),
@@ -330,7 +323,7 @@ class Account_create(GrapheneObject) :
                 ('referrer_percent' , Uint16(kwargs["referrer_percent"])),
                 ('name'             , String(kwargs["name"])),
                 ('owner'            , Permission(kwargs["owner"], prefix=prefix)),
-                ('active'           , Permission(kwargs["active"],prefix=prefix)),
+                ('active'           , Permission(kwargs["active"], prefix=prefix)),
                 ('options'          , AccountOptions(kwargs["options"], prefix=prefix)),
                 ('extensions'       , Set([])),
             ]))
