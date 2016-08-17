@@ -35,8 +35,6 @@ setup(name='graphenelib',
                         "requests==2.10.0",
                         "websocket-client==0.37.0",
                         "pylibscrypt==1.5.3",
-                        # temporary until UTF8 encoding fixed
-                        "Unidecode==0.4.19",
                         ],
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
