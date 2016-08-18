@@ -340,7 +340,7 @@ class GrapheneWebsocketRPC(object):
             cnt += 1
 
             try:
-                self.ws.send(json.dumps(payload))
+                self.ws.send(json.dumps(payload, ensure_ascii=False).encode('utf8'))
                 reply = self.ws.recv()
                 break
             except KeyboardInterrupt:

@@ -140,7 +140,7 @@ class String() :
         r = []
         for s in self.data:
             o = ord(s)
-            if o == 7:
+            if o <= 7:
                 r.append("u%04x" % o)
             elif o == 8:
                 r.append("b")
@@ -148,15 +148,17 @@ class String() :
                 r.append("\t")
             elif o == 10:
                 r.append("\n")
+            elif o == 11:
+                r.append("u%04x" % o)
             elif o == 12:
                 r.append("f")
             elif o == 13:
                 r.append("\r")
-            elif o > 31 and o < 127:
-                r.append(s)
-            else:
+            elif o > 13 and o < 32:
                 r.append("u%04x" % o)
-        return bytes("".join(r), "ascii")
+            else:
+                r.append(s)
+        return bytes("".join(r), "utf-8")
 
 
 class Bytes() :

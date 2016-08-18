@@ -126,7 +126,7 @@ class GrapheneAPI(object):
         try:
             response = requests.post("http://{}:{}/rpc".format(self.host,
                                                                self.port),
-                                     data=json.dumps(payload),
+                                     data=json.dumps(payload, ensure_ascii=False).encode('utf8'),
                                      headers=self.headers,
                                      auth=(self.username, self.password))
             if response.status_code == 401:
