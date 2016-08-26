@@ -44,4 +44,4 @@ dist:
 release: clean check dist steem-changelog git
 
 steem-changelog:
-	git tag -l -n100 $(TAG) | piston post --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category graphene --title "[Changelog] python-graphenelib $(TAG)" --file "-"
+	git show -s --pretty=format: $(TAG) | tail -n +4 | piston post --file "-" --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category graphene --title "[Changelog] python-graphenelib $(TAG)" --tags python-graphene changelog
