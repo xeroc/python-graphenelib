@@ -66,18 +66,35 @@ def getOperationNameForId(i) :
 class Operation() :
     def __init__(self, op) :
         if isinstance(op, list) and len(op) == 2:
-            self.opId = op[0]
-            name = getOperationNameForId(self.opId)
-            self.name = name[0].upper() + name[1:]
+            if isinstance(op[0], int):
+                self.opId = op[0]
+                name = self.getOperationNameForId(self.opId)
+            else:
+                self.opId = self.operations().get(op[0])
+                name = op[0]
+                if not self.opId:
+                    raise("Unknown operation")
+            self.name = name[0].upper() + name[1:]  # klassname
             try:
-                klass = eval(self.name)
+                klass = self._getklass(self.name)
             except:
                 raise NotImplementedError("Unimplemented Operation %s" % self.name)
             self.op = klass(op[1])
         else:
             self.op = op
             self.name = type(self.op).__name__.lower()  # also store name
-            self.opId = operations[self.name]
+            self.opId = self.operations()[self.name]
+
+    def operations(self):
+        return operations
+
+    def getOperationNameForId(self, i) :
+        return getOperationNameForId(i)
+
+    def _getklass(self, name):
+        module = __import__("graphenebase.operations", fromlist=["operations"])
+        class_ = getattr(module, name)
+        return class_
 
     def __bytes__(self) :
         return bytes(Id(self.opId)) + bytes(self.op)
