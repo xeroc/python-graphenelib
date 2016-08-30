@@ -3,6 +3,8 @@ from binascii import hexlify, unhexlify
 import sys
 from graphenebase.account import PrivateKey
 from graphenebase.base58 import Base58, base58decode
+import logging
+log = logging.getLogger(__name__)
 
 try:
     from Crypto.Cipher import AES
@@ -22,6 +24,8 @@ if not SCRYPT_MODULE:
             raise ImportError(
                 "Missing dependency: scrypt or pylibscrypt"
             )
+
+log.debug("Using scrypt module: %s" % SCRYPT_MODULE)
 
 """ This class and the methods require python3 """
 assert sys.version_info[0] == 3, "graphenelib requires python3"

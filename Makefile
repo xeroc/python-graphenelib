@@ -41,10 +41,7 @@ dist:
 	python3 setup.py bdist --format=zip upload
 	python3 setup.py bdist_wheel upload
 
-release: clean check dist steem-readme steem-changelog git
-
-steem-readme:
-	piston edit "@xeroc/python-graphenelib-readme" --file README.md
+release: clean check dist steem-changelog git
 
 steem-changelog:
-	git tag -l -n100 $(TAG) | piston post --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category graphene --title "[Changelog] python-graphenelib $(TAG)" --file "-"
+	git show -s --pretty=format: $(TAG) | tail -n +4 | piston post --file "-" --author xeroc --permlink "python-graphenelib-changelog-$(TAGSTEEM)" --category graphene --title "[Changelog] python-graphenelib $(TAG)" --tags python-graphene changelog

@@ -52,8 +52,9 @@ class Signed_Transaction(GrapheneObject) :
                 kwargs["signatures"] = Array([Signature(unhexlify(a)) for a in kwargs["signatures"]])
 
             if "operations" in kwargs:
-                if all([not isinstance(a, Operation) for a in kwargs["operations"]]):
-                    kwargs['operations'] = Array([Operation(a) for a in kwargs["operations"]])
+                opklass = self.getOperationKlass()
+                if all([not isinstance(a, opklass) for a in kwargs["operations"]]):
+                    kwargs['operations'] = Array([opklass(a) for a in kwargs["operations"]])
                 else:
                     kwargs['operations'] = Array(kwargs["operations"])
 
@@ -65,6 +66,9 @@ class Signed_Transaction(GrapheneObject) :
                 ('extensions', kwargs['extensions']),
                 ('signatures', kwargs['signatures']),
             ]))
+
+    def getOperationKlass(self):
+        return Operation
 
     def recoverPubkeyParameter(self, digest, signature, pubkey) :
         """ Use to derive a number that allows to easily recover the
@@ -120,17 +124,24 @@ class Signed_Transaction(GrapheneObject) :
             return None
         return ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1)
 
-    def deriveDigest(self, chain):
+    def getKnownChains(self):
+        return known_chains
+
+    def getChainParams(self, chain):
         # Which network are we on :
-        if isinstance(chain, str) and chain in known_chains :
-            chain_params = known_chains[chain]
+        chains = self.getKnownChains()
+        if isinstance(chain, str) and chain in chains :
+            chain_params = chains[chain]
         elif isinstance(chain, dict) :
             chain_params = chain
         else :
             raise Exception("sign() only takes a string or a dict as chain!")
         if "chain_id" not in chain_params :
             raise Exception("sign() needs a 'chain_id' in chain params!")
+        return chain_params
 
+    def deriveDigest(self, chain):
+        chain_params = self.getChainParams(chain)
         # Chain ID
         self.chainid = chain_params["chain_id"]
 
@@ -148,6 +159,7 @@ class Signed_Transaction(GrapheneObject) :
         self.data["signatures"] = sigs
 
     def verify(self, pubkeys, chain):
+        chain_params = self.getChainParams(chain)
         self.deriveDigest(chain)
         signatures = self.data["signatures"].data
         pubKeysFound = []
@@ -188,7 +200,7 @@ class Signed_Transaction(GrapheneObject) :
             k = pubkey.unCompressed()[2:]
             if k not in pubKeysFound and repr(pubkey) not in pubKeysFound:
                 k = PublicKey(PublicKey(k).compressed())
-                f = format(k, chain)
+                f = format(k, chain_params["prefix"])
                 raise Exception("Signature for %s missing!" % f)
 
         return True

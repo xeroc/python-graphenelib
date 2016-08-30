@@ -1,6 +1,7 @@
 import sys
 import threading
-from websocket import create_connection
+import websocket
+import ssl
 # from websocket._exceptions import WebSocketConnectionClosedException
 import json
 import time
@@ -64,11 +65,17 @@ class GrapheneWebsocketRPC(object):
         return self._request_id
 
     def wsconnect(self):
+        if self.url[:3] == "wss":
+            sslopt_ca_certs = {'cert_reqs': ssl.CERT_NONE}
+            self.ws = websocket.WebSocket(sslopt=sslopt_ca_certs)
+        else:
+            self.ws = websocket.WebSocket()
+
         cnt = 0
         while True:
             cnt += 1
             try:
-                self.ws = create_connection(self.url)
+                self.ws.connect(self.url)
                 break
             except KeyboardInterrupt:
                 raise
@@ -116,6 +123,32 @@ class GrapheneWebsocketRPC(object):
             :param str o: Full object id
         """
         return self.get_objects([o], **kwargs)[0]
+
+    def loop_account_history(self, account, start=0, only_ops=[]):
+        """ Returns a generator for individual account transactions
+
+            :param str account: account name to get history for
+            :param int start: sequence number of the first transaction to return
+            :param array only_ops: Limit generator by these operations (ids)
+        """
+        account = self.get_account(account)
+        cnt = 0
+        while True:
+            ret = self.get_relative_account_history(
+                account["id"],
+                start,
+                100,
+                start + 101,
+                api="history",
+            )[::-1]
+            for i in ret:
+                if not only_ops or i["op"][0] in only_ops:
+                    cnt += 1
+                    yield i
+            if len(ret) < 100:
+                break
+
+            start += 100
 
     def getFullAccountHistory(self, account, begin=1, limit=100, sort="block", **kwargs):
         """ Get History of an account
@@ -307,7 +340,7 @@ class GrapheneWebsocketRPC(object):
             cnt += 1
 
             try:
-                self.ws.send(json.dumps(payload))
+                self.ws.send(json.dumps(payload, ensure_ascii=False).encode('utf8'))
                 reply = self.ws.recv()
                 break
             except KeyboardInterrupt:

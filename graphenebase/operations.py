@@ -66,18 +66,35 @@ def getOperationNameForId(i) :
 class Operation() :
     def __init__(self, op) :
         if isinstance(op, list) and len(op) == 2:
-            self.opId = op[0]
-            name = getOperationNameForId(self.opId)
-            self.name = name[0].upper() + name[1:]
+            if isinstance(op[0], int):
+                self.opId = op[0]
+                name = self.getOperationNameForId(self.opId)
+            else:
+                self.opId = self.operations().get(op[0])
+                name = op[0]
+                if not self.opId:
+                    raise("Unknown operation")
+            self.name = name[0].upper() + name[1:]  # klassname
             try:
-                klass = eval(self.name)
+                klass = self._getklass(self.name)
             except:
                 raise NotImplementedError("Unimplemented Operation %s" % self.name)
             self.op = klass(op[1])
         else:
             self.op = op
             self.name = type(self.op).__name__.lower()  # also store name
-            self.opId = operations[self.name]
+            self.opId = self.operations()[self.name]
+
+    def operations(self):
+        return operations
+
+    def getOperationNameForId(self, i) :
+        return getOperationNameForId(i)
+
+    def _getklass(self, name):
+        module = __import__("graphenebase.operations", fromlist=["operations"])
+        class_ = getattr(module, name)
+        return class_
 
     def __bytes__(self) :
         return bytes(Id(self.opId)) + bytes(self.op)
@@ -130,13 +147,6 @@ class AccountOptions(GrapheneObject) :
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-
-            meta = ""
-            if "json_metadata" in kwargs and kwargs["json_metadata"]:
-                if isinstance(kwargs["json_metadata"], dict):
-                    meta = json.dumps(kwargs["json_metadata"])
-                else:
-                    meta = kwargs["json_metadata"]
             super().__init__(OrderedDict([
                 ('memo_key'         , PublicKey(kwargs["memo_key"], prefix=prefix)),
                 ('voting_account'   , ObjectId(kwargs["voting_account"], "account")),
@@ -330,7 +340,7 @@ class Account_create(GrapheneObject) :
                 ('referrer_percent' , Uint16(kwargs["referrer_percent"])),
                 ('name'             , String(kwargs["name"])),
                 ('owner'            , Permission(kwargs["owner"], prefix=prefix)),
-                ('active'           , Permission(kwargs["active"],prefix=prefix)),
+                ('active'           , Permission(kwargs["active"], prefix=prefix)),
                 ('options'          , AccountOptions(kwargs["options"], prefix=prefix)),
                 ('extensions'       , Set([])),
             ]))

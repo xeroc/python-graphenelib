@@ -43,12 +43,15 @@ class GrapheneObject(object) :
                     d.update({name : JsonObj(value)})
                 except :
                     d.update({name : value.__str__()})
-        return OrderedDict(d)
+        return d
 
     def __str__(self) :
         return json.dumps(self.__json__())
 
     def toJson(self):
+        return self.__json__()
+
+    def json(self):
         return self.__json__()
 
 

@@ -32,7 +32,7 @@ import fractions
 from prettytable import PrettyTable
 from math import fabs, sqrt
 from datetime import datetime
-from grapheneapi import GrapheneAPI
+from grapheneapi.grapheneapi import GrapheneAPI
 import os.path
 from concurrent import futures
 import config
