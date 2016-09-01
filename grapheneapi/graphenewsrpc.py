@@ -5,6 +5,7 @@ import ssl
 # from websocket._exceptions import WebSocketConnectionClosedException
 import json
 import time
+from itertools import cycle
 import logging
 log = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class GrapheneWebsocketRPC(object):
         * database
         * history
 
-        :param str url: Websocket URL
+        :param str urls: Either a single Websocket URL, or a list of URLs
         :param str user: Username for Authentication
         :param str password: Password for Authentication
         :param Array apis: List of APIs to register to (default: ["database", "network_broadcast"])
@@ -49,10 +50,13 @@ class GrapheneWebsocketRPC(object):
                   subsystem, please use ``GrapheneWebsocket`` instead.
 
     """
-    def __init__(self, url, user="", password="", **kwargs):
+    def __init__(self, urls, user="", password="", **kwargs):
         self.api_id = {}
         self._request_id = 0
-        self.url = url
+        if isinstance(urls, list):
+            self.urls = cycle(urls)
+        else:
+            self.urls = cycle([urls])
         self.user = user
         self.password = password
         self.num_retries = kwargs.get("num_retries", -1)
@@ -65,15 +69,16 @@ class GrapheneWebsocketRPC(object):
         return self._request_id
 
     def wsconnect(self):
-        if self.url[:3] == "wss":
-            sslopt_ca_certs = {'cert_reqs': ssl.CERT_NONE}
-            self.ws = websocket.WebSocket(sslopt=sslopt_ca_certs)
-        else:
-            self.ws = websocket.WebSocket()
-
         cnt = 0
         while True:
             cnt += 1
+            self.url = next(self.urls)
+            log.debug("Trying to connect to node %s" % self.url)
+            if self.url[:3] == "wss":
+                sslopt_ca_certs = {'cert_reqs': ssl.CERT_NONE}
+                self.ws = websocket.WebSocket(sslopt=sslopt_ca_certs)
+            else:
+                self.ws = websocket.WebSocket()
             try:
                 self.ws.connect(self.url)
                 break
