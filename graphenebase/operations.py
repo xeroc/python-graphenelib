@@ -70,10 +70,10 @@ class Operation() :
                 self.opId = op[0]
                 name = self.getOperationNameForId(self.opId)
             else:
-                self.opId = self.operations().get(op[0])
+                self.opId = self.operations().get(op[0], None)
                 name = op[0]
-                if not self.opId:
-                    raise("Unknown operation")
+                if self.opId is None:
+                    raise ValueError("Unknown operation")
             self.name = name[0].upper() + name[1:]  # klassname
             try:
                 klass = self._getklass(self.name)

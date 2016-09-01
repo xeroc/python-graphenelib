@@ -40,11 +40,13 @@ class Signed_Transaction(GrapheneObject) :
     """
     def __init__(self, *args, **kwargs) :
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
             if "extensions" not in kwargs:
+                kwargs["extensions"] = Set([])
+            elif not kwargs.get("extensions"):
                 kwargs["extensions"] = Set([])
             if "signatures" not in kwargs:
                 kwargs["signatures"] = Array([])
