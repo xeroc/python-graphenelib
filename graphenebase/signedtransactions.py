@@ -160,7 +160,9 @@ class Signed_Transaction(GrapheneObject) :
         # restore signatures
         self.data["signatures"] = sigs
 
-    def verify(self, pubkeys, chain):
+    def verify(self, pubkeys=[], chain=None):
+        if not chain:
+            raise
         chain_params = self.getChainParams(chain)
         self.deriveDigest(chain)
         signatures = self.data["signatures"].data
@@ -204,8 +206,7 @@ class Signed_Transaction(GrapheneObject) :
                 k = PublicKey(PublicKey(k).compressed())
                 f = format(k, chain_params["prefix"])
                 raise Exception("Signature for %s missing!" % f)
-
-        return True
+        return pubKeysFound
 
     def _is_canonical(self, sig):
         return (not (sig[0] & 0x80) and
