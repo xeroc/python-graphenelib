@@ -40,11 +40,13 @@ class Signed_Transaction(GrapheneObject) :
     """
     def __init__(self, *args, **kwargs) :
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
             if "extensions" not in kwargs:
+                kwargs["extensions"] = Set([])
+            elif not kwargs.get("extensions"):
                 kwargs["extensions"] = Set([])
             if "signatures" not in kwargs:
                 kwargs["signatures"] = Array([])
@@ -158,7 +160,9 @@ class Signed_Transaction(GrapheneObject) :
         # restore signatures
         self.data["signatures"] = sigs
 
-    def verify(self, pubkeys, chain):
+    def verify(self, pubkeys=[], chain=None):
+        if not chain:
+            raise
         chain_params = self.getChainParams(chain)
         self.deriveDigest(chain)
         signatures = self.data["signatures"].data
@@ -202,8 +206,7 @@ class Signed_Transaction(GrapheneObject) :
                 k = PublicKey(PublicKey(k).compressed())
                 f = format(k, chain_params["prefix"])
                 raise Exception("Signature for %s missing!" % f)
-
-        return True
+        return pubKeysFound
 
     def _is_canonical(self, sig):
         return (not (sig[0] & 0x80) and
