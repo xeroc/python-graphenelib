@@ -550,15 +550,17 @@ class CoinmarketcapAltcap(FeedSource) :
                 bitcoin_data = requests.get('https://api.coinmarketcap.com/v1/ticker/bitcoin/').json()[0]
                 alt_caps_x = [float(coin['market_cap_usd'])
                               for coin in ticker if
-                              coin['rank'] <= 11 and
+                              float(coin['rank']) <= 11 and
                               coin['symbol'] != "BTC"
                               ]
-                alt_cap = global_data['total_market_cap_usd'] - bitcoin_data['market_cap_usd']
+                alt_cap = (
+                    float(global_data['total_market_cap_usd']) -
+                    float(bitcoin_data['market_cap_usd']))
                 alt_cap_x = sum(alt_caps_x)
                 btc_cap = next((coin['market_cap_usd'] for coin in ticker if coin["symbol"] == "BTC"))
 
-                btc_altcap_price = alt_cap / btc_cap
-                btc_altcapx_price = alt_cap_x / btc_cap
+                btc_altcap_price = float(alt_cap) / float(btc_cap)
+                btc_altcapx_price = float(alt_cap_x) / float(btc_cap)
 
                 if 'ALTCAP' in self.quotes:
                     feed[base]['ALTCAP'] = {"price"  : btc_altcap_price,
