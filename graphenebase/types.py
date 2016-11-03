@@ -61,7 +61,7 @@ class Uint8() :
 
 class Int16() :
     def __init__(self, d) :
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self) :
         return struct.pack("<h", int(self.data))
@@ -72,7 +72,7 @@ class Int16() :
 
 class Uint16() :
     def __init__(self, d) :
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self) :
         return struct.pack("<H", self.data)
@@ -83,7 +83,7 @@ class Uint16() :
 
 class Uint32() :
     def __init__(self, d) :
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self) :
         return struct.pack("<I", self.data)
@@ -94,7 +94,7 @@ class Uint32() :
 
 class Uint64() :
     def __init__(self, d) :
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self) :
         return struct.pack("<Q", self.data)
@@ -202,7 +202,7 @@ class Array() :
         for a in self.data:
             if isinstance(a, ObjectId):
                 r.append(str(a))
-            if isinstance(a, VoteId):
+            elif isinstance(a, VoteId):
                 r.append(str(a))
             else:
                 r.append(JsonObj(a))

@@ -297,25 +297,23 @@ class Testcases(unittest.TestCase) :
         self.assertEqual(compare[:-130], txWire[:-130])
 
     def test_create_proposal(self):
-        s = {
-            "fee": {"amount": 0,
-                    "asset_id": "1.3.0"
-                    },
-            "fee_paying_account": "1.2.0",
-            "expiration_time": "1970-01-01T00:00:00",
-            "proposed_ops": [{
-                "op": [
-                    0, {"fee": {"amount": 0,
-                                "asset_id": "1.3.0"
-                                },
-                        "from": "1.2.0",
-                        "to": "1.2.0",
-                        "amount": {"amount": 0,
-                                   "asset_id": "1.3.0"
-                                   },
-                        "extensions": []}]}
-            ],
-            "extensions": []}
+        s = {"fee": {"amount": 0,
+                     "asset_id": "1.3.0"
+                     },
+             "fee_paying_account": "1.2.0",
+             "expiration_time": "1970-01-01T00:00:00",
+             "proposed_ops": [{
+                 "op": [
+                     0, {"fee": {"amount": 0,
+                                 "asset_id": "1.3.0"
+                                 },
+                         "from": "1.2.0",
+                         "to": "1.2.0",
+                         "amount": {"amount": 0,
+                                    "asset_id": "1.3.0"
+                                    },
+                         "extensions": []}]}],
+             "extensions": []}
         op = transactions.Proposal_create(**s)
         ops    = [transactions.Operation(op)]
         tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
@@ -332,28 +330,79 @@ class Testcases(unittest.TestCase) :
                    "a64769f5f62c0301ce21ab4f7c67a6801b4266")
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_asset_update(self):
+        op = transactions.Asset_update(**{
+            "fee": {"amount": 0,
+                    "asset_id": "1.3.0"},
+            "issuer": "1.2.0",
+            "asset_to_update": "1.3.0",
+            "new_options": {
+                "max_supply": "1000000000000000",
+                "market_fee_percent": 0,
+                "max_market_fee": "1000000000000000",
+                "issuer_permissions": 79,
+                "flags": 0,
+                "core_exchange_rate": {
+                    "base": {"amount": 0,
+                             "asset_id": "1.3.0"},
+                    "quote": {"amount": 0,
+                              "asset_id": "1.3.0"}
+                },
+                "whitelist_authorities": ["1.2.12", "1.2.13"],
+                "blacklist_authorities": ["1.2.10", "1.2.11"],
+                "whitelist_markets": ["1.3.10", "1.3.11"],
+                "blacklist_markets": ["1.3.12", "1.3.13"],
+                "description": "Foobar",
+                "extensions": []
+            },
+            "extensions": []
+        })
+        ops    = [transactions.Operation(op)]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c80457010b00000000000000000000000000"
+                   "80c6a47e8d030000000080c6a47e8d03004f00000000000000"
+                   "0000000000000000000000000000020c0d020a0b020a0b020c"
+                   "0d06466f6f626172000000011f5bd6a206d210d1d78eb423e0"
+                   "c2362013aa80830a8e61e5df2570eac05f1c57a4165c99099f"
+                   "c2e97ecbf2b46014c96a6f99cff8d20f55a6042929136055e5"
+                   "ad10")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = transactions.Proposal_create(**{
+        op = transactions.Asset_update(**{
             "fee": {"amount": 0,
-                    "asset_id": "1.3.0"
-                    },
-            "fee_paying_account": "1.2.0",
-            "expiration_time": "1970-01-01T00:00:00",
-            "proposed_ops": [{
-                "op": [
-                    0, {"fee": {"amount": 0,
-                                "asset_id": "1.3.0"
-                                },
-                        "from": "1.2.0",
-                        "to": "1.2.0",
-                        "amount": {"amount": 0,
-                                   "asset_id": "1.3.0"
-                                   },
-                        "extensions": []}]}
-            ],
-            "extensions": []})
+                    "asset_id": "1.3.0"},
+            "issuer": "1.2.0",
+            "asset_to_update": "1.3.0",
+            "new_options": {
+                "max_supply": "1000000000000000",
+                "market_fee_percent": 0,
+                "max_market_fee": "1000000000000000",
+                "issuer_permissions": 79,
+                "flags": 0,
+                "core_exchange_rate": {
+                    "base": {"amount": 0,
+                             "asset_id": "1.3.0"},
+                    "quote": {"amount": 0,
+                              "asset_id": "1.3.0"}
+                },
+                "whitelist_authorities": ["1.2.12", "1.2.13"],
+                "blacklist_authorities": ["1.2.10", "1.2.11"],
+                "whitelist_markets": ["1.3.10", "1.3.11"],
+                "blacklist_markets": ["1.3.12", "1.3.13"],
+                "description": "Foobar",
+                "extensions": []
+            },
+            "extensions": []
+        })
         ops = [transactions.Operation(op)]
         tx = transactions.Signed_Transaction(
             ref_block_num=ref_block_num,

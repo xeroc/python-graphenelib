@@ -1,8 +1,9 @@
 import json
-from graphenebase.types import *
-from graphenebase.objects import *
-from graphenebase.types import *
-from graphenebase.account import PublicKey
+from .types import *
+from .objects import *
+from .types import *
+from .account import PublicKey
+from .chains import default_prefix
 
 #: Operation ids
 operations = {}
@@ -50,8 +51,6 @@ operations["blind_transfer"] = 40
 operations["transfer_from_blind"] = 41
 operations["asset_settle_cancel"] = 42
 operations["asset_claim_fees"] = 43
-
-default_prefix = "BTS"
 
 
 def getOperationNameForId(i) :
@@ -103,60 +102,6 @@ class Operation() :
         return json.dumps([self.opId, self.op.toJson()])
 
 
-class Permission(GrapheneObject):
-    def __init__(self, *args, **kwargs) :
-        # Allow for overwrite of prefix
-        prefix = kwargs.pop("prefix", default_prefix)
-
-        if isArgsThisClass(self, args):
-                self.data = args[0].data
-        else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-
-            # Sort keys (FIXME: ideally, the sorting is part of Public
-            # Key and not located here)
-            kwargs["key_auths"] = sorted(
-                kwargs["key_auths"],
-                key=lambda x: repr(PublicKey(x[0], prefix=prefix).address),
-                reverse=False,
-            )
-            accountAuths = Map([
-                [String(e[0]), Uint16(e[1])]
-                for e in kwargs["account_auths"]
-            ])
-            keyAuths = Map([
-                [PublicKey(e[0], prefix=prefix), Uint16(e[1])]
-                for e in kwargs["key_auths"]
-            ])
-            super().__init__(OrderedDict([
-                ('weight_threshold', Uint32(int(kwargs["weight_threshold"]))),
-                ('account_auths'   , accountAuths),
-                ('key_auths'       , keyAuths),
-                ('extensions'      , Set([])),
-            ]))
-
-
-class AccountOptions(GrapheneObject) :
-    def __init__(self, *args, **kwargs) :
-        # Allow for overwrite of prefix
-        prefix = kwargs.pop("prefix", default_prefix)
-
-        if isArgsThisClass(self, args):
-                self.data = args[0].data
-        else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-            super().__init__(OrderedDict([
-                ('memo_key'         , PublicKey(kwargs["memo_key"], prefix=prefix)),
-                ('voting_account'   , ObjectId(kwargs["voting_account"], "account")),
-                ('num_witness'      , Uint16(kwargs["num_witness"])),
-                ('num_committee'    , Uint16(kwargs["num_committee"])),
-                ('votes'            , Array([VoteId(o) for o in kwargs["votes"]])),
-                ('extensions'       , Set([])),
-            ]))
-
-
 """
     Actual Operations
 """
@@ -199,6 +144,26 @@ class Asset_publish_feed(GrapheneObject):
             ]))
 
 
+class Asset_update(GrapheneObject):
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "new_issuer" in kwargs:
+                new_issuer = Optional(ObjectId(kwargs["new_issuer"], "account"))
+            else:
+                new_issuer = Optional(None)
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('issuer', ObjectId(kwargs["issuer"], "account")),
+                ('asset_to_update', ObjectId(kwargs["asset_to_update"], "asset")),
+                ('new_issuer', new_issuer),
+                ('new_options', AssetOptions(kwargs["new_options"])),
+                ('extensions', Set([])),
+            ]))
+
 
 class Op_wrapper(GrapheneObject):
     def __init__(self, *args, **kwargs) :
@@ -210,7 +175,6 @@ class Op_wrapper(GrapheneObject):
             super().__init__(OrderedDict([
                 ('op', Operation(kwargs["op"])),
             ]))
-
 
 
 class Proposal_create(GrapheneObject):

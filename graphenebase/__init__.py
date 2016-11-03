@@ -1,10 +1,10 @@
-import graphenebase.account as Account
-from graphenebase.account import PrivateKey, PublicKey, Address, BrainKey
-import graphenebase.memo as Memo
-import graphenebase.base58 as Base58
-import graphenebase.bip38 as Bip38
-import graphenebase.transactions as Transactions
-import graphenebase.dictionary as BrainKeyDictionary
+from . import account as Account
+from .account import PrivateKey, PublicKey, Address, BrainKey
+from . import memo as Memo
+from . import base58 as Base58
+from . import bip38 as Bip38
+from . import transactions as Transactions
+from . import dictionary as BrainKeyDictionary
 
 __all__ = ['account',
            'base58',
