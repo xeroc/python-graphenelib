@@ -296,41 +296,113 @@ class Testcases(unittest.TestCase) :
         compare = "f68585abf4dce7c804570105f26416000000000000211b03000b666f6f6261722d6631323401000000000202fe8cc11cc8251de6977636b55c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c9158990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e01000001000000000303b453f46013fdbccb90b09ba169c388c34d84454a3b9fbec68d5a7819a734fca0010002fe8cc11cc8251de6977636b55c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c9158990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e010000024ab336b4b14ba6d881675d1c782912783c43dbbe31693aa710ac1896bd7c3d61050000000000000000011f61ad276120bc3f1892962bfff7db5e8ce04d5adec9309c80529e3a978a4fa1073225a6d56929e34c9d2a563e67a8f4a227e4fadb4a3bb6ec91bfdf4e57b80efd"
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_create_proposal(self):
+        s = {"fee": {"amount": 0,
+                     "asset_id": "1.3.0"
+                     },
+             "fee_paying_account": "1.2.0",
+             "expiration_time": "1970-01-01T00:00:00",
+             "proposed_ops": [{
+                 "op": [
+                     0, {"fee": {"amount": 0,
+                                 "asset_id": "1.3.0"
+                                 },
+                         "from": "1.2.0",
+                         "to": "1.2.0",
+                         "amount": {"amount": 0,
+                                    "asset_id": "1.3.0"
+                                    },
+                         "extensions": []}]}],
+             "extensions": []}
+        op = transactions.Proposal_create(**s)
+        ops    = [transactions.Operation(op)]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c80457011600000000000000000000000000"
+                   "00010000000000000000000000000000000000000000000000"
+                   "00000001204baf7f11a7ff12337fc097ac6e82e7b68f82f02c"
+                   "c7e24231637c88a91ae5716674acec8a1a305073165c65e520"
+                   "a64769f5f62c0301ce21ab4f7c67a6801b4266")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
+    def test_asset_update(self):
+        op = transactions.Asset_update(**{
+            "fee": {"amount": 0,
+                    "asset_id": "1.3.0"},
+            "issuer": "1.2.0",
+            "asset_to_update": "1.3.0",
+            "new_options": {
+                "max_supply": "1000000000000000",
+                "market_fee_percent": 0,
+                "max_market_fee": "1000000000000000",
+                "issuer_permissions": 79,
+                "flags": 0,
+                "core_exchange_rate": {
+                    "base": {"amount": 0,
+                             "asset_id": "1.3.0"},
+                    "quote": {"amount": 0,
+                              "asset_id": "1.3.0"}
+                },
+                "whitelist_authorities": ["1.2.12", "1.2.13"],
+                "blacklist_authorities": ["1.2.10", "1.2.11"],
+                "whitelist_markets": ["1.3.10", "1.3.11"],
+                "blacklist_markets": ["1.3.12", "1.3.13"],
+                "description": "Foobar",
+                "extensions": []
+            },
+            "extensions": []
+        })
+        ops    = [transactions.Operation(op)]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c80457010b00000000000000000000000000"
+                   "80c6a47e8d030000000080c6a47e8d03004f00000000000000"
+                   "0000000000000000000000000000020c0d020a0b020a0b020c"
+                   "0d06466f6f626172000000011f5bd6a206d210d1d78eb423e0"
+                   "c2362013aa80830a8e61e5df2570eac05f1c57a4165c99099f"
+                   "c2e97ecbf2b46014c96a6f99cff8d20f55a6042929136055e5"
+                   "ad10")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = transactions.Account_create(**{
-            "fee": {"amount": 1467634,
-                    "asset_id": "1.3.0"
-                    },
-            "registrar": "1.2.33",
-            "referrer": "1.2.27",
-            "referrer_percent": 3,
-            "name": "foobar-f124",
-            "owner": {"weight_threshold": 1,
-                      "account_auths": [],
-                      "key_auths": [["BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE", 1]],
-                      "address_auths": []
-                      },
-            "active": {"weight_threshold": 1,
-                       "account_auths": [],
-                       "key_auths": [["BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE", 1]],
-                       "address_auths": []
-                       },
-            "options": {
-                "memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
-                "voting_account": "1.2.5",
-                "num_witness": 26,
-                "num_committee": 8,
-                "votes": ["1:22", "1:23", "1:24", "1:25", "1:26", "1:27", "1:28", "1:30", "1:31",
-                          "1:32", "1:34", "1:35", "1:36", "1:37", "1:38", "1:40", "1:41", "1:44",
-                          "1:45", "1:49", "1:51", "1:56", "1:60", "0:76", "0:84", "0:87", "0:88",
-                          "0:91", "0:141", "1:143", "0:147", "2:148", "2:150", "1:165", "1:166",
-                          "2:171", "0:173", "2:179"],
-                "extensions": []},
-            "extensions": {}
+        op = transactions.Asset_update(**{
+            "fee": {"amount": 0,
+                    "asset_id": "1.3.0"},
+            "issuer": "1.2.0",
+            "asset_to_update": "1.3.0",
+            "new_options": {
+                "max_supply": "1000000000000000",
+                "market_fee_percent": 0,
+                "max_market_fee": "1000000000000000",
+                "issuer_permissions": 79,
+                "flags": 0,
+                "core_exchange_rate": {
+                    "base": {"amount": 0,
+                             "asset_id": "1.3.0"},
+                    "quote": {"amount": 0,
+                              "asset_id": "1.3.0"}
+                },
+                "whitelist_authorities": ["1.2.12", "1.2.13"],
+                "blacklist_authorities": ["1.2.10", "1.2.11"],
+                "whitelist_markets": ["1.3.10", "1.3.11"],
+                "blacklist_markets": ["1.3.12", "1.3.13"],
+                "description": "Foobar",
+                "extensions": []
+            },
+            "extensions": []
         })
-
         ops = [transactions.Operation(op)]
         tx = transactions.Signed_Transaction(
             ref_block_num=ref_block_num,
@@ -341,11 +413,13 @@ class Testcases(unittest.TestCase) :
         tx     = tx.sign([wif], chain=prefix)
         tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
-        pprint(transactions.JsonObj(tx))
+        print("=" * 80)
+        pprint(tx.json())
+        print("=" * 80)
 
         from grapheneapi.grapheneapi import GrapheneAPI
         rpc = GrapheneAPI("localhost", 8092)
-        compare = rpc.serialize_transaction(transactions.JsonObj(tx))
+        compare = rpc.serialize_transaction(tx.json())
         print(compare[:-130])
         print(txWire[:-130])
         print(txWire[:-130] == compare[:-130])

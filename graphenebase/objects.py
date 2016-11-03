@@ -2,6 +2,7 @@ from .types import *
 from .chains import known_chains
 from .objecttypes import object_type
 from .account import PublicKey
+from .chains import default_prefix
 
 
 class GrapheneObject(object) :
@@ -132,4 +133,85 @@ class PriceFeed(GrapheneObject):
                 ('maintenance_collateral_ratio', Uint16(kwargs["maintenance_collateral_ratio"])),
                 ('maximum_short_squeeze_ratio', Uint16(kwargs["maximum_short_squeeze_ratio"])),
                 ('core_exchange_rate', Price(kwargs["core_exchange_rate"])),
+            ]))
+
+
+class Permission(GrapheneObject):
+    def __init__(self, *args, **kwargs) :
+        # Allow for overwrite of prefix
+        prefix = kwargs.pop("prefix", default_prefix)
+
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            # Sort keys (FIXME: ideally, the sorting is part of Public
+            # Key and not located here)
+            kwargs["key_auths"] = sorted(
+                kwargs["key_auths"],
+                key=lambda x: repr(PublicKey(x[0], prefix=prefix).address),
+                reverse=False,
+            )
+            accountAuths = Map([
+                [String(e[0]), Uint16(e[1])]
+                for e in kwargs["account_auths"]
+            ])
+            keyAuths = Map([
+                [PublicKey(e[0], prefix=prefix), Uint16(e[1])]
+                for e in kwargs["key_auths"]
+            ])
+            super().__init__(OrderedDict([
+                ('weight_threshold', Uint32(int(kwargs["weight_threshold"]))),
+                ('account_auths'   , accountAuths),
+                ('key_auths'       , keyAuths),
+                ('extensions'      , Set([])),
+            ]))
+
+
+class AccountOptions(GrapheneObject) :
+    def __init__(self, *args, **kwargs) :
+        # Allow for overwrite of prefix
+        prefix = kwargs.pop("prefix", default_prefix)
+
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('memo_key'         , PublicKey(kwargs["memo_key"], prefix=prefix)),
+                ('voting_account'   , ObjectId(kwargs["voting_account"], "account")),
+                ('num_witness'      , Uint16(kwargs["num_witness"])),
+                ('num_committee'    , Uint16(kwargs["num_committee"])),
+                ('votes'            , Array([VoteId(o) for o in kwargs["votes"]])),
+                ('extensions'       , Set([])),
+            ]))
+
+
+class AssetOptions(GrapheneObject) :
+    def __init__(self, *args, **kwargs) :
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('max_supply', Uint64(kwargs["max_supply"])),
+                ('market_fee_percent', Uint16(kwargs["market_fee_percent"])),
+                ('max_market_fee', Uint64(kwargs["max_market_fee"])),
+                ('issuer_permissions', Uint16(kwargs["issuer_permissions"])),
+                ('flags', Uint16(kwargs["flags"])),
+                ('core_exchange_rate', Price(kwargs["core_exchange_rate"])),
+                ('whitelist_authorities',
+                    Array([ObjectId(o, "account") for o in kwargs["whitelist_authorities"]])),
+                ('blacklist_authorities',
+                    Array([ObjectId(o, "account") for o in kwargs["blacklist_authorities"]])),
+                ('whitelist_markets',
+                    Array([ObjectId(o, "asset") for o in kwargs["whitelist_markets"]])),
+                ('blacklist_markets',
+                    Array([ObjectId(o, "asset") for o in kwargs["blacklist_markets"]])),
+                ('description', String(kwargs["description"])),
+                ('extensions', Set([])),
             ]))

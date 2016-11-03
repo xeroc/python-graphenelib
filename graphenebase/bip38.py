@@ -1,8 +1,8 @@
 import hashlib
 from binascii import hexlify, unhexlify
 import sys
-from graphenebase.account import PrivateKey
-from graphenebase.base58 import Base58, base58decode
+from .account import PrivateKey
+from .base58 import Base58, base58decode
 import logging
 log = logging.getLogger(__name__)
 
