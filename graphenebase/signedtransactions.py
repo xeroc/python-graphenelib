@@ -84,7 +84,8 @@ class Signed_Transaction(GrapheneObject) :
                     return i
             else:
                 p = self.recover_public_key(digest, signature, i)
-                if p.to_string() == pubkey.to_string() :
+                if (p.to_string() == pubkey.to_string() or
+                        self.compressedPubkey(p) == pubkey.to_string()):
                     return i
         return None
 
@@ -98,6 +99,12 @@ class Signed_Transaction(GrapheneObject) :
         x, s = ecdsa.der.remove_integer(s)
         y, s = ecdsa.der.remove_integer(s)
         return '%064x%064x' % (x, y)
+
+    def compressedPubkey(self, pk):
+        order  = pk.curve.generator.order()
+        p      = pk.pubkey.point
+        x_str  = ecdsa.util.number_to_string(p.x(), order)
+        return bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str
 
     def recover_public_key(self, digest, signature, i) :
         """ Recover the public key from the the signature
@@ -194,7 +201,7 @@ class Signed_Transaction(GrapheneObject) :
                     self.digest,
                     sigdecode=ecdsa.util.sigdecode_string
                 )
-                phex = hexlify(p.to_string()).decode('ascii')
+                phex = hexlify(self.compressedPubkey(p)).decode('ascii')
                 pubKeysFound.append(phex)
 
         for pubkey in pubkeys:
