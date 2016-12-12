@@ -204,6 +204,8 @@ class Array() :
                 r.append(str(a))
             elif isinstance(a, VoteId):
                 r.append(str(a))
+            elif isinstance(a, String):
+                r.append(str(a))
             else:
                 r.append(JsonObj(a))
         return json.dumps(r)
