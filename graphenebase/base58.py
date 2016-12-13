@@ -71,6 +71,8 @@ class Base58(object) :
             return _format.upper() + str(self)
         elif _format.lower() == "gph" :
             return _format.upper() + str(self)
+        elif _format.lower() == "gls" :
+            return _format.upper() + str(self)
         else :
             sys.stderr.write("Format %s unkown. You've been warned!\n" % _format)
             return _format.upper() + str(self)
