@@ -110,60 +110,6 @@ class GrapheneWebsocketRPC(object):
         """
         return self.get_objects([o], **kwargs)[0]
 
-    """ Block Streams
-    """
-    def block_stream(self, start=None, mode="irreversible", **kwargs):
-        """ Yields blocks starting from ``start``.
-
-            :param int start: Starting block
-            :param str mode: We here have the choice between
-                 * "head": the last block
-                 * "irreversible": the block that is confirmed by 2/3 of all block producers and is thus irreversible!
-        """
-        # Let's find out how often blocks are generated!
-        config = self.get_global_properties(**kwargs)
-        block_interval = config["parameters"]["block_interval"]
-
-        if not start:
-            props = self.get_dynamic_global_properties(**kwargs)
-            # Get block number
-            if mode == "head":
-                start = props['head_block_number']
-            elif mode == "irreversible":
-                start = props['last_irreversible_block_num']
-            else:
-                raise ValueError(
-                    '"mode" has to be "head" or "irreversible"'
-                )
-
-        # We are going to loop indefinitely
-        while True:
-
-            # Get chain properies to identify the
-            # head/last reversible block
-            props = self.get_dynamic_global_properties(**kwargs)
-
-            # Get block number
-            if mode == "head":
-                head_block = props['head_block_number']
-            elif mode == "irreversible":
-                head_block = props['last_irreversible_block_num']
-            else:
-                raise ValueError(
-                    '"mode" has to be "head" or "irreversible"'
-                )
-
-            # Blocks from start until head block
-            for blocknum in range(start, head_block + 1):
-                # Get full block
-                yield self.get_block(blocknum, **kwargs)
-
-            # Set new start
-            start = head_block + 1
-
-            # Sleep for one block
-            time.sleep(block_interval)
-
     """ RPC Calls
     """
     def rpcexec(self, payload):
@@ -253,6 +199,13 @@ class GrapheneWebsocketRPC(object):
         )
 
     def stream(self, opName, *args, **kwargs):
+        raise DeprecationWarning(
+            "[DeprecationWarning] The stream call is deprecated\n"
+            "or BitShares specific. Please use the new method in\n\n"
+            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
+        )
+
+    def block_stream(self, start=None, mode="irreversible", **kwargs):
         raise DeprecationWarning(
             "[DeprecationWarning] The stream call is deprecated\n"
             "or BitShares specific. Please use the new method in\n\n"
