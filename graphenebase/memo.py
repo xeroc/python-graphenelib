@@ -12,7 +12,7 @@ import struct
 assert sys.version_info[0] == 3, "graphenelib requires python3"
 
 
-def get_shared_secret(priv, pub) :
+def get_shared_secret(priv, pub):
     """ Derive the share secret between ``priv`` and ``pub``
 
         :param `Base58` priv: Private Key
@@ -25,16 +25,16 @@ def get_shared_secret(priv, pub) :
             Pub(Alice) * Priv(Bob) = Pub(Bob) * Priv(Alice)
 
     """
-    pub_point  = pub.point()
+    pub_point = pub.point()
     priv_point = int(repr(priv), 16)
-    res        = pub_point * priv_point
-    res_hex    = '%032x' % res.x()
+    res = pub_point * priv_point
+    res_hex = '%032x' % res.x()
     # Zero padding
     res_hex = '0' * (64 - len(res_hex)) + res_hex
     return res_hex
 
 
-def init_aes(shared_secret, nonce) :
+def init_aes(shared_secret, nonce):
     """ Initialize AES instance
 
         :param hex shared_secret: Shared Secret to use as encryption key
@@ -44,13 +44,13 @@ def init_aes(shared_secret, nonce) :
 
     """
     " Shared Secret "
-    ss     = hashlib.sha512(unhexlify(shared_secret)).digest()
+    ss = hashlib.sha512(unhexlify(shared_secret)).digest()
     " Seed "
     seed = bytes(nonce, 'ascii') + hexlify(ss)
     seed_digest = hexlify(hashlib.sha512(seed).digest()).decode('ascii')
     " AES "
     key = unhexlify(seed_digest[0:64])
-    iv  = unhexlify(seed_digest[64:96])
+    iv = unhexlify(seed_digest[64:96])
     return AES.new(key, AES.MODE_CBC, iv)
 
 
@@ -66,7 +66,7 @@ def _unpad(s, BS):
     return s
 
 
-def encode_memo(priv, pub, nonce, message) :
+def encode_memo(priv, pub, nonce, message):
     """ Encode a message with a shared secret between Alice and Bob
 
         :param PrivateKey priv: Private Key (of Alice)
@@ -78,13 +78,13 @@ def encode_memo(priv, pub, nonce, message) :
 
     """
     shared_secret = get_shared_secret(priv, pub)
-    aes           = init_aes(shared_secret, nonce)
+    aes = init_aes(shared_secret, nonce)
     " Checksum "
-    raw      = bytes(message, 'utf8')
+    raw = bytes(message, 'utf8')
     checksum = hashlib.sha256(raw).digest()
-    raw      = (checksum[0:4] + raw)
+    raw = (checksum[0:4] + raw)
     " Padding "
-    BS    = 16
+    BS = 16
     " FIXME: this adds 16 bytes even if not required "
     if len(raw) % BS:
         raw = _pad(raw, BS)
@@ -92,7 +92,7 @@ def encode_memo(priv, pub, nonce, message) :
     return hexlify(aes.encrypt(raw)).decode('ascii')
 
 
-def decode_memo(priv, pub, nonce, message) :
+def decode_memo(priv, pub, nonce, message):
     """ Decode a message with a shared secret between Alice and Bob
 
         :param PrivateKey priv: Private Key (of Bob)
@@ -106,13 +106,13 @@ def decode_memo(priv, pub, nonce, message) :
 
     """
     shared_secret = get_shared_secret(priv, pub)
-    aes           = init_aes(shared_secret, nonce)
+    aes = init_aes(shared_secret, nonce)
     " Encryption "
-    raw        = bytes(message, 'ascii')
-    cleartext  = aes.decrypt(unhexlify(raw))
+    raw = bytes(message, 'ascii')
+    cleartext = aes.decrypt(unhexlify(raw))
     " TODO, verify checksum "
     message = cleartext[4:]
-    try :
+    try:
         return _unpad(message.decode('utf8'), 16)
-    except :
+    except:
         raise ValueError(message)

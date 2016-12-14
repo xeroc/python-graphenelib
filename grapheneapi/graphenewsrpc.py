@@ -2,10 +2,10 @@ import sys
 import threading
 import websocket
 import ssl
-# from websocket._exceptions import WebSocketConnectionClosedException
 import json
 import time
 from itertools import cycle
+import warnings
 import logging
 log = logging.getLogger(__name__)
 
@@ -103,148 +103,12 @@ class GrapheneWebsocketRPC(object):
         self.api_id["history"] = self.history(api_id=1)
         self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
 
-    def get_account(self, name, **kwargs):
-        """ Get full account details from account name or id
-
-            :param str name: Account name or account id
-        """
-        if len(name.split(".")) == 3:
-            return self.get_objects([name])[0]
-        else :
-            return self.get_account_by_name(name, **kwargs)
-
-    def get_asset(self, name, **kwargs):
-        """ Get full asset from name of id
-
-            :param str name: Symbol name or asset id (e.g. 1.3.0)
-        """
-        if len(name.split(".")) == 3:
-            return self.get_objects([name], **kwargs)[0]
-        else :
-            return self.lookup_asset_symbols([name], **kwargs)[0]
-
     def get_object(self, o, **kwargs):
         """ Get object with id ``o``
 
             :param str o: Full object id
         """
         return self.get_objects([o], **kwargs)[0]
-
-    def loop_account_history(self, account, start=0, only_ops=[]):
-        """ Returns a generator for individual account transactions
-
-            :param str account: account name to get history for
-            :param int start: sequence number of the first transaction to return
-            :param array only_ops: Limit generator by these operations (ids)
-        """
-        account = self.get_account(account)
-        cnt = 0
-        while True:
-            ret = self.get_relative_account_history(
-                account["id"],
-                start,
-                100,
-                start + 101,
-                api="history",
-            )[::-1]
-            for i in ret:
-                if not only_ops or i["op"][0] in only_ops:
-                    cnt += 1
-                    yield i
-            if len(ret) < 100:
-                break
-
-            start += 100
-
-    def getFullAccountHistory(self, account, begin=1, limit=100, sort="block", **kwargs):
-        """ Get History of an account
-
-            :param string account: account name or account id
-            :param number begin: sequence number of first element
-            :param number limit: limit number of entries
-            :param string sort: Either "block" or "reversed"
-
-
-            **Example:**
-
-            The following code will give you you the first 110
-            operations for the account ``faucet`` starting at the first
-            operation:
-
-            .. code-block:: python
-
-                client = GrapheneClient(config)
-                client.ws.getAccountHistory(
-                    "faucet",
-                    begin=1,
-                    limit=110,
-                )
-
-        """
-        if account[0:4] == "1.2." :
-            account_id = account
-        else:
-            account_id = self.get_account_by_name(account, **kwargs)["id"]
-
-        if begin < 1:
-            raise ValueError("begin cannot be smaller than 1")
-
-        if sort != "block":
-            raise Exception("'sort' can currently only be 'block' " +
-                            "due to backend API issues")
-
-        r = []
-        if limit <= 100:
-            if sort == "block":
-                ret = self.get_relative_account_history(
-                    account_id,
-                    begin,
-                    limit,
-                    begin + limit,
-                    api="history", **kwargs
-                )
-                [r.append(a) for a in ret[::-1]]
-            else:
-                ret = self.get_relative_account_history(
-                    account_id,
-                    begin,
-                    limit,
-                    0,
-                    api="history"
-                )
-                [r.append(a) for a in ret]
-        else :
-            while True:
-
-                if len(r) + 100 > limit:
-                    thislimit = limit - len(r)
-                else:
-                    thislimit = 100
-
-                if sort == "block":
-                    ret = self.get_relative_account_history(
-                        account_id,
-                        begin,
-                        thislimit,
-                        begin + thislimit,
-                        api="history", **kwargs
-                    )
-                    [r.append(a) for a in ret[::-1]]
-                    begin += thislimit
-                else:
-                    ret = self.get_relative_account_history(
-                        account_id,
-                        begin,
-                        thislimit,
-                        0,
-                        api="history", **kwargs
-                    )
-                    [r.append(a) for a in ret]
-
-                if len(ret) < 100 :
-                    break
-
-        return r
 
     """ Block Streams
     """
@@ -299,37 +163,6 @@ class GrapheneWebsocketRPC(object):
 
             # Sleep for one block
             time.sleep(block_interval)
-
-    def stream(self, opName, *args, **kwargs):
-        """ Yield specific operations (e.g. transfers) only
-
-            :param str opName: Name of the operation, e.g.  transfer,
-                limit_order_create, limit_order_cancel, call_order_update,
-                fill_order, account_create, account_update,
-                account_whitelist, account_upgrade, account_transfer,
-                asset_create, asset_update, asset_update_bitasset,
-                asset_update_feed_producers, asset_issue, asset_reserve,
-                asset_fund_fee_pool, asset_settle, asset_global_settle,
-                asset_publish_feed, witness_create, witness_update,
-                proposal_create, proposal_update, proposal_delete,
-                withdraw_permission_create, withdraw_permission_update,
-                withdraw_permission_claim, withdraw_permission_delete,
-                committee_member_create, committee_member_update,
-                committee_member_update_global_parameters,
-                vesting_balance_create, vesting_balance_withdraw,
-                worker_create, custom, assert, balance_claim,
-                override_transfer, transfer_to_blind, blind_transfer,
-                transfer_from_blind, asset_settle_cancel, asset_claim_fees
-            :param int start: Begin at this block
-        """
-        from graphenebase.operations import getOperationNameForId
-        for block in self.block_stream(*args, **kwargs):
-            if not len(block["transactions"]):
-                continue
-            for tx in block["transactions"]:
-                for op in tx["operations"]:
-                    if getOperationNameForId(op[0]) == opName:
-                        yield op[1]
 
     """ RPC Calls
     """
@@ -389,13 +222,52 @@ class GrapheneWebsocketRPC(object):
         else:
             return ret["result"]
 
+    # Deprecated methods
+    ####################################################################
+    def get_account(self, name, **kwargs):
+        raise DeprecationWarning(
+            "[DeprecationWarning] The stream call is deprecated\n"
+            "or BitShares specific. Please use the new method in\n\n"
+            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
+        )
+
+    def get_asset(self, name, **kwargs):
+        raise DeprecationWarning(
+            "[DeprecationWarning] The stream call is deprecated\n"
+            "or BitShares specific. Please use the new method in\n\n"
+            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
+        )
+
+    def loop_account_history(self, account, start=0, only_ops=[]):
+        raise DeprecationWarning(
+            "[DeprecationWarning] The stream call is deprecated\n"
+            "or BitShares specific. Please use the new method in\n\n"
+            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
+        )
+
+    def getFullAccountHistory(self, account, begin=1, limit=100, sort="block", **kwargs):
+        raise DeprecationWarning(
+            "[DeprecationWarning] The stream call is deprecated\n"
+            "or BitShares specific. Please use the new method in\n\n"
+            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
+        )
+
+    def stream(self, opName, *args, **kwargs):
+        raise DeprecationWarning(
+            "[DeprecationWarning] The stream call is deprecated\n"
+            "or BitShares specific. Please use the new method in\n\n"
+            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
+        )
+
+    # End of Deprecated methods
+    ####################################################################
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
         """
         def method(*args, **kwargs):
 
             # Sepcify the api to talk to
-            if "api_id" not in kwargs :
+            if "api_id" not in kwargs:
                 if ("api" in kwargs):
                     if (kwargs["api"] in self.api_id and
                             self.api_id[kwargs["api"]]):
