@@ -131,14 +131,14 @@ class Address(object):
 
         :param str address: Base58 encoded address (defaults to ``None``)
         :param str pubkey: Base58 encoded pubkey (defaults to ``None``)
-        :param str prefix: Network prefix (defaults to ``BTS``)
+        :param str prefix: Network prefix (defaults to ``GPH``)
 
         Example::
 
-           Address("BTSFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi")
+           Address("GPHFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi")
 
     """
-    def __init__(self, address=None, pubkey=None, prefix="BTS"):
+    def __init__(self, address=None, pubkey=None, prefix="GPH"):
         self.prefix = prefix
         if pubkey is not None:
             self._pubkey = Base58(pubkey, prefix=prefix)
@@ -170,7 +170,7 @@ class Address(object):
 
     def __str__(self):
         """ Returns the readable Graphene address. This call is equivalent to
-            ``format(Address, "BTS")``
+            ``format(Address, "GPH")``
         """
         return format(self, self.prefix)
 
@@ -198,11 +198,11 @@ class PublicKey(Address):
     """ This class deals with Public Keys and inherits ``Address``.
 
         :param str pk: Base58 encoded public key
-        :param str prefix: Network prefix (defaults to ``BTS``)
+        :param str prefix: Network prefix (defaults to ``GPH``)
 
         Example:::
 
-           PublicKey("BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL")
+           PublicKey("GPH6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL")
 
         .. note:: By default, graphene-based networks deal with **compressed**
                   public keys. If an **uncompressed** key is required, the
@@ -211,7 +211,7 @@ class PublicKey(Address):
                       PublicKey("xxxxx").unCompressed()
 
     """
-    def __init__(self, pk, prefix="BTS"):
+    def __init__(self, pk, prefix="GPH"):
         self.prefix = prefix
         self._pk = Base58(pk, prefix=prefix)
         self.address = Address(pubkey=pk, prefix=prefix)
@@ -261,7 +261,7 @@ class PublicKey(Address):
 
     def __str__(self):
         """ Returns the readable Graphene public key. This call is equivalent to
-            ``format(PublicKey, "BTS")``
+            ``format(PublicKey, "GPH")``
         """
         return format(self._pk, self.prefix)
 
@@ -279,7 +279,7 @@ class PrivateKey(PublicKey):
         constructs two instances of ``PublicKey``:
 
         :param str wif: Base58check-encoded wif key
-        :param str prefix: Network prefix (defaults to ``BTS``)
+        :param str prefix: Network prefix (defaults to ``GPH``)
 
         Example:::
 
@@ -297,7 +297,7 @@ class PrivateKey(PublicKey):
             Instance of ``Address`` using uncompressed key.
 
     """
-    def __init__(self, wif=None, prefix="BTS"):
+    def __init__(self, wif=None, prefix="GPH"):
         if wif is None:
             import os
             self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))

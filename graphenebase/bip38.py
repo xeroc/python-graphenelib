@@ -65,7 +65,7 @@ def encrypt(privkey, passphrase):
     aes = AES.new(derived_half2)
     encrypted_half1 = _encrypt_xor(privkeyhex[:32], derived_half1[:16], aes)
     encrypted_half2 = _encrypt_xor(privkeyhex[32:], derived_half1[16:], aes)
-    " flag byte is forced 0xc0 because BTS only uses compressed keys "
+    " flag byte is forced 0xc0 because Graphene only uses compressed keys "
     payload = (b'\x01' + b'\x42' + b'\xc0' +
                salt + encrypted_half1 + encrypted_half2)
     " Checksum "
