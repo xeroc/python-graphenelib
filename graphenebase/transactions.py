@@ -9,18 +9,10 @@ import time
 from .account import PublicKey
 from .chains import known_chains
 from .signedtransactions import Signed_Transaction
-from .operations import (
-    Operation,
-    getOperationNameForId,
-    Demooepration
-)
+from .operations import Operation
 from .objects import GrapheneObject, isArgsThisClass
 
 timeformat = '%Y-%m-%dT%H:%M:%S%Z'
-
-"""
-    Auxiliary Calls
-"""
 
 
 def getBlockParams(ws):
