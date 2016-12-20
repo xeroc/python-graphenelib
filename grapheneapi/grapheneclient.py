@@ -10,6 +10,6 @@ class GrapheneClient():
         raise DeprecationWarning(
             "[DeprecationWarning] The GrapheneClient is deprecated. The "
             "old implementation can be found in\n\n"
-            "    from bitshares.deprecated.grapheneclient import GrapheneClient"
+            "    from bitsharesdeprecated.client import BitSharesClient"
         )
         super(GrapheneClient, self).__init__(*args, **kwargs)
