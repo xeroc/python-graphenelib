@@ -374,33 +374,38 @@ class Testcases(unittest.TestCase) :
                    "ad10")
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_whitelist(self):
+        op = transactions.Account_whitelist(**{
+            "fee": {"amount": 0,
+                    "asset_id": "1.3.0"},
+            "authorizing_account": "1.2.0",
+            "account_to_list": "1.2.1",
+            "new_listing": 0x1,
+            "extensions": []
+        })
+        ops    = [transactions.Operation(op)]
+        tx     = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                                 ref_block_prefix=ref_block_prefix,
+                                                 expiration=expiration,
+                                                 operations=ops)
+        tx     = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c8045701070000000000000000000001010"
+                   "000011f14eef2978e40b369273907072dddf4b4043d9f3a08"
+                   "da125311c4e6b54b3e7c2a3606594fab7cf6ce381544eceda"
+                   "9945c8c9fccebd587cfa2d2f6a146b1639f8c")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = transactions.Asset_update(**{
+        op = transactions.Account_whitelist(**{
             "fee": {"amount": 0,
                     "asset_id": "1.3.0"},
-            "issuer": "1.2.0",
-            "asset_to_update": "1.3.0",
-            "new_options": {
-                "max_supply": "1000000000000000",
-                "market_fee_percent": 0,
-                "max_market_fee": "1000000000000000",
-                "issuer_permissions": 79,
-                "flags": 0,
-                "core_exchange_rate": {
-                    "base": {"amount": 0,
-                             "asset_id": "1.3.0"},
-                    "quote": {"amount": 0,
-                              "asset_id": "1.3.0"}
-                },
-                "whitelist_authorities": ["1.2.12", "1.2.13"],
-                "blacklist_authorities": ["1.2.10", "1.2.11"],
-                "whitelist_markets": ["1.3.10", "1.3.11"],
-                "blacklist_markets": ["1.3.12", "1.3.13"],
-                "description": "Foobar",
-                "extensions": []
-            },
+            "authorizing_account": "1.2.0",
+            "account_to_list": "1.2.1",
+            "new_listing": 0x1,
             "extensions": []
         })
         ops = [transactions.Operation(op)]
