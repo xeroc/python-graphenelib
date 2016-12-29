@@ -35,6 +35,13 @@ ask_confirmation             = True  # if true, a manual confirmation is require
 producer_name                = "init0"
 
 ################################################################################
+# Feed Keys
+################################################################################
+# Acquire a Quandl API Key from:
+# http://help.quandl.com/article/118-how-do-i-pass-along-my-user-id-or-api-key
+quandlApiKey = "Feed_Key" # add your key here
+
+################################################################################
 # Publishing Criteria
 ################################################################################
 #
@@ -59,9 +66,9 @@ change_max                   = 5.0       # Percentage of price change to cause a
 ################################################################################
 # Asset specific Settings
 ################################################################################
-_all_assets = ["BTC", "SILVER", "GOLD", "GRIDCOIN", "TRY", "SGD", "HKD", "NZD",
+_all_assets = ["BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD",
                "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD",
-               "KRW", "TCNY", "TUSD", "ALTCAP", "ALTCAP.X"]
+               "KRW", "TUSD" , "CASH.USD" , "CASH.BTC", "ARS", "ALTCAP"]  # "SHENZHEN", "HANGSENG", "NASDAQC", "NIKKEI", "RUB", "SEK"
 _bases = ["CNY", "USD", "BTC", "EUR", "HKD", "JPY"]
 
 asset_config = {"default" : {  # DEFAULT BEHAVIOR
@@ -120,13 +127,13 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                 
                 # Adding GRIDCOIN MPA
                 # CCEX currently not supported
-                "GRIDCOIN" : {
-                    "metric" : "weighted",
-                    "sources" : ["poloniex",
+                #"GRIDCOIN" : {
+                #    "metric" : "weighted",
+                #    "sources" : ["poloniex",
                                  #"ccex",
-                                 "bittrex"
-                                 ],
-                },
+                #                 "bittrex"
+                #                 ],
+                #},
                 # Settings for CNY take popular chinese exchanges into
                 # account that let people trade without fees.
                 # Hence, the metric should be median, since the volume could
@@ -143,9 +150,16 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                 #
                 # As requested by the issuer, the squeere ratio should be
                 # 100.1%
+                "CASH.BTC" : {
+                    "maximum_short_squeeze_ratio"   : 1001,
+                },
+                "CASH.USD" : {
+                    "maximum_short_squeeze_ratio"   : 1001,
+                },
                 "TUSD" : {
                     "maximum_short_squeeze_ratio"   : 1001
                 },
+                # ALTCAP SmartCoins
                  "ALTCAP" : {
                     "metric" : "weighted",
                     "sources" : ["coincap",
@@ -154,14 +168,24 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                                  "bittrex",
                                  "btc38",]
                 },
-                "ALTCAP.X" : {
-                    "metric" : "weighted",
-                    "sources" : ["coincap",
-                                 "coinmarketcap",
-                                 "poloniex",
-                                 "bittrex",
-                                 "btc38",]
+                #~ "ALTCAP.X" : {
+                    #~ "metric" : "weighted",
+                    #~ "sources" : ["coincap",
+                                 #~ "coinmarketcap",
+                                 #~ "poloniex",
+                                 #~ "bittrex",
+                                 #~ "btc38",]
+                #~ },
+                # ALTCAP SmartCoins ratios should be
+                # 
+                "ALTCAP" : {
+                    "maximum_short_squeeze_ratio"   : 1069,
+                    "maintenance_collateral_ratio"  : 1360
                 },
+                #~ "ALTCAP.X" : {
+                    #~ "maximum_short_squeeze_ratio"   : 1069,
+                    #~ "maintenance_collateral_ratio"  : 1360
+                #~ },
                }
 
 # Other assets that are derived or something else.
@@ -172,9 +196,9 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
 # Note:
 #  The usual asset specific parameters have to be set in "asset_config",
 #  otherwise they will be ignored!
-secondary_mpas = {
-                  "TUSD" : {"sameas" : "USD"},
-                  "TCNY" : {"sameas" : "CNY"}
+secondary_mpas = {"CASH.BTC" : {"sameas" : "BTC"},
+                  "CASH.USD" : {"sameas" : "USD"},
+                  "TUSD" : {"sameas" : "USD"}
                   }
 
 ################################################################################
@@ -186,9 +210,9 @@ secondary_mpas = {
 ################################################################################
 feedSources = {}
 feedSources["yahoo"]    = feedsources.Yahoo(scaleVolumeBy=1e7,
-                                            quotes=["TRY", "SGD", "HKD", "NZD", "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"],
-                                            quoteNames={#"XAU"       : "GOLD",
-                                                        #"XAG"       : "SILVER",
+                                            quotes=["TRY", "SGD", "HKD", "NZD", "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW", "ARS"],
+                                            quoteNames={"XAU"       : "GOLD",
+                                                        "XAG"       : "SILVER",
                                                         # "399106.SZ" : "SHENZHEN",
                                                         # "000001.SS" : "SHANGHAI",
                                                         # "^HSI"      : "HANGSENG",
@@ -206,20 +230,18 @@ feedSources["google"]    = feedsources.Google(scaleVolumeBy=1e7,
 feedSources["btcavg"]   = feedsources.BitcoinAverage(quotes=["BTC"], bases=["USD", "EUR", "CNY"])
 
 feedSources["poloniex"] = feedsources.Poloniex(allowFailure=True, 
-                                              quotes=["BTS", "GRC"],
-                                              quoteNames={"GRC" : "GRIDCOIN"},
+                                              quotes=["BTS"],
                                               bases=["BTC"])
-feedSources["ccedk"]    = feedsources.Ccedk(allowFailure=True, quotes=["BTS"], bases=["BTC", "USD", "EUR", "CNY"])
+#feedSources["ccedk"]    = feedsources.Ccedk(allowFailure=True, quotes=["BTS"], bases=["BTC", "USD", "EUR", "CNY"])
 feedSources["bittrex"]  = feedsources.Bittrex(allowFailure=True,
-                                              quotes=["BTS", "GRC"],
-                                              quoteNames={"GRC" : "GRIDCOIN"},
+                                              quotes=["BTS"],
                                               bases=["BTC"])
 feedSources["yunbi"]    = feedsources.Yunbi(allowFailure=True, quotes=["BTS", "BTC"], bases=["CNY"])
 feedSources["btc38"]    = feedsources.Btc38(allowFailure=True, quotes=["BTS", "BTC"], bases=["BTC", "CNY"])
 
-feedSources["quandl"]    = feedsources.Quandl(datasets={  # There is a limit of 20 calls per 10 minutes!
+feedSources["quandl"]    = feedsources.Quandl(datasets={  # Provide a valid API Key above or this will fail!
                                                   "GOLD:USD": [
-                                                      # "WGC/GOLD_DAILY_USD",
+                                                      #"WGC/GOLD_DAILY_USD",
                                                       "LBMA/GOLD",
                                                       "PERTH/GOLD_USD_D"
                                                       ],
@@ -233,7 +255,7 @@ feedSources["quandl"]    = feedsources.Quandl(datasets={  # There is a limit of 
 feedSources["bitshares"] = feedsources.Graphene(allowFailure=True,
                                                 quotes=["BTS"],
                                                 bases=["USD"],
-                                                witness_url="wss://bitshares.openledger.info/ws",
+                                                witness_url="wss://altcap.io/ws",
                                                 wallet_host=host,
                                                 wallet_port=port)
 
@@ -252,10 +274,10 @@ feedSources["huobi"]    = feedsources.Huobi(allowFailure=True, quotes=["BTC"], b
 #                                                                  allowFailure=True,
 #                                                                  quotes=["ARS", "BTC", "EUR", "JPY"], # more available
 #                                                                  bases=["USD"]) # only USD with free subscription
-feedSources["coinmarketcap"]    = feedsources.CoinmarketcapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
+feedSources["coinmarketcap"]    = feedsources.CoinmarketcapAltcap(quotes=["ALTCAP"],
                                                                   bases=["BTC"],
                                                                   allowFailure=True)
-feedSources["coincap"]    = feedsources.CoincapAltcap(quotes=["ALTCAP", "ALTCAP.X"],
+feedSources["coincap"]    = feedsources.CoincapAltcap(quotes=["ALTCAP"],
                                                       bases=["BTC"],
                                                       allowFailure=True)
 # feedSources["fixer"] = feedsources.Fixer(allowFailure=True, quotes=["EUR", "JPY", "SEK", "CNY"], bases=["EUR", "USD", "CNY"]) # more available

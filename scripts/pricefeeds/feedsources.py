@@ -712,8 +712,9 @@ class Quandl(FeedSource):  # Google Finance
 
                 prices = []
                 for dataset in self.datasets[market]:
-                    url = "https://www.quandl.com/api/v3/datasets/{dataset}.json?start_date={date}".format(
+                    url = "https://www.quandl.com/api/v3/datasets/{dataset}.json?start_date={date}&api_key={quandl_api_key}".format(
                         dataset=dataset,
+                        quandl_api_key=config.quandlApiKey,
                         date=datetime.datetime.strftime(datetime.datetime.now() -
                                                         datetime.timedelta(days=self.maxAge),
                                                         "%Y-%m-%d")
