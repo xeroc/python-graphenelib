@@ -37,7 +37,7 @@ def varintdecode(data) :
 
 
 def variable_buffer(s) :
-    """ Encode variable length bugger
+    """ Encode variable length buffer
     """
     return varint(len(s)) + s
 
@@ -61,7 +61,7 @@ class Uint8() :
 
 class Int16() :
     def __init__(self, d) :
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self) :
         return struct.pack("<h", int(self.data))
@@ -72,7 +72,7 @@ class Int16() :
 
 class Uint16() :
     def __init__(self, d) :
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self) :
         return struct.pack("<H", self.data)
@@ -83,7 +83,7 @@ class Uint16() :
 
 class Uint32() :
     def __init__(self, d) :
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self) :
         return struct.pack("<I", self.data)
@@ -94,7 +94,7 @@ class Uint32() :
 
 class Uint64() :
     def __init__(self, d) :
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self) :
         return struct.pack("<Q", self.data)
@@ -127,17 +127,38 @@ class Int64() :
 
 class String() :
     def __init__(self, d) :
-        # Repalce UTF8 chars with what ever looks closest
-        from unidecode import unidecode
-        self.data = unidecode(d)
-        # FIXME: Allow for real UTF-8 chars to be used
-        # https://github.com/steemit/steem/issues/44
+        self.data = d
 
     def __bytes__(self) :
-        return varint(len(self.data)) + bytes(self.data, 'utf-8')
+        d = self.unicodify()
+        return varint(len(d)) + d
 
     def __str__(self) :
         return '%s' % str(self.data)
+
+    def unicodify(self):
+        r = []
+        for s in self.data:
+            o = ord(s)
+            if o <= 7:
+                r.append("u%04x" % o)
+            elif o == 8:
+                r.append("b")
+            elif o == 9:
+                r.append("\t")
+            elif o == 10:
+                r.append("\n")
+            elif o == 11:
+                r.append("u%04x" % o)
+            elif o == 12:
+                r.append("f")
+            elif o == 13:
+                r.append("\r")
+            elif o > 13 and o < 32:
+                r.append("u%04x" % o)
+            else:
+                r.append(s)
+        return bytes("".join(r), "utf-8")
 
 
 class Bytes() :
@@ -181,6 +202,10 @@ class Array() :
         for a in self.data:
             if isinstance(a, ObjectId):
                 r.append(str(a))
+            elif isinstance(a, VoteId):
+                r.append(str(a))
+            elif isinstance(a, String):
+                r.append(str(a))
             else:
                 r.append(JsonObj(a))
         return json.dumps(r)
@@ -211,6 +236,9 @@ class Signature() :
 class Bool(Uint8) :  # Bool = Uint8
     def __init__(self, d) :
         super().__init__(d)
+
+    def __str__(self) :
+        return True if self.data else False
 
 
 class Set(Array) :  # Set = Array
@@ -287,6 +315,21 @@ class Id() :
 
     def __str__(self) :
         return str(self.data)
+
+
+class VoteId():
+    def __init__(self, vote) :
+        parts = vote.split(":")
+        assert len(parts) == 2
+        self.type = int(parts[0])
+        self.instance = int(parts[1])
+
+    def __bytes__(self) :
+        binary = (self.type & 0xff) | (self.instance << 8)
+        return struct.pack("<I", binary)
+
+    def __str__(self) :
+        return "%d:%d" % (self.type, self.instance)
 
 
 class ObjectId() :

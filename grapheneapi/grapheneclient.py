@@ -463,6 +463,8 @@ class GrapheneClient() :
             self.prefix = "BTS"
         elif self.core_asset["symbol"] == "MUSE" :
             self.prefix = "MUSE"
+        elif self.core_asset["symbol"] == "TEST" :
+            self.prefix = "TEST"
         elif self.core_asset["symbol"] == "CORE" :
             self.prefix = "GPH"
 

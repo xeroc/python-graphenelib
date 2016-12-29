@@ -105,6 +105,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
     def _login(self):
         """ Login to the API
         """
+        log.info("login")
         self.wsexec([1, "login", [self.username, self.password]])
 
     """ Subscriptions
@@ -116,11 +117,13 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
             :type account_ids: Array of account IDs
 
         """
+        log.info("subscribe_to_accounts")
         self.wsexec([0, "get_full_accounts", [account_ids, True]])
 
     def subscribe_to_markets(self, dummy=None):
         """ Subscribe to the markets as defined in ``self.markets``.
         """
+        log.info("subscribe_to_markets")
         for m in self.markets:
             market = self.markets[m]
             self.wsexec([0, "subscribe_to_market",
@@ -137,9 +140,10 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
             and set the subscription callback.
         """
+        log.info("subscribe_to_objects")
         handles = []
         for handle in self.database_callbacks:
-            handles.append(partial(self.getObjectcb, handle, None))
+            handles.append(partial(self.getObject, handle))
             self.database_callbacks_ids.update({
                 handle: self.database_callbacks[handle]})
 
@@ -150,7 +154,7 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                 asset_ids.add(m["bitasset_data_id"])
             if "dynamic_asset_data_id" in m:
                 asset_ids.add(m["dynamic_asset_data_id"])
-        handles.append(partial(self.getObjectscb, list(asset_ids), None))
+        handles.append(partial(self.getObjects, list(asset_ids)))
 
         if self.accounts:
             handles.append(partial(self.subscribe_to_accounts, self.accounts))
@@ -160,30 +164,28 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
 
     """ Objects
     """
-    def getObjectcb(self, oid, callback, *args):
+    def getObject(self, oid, callback=None, *args):
         """ Get an Object from the internal object storage if available
             or otherwise retrieve it from the API.
 
             :param object-id oid: Object ID to retrieve
             :param fnt callback: Callback to call if object has been received
         """
-        self.getObjectscb([oid], callback, *args)
+        self.getObjects([oid], callback, *args)
 
-    def getObjectscb(self, oids, callback, *args):
+    def getObjects(self, oids, callback=None, *args):
         # Are they stored in memory already?
-        if self.objectMap is not None:
-            for oid in oids:
-                if oid in self.objectMap and callable(callback):
-                    callback(self.objectMap[oid])
-                    oids.remove(oid)
+        for oid in oids:
+            if (self.objectMap and
+                    oid in self.objectMap and
+                    callable(callback)):
+                callback(self.objectMap[oid])
+                oids.remove(oid)
         # Let's get those that we haven't found in memory!
         if oids:
-            handles = [partial(self.setObjects, oids)]
-            if callback and callable(callback):
-                handles.append(callback)
             self.wsexec([self.api_ids["database"],
                          "get_objects",
-                         [oids]], handles)
+                         [oids]], callback)
 
     def setObject(self, oid, data):
         """ Set Object in the internal Object Storage
@@ -261,8 +263,9 @@ class GrapheneWebsocketProtocol(WebSocketClientProtocol):
                             asset.get("dynamic_asset_data_id", None) == notice["id"]):
                         asset["callback"](self, notice)
 
-        except Exception as e:
-            log.error('Error dispatching notice: %s' % str(e))
+        except:
+            import traceback
+            log.error('Error dispatching notice: %s' % str(traceback.format_exc()))
 
     def onConnect(self, response):
         """ Is executed on successful connect. Calls event

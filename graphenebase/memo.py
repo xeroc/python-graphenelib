@@ -1,8 +1,11 @@
 import sys
 import hashlib
 from binascii import hexlify, unhexlify
-from Crypto.Cipher import AES
-from graphenebase.account import PrivateKey, PublicKey
+try:
+    from Crypto.Cipher import AES
+except ImportError:
+    raise ImportError("Missing dependency: pycrypto")
+from .account import PrivateKey, PublicKey
 import struct
 
 " This class and the methods require python3 "

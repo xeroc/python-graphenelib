@@ -1,3 +1,5 @@
 autobahn>=0.14
 pycrypto==2.6.1
-graphenelib
+scrypt==0.7.1
+pytest
+coverage
