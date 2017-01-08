@@ -112,7 +112,7 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                     # If set to True, prices are also derived via 3
                     # markets instead of just two:
                     # E.g. : GOLD:USD -> USD:BTC -> BTC:BTS = GOLD:BTS
-                    "derive_across_3markets" : False
+                    "derive_across_3markets" : True
                 },
                 # Exchanges trading BTC/BTS directly
                 # (this does not include any other trading pairs)
@@ -139,7 +139,7 @@ asset_config = {"default" : {  # DEFAULT BEHAVIOR
                 # Hence, the metric should be median, since the volume could
                 # be easily manipulated
                 "CNY" : {
-                    "metric" : "weighted",
+                    "metric" : "median",
                     "sources" : ["btc38",
                                  "yunbi",
                                  "huobi",
@@ -211,8 +211,8 @@ secondary_mpas = {"CASH.BTC" : {"sameas" : "BTC"},
 feedSources = {}
 feedSources["yahoo"]    = feedsources.Yahoo(scaleVolumeBy=1e7,
                                             quotes=["TRY", "SGD", "HKD", "NZD", "CNY", "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW", "ARS"],
-                                            quoteNames={"XAU"       : "GOLD",
-                                                        "XAG"       : "SILVER",
+                                            quoteNames={#"XAU"       : "GOLD",
+                                                        #"XAG"       : "SILVER",
                                                         # "399106.SZ" : "SHENZHEN",
                                                         # "000001.SS" : "SHANGHAI",
                                                         # "^HSI"      : "HANGSENG",
@@ -220,7 +220,8 @@ feedSources["yahoo"]    = feedsources.Yahoo(scaleVolumeBy=1e7,
                                                         # "^N225"     : "NIKKEI"
                                                         },
                                             bases=["USD", "EUR", "CNY", "JPY", "HKD"])
-feedSources["google"]    = feedsources.Google(scaleVolumeBy=1e7,
+feedSources["google"]    = feedsources.Google(allowFailure=True,
+                                              scaleVolumeBy=1e7,
                                               quotes=["TRY", "SGD", "HKD",
                                                       "NZD", "CNY", "MXN",
                                                       "CAD", "CHF", "AUD",
@@ -241,7 +242,7 @@ feedSources["btc38"]    = feedsources.Btc38(allowFailure=True, quotes=["BTS", "B
 
 feedSources["quandl"]    = feedsources.Quandl(datasets={  # Provide a valid API Key above or this will fail!
                                                   "GOLD:USD": [
-                                                      #"WGC/GOLD_DAILY_USD",
+                                                      "WGC/GOLD_DAILY_USD",
                                                       "LBMA/GOLD",
                                                       "PERTH/GOLD_USD_D"
                                                       ],
@@ -275,10 +276,10 @@ feedSources["huobi"]    = feedsources.Huobi(allowFailure=True, quotes=["BTC"], b
 #                                                                  quotes=["ARS", "BTC", "EUR", "JPY"], # more available
 #                                                                  bases=["USD"]) # only USD with free subscription
 feedSources["coinmarketcap"]    = feedsources.CoinmarketcapAltcap(quotes=["ALTCAP"],
-                                                                  bases=["BTC"],
+                                                                  bases=["BTC", "BTS"],
                                                                   allowFailure=True)
 feedSources["coincap"]    = feedsources.CoincapAltcap(quotes=["ALTCAP"],
-                                                      bases=["BTC"],
+                                                      bases=["BTC", "BTS"],
                                                       allowFailure=True)
 # feedSources["fixer"] = feedsources.Fixer(allowFailure=True, quotes=["EUR", "JPY", "SEK", "CNY"], bases=["EUR", "USD", "CNY"]) # more available
 # feedSources["bitcoinvenezuela"] = feedsources.BitcoinVenezuela(allowFailure=True, quotes=["EUR", "USD", "VEF", "ARS", "BTC", "LTC"], bases=["BTC", "LTC", "USD"])
