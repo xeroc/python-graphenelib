@@ -35,7 +35,7 @@ setup(
               "graphenebase",
               ],
     install_requires=["ecdsa==0.13",
-                      "requests==2.10.0",
+                      "requests==2.11.1",
                       "websocket-client==0.37.0",
                       "pylibscrypt==1.5.3",
                       ],
