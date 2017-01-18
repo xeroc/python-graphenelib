@@ -103,13 +103,6 @@ class GrapheneWebsocketRPC(object):
         self.api_id["history"] = self.history(api_id=1)
         self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
 
-    def get_object(self, o, **kwargs):
-        """ Get object with id ``o``
-
-            :param str o: Full object id
-        """
-        return self.get_objects([o], **kwargs)[0]
-
     """ RPC Calls
     """
     def rpcexec(self, payload):
@@ -167,50 +160,6 @@ class GrapheneWebsocketRPC(object):
                 raise RPCError(ret['error']['message'])
         else:
             return ret["result"]
-
-    # Deprecated methods
-    ####################################################################
-    def get_account(self, name, **kwargs):
-        raise DeprecationWarning(
-            "[DeprecationWarning] The stream call is deprecated\n"
-            "or BitShares specific. Please use the new method in\n\n"
-            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
-        )
-
-    def get_asset(self, name, **kwargs):
-        raise DeprecationWarning(
-            "[DeprecationWarning] The stream call is deprecated\n"
-            "or BitShares specific. Please use the new method in\n\n"
-            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
-        )
-
-    def loop_account_history(self, account, start=0, only_ops=[]):
-        raise DeprecationWarning(
-            "[DeprecationWarning] The stream call is deprecated\n"
-            "or BitShares specific. Please use the new method in\n\n"
-            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
-        )
-
-    def getFullAccountHistory(self, account, begin=1, limit=100, sort="block", **kwargs):
-        raise DeprecationWarning(
-            "[DeprecationWarning] The stream call is deprecated\n"
-            "or BitShares specific. Please use the new method in\n\n"
-            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
-        )
-
-    def stream(self, opName, *args, **kwargs):
-        raise DeprecationWarning(
-            "[DeprecationWarning] The stream call is deprecated\n"
-            "or BitShares specific. Please use the new method in\n\n"
-            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
-        )
-
-    def block_stream(self, start=None, mode="irreversible", **kwargs):
-        raise DeprecationWarning(
-            "[DeprecationWarning] The stream call is deprecated\n"
-            "or BitShares specific. Please use the new method in\n\n"
-            "    from bitsharesapi.noderpc import BitSharesWebsocketRPC"
-        )
 
     # End of Deprecated methods
     ####################################################################
