@@ -237,7 +237,7 @@ class Signed_Transaction(GrapheneObject) :
         # Sign the message with every private key given!
         sigs = []
         for wif in self.privkeys :
-            p = bytes(PrivateKey(wif))
+            p = bytes(PrivateKey(wif, prefix=chain))
             i = 0
             if USE_SECP256K1:
                 ndata = secp256k1.ffi.new("const int *ndata")

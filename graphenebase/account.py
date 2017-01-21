@@ -304,7 +304,7 @@ class PrivateKey(PublicKey):
         elif isinstance(wif, Base58) :
             self._wif = wif
         else :
-            self._wif = Base58(wif)
+            self._wif = Base58(wif, prefix=prefix)
         # compress pubkeys only
         self._pubkeyhex, self._pubkeyuncompressedhex = self.compressedpubkey()
         self.pubkey               = PublicKey(self._pubkeyhex, prefix=prefix)
