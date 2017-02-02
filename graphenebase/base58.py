@@ -17,7 +17,8 @@ known_prefixes = [
     "MUSE",
     "TEST",
     "STM",
-    "GLX"
+    "GLX",
+    "GLS",
 ]
 
 
