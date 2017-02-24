@@ -1,3 +1,4 @@
+import time
 import ecdsa
 import hashlib
 from binascii import hexlify, unhexlify
@@ -276,7 +277,10 @@ class Signed_Transaction(GrapheneObject):
                         sk.curve.generator.order(),
                         sk.privkey.secret_multiplier,
                         hashlib.sha256,
-                        hashlib.sha256(self.digest + bytes([cnt])).digest())
+                        hashlib.sha256(
+                            self.digest +
+                            struct.pack("d", time.time())  # use the local time to randomize the signature
+                        ).digest())
 
                     # Sign message
                     #
