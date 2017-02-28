@@ -22,5 +22,4 @@ Base Package
 
    base58
    account
-   memo
    bip38

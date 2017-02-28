@@ -104,6 +104,7 @@ class Base58(object):
         """
         return unhexlify(self._hex)
 
+
 # https://github.com/tochev/python3-cryptocoins/raw/master/cryptocoins/base58.py
 BASE58_ALPHABET = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 

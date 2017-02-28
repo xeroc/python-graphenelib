@@ -8,8 +8,6 @@ try:
 except ImportError:
     raise ImportError("Missing dependency: python-requests")
 
-""" Error Classes """
-
 
 class UnauthorizedError(Exception):
     pass
@@ -21,8 +19,6 @@ class RPCError(Exception):
 
 class RPCConnection(Exception):
     pass
-
-""" API class """
 
 
 class GrapheneAPI(object):

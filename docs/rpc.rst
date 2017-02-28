@@ -21,4 +21,4 @@ Definition
 ##########
 
 .. autoclass:: grapheneapi.grapheneapi.GrapheneAPI
-    :members: _confirm, rpcexec, __getattr__
+    :members: rpcexec, __getattr__
