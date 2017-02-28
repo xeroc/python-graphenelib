@@ -14,7 +14,8 @@ Welcome to python-graphenelib's documentation!
 
 Graphene is a blockchain technology (i.e. software) that allows for fast
 transactions and decentralized trading of assets as well as customized on-chain
-smart contracts.
+smart contracts. Graphene itself is a platform to develop customized
+blockchains like BitShares, Steem or PeerPlays.
 
 In practice, Graphene is only a concept implementation and does not directly
 have its own public blockchain.
@@ -22,6 +23,10 @@ have its own public blockchain.
 The first public blockchain to use the Graphene technology is *BitShares 2.0*.
 However, this library should be able to interface with any other Graphene-based
 blockchain, too.
+
+This library serves as a core library that bundles core features for
+these platforms, which have their own libraries build on top of this
+library.
 
 Python-Graphene Libraries
 -------------------------
@@ -31,30 +36,6 @@ Python-Graphene Libraries
    installation
    classes
 
-Decentralized Exchange (DEX)
-----------------------------
-.. toctree::
-   :maxdepth: 1
-
-   exchange
-
-Tutorials
----------
-.. toctree::
-   :maxdepth: 1
-
-   howto-monitor-operations
-   howto-exchanges
-   howto-exchanges-detailed
-
-Scripts
---------
-.. toctree::
-   :maxdepth: 1
-
-   scripts-monitor
-   scripts-pricefeed
-
 Graphene API
 ------------
 .. toctree::
@@ -62,7 +43,6 @@ Graphene API
 
    graphene-objects
    graphene-api
-   graphene-ws
    witness
    wallet
 

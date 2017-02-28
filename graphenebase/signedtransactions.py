@@ -1,3 +1,4 @@
+import time
 import ecdsa
 import hashlib
 from binascii import hexlify, unhexlify
@@ -29,7 +30,7 @@ except:
               "    pip install secp256k1")
 
 
-class Signed_Transaction(GrapheneObject) :
+class Signed_Transaction(GrapheneObject):
     """ Create a signed transaction and offer method to create the
         signature
 
@@ -38,7 +39,7 @@ class Signed_Transaction(GrapheneObject) :
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
-    def __init__(self, *args, **kwargs) :
+    def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
             self.data = args[0].data
         else:
@@ -72,15 +73,15 @@ class Signed_Transaction(GrapheneObject) :
     def getOperationKlass(self):
         return Operation
 
-    def recoverPubkeyParameter(self, digest, signature, pubkey) :
+    def recoverPubkeyParameter(self, digest, signature, pubkey):
         """ Use to derive a number that allows to easily recover the
             public key from the signature
         """
-        for i in range(0, 4) :
+        for i in range(0, 4):
             if USE_SECP256K1:
                 sig = pubkey.ecdsa_recoverable_deserialize(signature, i)
                 p = secp256k1.PublicKey(pubkey.ecdsa_recover(self.message, sig))
-                if p.serialize() == pubkey.serialize() :
+                if p.serialize() == pubkey.serialize():
                     return i
             else:
                 p = self.recover_public_key(digest, signature, i)
@@ -89,27 +90,27 @@ class Signed_Transaction(GrapheneObject) :
                     return i
         return None
 
-    def derSigToHexSig(self, s) :
+    def derSigToHexSig(self, s):
         """ Format DER to HEX signature
         """
         s, junk = ecdsa.der.remove_sequence(unhexlify(s))
-        if junk :
-            log.debug('JUNK : %s', hexlify(junk).decode('ascii'))
+        if junk:
+            log.debug('JUNK: %s', hexlify(junk).decode('ascii'))
         assert(junk == b'')
         x, s = ecdsa.der.remove_integer(s)
         y, s = ecdsa.der.remove_integer(s)
         return '%064x%064x' % (x, y)
 
     def compressedPubkey(self, pk):
-        order  = pk.curve.generator.order()
-        p      = pk.pubkey.point
-        x_str  = ecdsa.util.number_to_string(p.x(), order)
+        order = pk.curve.generator.order()
+        p = pk.pubkey.point
+        x_str = ecdsa.util.number_to_string(p.x(), order)
         return bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str
 
-    def recover_public_key(self, digest, signature, i) :
+    def recover_public_key(self, digest, signature, i):
         """ Recover the public key from the the signature
         """
-        # See http : //www.secg.org/download/aid-780/sec1-v2.pdf section 4.1.6 primarily
+        # See http: //www.secg.org/download/aid-780/sec1-v2.pdf section 4.1.6 primarily
         curve = ecdsa.SECP256k1.curve
         G = ecdsa.SECP256k1.generator
         order = ecdsa.SECP256k1.order
@@ -129,7 +130,7 @@ class Signed_Transaction(GrapheneObject) :
         # 1.6 Compute Q = r^-1(sR - eG)
         Q = ecdsa.numbertheory.inverse_mod(r, order) * (s * R + (-e % order) * G)
         # Not strictly necessary, but let's verify the message for paranoia's sake.
-        if not ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1).verify_digest(signature, digest, sigdecode=ecdsa.util.sigdecode_string) :
+        if not ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1).verify_digest(signature, digest, sigdecode=ecdsa.util.sigdecode_string):
             return None
         return ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1)
 
@@ -137,15 +138,15 @@ class Signed_Transaction(GrapheneObject) :
         return known_chains
 
     def getChainParams(self, chain):
-        # Which network are we on :
+        # Which network are we on:
         chains = self.getKnownChains()
-        if isinstance(chain, str) and chain in chains :
+        if isinstance(chain, str) and chain in chains:
             chain_params = chains[chain]
-        elif isinstance(chain, dict) :
+        elif isinstance(chain, dict):
             chain_params = chain
-        else :
+        else:
             raise Exception("sign() only takes a string or a dict as chain!")
-        if "chain_id" not in chain_params :
+        if "chain_id" not in chain_params:
             raise Exception("sign() needs a 'chain_id' in chain params!")
         return chain_params
 
@@ -221,13 +222,15 @@ class Signed_Transaction(GrapheneObject) :
                 not (sig[32] & 0x80) and
                 not (sig[32] == 0 and not (sig[33] & 0x80)))
 
-    def sign(self, wifkeys, chain="BTS") :
+    def sign(self, wifkeys, chain=None):
         """ Sign the transaction with the provided private keys.
 
             :param array wifkeys: Array of wif keys
             :param str chain: identifier for the chain
 
         """
+        if not chain:
+            raise Exception("Chain needs to be provided!")
         self.deriveDigest(chain)
 
         # Get Unique private keys
@@ -236,7 +239,7 @@ class Signed_Transaction(GrapheneObject) :
 
         # Sign the message with every private key given!
         sigs = []
-        for wif in self.privkeys :
+        for wif in self.privkeys:
             p = bytes(PrivateKey(wif))
             i = 0
             if USE_SECP256K1:
@@ -260,12 +263,12 @@ class Signed_Transaction(GrapheneObject) :
                         i += 4   # compressed
                         i += 27  # compact
                         break
-            else :
+            else:
                 cnt = 0
                 sk = ecdsa.SigningKey.from_string(p, curve=ecdsa.SECP256k1)
-                while 1 :
+                while 1:
                     cnt += 1
-                    if not cnt % 20 :
+                    if not cnt % 20:
                         log.info("Still searching for a canonical signature. Tried %d times already!" % cnt)
 
                     # Deterministic k
@@ -274,7 +277,10 @@ class Signed_Transaction(GrapheneObject) :
                         sk.curve.generator.order(),
                         sk.privkey.secret_multiplier,
                         hashlib.sha256,
-                        hashlib.sha256(self.digest + bytes([cnt])).digest())
+                        hashlib.sha256(
+                            self.digest +
+                            struct.pack("d", time.time())  # use the local time to randomize the signature
+                        ).digest())
 
                     # Sign message
                     #
@@ -292,7 +298,7 @@ class Signed_Transaction(GrapheneObject) :
                     #
                     lenR = sigder[3]
                     lenS = sigder[5 + lenR]
-                    if lenR is 32 and lenS is 32 :
+                    if lenR is 32 and lenS is 32:
                         # Derive the recovery parameter
                         #
                         i = self.recoverPubkeyParameter(self.digest, signature, sk.get_verifying_key())

@@ -2,15 +2,27 @@ from binascii import hexlify, unhexlify
 import hashlib
 import sys
 import string
+import logging
+log = logging.getLogger(__name__)
 
 """ This class and the methods require python3 """
 assert sys.version_info[0] == 3, "graphenelib requires python3"
 
 """ Default Prefix """
-PREFIX = "BTS"
+PREFIX = "GPH"
+
+known_prefixes = [
+    PREFIX,
+    "BTS",
+    "MUSE",
+    "TEST",
+    "STM",
+    "GLX",
+    "GLS",
+]
 
 
-class Base58(object) :
+class Base58(object):
     """Base58 base class
 
     This class serves as an abstraction layer to deal with base58 encoded
@@ -19,7 +31,7 @@ class Base58(object) :
 
     :param data: Data to initialize object, e.g. pubkey data, address data, ...
     :type data: hex, wif, bip38 encrypted wif, base58 string
-    :param str prefix: Prefix to use for Address/PubKey strings (defaults to ``BTS``)
+    :param str prefix: Prefix to use for Address/PubKey strings (defaults to ``GPH``)
     :return: Base58 object initialized with ``data``
     :rtype: Base58
     :raises ValueError: if data cannot be decoded
@@ -31,53 +43,43 @@ class Base58(object) :
         * ``"btc"``: prefixed with ``0x80``. Yields a valid btc address
         * ``"wif"``: prefixed with ``0x00``. Yields a valid wif key
         * ``"bts"``: prefixed with ``BTS``
-        * ``"muse"``: prefixed with ``MUSE``
+        * etc.
 
     """
-    def __init__(self, data, prefix=PREFIX) :
+    def __init__(self, data, prefix=PREFIX):
         self._prefix = prefix
-        if all(c in string.hexdigits for c in data) :
-            self._hex     = data
-        elif data[0] == "5" or data[0] == "6" :
-            self._hex     = base58CheckDecode(data)
-        elif data[0] == "K" or data[0] == "L" :
-            self._hex     = base58CheckDecode(data)[:-2]
-        elif data[:len(self._prefix)] == self._prefix :
-            self._hex     = btsBase58CheckDecode(data[len(self._prefix):])
-        else :
+        if all(c in string.hexdigits for c in data):
+            self._hex = data
+        elif data[0] == "5" or data[0] == "6":
+            self._hex = base58CheckDecode(data)
+        elif data[0] == "K" or data[0] == "L":
+            self._hex = base58CheckDecode(data)[:-2]
+        elif data[:len(self._prefix)] == self._prefix:
+            self._hex = gphBase58CheckDecode(data[len(self._prefix):])
+        else:
             raise ValueError("Error loading Base58 object")
 
-    def __format__(self, _format) :
-        """ Format output according to argument _format (wif,btc,bts)
+    def __format__(self, _format):
+        """ Format output according to argument _format (wif,btc,...)
 
             :param str _format: Format to use
             :return: formatted data according to _format
             :rtype: str
 
         """
-        if _format.lower() == "wif" :
+        if _format.upper() == "WIF":
             return base58CheckEncode(0x80, self._hex)
-        elif _format.lower() == "encwif" :
+        elif _format.upper() == "ENCWIF":
             return base58encode(self._hex)
-        elif _format.lower() == "btc":
+        elif _format.upper() == "BTC":
             return base58CheckEncode(0x00, self._hex)
-        elif _format.lower() == "bts" :
+        elif _format.upper() in known_prefixes:
             return _format.upper() + str(self)
-        elif _format.lower() == "muse" :
-            return _format.upper() + str(self)
-        elif _format.lower() == "test" :
-            return _format.upper() + str(self)
-        elif _format.lower() == "stm" :
-            return _format.upper() + str(self)
-        elif _format.lower() == "gph" :
-            return _format.upper() + str(self)
-        elif _format.lower() == "gls" :
-            return _format.upper() + str(self)
-        else :
-            sys.stderr.write("Format %s unkown. You've been warned!\n" % _format)
+        else:
+            log.warn("Format %s unkown. You've been warned!\n" % _format)
             return _format.upper() + str(self)
 
-    def __repr__(self) :
+    def __repr__(self):
         """ Returns hex value of object
 
             :return: Hex string of instance's data
@@ -85,15 +87,15 @@ class Base58(object) :
         """
         return self._hex
 
-    def __str__(self) :
-        """ Return BTS-base58CheckEncoded string of data
+    def __str__(self):
+        """ Return graphene-base58CheckEncoded string of data
 
             :return: Base58 encoded data
             :rtype: str
         """
-        return btsBase58CheckEncode(self._hex)
+        return gphBase58CheckEncode(self._hex)
 
-    def __bytes__(self) :
+    def __bytes__(self):
         """ Return raw bytes
 
             :return: Raw bytes of instance
@@ -152,11 +154,11 @@ def doublesha256(s):
     return hashlib.sha256(hashlib.sha256(unhexlify(s)).digest()).digest()
 
 
-def b58encode(v) :
+def b58encode(v):
     return base58encode(v)
 
 
-def b58decode(v) :
+def b58decode(v):
     return base58decode(v)
 
 
@@ -168,21 +170,21 @@ def base58CheckEncode(version, payload):
 
 
 def base58CheckDecode(s):
-    s   = unhexlify(base58decode(s))
+    s = unhexlify(base58decode(s))
     dec = hexlify(s[:-4]).decode('ascii')
     checksum = doublesha256(dec)[:4]
     assert(s[-4:] == checksum)
     return dec[2:]
 
 
-def btsBase58CheckEncode(s):
+def gphBase58CheckEncode(s):
     checksum = ripemd160(s)[:4]
     result = s + hexlify(checksum).decode('ascii')
     return base58encode(result)
 
 
-def btsBase58CheckDecode(s):
-    s   = unhexlify(base58decode(s))
+def gphBase58CheckDecode(s):
+    s = unhexlify(base58decode(s))
     dec = hexlify(s[:-4]).decode('ascii')
     checksum = ripemd160(dec)[:4]
     assert(s[-4:] == checksum)
