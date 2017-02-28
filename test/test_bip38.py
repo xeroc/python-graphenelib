@@ -3,7 +3,7 @@ from graphenebase.account import PrivateKey
 from graphenebase.bip38 import encrypt, decrypt
 
 
-class Testcases(unittest.TestCase) :
+class Testcases(unittest.TestCase):
     def test_encrypt(self):
         self.assertEqual([format(encrypt(PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd"), "TestingOneTwoThree"), "encwif"),
                           format(encrypt(PrivateKey("5KN7MzqK5wt2TP1fQCYyHBtDrXdJuXbUzm4A9rKAteGu3Qi5CVR"), "TestingOneTwoThree"), "encwif"),

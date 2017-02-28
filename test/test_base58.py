@@ -6,11 +6,11 @@ from graphenebase.base58 import (
     ripemd160,
     base58CheckEncode,
     base58CheckDecode,
-    btsBase58CheckEncode,
-    btsBase58CheckDecode)
+    gphBase58CheckEncode,
+    gphBase58CheckDecode)
 
 
-class Testcases(unittest.TestCase) :
+class Testcases(unittest.TestCase):
     def test_base58decode(self):
         self.assertEqual([base58decode('5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'),
                           base58decode('5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss'),
@@ -27,25 +27,25 @@ class Testcases(unittest.TestCase) :
                           base58encode('80e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8555c5bbb26'),
                           base58encode('80f3a375e00cc5147f30bee97bb5d54b31a12eee148a1ac31ac9edc4ecd13bc1f80cc8148e')])
 
-    def test_btsBase58CheckEncode(self):
-        self.assertEqual([btsBase58CheckEncode("02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680"),
-                          btsBase58CheckEncode("021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16"),
-                          btsBase58CheckEncode("02f561e0b57a552df3fa1df2d87a906b7a9fc33a83d5d15fa68a644ecb0806b49a"),
-                          btsBase58CheckEncode("03e7595c3e6b58f907bee951dc29796f3757307e700ecf3d09307a0cc4a564eba3")],
+    def test_gphBase58CheckEncode(self):
+        self.assertEqual([gphBase58CheckEncode("02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680"),
+                          gphBase58CheckEncode("021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16"),
+                          gphBase58CheckEncode("02f561e0b57a552df3fa1df2d87a906b7a9fc33a83d5d15fa68a644ecb0806b49a"),
+                          gphBase58CheckEncode("03e7595c3e6b58f907bee951dc29796f3757307e700ecf3d09307a0cc4a564eba3")],
                          ["6dumtt9swxCqwdPZBGXh9YmHoEjFFnNfwHaTqRbQTghGAY2gRz",
                           "5725vivYpuFWbeyTifZ5KevnHyqXCi5hwHbNU9cYz1FHbFXCxX",
                           "6kZKHSuxqAwdCYsMvwTcipoTsNE2jmEUNBQufGYywpniBKXWZK",
                           "8b82mpnH8YX1E9RHnU2a2YgLTZ8ooevEGP9N15c1yFqhoBvJur"])
 
-    def test_btsBase58CheckDecode(self):
+    def test_gphBase58CheckDecode(self):
         self.assertEqual(["02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680",
                           "021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16",
                           "02f561e0b57a552df3fa1df2d87a906b7a9fc33a83d5d15fa68a644ecb0806b49a",
                           "03e7595c3e6b58f907bee951dc29796f3757307e700ecf3d09307a0cc4a564eba3"],
-                         [btsBase58CheckDecode("6dumtt9swxCqwdPZBGXh9YmHoEjFFnNfwHaTqRbQTghGAY2gRz"),
-                          btsBase58CheckDecode("5725vivYpuFWbeyTifZ5KevnHyqXCi5hwHbNU9cYz1FHbFXCxX"),
-                          btsBase58CheckDecode("6kZKHSuxqAwdCYsMvwTcipoTsNE2jmEUNBQufGYywpniBKXWZK"),
-                          btsBase58CheckDecode("8b82mpnH8YX1E9RHnU2a2YgLTZ8ooevEGP9N15c1yFqhoBvJur")])
+                         [gphBase58CheckDecode("6dumtt9swxCqwdPZBGXh9YmHoEjFFnNfwHaTqRbQTghGAY2gRz"),
+                          gphBase58CheckDecode("5725vivYpuFWbeyTifZ5KevnHyqXCi5hwHbNU9cYz1FHbFXCxX"),
+                          gphBase58CheckDecode("6kZKHSuxqAwdCYsMvwTcipoTsNE2jmEUNBQufGYywpniBKXWZK"),
+                          gphBase58CheckDecode("8b82mpnH8YX1E9RHnU2a2YgLTZ8ooevEGP9N15c1yFqhoBvJur")])
 
     def test_btsb58(self):
         self.assertEqual(["02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680",
@@ -53,11 +53,11 @@ class Testcases(unittest.TestCase) :
                           "021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16",
                           "02f561e0b57a552df3fa1df2d87a906b7a9fc33a83d5d15fa68a644ecb0806b49a",
                           "03e7595c3e6b58f907bee951dc29796f3757307e700ecf3d09307a0cc4a564eba3"],
-                         [btsBase58CheckDecode(btsBase58CheckEncode("02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680")),
-                          btsBase58CheckDecode(btsBase58CheckEncode("03457298c4b2c56a8d572c051ca3109dabfe360beb144738180d6c964068ea3e58")),
-                          btsBase58CheckDecode(btsBase58CheckEncode("021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16")),
-                          btsBase58CheckDecode(btsBase58CheckEncode("02f561e0b57a552df3fa1df2d87a906b7a9fc33a83d5d15fa68a644ecb0806b49a")),
-                          btsBase58CheckDecode(btsBase58CheckEncode("03e7595c3e6b58f907bee951dc29796f3757307e700ecf3d09307a0cc4a564eba3"))])
+                         [gphBase58CheckDecode(gphBase58CheckEncode("02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680")),
+                          gphBase58CheckDecode(gphBase58CheckEncode("03457298c4b2c56a8d572c051ca3109dabfe360beb144738180d6c964068ea3e58")),
+                          gphBase58CheckDecode(gphBase58CheckEncode("021c7359cd885c0e319924d97e3980206ad64387aff54908241125b3a88b55ca16")),
+                          gphBase58CheckDecode(gphBase58CheckEncode("02f561e0b57a552df3fa1df2d87a906b7a9fc33a83d5d15fa68a644ecb0806b49a")),
+                          gphBase58CheckDecode(gphBase58CheckEncode("03e7595c3e6b58f907bee951dc29796f3757307e700ecf3d09307a0cc4a564eba3"))])
 
     def test_Base58CheckDecode(self):
         self.assertEqual(["02e649f63f8e8121345fd7f47d0d185a3ccaa843115cd2e9392dcd9b82263bc680",
@@ -91,7 +91,7 @@ class Testcases(unittest.TestCase) :
                           base58CheckDecode(base58CheckEncode(0x80, "02f561e0b57a552df3fa1df2d87a906b7a9fc33a83d5d15fa68a644ecb0806b49a")),
                           base58CheckDecode(base58CheckEncode(0x80, "03e7595c3e6b58f907bee951dc29796f3757307e700ecf3d09307a0cc4a564eba3"))])
 
-    def test_Base58(self) :
+    def test_Base58(self):
         self.assertEqual([format(Base58("02b52e04a0acfe611a4b6963462aca94b6ae02b24e321eda86507661901adb49"), "wif"),
                           format(Base58("5b921f7051be5e13e177a0253229903c40493df410ae04f4a450c85568f19131"), "wif"),
                           format(Base58("0e1bfc9024d1f55a7855dc690e45b2e089d2d825a4671a3c3c7e4ea4e74ec00e"), "wif"),

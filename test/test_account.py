@@ -3,7 +3,7 @@ from graphenebase.base58 import Base58
 from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey, PasswordKey
 
 
-class Testcases(unittest.TestCase) :
+class Testcases(unittest.TestCase):
     def test_B85hexgetb58_btc(self):
         self.assertEqual(["5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd",
                           "5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S",
@@ -39,12 +39,12 @@ class Testcases(unittest.TestCase) :
                           format(Base58("6e5cc4653d46e690c709ed9e0570a2c75a286ad7c1bc69a648aae6855d919d3e"), "BTS"),
                           format(Base58("b84abd64d66ee1dd614230ebbe9d9c6d66d78d93927c395196666762e9ad69d8"), "BTS")])
 
-    def test_Adress(self):
-        self.assertEqual([format(Address("BTSFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi"), "BTS"),
-                          format(Address("BTSdXrrTXimLb6TEt3nHnePwFmBT6Cck112"), "BTS"),
-                          format(Address("BTSJQUAt4gz4civ8gSs5srTK4r82F7HvpChk"), "BTS"),
-                          format(Address("BTSFPXXHXXGbyTBwdKoJaAPXRnhFNtTRS4EL"), "BTS"),
-                          format(Address("BTS3qXyZnjJneeAddgNDYNYXbF7ARZrRv5dr"), "BTS"),
+    def test_Address(self):
+        self.assertEqual([format(Address("BTSFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi", prefix="BTS"), "BTS"),
+                          format(Address("BTSdXrrTXimLb6TEt3nHnePwFmBT6Cck112", prefix="BTS"), "BTS"),
+                          format(Address("BTSJQUAt4gz4civ8gSs5srTK4r82F7HvpChk", prefix="BTS"), "BTS"),
+                          format(Address("BTSFPXXHXXGbyTBwdKoJaAPXRnhFNtTRS4EL", prefix="BTS"), "BTS"),
+                          format(Address("BTS3qXyZnjJneeAddgNDYNYXbF7ARZrRv5dr", prefix="BTS"), "BTS"),
                           ],
                          ["BTSFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi",
                           "BTSdXrrTXimLb6TEt3nHnePwFmBT6Cck112",

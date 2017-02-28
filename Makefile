@@ -7,10 +7,7 @@ TAGSTEEM := $(shell git describe master --abbrev=0 | tr "." "-")
 clean: clean-build clean-pyc
 
 clean-build:
-	rm -fr build/
-	rm -fr dist/
-	rm -fr *.egg-info
-	rm -fr __pycache__/
+	rm -fr build/ dist/ *.egg-info .eggs/ .tox/ __pycache__/ .cache/ .coverage htmlcov src
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -18,7 +15,10 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 grapheneapi/ graphenebase/ grapheneextra/
+	flake8 grapheneapi/ graphenebase/
+
+test:
+	python3 setup.py test
 
 build:
 	python3 setup.py build

@@ -8,8 +8,6 @@ try:
 except ImportError:
     raise ImportError("Missing dependency: python-requests")
 
-""" Error Classes """
-
 
 class UnauthorizedError(Exception):
     pass
@@ -21,8 +19,6 @@ class RPCError(Exception):
 
 class RPCConnection(Exception):
     pass
-
-""" API class """
 
 
 class GrapheneAPI(object):
@@ -75,37 +71,7 @@ class GrapheneAPI(object):
         self.port = port
         self.username = username
         self.password = password
-        self.headers  = {'content-type': 'application/json'}
-
-    def _confirm(self, question, default="yes"):
-        """ Confirmation dialog that requires *manual* input.
-
-            :param str question: Question to ask the user
-            :param str default: default answer
-            :return: Choice of the user
-            :rtype: bool
-
-        """
-        valid = {"yes": True, "y": True, "ye": True,
-                 "no": False, "n": False}
-        if default is None:
-            prompt = " [y/n] "
-        elif default == "yes":
-            prompt = " [Y/n] "
-        elif default == "no":
-            prompt = " [y/N] "
-        else:
-            raise ValueError("invalid default answer: '%s'" % default)
-        while True:
-            sys.stdout.write(question + prompt)
-            choice = input().lower()
-            if default is not None and choice == '':
-                return valid[default]
-            elif choice in valid:
-                return valid[choice]
-            else:
-                sys.stdout.write("Please respond with 'yes' or 'no' "
-                                 "(or 'y' or 'n').\n")
+        self.headers = {'content-type': 'application/json'}
 
     def rpcexec(self, payload):
         """ Manual execute a command on API (internally used)
@@ -145,8 +111,6 @@ class GrapheneAPI(object):
             raise ValueError("Client returned invalid format. Expected JSON!")
         except RPCError as err:
             raise err
-#        if isinstance(ret["result"], list) and len(ret["result"]) == 1:
-#            return ret["result"][0]
         else:
             return ret["result"]
 
