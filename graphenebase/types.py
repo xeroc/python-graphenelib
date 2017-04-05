@@ -333,7 +333,7 @@ class VoteId():
 
 
 class ObjectId():
-    """ Encodes object/protocol ids
+    """ Encodes protocol ids - serializes to the *instance* only!
     """
     def __init__(self, object_str, type_verify=None):
         if len(object_str.split(".")) == 3:
@@ -352,6 +352,29 @@ class ObjectId():
 
     def __bytes__(self):
         return bytes(self.instance)  # only yield instance
+
+    def __str__(self):
+        return self.Id
+
+
+class FullObjectId():
+    """ Encodes object ids - serializes to a full object id
+    """
+    def __init__(self, object_str):
+        if len(object_str.split(".")) == 3:
+            space, type, id = object_str.split(".")
+            self.space = int(space)
+            self.type = int(type)
+            self.id = int(id)
+            self.instance = Id(int(id))
+            self.Id = object_str
+        else:
+            raise Exception("Object id is invalid")
+
+    def __bytes__(self):
+        return (
+            self.space << 56 | self.type << 48 | self.id
+        ).to_bytes(8, byteorder="little", signed=False)
 
     def __str__(self):
         return self.Id
