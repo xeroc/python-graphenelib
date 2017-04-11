@@ -287,7 +287,7 @@ class Static_variant():
         return varint(self.type_id) + bytes(self.data)
 
     def __str__(self):
-        return {self._type_id: str(self.data)}
+        return json.dumps([self.type_id, self.data.json()])
 
 
 class Map():
