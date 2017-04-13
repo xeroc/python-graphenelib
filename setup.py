@@ -11,7 +11,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.5.0'
+VERSION = '0.5.1'
 
 setup(
     name='graphenelib',
@@ -20,9 +20,9 @@ setup(
     long_description=open('README.md').read(),
     download_url='https://github.com/xeroc/python-graphenelib/tarball/' + VERSION,
     author='Fabian Schuh',
-    author_email='<Fabian@chainsquad.com>',
+    author_email='Fabian@chainsquad.com',
     maintainer='Fabian Schuh',
-    maintainer_email='<Fabian@chainsquad.com>',
+    maintainer_email='Fabian@chainsquad.com',
     url='http://www.github.com/xeroc/python-graphenelib',
     keywords=[
         'graphene',
@@ -34,10 +34,10 @@ setup(
     packages=["grapheneapi",
               "graphenebase",
               ],
-    install_requires=["ecdsa==0.13",
-                      "requests==2.11.1",
-                      "websocket-client==0.37.0",
-                      "pylibscrypt==1.5.3",
+    install_requires=["ecdsa",
+                      "requests",
+                      "websocket-client",
+                      "pylibscrypt",
                       ],
     classifiers=['License :: OSI Approved :: MIT License',
                  'Operating System :: OS Independent',
