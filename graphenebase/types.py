@@ -50,7 +50,7 @@ def JsonObj(data):
 
 class Uint8():
     def __init__(self, d):
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self):
         return struct.pack("<B", self.data)
@@ -105,7 +105,7 @@ class Uint64():
 
 class Varint32():
     def __init__(self, d):
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self):
         return varint(self.data)
@@ -116,7 +116,7 @@ class Varint32():
 
 class Int64():
     def __init__(self, d):
-        self.data = d
+        self.data = int(d)
 
     def __bytes__(self):
         return struct.pack("<q", self.data)
