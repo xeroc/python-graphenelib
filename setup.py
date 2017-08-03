@@ -38,6 +38,7 @@ setup(
                       "requests",
                       "websocket-client",
                       "pylibscrypt",
+                      "pycrypto",
                       ],
     classifiers=['License :: OSI Approved :: MIT License',
                  'Operating System :: OS Independent',
