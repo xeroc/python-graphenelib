@@ -373,3 +373,18 @@ class FullObjectId():
 
     def __str__(self):
         return self.Id
+
+
+class Enum8(Uint8):
+    def __init__(self, selection):
+        assert selection in self.options or \
+            isinstance(selection, int) and len(self.options) < selection, \
+            "Options are %s. Given '%s'" % (
+                self.options, selection)
+        if selection in self.options:
+            super(Enum, self).__init__(self.options.index(selection))
+        else:
+            super(Enum, self).__init__(selection)
+
+    def __str__(self):
+        return str(self.options[self.data])
