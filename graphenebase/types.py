@@ -1,11 +1,10 @@
-from binascii import hexlify, unhexlify
+import json
+import struct
 import time
 from calendar import timegm
 from datetime import datetime
-import struct
+from binascii import hexlify, unhexlify
 from collections import OrderedDict
-import json
-
 from .objecttypes import object_type
 
 timeformat = '%Y-%m-%dT%H:%M:%S%Z'
@@ -200,16 +199,10 @@ class Array():
     def __str__(self):
         r = []
         for a in self.data:
-            if isinstance(a, ObjectId):
-                r.append(str(a))
-            elif isinstance(a, VoteId):
-                r.append(str(a))
-            elif isinstance(a, String):
-                r.append(str(a))
-            elif isinstance(a, FullObjectId):
-                r.append(str(a))
-            else:
+            try:
                 r.append(JsonObj(a))
+            except:
+                r.append(str(a))
         return json.dumps(r)
 
 
@@ -380,3 +373,18 @@ class FullObjectId():
 
     def __str__(self):
         return self.Id
+
+
+class Enum8(Uint8):
+    def __init__(self, selection):
+        assert selection in self.options or \
+            isinstance(selection, int) and len(self.options) < selection, \
+            "Options are %s. Given '%s'" % (
+                self.options, selection)
+        if selection in self.options:
+            super(Enum, self).__init__(self.options.index(selection))
+        else:
+            super(Enum, self).__init__(selection)
+
+    def __str__(self):
+        return str(self.options[self.data])

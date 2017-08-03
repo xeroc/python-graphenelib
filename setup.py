@@ -11,7 +11,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.5.2'
+VERSION = '0.5.3'
 
 setup(
     name='graphenelib',
@@ -38,6 +38,7 @@ setup(
                       "requests",
                       "websocket-client",
                       "pylibscrypt",
+                      "pycrypto",
                       ],
     classifiers=['License :: OSI Approved :: MIT License',
                  'Operating System :: OS Independent',
