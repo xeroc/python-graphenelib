@@ -233,7 +233,7 @@ class Bool(Uint8):  # Bool = Uint8
         super().__init__(d)
 
     def __str__(self):
-        return True if self.data else False
+        return json.dumps(True) if self.data else json.dumps(False)
 
 
 class Set(Array):  # Set = Array
