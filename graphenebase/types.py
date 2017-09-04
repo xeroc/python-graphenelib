@@ -233,7 +233,7 @@ class Bool(Uint8):  # Bool = Uint8
         super().__init__(d)
 
     def __str__(self):
-        return True if self.data else False
+        return json.dumps(True) if self.data else json.dumps(False)
 
 
 class Set(Array):  # Set = Array
@@ -382,9 +382,9 @@ class Enum8(Uint8):
             "Options are %s. Given '%s'" % (
                 self.options, selection)
         if selection in self.options:
-            super(Enum, self).__init__(self.options.index(selection))
+            super(Enum8, self).__init__(self.options.index(selection))
         else:
-            super(Enum, self).__init__(selection)
+            super(Enum8, self).__init__(selection)
 
     def __str__(self):
         return str(self.options[self.data])
