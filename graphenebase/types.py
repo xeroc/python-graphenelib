@@ -201,7 +201,7 @@ class Array():
         for a in self.data:
             try:
                 r.append(JsonObj(a))
-            except:
+            except Exception:
                 r.append(str(a))
         return json.dumps(r)
 

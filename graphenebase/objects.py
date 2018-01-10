@@ -29,7 +29,7 @@ class Operation():
             self.name = name[0].upper() + name[1:]  # klassname
             try:
                 klass = self._getklass(self.name)
-            except:
+            except Exception:
                 raise NotImplementedError("Unimplemented Operation %s" % self.name)
             self.op = klass(op[1])
         else:
@@ -97,7 +97,7 @@ class GrapheneObject(object):
             else:
                 try:
                     d.update({name: JsonObj(value)})
-                except:
+                except Exception:
                     d.update({name: value.__str__()})
         return d
 
