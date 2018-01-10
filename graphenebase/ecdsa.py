@@ -11,7 +11,7 @@ try:
     import secp256k1
     USE_SECP256K1 = True
     log.debug("Loaded secp256k1 binding.")
-except:
+except Exception:
     USE_SECP256K1 = False
     log.debug("To speed up transactions signing install \n"
               "    pip install secp256k1")

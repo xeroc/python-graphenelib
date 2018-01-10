@@ -84,7 +84,7 @@ class GrapheneWebsocketRPC(object):
                 break
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception:
                 if (self.num_retries >= 0 and cnt > self.num_retries):
                     raise NumRetriesReached()
 
@@ -123,7 +123,7 @@ class GrapheneWebsocketRPC(object):
                 break
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception:
                 if (self.num_retries > -1 and
                         cnt > self.num_retries):
                     raise NumRetriesReached()
@@ -142,7 +142,7 @@ class GrapheneWebsocketRPC(object):
                     time.sleep(sleeptime)
                     self.wsconnect()
                     self.register_apis()
-                except:
+                except Exception:
                     pass
 
         ret = {}
