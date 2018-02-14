@@ -38,7 +38,7 @@ setup(
                       "requests",
                       "websocket-client",
                       "pylibscrypt",
-                      "pycryptodome|pycryptodomex",
+                      "pycryptodome",
                       ],
     classifiers=['License :: OSI Approved :: MIT License',
                  'Operating System :: OS Independent',
