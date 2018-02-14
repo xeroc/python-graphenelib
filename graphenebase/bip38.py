@@ -7,10 +7,10 @@ import logging
 log = logging.getLogger(__name__)
 
 try:
-    from Crypto.Cipher import AES
+    from Cryptodome.Cipher import AES
 except ImportError:
     try:
-        from Cryptodome.Cipher import AES
+        from Crypto.Cipher import AES
     except ImportError:
         raise ImportError("Missing dependency: pyCryptodome")
 
