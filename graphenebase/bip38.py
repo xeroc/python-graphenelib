@@ -1,9 +1,9 @@
+import sys
+import logging
 import hashlib
 from binascii import hexlify, unhexlify
-import sys
 from .account import PrivateKey
 from .base58 import Base58, base58decode
-import logging
 log = logging.getLogger(__name__)
 
 try:
@@ -30,9 +30,6 @@ if not SCRYPT_MODULE:
 
 log.debug("Using scrypt module: %s" % SCRYPT_MODULE)
 
-""" This class and the methods require python3 """
-assert sys.version_info[0] == 3, "graphenelib requires python3"
-
 
 class SaltException(Exception):
     pass
@@ -56,7 +53,10 @@ def encrypt(privkey, passphrase):
     """
     privkeyhex = repr(privkey)   # hex
     addr = format(privkey.uncompressed.address, "BTC")
-    a = bytes(addr, 'ascii')
+    if sys.version > '3':
+        a = bytes(addr, 'ascii')
+    else:
+        a = bytes(addr).encode('ascii')
     salt = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
     if SCRYPT_MODULE == "scrypt":
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
@@ -115,7 +115,10 @@ def decrypt(encrypted_privkey, passphrase):
     """ Verify Salt """
     privkey = PrivateKey(format(wif, "wif"))
     addr = format(privkey.uncompressed.address, "BTC")
-    a = bytes(addr, 'ascii')
+    if sys.version > '3':
+        a = bytes(addr, 'ascii')
+    else:
+        a = bytes(addr).encode('ascii')
     saltverify = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
     if saltverify != salt:
         raise SaltException('checksum verification failed! Password may be incorrect.')

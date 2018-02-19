@@ -1,10 +1,11 @@
+import sys
 import time
 import ecdsa
 import hashlib
 import struct
 import logging
-from binascii import hexlify, unhexlify
-from .account import PrivateKey, PublicKey
+from binascii import hexlify
+from .account import PrivateKey
 log = logging.getLogger(__name__)
 
 try:
@@ -18,17 +19,21 @@ except Exception:
 
 
 def _is_canonical(sig):
-    return (not (sig[0] & 0x80) and
-            not (sig[0] == 0 and not (sig[1] & 0x80)) and
-            not (sig[32] & 0x80) and
-            not (sig[32] == 0 and not (sig[33] & 0x80)))
+    sig = bytearray(sig)
+    return (not (int(sig[0]) & 0x80) and
+            not (sig[0] == 0 and not (int(sig[1]) & 0x80)) and
+            not (int(sig[32]) & 0x80) and
+            not (sig[32] == 0 and not (int(sig[33]) & 0x80)))
 
 
 def compressedPubkey(pk):
     order = pk.curve.generator.order()
     p = pk.pubkey.point
     x_str = ecdsa.util.number_to_string(p.x(), order)
-    return bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str
+    if sys.version > '3':
+        return bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str
+    else:
+        return bytes(chr(2 + (p.y() & 1))).encode("ascii") + x_str
 
 
 def recover_public_key(digest, signature, i):
@@ -88,7 +93,11 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
 
     digest = hashfn(message).digest()
 
-    p = bytes(PrivateKey(wif))
+    if sys.version > '3':
+        p = bytes(PrivateKey(wif))
+    else:
+        p = bytes(PrivateKey(wif).__bytes__())
+
     if USE_SECP256K1:
         ndata = secp256k1.ffi.new("const int *ndata")
         ndata[0] = 0
@@ -143,6 +152,7 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
 
             # Make sure signature is canonical!
             #
+            sigder = bytearray(sigder)
             lenR = sigder[3]
             lenS = sigder[5 + lenR]
             if lenR is 32 and lenS is 32:
@@ -171,7 +181,7 @@ def verify_message(message, signature, hashfn=hashlib.sha256):
     assert isinstance(signature, bytes)
     digest = hashfn(message).digest()
     sig = signature[1:]
-    recoverParameter = (signature[0]) - 4 - 27  # recover parameter only
+    recoverParameter = bytearray(signature)[0] - 4 - 27  # recover parameter only
 
     if USE_SECP256K1:
         ALL_FLAGS = secp256k1.lib.SECP256K1_CONTEXT_VERIFY | secp256k1.lib.SECP256K1_CONTEXT_SIGN

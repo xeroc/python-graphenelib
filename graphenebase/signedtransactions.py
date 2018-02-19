@@ -1,11 +1,9 @@
-import time
 import ecdsa
 import hashlib
 from binascii import hexlify, unhexlify
-import struct
 from collections import OrderedDict
 
-from .account import PrivateKey, PublicKey
+from .account import PublicKey
 from .types import (
     Array,
     Set,
@@ -17,7 +15,7 @@ from .types import (
 from .objects import GrapheneObject, isArgsThisClass
 from .operations import Operation
 from .chains import known_chains
-from .ecdsa import sign_message, verify_message
+from .ecdsasig import sign_message, verify_message
 import logging
 log = logging.getLogger(__name__)
 

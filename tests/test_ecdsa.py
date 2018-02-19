@@ -1,5 +1,5 @@
 import unittest
-from graphenebase.ecdsa import (
+from graphenebase.ecdsasig import (
     sign_message,
     verify_message
 )
@@ -13,3 +13,7 @@ class Testcases(unittest.TestCase):
     def test_sign_message(self):
         signature = sign_message("Foobar", wif)
         self.assertTrue(verify_message("Foobar", signature))
+
+
+if __name__ == '__main__':
+    unittest.main()
