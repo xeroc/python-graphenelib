@@ -7,9 +7,12 @@ import logging
 log = logging.getLogger(__name__)
 
 try:
-    from Crypto.Cipher import AES
+    from Cryptodome.Cipher import AES
 except ImportError:
-    raise ImportError("Missing dependency: pycrypto")
+    try:
+        from Crypto.Cipher import AES
+    except ImportError:
+        raise ImportError("Missing dependency: pyCryptodome")
 
 SCRYPT_MODULE = None
 if not SCRYPT_MODULE:
