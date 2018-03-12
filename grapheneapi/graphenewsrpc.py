@@ -48,7 +48,7 @@ class GrapheneWebsocketRPC(object):
                   subsystem, please use ``GrapheneWebsocket`` instead.
 
     """
-    def __init__(self, urls, user="", password="", **kwargs):
+    def __init__(self, urls, user=None, password=None, **kwargs):
         self.api_id = {}
         self._request_id = 0
         if isinstance(urls, list):
@@ -82,19 +82,21 @@ class GrapheneWebsocketRPC(object):
                 break
             except KeyboardInterrupt:
                 raise
-            except Exception:
-                if (self.num_retries >= 0 and cnt > self.num_retries):
+            except Exception as e:
+                log.warning(str(e))
+                if (self.num_retries > -1 and
+                        cnt > self.num_retries):
                     raise NumRetriesReached()
-
                 sleeptime = (cnt - 1) * 2 if cnt < 10 else 10
                 if sleeptime:
                     log.warning(
-                        "Lost connection to node during wsconnect(): "
-                        "%s (%d/%d) " % (self.url, cnt, self.num_retries) +
+                        "Lost connection to node during rpcexec(): %s (%d/%d) "
+                        % (self.url, cnt, self.num_retries) +
                         "Retrying in %d seconds" % sleeptime
                     )
                     time.sleep(sleeptime)
-        self.login(self.user, self.password, api_id=1)
+        if self.user and self.password:
+            self.login(self.user, self.password, api_id=1)
 
     def register_apis(self):
         """

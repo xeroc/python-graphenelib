@@ -3,7 +3,10 @@ import time
 import logging
 from itertools import cycle
 import requests
+import urllib3
 log = logging.getLogger(__name__)
+
+# urllib3.disable_warnings()
 
 
 class RPCError(Exception):
@@ -61,12 +64,11 @@ class GrapheneHTTPRPC(object):
         cnt = 0
         while True:
             cnt += 1
-
-            url = next(self.urls)
+            self.url = next(self.urls)
 
             try:
                 query = requests.post(
-                    url,
+                    self.url,
                     json=payload
                 )
                 if query.status_code != 200:
@@ -74,10 +76,8 @@ class GrapheneHTTPRPC(object):
                 break
             except KeyboardInterrupt:
                 raise
-            except:
-                # Try next server
-                url = next(self.urls)
-
+            except Exception as e:
+                log.warning(str(e))
                 if (self.num_retries > -1 and
                         cnt > self.num_retries):
                     raise NumRetriesReached()
