@@ -1,8 +1,13 @@
-import ecdsa
+from __future__ import absolute_import
 import hashlib
+import logging
+
+# We load 'ecdsa' from installation and .ecdsa from relative
+import ecdsa
+from .ecdsa import sign_message, verify_message
+
 from binascii import hexlify, unhexlify
 from collections import OrderedDict
-
 from .account import PublicKey
 from .types import (
     Array,
@@ -15,8 +20,6 @@ from .types import (
 from .objects import GrapheneObject, isArgsThisClass
 from .operations import Operation
 from .chains import known_chains
-from .ecdsasig import sign_message, verify_message
-import logging
 log = logging.getLogger(__name__)
 
 try:
