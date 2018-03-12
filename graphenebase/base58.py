@@ -5,9 +5,6 @@ import string
 import logging
 log = logging.getLogger(__name__)
 
-""" This class and the methods require python3 """
-assert sys.version_info[0] == 3, "graphenelib requires python3"
-
 """ Default Prefix """
 PREFIX = "GPH"
 
@@ -110,7 +107,10 @@ BASE58_ALPHABET = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 
 def base58decode(base58_str):
-    base58_text = bytes(base58_str, "ascii")
+    if sys.version > '3':
+        base58_text = bytes(base58_str, "ascii")
+    else:
+        base58_text = base58_str.encode("ascii")
     n = 0
     leading_zeroes_count = 0
     for b in base58_text:
@@ -128,7 +128,10 @@ def base58decode(base58_str):
 
 
 def base58encode(hexstring):
-    byteseq = bytes(unhexlify(bytes(hexstring, 'ascii')))
+    if sys.version > '3':
+        byteseq = bytes(unhexlify(bytes(hexstring, 'ascii')))
+    else:
+        byteseq = bytearray(unhexlify(hexstring.decode("ascii")))
     n = 0
     leading_zeroes_count = 0
     for c in byteseq:

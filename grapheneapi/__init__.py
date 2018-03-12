@@ -2,5 +2,6 @@ __all__ = ['graphenewsprotocol',
            'graphenews',
            'grapheneapi',
            'grapheneclient',
-           'graphenewsrpc'
+           'graphenewsrpc',
+           'graphenehttprpc'
            ]

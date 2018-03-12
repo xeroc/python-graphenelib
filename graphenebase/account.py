@@ -1,15 +1,13 @@
-import ecdsa
 import hashlib
-from binascii import hexlify, unhexlify
 import sys
 import re
 import os
 
+from binascii import hexlify, unhexlify
 from .base58 import ripemd160, Base58
 from .dictionary import words as BrainKeyDictionary
 
-""" This class and the methods require python3 """
-assert sys.version_info[0] == 3, "graphenelib requires python3"
+import ecdsa
 
 
 class PasswordKey(object):
@@ -28,9 +26,10 @@ class PasswordKey(object):
         """ Derive private key from the brain key and the current sequence
             number
         """
-        a = bytes(self.account +
-                  self.role +
-                  self.password, 'utf8')
+        if sys.version > '3':
+            a = bytes(self.account + self.role + self.password, 'utf8')
+        else:
+            a = bytes(self.account + self.role + self.password).encode('utf8')
         s = hashlib.sha256(a).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
@@ -95,7 +94,10 @@ class BrainKey(object):
             number
         """
         encoded = "%s %d" % (self.brainkey, self.sequence)
-        a = bytes(encoded, 'ascii')
+        if sys.version > '3':
+            a = bytes(encoded, 'ascii')
+        else:
+            a = bytes(encoded).encode('ascii')
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
@@ -319,8 +321,10 @@ class PrivateKey(PublicKey):
         p = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).verifying_key.pubkey.point
         x_str = ecdsa.util.number_to_string(p.x(), order)
         y_str = ecdsa.util.number_to_string(p.y(), order)
-        compressed = hexlify(bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str).decode('ascii')
-        uncompressed = hexlify(bytes(chr(4), 'ascii') + x_str + y_str).decode('ascii')
+        compressed = hexlify(
+            chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
+        uncompressed = hexlify(
+            chr(4).encode('ascii') + x_str + y_str).decode('ascii')
         return([compressed, uncompressed])
 
     def __format__(self, _format):
@@ -341,4 +345,7 @@ class PrivateKey(PublicKey):
 
     def __bytes__(self):
         """ Returns the raw private key """
-        return bytes(self._wif)
+        if sys.version > '3':
+            return bytes(self._wif)
+        else:
+            return self._wif.__bytes__()

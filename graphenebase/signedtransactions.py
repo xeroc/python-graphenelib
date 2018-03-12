@@ -1,11 +1,14 @@
-import time
-import ecdsa
+from __future__ import absolute_import
 import hashlib
-from binascii import hexlify, unhexlify
-import struct
-from collections import OrderedDict
+import logging
 
-from .account import PrivateKey, PublicKey
+# We load 'ecdsa' from installation and .ecdsa from relative
+import ecdsa
+from .ecdsa import sign_message, verify_message
+
+from binascii import hexlify, unhexlify
+from collections import OrderedDict
+from .account import PublicKey
 from .types import (
     Array,
     Set,
@@ -17,8 +20,6 @@ from .types import (
 from .objects import GrapheneObject, isArgsThisClass
 from .operations import Operation
 from .chains import known_chains
-from .ecdsa import sign_message, verify_message
-import logging
 log = logging.getLogger(__name__)
 
 try:
