@@ -1,10 +1,8 @@
 import pytest
 import unittest
-from graphenebase.ecdsa import (
-    sign_message,
-    verify_message
-)
-
+from binascii import hexlify, unhexlify
+import graphenebase.ecdsa as ecdsa
+from graphenebase.account import PrivateKey, PublicKey, Address
 
 wif = "5J4KCbg1G3my9b9hCaQXnHSm6vrwW9xQTJS6ZciW2Kek7cCkCEk"
 
@@ -15,8 +13,28 @@ class Testcases(unittest.TestCase):
     # https://www.reddit.com/r/joinmarket/comments/5crhfh/userwarning_implicit_cast_from_char_to_a/
     @pytest.mark.filterwarnings()
     def test_sign_message(self):
-        signature = sign_message("Foobar", wif)
-        self.assertTrue(verify_message("Foobar", signature))
+        pub_key = bytes(repr(PrivateKey(wif).pubkey), "latin")
+        signature = ecdsa.sign_message("Foobar", wif)
+        pub_key_sig = ecdsa.verify_message("Foobar", signature)
+        self.assertEqual(hexlify(pub_key_sig), pub_key)
+
+    def test_sign_message_cryptography(self):
+        if not ecdsa.CRYPTOGRAPHY_AVAILABLE:
+            return
+        ecdsa.SECP256K1_MODULE = "cryptography"        
+        pub_key = bytes(repr(PrivateKey(wif).pubkey), "latin")
+        signature = ecdsa.sign_message("Foobar", wif)
+        pub_key_sig = ecdsa.verify_message("Foobar", signature)
+        self.assertEqual(hexlify(pub_key_sig), pub_key)
+
+    def test_sign_message_secp256k1(self):
+        if not ecdsa.SECP256K1_AVAILABLE:
+            return
+        ecdsa.SECP256K1_MODULE = "secp256k1"      
+        pub_key = bytes(repr(PrivateKey(wif).pubkey), "latin")
+        signature = ecdsa.sign_message("Foobar", wif)
+        pub_key_sig = ecdsa.verify_message("Foobar", signature)
+        self.assertEqual(hexlify(pub_key_sig), pub_key)
 
 
 if __name__ == '__main__':
