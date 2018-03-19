@@ -1,6 +1,6 @@
 import pytest
 import unittest
-from graphenebase.ecdsasig import (
+from graphenebase.ecdsa import (
     sign_message,
     verify_message
 )
