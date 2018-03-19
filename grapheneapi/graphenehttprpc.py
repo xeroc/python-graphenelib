@@ -1,24 +1,13 @@
 import json
 import time
 import logging
-from itertools import cycle
 import requests
-import urllib3
+from itertools import cycle
+from .exceptions import (
+    RPCError,
+    NumRetriesReached
+)
 log = logging.getLogger(__name__)
-
-# urllib3.disable_warnings()
-
-
-class RPCError(Exception):
-    pass
-
-
-class RPCRequestError(Exception):
-    pass
-
-
-class NumRetriesReached(Exception):
-    pass
 
 
 class GrapheneHTTPRPC(object):
