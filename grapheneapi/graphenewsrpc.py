@@ -3,16 +3,12 @@ import ssl
 import json
 import time
 import logging
+from .exceptions import (
+    RPCError,
+    NumRetriesReached
+)
 from itertools import cycle
 log = logging.getLogger(__name__)
-
-
-class RPCError(Exception):
-    pass
-
-
-class NumRetriesReached(Exception):
-    pass
 
 
 class GrapheneWebsocketRPC(object):
