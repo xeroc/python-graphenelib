@@ -39,6 +39,9 @@ class GrapheneHTTPRPC(object):
         self._request_id += 1
         return self._request_id
 
+    def next(self):
+        self.url = next(self.urls)
+
     """ RPC Calls
     """
     def rpcexec(self, payload):

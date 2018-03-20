@@ -62,6 +62,15 @@ class GrapheneWebsocketRPC(object):
         self._request_id += 1
         return self._request_id
 
+    def next(self):
+        if self.ws:
+            try:
+                self.ws.close()
+            except:
+                pass
+        self.wsconnect()
+        self.register_apis()
+
     def wsconnect(self):
         cnt = 0
         while True:
