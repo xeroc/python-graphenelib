@@ -1,5 +1,5 @@
 import websocket
-import ssl
+# import ssl
 import json
 import time
 import logging
@@ -78,7 +78,7 @@ class GrapheneWebsocketRPC(object):
             self.url = next(self.urls)
             log.debug("Trying to connect to node %s" % self.url)
             if self.url[:3] == "wss":
-                sslopt_ca_certs = {'cert_reqs': ssl.CERT_NONE}
+                sslopt_ca_certs = {}  # {'cert_reqs': ssl.CERT_NONE}
                 self.ws = websocket.WebSocket(sslopt=sslopt_ca_certs)
             else:
                 self.ws = websocket.WebSocket()
