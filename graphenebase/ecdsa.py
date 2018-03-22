@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import sys
 import time
 import ecdsa
@@ -59,7 +61,10 @@ def compressedPubkey(pk):
         x = p.x()
         y = p.y()
     x_str = ecdsa.util.number_to_string(x, order)
-    return bytes(chr(2 + (y & 1)), 'ascii') + x_str
+    if sys.version > '3':
+        return bytes(chr(2 + (y & 1)), 'ascii') + x_str
+    else:
+        return bytes(chr(2 + (y & 1))).encode("ascii") + x_str
 
 
 def recover_public_key(digest, signature, i, message=None):
@@ -143,8 +148,12 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
 
     digest = hashfn(message).digest()
     priv_key = PrivateKey(wif)
-    if SECP256K1_MODULE == "secp256k1":
+    if sys.version > '3':
         p = bytes(priv_key)
+    else:
+        p = bytes(priv_key.__bytes__())
+
+    if SECP256K1_MODULE == "secp256k1":
         ndata = secp256k1.ffi.new("const int *ndata")
         ndata[0] = 0
         while True:
@@ -195,7 +204,6 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
                 break
     else:
         cnt = 0
-        p = bytes(priv_key)
         sk = ecdsa.SigningKey.from_string(p, curve=ecdsa.SECP256k1)
         while 1:
             cnt += 1
