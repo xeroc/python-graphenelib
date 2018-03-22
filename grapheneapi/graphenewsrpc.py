@@ -66,7 +66,7 @@ class GrapheneWebsocketRPC(object):
         if self.ws:
             try:
                 self.ws.close()
-            except:
+            except Exception:
                 pass
         self.wsconnect()
         self.register_apis()
