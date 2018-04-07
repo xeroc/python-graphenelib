@@ -1,4 +1,5 @@
 import websocket
+import urllib
 import ssl
 import json
 import time
@@ -24,6 +25,10 @@ class GrapheneWebsocketRPC(object):
         :param Array apis: List of APIs to register to
         :param int num_retries: Try x times to num_retries to a node on
                disconnect, -1 for indefinitely
+        :param str proxy: Proxy url (e.g. socks5://localhost:9050),
+               None by default. NOTE: relies on underlying websocket
+               implementation to support the various proxy types,
+               at the moment only 'http' type is supported reliably.
 
         Available APIs
 
@@ -51,6 +56,7 @@ class GrapheneWebsocketRPC(object):
             self.urls = cycle(urls)
         else:
             self.urls = cycle([urls])
+        self.prepare_proxy(kwargs)
         self.user = user
         self.password = password
         self.num_retries = kwargs.get("num_retries", -1)
@@ -71,6 +77,31 @@ class GrapheneWebsocketRPC(object):
         self.wsconnect()
         self.register_apis()
 
+    def prepare_proxy(self, options):
+        proxy_url = options.pop("proxy", None)
+        if proxy_url:
+            url = urllib.parse.urlparse(proxy_url)
+            self.proxy_host = url.hostname
+            self.proxy_port = url.port
+            self.proxy_type = url.scheme.lower()
+            self.proxy_user = url.username
+            self.proxy_pass = url.password
+            self.proxy_rdns = True
+            if not(url.scheme.endswith('h')):
+                self.proxy_rdns = False
+            else:
+                self.proxy_type = self.proxy_type[0:len(self.proxy_type)-1]
+        else:
+            # Defaults (tweakable)
+            self.proxy_host = options.pop("proxy_host", None)
+            self.proxy_port = options.pop("proxy_port", 80)
+            self.proxy_type = options.pop("proxy_type", 'http')
+            self.proxy_user = options.pop("proxy_user", None)
+            self.proxy_pass = options.pop("proxy_pass", None)
+            self.proxy_rdns = False
+
+        log.info("Using proxy %s:%d %s" % (self.proxy_host, self.proxy_port, self.proxy_type))
+
     def wsconnect(self):
         cnt = 0
         while True:
@@ -84,7 +115,12 @@ class GrapheneWebsocketRPC(object):
             else:
                 self.ws = websocket.WebSocket()
             try:
-                self.ws.connect(self.url)
+                self.ws.connect(self.url,
+                    http_proxy_host = self.proxy_host,
+                    http_proxy_port = self.proxy_port,
+                    http_proxy_auth = (self.proxy_user,self.proxy_pass) if self.proxy_user else None,
+                    proxy_type = self.proxy_type
+                )
                 break
             except KeyboardInterrupt:
                 raise
