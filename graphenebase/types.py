@@ -35,6 +35,22 @@ def varintdecode(data):
     return result
 
 
+def varintdecode2(data):
+    """ Varint decoding (with length counting)
+    """
+    nbytes = 0
+    shift = 0
+    result = 0
+    for c in data:
+        b = c # ord(c) not needed, `data` is bytes
+        result |= ((b & 0x7f) << shift)
+        nbytes += 1
+        if not (b & 0x80):
+            break
+        shift += 7
+    return result, nbytes
+
+
 def variable_buffer(s):
     """ Encode variable length buffer
     """
@@ -90,6 +106,11 @@ class Uint32():
     def __str__(self):
         return '%d' % self.data
 
+    @staticmethod
+    def _readwire(d):
+       val = struct.unpack("<I", d[:4]) [0]
+       return Uint32( val ), d[4:]
+
 
 class Uint64():
     def __init__(self, d):
@@ -122,6 +143,12 @@ class Int64():
 
     def __str__(self):
         return '%d' % self.data
+
+    @staticmethod
+    def _readwire(d):
+       val = struct.unpack("<q", d[:8]) [0]
+       d = d[8:]
+       return Int64( val ), d
 
 
 class String():
@@ -159,6 +186,12 @@ class String():
                 r.append(s)
         return bytes("".join(r), "utf-8")
 
+    @staticmethod
+    def _readwire(d):
+        vallen, lenlen = varintdecode2(d)
+        d = d[lenlen:]
+        val = d[:vallen]
+        return String(val), d[vallen:]
 
 class Bytes():
     def __init__(self, d, length=None):
@@ -175,6 +208,16 @@ class Bytes():
 
     def __str__(self):
         return str(self.data)
+
+    def __json__(self):
+        return str(self)
+
+    @staticmethod
+    def _readwire(d):
+        vallen, lenlen = varintdecode2(d)
+        d = d[lenlen:]
+        val = d[:vallen]
+        return Bytes(val, vallen), d[vallen:]
 
 
 class Void():
@@ -270,6 +313,13 @@ class Optional():
             return True
         return not bool(bytes(self.data))
 
+    @staticmethod
+    def _readwire(d, stype, **skwargs):
+        b = d[0] #int(unhexlify(d[0:2]))
+        if not b:
+            return Optional(None), d[1:]
+        v, d = stype._readwire(d[1:], **skwargs)
+        return Optional(v), d
 
 class Static_variant():
     def __init__(self, d, type_id):
@@ -350,6 +400,11 @@ class ObjectId():
 
     def __str__(self):
         return self.Id
+
+    @staticmethod
+    def _readwire(d, prefix="1.2."):
+        val, vallen = varintdecode2(d)
+        return ObjectId(prefix + str(val)), d[vallen:]
 
 
 class FullObjectId():
