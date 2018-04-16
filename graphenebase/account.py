@@ -329,6 +329,42 @@ class PrivateKey(PublicKey):
             chr(4).encode('ascii') + x_str + y_str).decode('ascii')
         return([compressed, uncompressed])
 
+    def get_secret(self):
+        """ Get sha256 digest of the wif key.
+        """
+        return hashlib.sha256(bytes(self)).digest()
+
+    def derive_private_key(self, sequence):
+        """ Derive new private key from this private key and an arbitrary
+            sequence number
+        """
+        encoded = "%s %d" % (str(self), sequence)
+        a = bytes(encoded, 'ascii')
+        s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
+        return PrivateKey(hexlify(s).decode('ascii'), prefix=self.pubkey.prefix)
+
+    def child(self, offset256):
+        """ Derive new private key from this key and a sha256 "offset"
+        """
+        a = bytes(self.pubkey) + offset256
+        s = hashlib.sha256(a).digest()
+        return self.derive_from_seed(s)
+
+    def derive_from_seed(self, offset):
+        """ Derive private key using "generate_from_seed" method.
+            Here, the key itself serves as a `seed`, and `offset`
+            is expected to be a sha256 digest.
+        """
+        seed = int(hexlify( bytes(self) ).decode('ascii'), 16)
+        z = int(hexlify( offset ).decode('ascii'), 16)
+        order = ecdsa.SECP256k1.order
+
+        secexp = (seed + z) % order
+
+        secret = "%0x" % secexp
+        return PrivateKey(secret, prefix=self.pubkey.prefix)
+
+
     def __format__(self, _format):
         """ Formats the instance of:doc:`Base58 <base58>` according to
             ``_format``
