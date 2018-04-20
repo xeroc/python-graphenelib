@@ -34,12 +34,13 @@ class GrapheneHTTPRPC(object):
         else:
             self.urls = cycle([urls])
         self.num_retries = kwargs.get("num_retries", -1)
+        self.trynext()
 
     def get_request_id(self):
         self._request_id += 1
         return self._request_id
 
-    def next(self):
+    def trynext(self):
         self.url = next(self.urls)
 
     """ RPC Calls
@@ -56,7 +57,6 @@ class GrapheneHTTPRPC(object):
         cnt = 0
         while True:
             cnt += 1
-            self.url = next(self.urls)
 
             try:
                 query = requests.post(
@@ -81,6 +81,8 @@ class GrapheneHTTPRPC(object):
                         "Retrying in %d seconds" % sleeptime
                     )
                     time.sleep(sleeptime)
+
+                self.trynext()
 
         ret = {}
         try:
