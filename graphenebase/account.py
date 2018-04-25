@@ -259,6 +259,15 @@ class PublicKey(Address):
         string = unhexlify(self.unCompressed())
         return ecdsa.VerifyingKey.from_string(string[1:], curve=ecdsa.SECP256k1).pubkey.point
 
+    def child(self, offset256):
+        a = bytes(self) + offset256
+        s = hashlib.sha256(a).digest()
+        return self.add(s)
+
+    def add(self, digest256):
+        from .ecdsa import tweakaddPubkey
+        return tweakaddPubkey(self, digest256)
+
     def __repr__(self):
         """ Gives the hex representation of the Graphene public key. """
         return repr(self._pk)
