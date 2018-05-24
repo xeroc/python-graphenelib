@@ -108,10 +108,21 @@ class Signed_Transaction(GrapheneObject):
         return known_chains
 
     def getChainParams(self, chain):
+        # chain may be an identifier, the chainid, or the prefix
+        # ultimately, we need to be able to identify the chain id
+        def find_in_known_chains(identifier):
+            chains = self.getKnownChains()
+            for _id, chain in chains.items():
+                if _id == identifier:
+                    return chain
+                for key, value in chain.items():
+                    if value == identifier:
+                        return chain
+
         # Which network are we on:
-        chains = self.getKnownChains()
-        if isinstance(chain, str) and chain in chains:
-            chain_params = chains[chain]
+        my_chain = find_in_known_chains(chain)
+        if my_chain:
+            chain_params = my_chain
         elif isinstance(chain, dict):
             chain_params = chain
         else:
