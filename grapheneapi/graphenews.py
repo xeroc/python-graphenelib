@@ -1,4 +1,8 @@
 import warnings
+from .exceptions import (
+    RPCError,
+    NumRetriesReached
+)
 
 
 class GrapheneWebsocket():
