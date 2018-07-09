@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class Api:
-    def __init__(self, urls, user, password, **kwargs):
+    def __init__(self, urls, user="", password="", **kwargs):
 
         self._connections = dict()
         self._url_counter = Counter()

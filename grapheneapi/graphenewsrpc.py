@@ -1,11 +1,11 @@
-from .websocket import Websocket
+from .api import Api
 from .exceptions import (
     RPCError,
     NumRetriesReached
 )
 
 
-class GrapheneWebsocketRPC(Websocket):
+class GrapheneWebsocketRPC(Api):
     """ deprecated
     """
     pass

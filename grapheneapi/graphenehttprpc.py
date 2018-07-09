@@ -1,11 +1,11 @@
-from .http import Http
+from .api import Api
 from .exceptions import (
     RPCError,
     NumRetriesReached
 )
 
 
-class GrapheneHTTPRPC(Http):
+class GrapheneHTTPRPC(Api):
     """ Deprecated
     """
     pass
