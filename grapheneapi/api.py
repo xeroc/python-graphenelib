@@ -30,6 +30,14 @@ class Api:
         self._active_url = None
         self.connect()
 
+    # Get chain parameters
+    @property
+    def chain_params(self):
+        return self.get_network()
+
+    def get_network(self):
+        pass
+
     @property
     def api_id(self):
         return self.connection.api_id
