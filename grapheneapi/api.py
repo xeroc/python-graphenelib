@@ -31,6 +31,10 @@ class Api:
         self.connect()
 
     @property
+    def api_id(self):
+        return self.connection.api_id
+
+    @property
     def connection(self):
         if self._active_url != self.url:
             if self.url[:2] == "ws":
@@ -47,7 +51,10 @@ class Api:
             self.error_url()
             self.next()
         self._active_url = self.url
-        self.connection.register_apis()
+        self.register_apis()
+
+    def register_apis(self):
+        pass
 
     def find_next(self):
         """ Find the next url in the list

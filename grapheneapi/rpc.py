@@ -38,9 +38,6 @@ class Rpc:
         self._request_id += 1
         return self._request_id
 
-    def register_apis(self):
-        pass
-
     def connect(self):
         pass
 
