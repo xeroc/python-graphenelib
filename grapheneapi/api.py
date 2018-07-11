@@ -1,12 +1,15 @@
 import logging
-from .websocket import Websocket
-from .http import Http
 from collections import Counter
 from itertools import cycle
+from time import sleep
 from .exceptions import (
     RPCError,
     NumRetriesReached
 )
+
+from .websocket import Websocket
+from .http import Http
+
 log = logging.getLogger(__name__)
 
 
@@ -28,6 +31,12 @@ class Api:
 
         self.url = urls[0]
         self._active_url = None
+
+        # Let's also be able to deal with infinite connection
+        self.urls = cycle(urls)
+        self._cnt_retries = 0
+
+        # Connect!
         self.connect()
 
     # Get chain parameters
@@ -67,6 +76,18 @@ class Api:
     def find_next(self):
         """ Find the next url in the list
         """
+        if int(self.num_retries) < 0:
+            self._cnt_retries += 1
+            sleeptime = (self._cnt_retries - 1) * 2 if self._cnt_retries < 10 else 10
+            if sleeptime:
+                log.warning(
+                    "Lost connection to node during rpcexec(): %s (%d/%d) "
+                    % (self.url, self._cnt_retries, self.num_retries) +
+                    "Retrying in %d seconds" % sleeptime
+                )
+                sleep(sleeptime)
+            return next(self.urls)
+
         urls = [
             k
             for k, v in self._url_counter.items()
@@ -82,6 +103,7 @@ class Api:
     def reset_counter(self):
         """ reset the failed connection counters
         """
+        self._cnt_retries = 0
         for i in self._url_counter:
             self._url_counter[i] = 0
 

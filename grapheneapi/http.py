@@ -4,7 +4,7 @@ import logging
 import requests
 from .exceptions import (
     RPCError,
-    NumRetriesReached
+    HttpInvalidStatusCode
 )
 from .rpc import Rpc
 
@@ -20,7 +20,8 @@ class Http(Rpc):
             :param json payload: Payload data
             :raises ValueError: if the server does not respond in proper JSON
                                 format
-            :raises RPCError: if the server returns an error
+            :raises HttpInvalidStatusCode: if the server returns a status code
+                that is not 200
         """
         log.debug(json.dumps(payload))
         query = requests.post(
@@ -28,6 +29,7 @@ class Http(Rpc):
             json=payload
         )
         if query.status_code != 200:
-            raise
+            raise HttpInvalidStatusCode("Status code returned: {}".format(
+                query.status_code))
 
         return query.text
