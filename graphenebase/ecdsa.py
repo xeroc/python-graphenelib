@@ -4,7 +4,7 @@ import sys
 import time
 import ecdsa
 import hashlib
-from binascii import hexlify, unhexlify
+from binascii import hexlify
 import struct
 import logging
 from .account import PrivateKey, PublicKey
@@ -309,10 +309,11 @@ def pointToPubkey(x, y, order=None):
     else:
         return bytes(chr(2 + (y & 1))).encode("ascii") + x_str
 
+
 def tweakaddPubkey(pk, digest256, SECP256K1_MODULE=SECP256K1_MODULE):
     if SECP256K1_MODULE == "secp256k1":
         tmp_key = secp256k1.PublicKey(pubkey=bytes(pk), raw=True)
-        new_key = tmp_key.tweak_add(digest256) # <-- add
+        new_key = tmp_key.tweak_add(digest256)  # <-- add
         raw_key = hexlify(new_key.serialize()).decode('ascii')
     else:
         raise Exception("Must have secp256k1 for `tweak_add`")
@@ -320,15 +321,17 @@ def tweakaddPubkey(pk, digest256, SECP256K1_MODULE=SECP256K1_MODULE):
 
     return PublicKey(raw_key, prefix=pk.prefix)
 
+
 def tweakmulPubkey(pk, digest256, SECP256K1_MODULE=SECP256K1_MODULE):
     if SECP256K1_MODULE == "secp256k1":
         tmp_key = secp256k1.PublicKey(pubkey=bytes(pk), raw=True)
-        new_key = tmp_key.tweak_mul(digest256) # <-- mul
+        new_key = tmp_key.tweak_mul(digest256)  # <-- mul
         raw_key = hexlify(new_key.serialize()).decode('ascii')
     else:
         raw_key = ecmult(pk, digest256, 0, SECP256K1_MODULE)
 
     return PublicKey(raw_key, prefix=pk.prefix)
+
 
 def ecmult(pk, scalarA, scalarB, SECP256K1_MODULE=SECP256K1_MODULE):
     if SECP256K1_MODULE == "cryptography" and not isinstance(pk, ecdsa.keys.VerifyingKey):
@@ -342,11 +345,15 @@ def ecmult(pk, scalarA, scalarB, SECP256K1_MODULE=SECP256K1_MODULE):
         y = p.y()
 
     curve = ecdsa.SECP256k1.curve
-    if isinstance(scalarA, int): scalar1 = scalarA
-    else: scalar1 = ecdsa.ecdsa.string_to_int(scalarA)
+    if isinstance(scalarA, int):
+        scalar1 = scalarA
+    else:
+        scalar1 = ecdsa.ecdsa.string_to_int(scalarA)
 
-    if isinstance(scalarB, int): scalar2 = scalarB
-    else: scalar2 = ecdsa.ecdsa.string_to_int(scalarB)
+    if isinstance(scalarB, int):
+        scalar2 = scalarB
+    else:
+        scalar2 = ecdsa.ecdsa.string_to_int(scalarB)
 
     acc = ecdsa.ellipticcurve.INFINITY
     r = ecdsa.ellipticcurve.Point(curve, x, y, order)
@@ -358,10 +365,10 @@ def ecmult(pk, scalarA, scalarB, SECP256K1_MODULE=SECP256K1_MODULE):
             acc = acc + r
 
         if scalar2 & mask:
-            acc = acc + r # NO! Something else must happen!
+            acc = acc + r  # NO! Something else must happen!
 
         r = r * 2
         i -= 1
         mask <<= 1
 
-    return hexlify( pointToPubkey(acc.x(), acc.y(), order) ).decode('ascii')
+    return hexlify(pointToPubkey(acc.x(), acc.y(), order)).decode('ascii')

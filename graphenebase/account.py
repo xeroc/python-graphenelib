@@ -364,15 +364,14 @@ class PrivateKey(PublicKey):
             Here, the key itself serves as a `seed`, and `offset`
             is expected to be a sha256 digest.
         """
-        seed = int(hexlify( bytes(self) ).decode('ascii'), 16)
-        z = int(hexlify( offset ).decode('ascii'), 16)
+        seed = int(hexlify(bytes(self)).decode('ascii'), 16)
+        z = int(hexlify(offset).decode('ascii'), 16)
         order = ecdsa.SECP256k1.order
 
         secexp = (seed + z) % order
 
         secret = "%0x" % secexp
         return PrivateKey(secret, prefix=self.pubkey.prefix)
-
 
     def __format__(self, _format):
         """ Formats the instance of:doc:`Base58 <base58>` according to
