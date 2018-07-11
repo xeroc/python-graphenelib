@@ -46,6 +46,15 @@ Graphene API
    witness
    wallet
 
+Packages
+--------
+
+.. toctree::
+   :maxdepth: 3
+
+   grapheneapi
+   graphenebase
+
 Indices and tables
 ==================
 

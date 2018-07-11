@@ -1,3 +1,7 @@
+class HttpInvalidStatusCode(Exception):
+    pass
+
+
 class RPCError(Exception):
     pass
 
