@@ -78,7 +78,9 @@ class Api:
         """
         if int(self.num_retries) < 0:
             self._cnt_retries += 1
-            sleeptime = (self._cnt_retries - 1) * 2 if self._cnt_retries < 10 else 10
+            sleeptime = (
+                self._cnt_retries - 1
+            ) * 2 if self._cnt_retries < 10 else 10
             if sleeptime:
                 log.warning(
                     "Lost connection to node during rpcexec(): %s (%d/%d) "
@@ -91,9 +93,17 @@ class Api:
         urls = [
             k
             for k, v in self._url_counter.items()
-            if (int(self.num_retries) >= 0 and
+            if (
+                # Only provide URLS if num_retries is bigger equal 0,
+                # i.e. we want to do reconnects at all
+                int(self.num_retries) >= 0 and
+                # the counter for this host/endpoint should be smaller than
+                # num_retries
                 v <= self.num_retries and
-                (k != self.url or len(self._url_counter) == 1))
+                # let's not retry with the same URL *if* we have others
+                # available
+                (k != self.url or len(self._url_counter) == 1)
+            )
         ]
         if not len(urls):
             raise NumRetriesReached
