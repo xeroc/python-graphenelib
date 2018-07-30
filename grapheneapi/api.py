@@ -21,7 +21,7 @@ class Api:
         self._kwargs = kwargs
         self.user = user
         self.password = password
-        self.num_retries = kwargs.pop("num_retries", 0)
+        self.num_retries = kwargs.pop("num_retries", 1)
 
         if not isinstance(urls, list):
             urls = [urls]
