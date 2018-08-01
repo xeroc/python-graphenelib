@@ -59,13 +59,12 @@ class Testcases(unittest.TestCase):
                           format(PublicKey("BTS7HUo6bm7Gfoi3RqAtzwZ83BFCwiCZ4tp37oZjtWxGEBJVzVVGw", prefix="BTS").address, "BTS"),
                           format(PublicKey("BTS6676cZ9qmqPnWMrm4McjCuHcnt6QW5d8oRJ4t8EDH8DdCjvh4V", prefix="BTS").address, "BTS"),
                           format(PublicKey("BTS7u8m6zUNuzPNK1tPPLtnipxgqV9mVmTzrFNJ9GvovvSTCkVUra", prefix="BTS").address, "BTS")
-                          ],
-                         ["BTS66FCjYKzMwLbE3a59YpmFqA9bwporT4L3",
-                          "BTSKNpRuPX8KhTBsJoFp1JXd7eQEsnCpRw3k",
-                          "BTS838ENJargbUrxXWuE2xD9HKjQaS17GdCd",
-                          "BTSNsrLFWTziSZASnNJjWafFtGBfSu8VG8KU",
-                          "BTSDjAGuXzk3WXabBEgKKc8NsuQM412boBdR"
-                          ])
+                          ], [
+                            'BTSDXi9tQ6Pjf1SEv3m4jn2U5M2YgMPpHy2V',
+                            'BTSQ1AEncFQ9ddRU1jfrieomX8RgTnSGgUwj',
+                            'BTSBkT8dGRrbbYpqCXovCBoZDNiVq3XXMyLG',
+                            'BTS3U2ok8z392o6BXYu75PGxohEH9boCx3dy',
+                            'BTSCpkigUBxSLfK2Ldgah9QpoLFftL11k8wW'])
 
     def test_btsprivkey(self):
         self.assertEqual([format(PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd").address, "BTS"),
@@ -73,23 +72,12 @@ class Testcases(unittest.TestCase):
                           format(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").address, "BTS"),
                           format(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").address, "BTS"),
                           format(PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").address, "BTS")
-                          ],
-                         ["BTSFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi",
-                          "BTSdXrrTXimLb6TEt3nHnePwFmBT6Cck112",
-                          "BTSJQUAt4gz4civ8gSs5srTK4r82F7HvpChk",
-                          "BTSFPXXHXXGbyTBwdKoJaAPXRnhFNtTRS4EL",
-                          "BTS3qXyZnjJneeAddgNDYNYXbF7ARZrRv5dr",
-                          ])
-
-    def test_btcprivkey(self):
-        self.assertEqual([format(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").uncompressed.address, "BTC"),
-                          format(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").uncompressed.address, "BTC"),
-                          format(PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").uncompressed.address, "BTC"),
-                          ],
-                         ["1G7qw8FiVfHEFrSt3tDi6YgfAdrDrEM44Z",
-                          "12c7KAAZfpREaQZuvjC5EhpoN6si9vekqK",
-                          "1Gu5191CVHmaoU3Zz3prept87jjnpFDrXL",
-                          ])
+                          ], [
+                            'BTSGu2U7Q3rmkCUCkQH2SToLMjEVUr86GrpA',
+                            'BTS9YgTfC8EfkgDG7DoRXJpMVKRougo64Lop',
+                            'BTSBXqRucGm7nRkk6jm7BNspTJTWRtNcx7k5',
+                            'BTS5tTDDR6M3mkcyVv16edsw8dGUyNQZrvKU',
+                            'BTS8G9ATJbJewVjTgTGmLGLNe1uP5XDWzaKX'])
 
     def test_PublicKey(self):
         self.assertEqual([str(PublicKey("BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL", prefix="BTS")),
@@ -193,3 +181,13 @@ class Testcases(unittest.TestCase):
         for i, pwd in enumerate(a):
             p = format(PasswordKey("xeroc", pwd, "posting").get_public(), "STM")
             self.assertEqual(p, b[i])
+
+    def test_btcprivkey(self):
+        self.assertEqual([format(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").bitcoin.address, "BTC"),
+                          format(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").bitcoin.address, "BTC"),
+                          format(PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").bitcoin.address, "BTC"),
+                          ],
+                         ["1G7qw8FiVfHEFrSt3tDi6YgfAdrDrEM44Z",
+                          "12c7KAAZfpREaQZuvjC5EhpoN6si9vekqK",
+                          "1Gu5191CVHmaoU3Zz3prept87jjnpFDrXL",
+                          ])

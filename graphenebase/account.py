@@ -6,7 +6,7 @@ import re
 import os
 
 from binascii import hexlify, unhexlify
-from .base58 import ripemd160, Base58
+from .base58 import ripemd160, Base58, doublesha256, base58encode
 from .dictionary import words as BrainKeyDictionary
 
 import ecdsa
@@ -142,63 +142,55 @@ class Address(object):
            Address("GPHFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi")
 
     """
-    def __init__(self, address=None, pubkey=None, prefix="GPH"):
+    def __init__(self, address, prefix="GPH"):
         self.prefix = prefix
-        if pubkey is not None:
-            self._pubkey = Base58(pubkey, prefix=prefix)
-            self._address = None
-        elif address is not None:
-            self._pubkey = None
-            self._address = Base58(address, prefix=prefix)
+        self._address = Base58(address, prefix=prefix)
+
+    @classmethod
+    def from_pubkey(cls, pubkey, compressed=True, version=56, prefix=None):
+        # Ensure this is a public key
+        pubkey = PublicKey(pubkey)
+        if compressed:
+            pubkey = pubkey.compressed()
         else:
-            raise Exception("Address has to be initialized by either the " +
-                            "pubkey or the address.")
-
-    def derivesha256address(self):
-        """ Derive address using ``RIPEMD160(SHA256(x))`` """
-        pkbin = unhexlify(repr(self._pubkey))
-        addressbin = ripemd160(hexlify(hashlib.sha256(pkbin).digest()))
-        return Base58(hexlify(addressbin).decode('ascii'))
-
-    def derivesha512address(self):
-        """ Derive address using ``RIPEMD160(SHA512(x))`` """
-        pkbin = unhexlify(repr(self._pubkey))
-        addressbin = ripemd160(hexlify(hashlib.sha512(pkbin).digest()))
-        return Base58(hexlify(addressbin).decode('ascii'))
+            pubkey = pubkey.uncompressed()
+        sha = hashlib.sha256(unhexlify(pubkey)).hexdigest()
+        rep = hexlify(ripemd160(sha)).decode('ascii')
+        s = ('%.2x' % version) + rep
+        result = s + hexlify(doublesha256(s)[:4]).decode('ascii')
+        result = hexlify(ripemd160(result)).decode("ascii")
+        if prefix:
+            return cls(result, prefix=prefix)
+        else:
+            return cls(result)
 
     def __repr__(self):
         """ Gives the hex representation of the ``GrapheneBase58CheckEncoded``
             Graphene address.
         """
-        return repr(self.derivesha512address())
+        return repr(self._address)
 
     def __str__(self):
         """ Returns the readable Graphene address. This call is equivalent to
             ``format(Address, "GPH")``
         """
-        return format(self, self.prefix)
+        return format(self._address, self.prefix)
 
     def __format__(self, _format):
         """  May be issued to get valid "MUSE", "PLAY" or any other Graphene compatible
             address with corresponding prefix.
         """
-        if self._address is None:
-            if _format.lower() == "btc":
-                return format(self.derivesha256address(), _format)
-            else:
-                return format(self.derivesha512address(), _format)
-        else:
-            return format(self._address, _format)
+        return format(self._address, _format)
 
     def __bytes__(self):
         """ Returns the raw content of the ``Base58CheckEncoded`` address """
-        if self._address is None:
-            return bytes(self.derivesha512address())
-        else:
+        if sys.version > '3':
             return bytes(self._address)
+        else:
+            return self._address.__bytes__()
 
 
-class PublicKey(Address):
+class PublicKey():
     """ This class deals with Public Keys and inherits ``Address``.
 
         :param str pk: Base58 encoded public key
@@ -216,10 +208,28 @@ class PublicKey(Address):
 
     """
     def __init__(self, pk, prefix="GPH"):
-        self.prefix = prefix
+        if isinstance(pk, PublicKey):
+            pk = format(pk, prefix)
+
+        if repr(pk).startswith ('04'):
+            # uncompressed key
+            # We only ever deal with compressed keys, so let's make it
+            # compressed
+            pk = pk[1:]
+            p = ecdsa.VerifyingKey.from_string(bytes(self), curve=ecdsa.SECP256k1).pubkey.point
+            x_str = ecdsa.util.number_to_string(p.x(), order)
+            pk = hexlify(chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
+
         self._pk = Base58(pk, prefix=prefix)
-        self.address = Address(pubkey=pk, prefix=prefix)
-        self.pubkey = self._pk
+        self.prefix = prefix
+
+    @property
+    def pubkey(self):
+        return self._pk
+
+    @property
+    def compressed_key(self):
+        return PublicKey(self.compressed())
 
     def _derive_y_from_x(self, x, is_even):
         """ Derive y point from x point """
@@ -234,15 +244,10 @@ class PublicKey(Address):
         return beta
 
     def compressed(self):
-        """ Derive compressed public key """
-        order = ecdsa.SECP256k1.generator.order()
-        p = ecdsa.VerifyingKey.from_string(bytes(self), curve=ecdsa.SECP256k1).pubkey.point
-        x_str = ecdsa.util.number_to_string(p.x(), order)
-        # y_str = ecdsa.util.number_to_string(p.y(), order)
-        compressed = hexlify(bytes(chr(2 + (p.y() & 1)), 'ascii') + x_str).decode('ascii')
-        return(compressed)
+        """ returns the compressed key """
+        return repr(self._pk)
 
-    def unCompressed(self):
+    def uncompressed(self):
         """ Derive uncompressed key """
         public_key = repr(self._pk)
         prefix = public_key[0:2]
@@ -268,6 +273,24 @@ class PublicKey(Address):
         from .ecdsa import tweakaddPubkey
         return tweakaddPubkey(self, digest256)
 
+    @classmethod
+    def from_privkey(cls, privkey, prefix=None):
+        """ Derive uncompressed public key """
+        privkey = PrivateKey(privkey)
+        secret = unhexlify(repr(privkey))
+        order = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).curve.generator.order()
+        p = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).verifying_key.pubkey.point
+        x_str = ecdsa.util.number_to_string(p.x(), order)
+        y_str = ecdsa.util.number_to_string(p.y(), order)
+        compressed = hexlify(
+            chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
+        #uncompressed = hexlify(
+        #    chr(4).encode('ascii') + x_str + y_str).decode('ascii')
+        if prefix:
+            return cls(compressed, prefix=prefix)
+        else:
+            return cls(compressed)
+
     def __repr__(self):
         """ Gives the hex representation of the Graphene public key. """
         return repr(self._pk)
@@ -286,8 +309,16 @@ class PublicKey(Address):
         """ Returns the raw public key (has length 33)"""
         return bytes(self._pk)
 
+    def unCompressed(self):
+        """ Alias for self.uncompressed() - LEGACY"""
+        return self.uncompressed()
 
-class PrivateKey(PublicKey):
+    @property
+    def address(self):
+        return Address.from_pubkey(repr(self), prefix=self.prefix)
+
+
+class PrivateKey():
     """ Derives the compressed and uncompressed public keys and
         constructs two instances of ``PublicKey``:
 
@@ -314,29 +345,29 @@ class PrivateKey(PublicKey):
         if wif is None:
             import os
             self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))
+        elif isinstance(wif, PrivateKey):
+            self._wif = wif._wif
         elif isinstance(wif, Base58):
             self._wif = wif
         else:
             self._wif = Base58(wif)
-        # compress pubkeys only
-        self._pubkeyhex, self._pubkeyuncompressedhex = self.compressedpubkey()
-        self.pubkey = PublicKey(self._pubkeyhex, prefix=prefix)
-        self.uncompressed = PublicKey(self._pubkeyuncompressedhex, prefix=prefix)
-        self.uncompressed.address = Address(pubkey=self._pubkeyuncompressedhex, prefix=prefix)
-        self.address = Address(pubkey=self._pubkeyhex, prefix=prefix)
+        self.prefix = prefix
 
-    def compressedpubkey(self):
-        """ Derive uncompressed public key """
-        secret = unhexlify(repr(self._wif))
-        order = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).curve.generator.order()
-        p = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).verifying_key.pubkey.point
-        x_str = ecdsa.util.number_to_string(p.x(), order)
-        y_str = ecdsa.util.number_to_string(p.y(), order)
-        compressed = hexlify(
-            chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
-        uncompressed = hexlify(
-            chr(4).encode('ascii') + x_str + y_str).decode('ascii')
-        return([compressed, uncompressed])
+    @property
+    def bitcoin(self):
+        return BitcoinPublicKey.from_privkey(self)
+
+    @property
+    def address(self):
+        return Address.from_pubkey(self.pubkey, prefix=self.prefix)
+
+    @property
+    def pubkey(self):
+        return PublicKey.from_privkey(self, prefix=self.prefix)
+
+    @property
+    def uncompressed(self):
+        return PublicKey(self.pubkey.uncompressed(), prefix=self.prefix)
 
     def get_secret(self):
         """ Get sha256 digest of the wif key.
@@ -367,9 +398,7 @@ class PrivateKey(PublicKey):
         seed = int(hexlify(bytes(self)).decode('ascii'), 16)
         z = int(hexlify(offset).decode('ascii'), 16)
         order = ecdsa.SECP256k1.order
-
         secexp = (seed + z) % order
-
         secret = "%0x" % secexp
         return PrivateKey(secret, prefix=self.pubkey.prefix)
 
@@ -395,3 +424,31 @@ class PrivateKey(PublicKey):
             return bytes(self._wif)
         else:
             return self._wif.__bytes__()
+
+
+class BitcoinAddress(Address):
+
+    @classmethod
+    def from_pubkey(cls, pubkey, compressed=False, version=56, prefix=None):
+        # Ensure this is a public key
+        pubkey = PublicKey(pubkey)
+        if compressed:
+            pubkey = pubkey.compressed()
+        else:
+            pubkey = pubkey.uncompressed()
+
+        """ Derive address using ``RIPEMD160(SHA256(x))`` """
+        addressbin = ripemd160(hexlify(hashlib.sha256(unhexlify(pubkey)).digest()))
+        return cls(hexlify(addressbin).decode('ascii'))
+
+    def __str__(self):
+        """ Returns the readable Graphene address. This call is equivalent to
+            ``format(Address, "GPH")``
+        """
+        return format(self._address, "BTC")
+
+
+class BitcoinPublicKey(PublicKey):
+    @property
+    def address(self):
+        return BitcoinAddress.from_pubkey(repr(self))
