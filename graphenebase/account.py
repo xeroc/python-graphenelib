@@ -211,12 +211,11 @@ class PublicKey():
         if isinstance(pk, PublicKey):
             pk = format(pk, prefix)
 
-        if repr(pk).startswith ('04'):
-            # uncompressed key
+        if str(pk).startswith('04'):
             # We only ever deal with compressed keys, so let's make it
             # compressed
-            pk = pk[1:]
-            p = ecdsa.VerifyingKey.from_string(bytes(self), curve=ecdsa.SECP256k1).pubkey.point
+            order = ecdsa.SECP256k1.order
+            p = ecdsa.VerifyingKey.from_string(unhexlify(pk[2:]), curve=ecdsa.SECP256k1).pubkey.point
             x_str = ecdsa.util.number_to_string(p.x(), order)
             pk = hexlify(chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
 
