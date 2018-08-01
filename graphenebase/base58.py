@@ -37,7 +37,6 @@ class Base58(object):
     * ``str(Base58)``:   Returns the readable ``Base58CheckEncoded`` data.
     * ``repr(Base58)``:  Gives the hex representation of the data.
     *  ``format(Base58,_format)`` Formats the instance according to ``_format``:
-        * ``"btc"``: prefixed with ``0x80``. Yields a valid btc address
         * ``"wif"``: prefixed with ``0x00``. Yields a valid wif key
         * ``"bts"``: prefixed with ``BTS``
         * etc.
@@ -45,6 +44,8 @@ class Base58(object):
     """
     def __init__(self, data, prefix=PREFIX):
         self._prefix = prefix
+        if isinstance(data, Base58):
+            data = repr(data)
         if all(c in string.hexdigits for c in data):
             self._hex = data
         elif data[0] == "5" or data[0] == "6":
@@ -57,7 +58,7 @@ class Base58(object):
             raise ValueError("Error loading Base58 object")
 
     def __format__(self, _format):
-        """ Format output according to argument _format (wif,btc,...)
+        """ Format output according to argument _format (wif,...)
 
             :param str _format: Format to use
             :return: formatted data according to _format

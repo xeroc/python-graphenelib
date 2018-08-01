@@ -52,7 +52,7 @@ def encrypt(privkey, passphrase):
 
     """
     privkeyhex = repr(privkey)   # hex
-    addr = format(privkey.uncompressed.address, "BTC")
+    addr = format(privkey.bitcoin.address, "BTC")
     if sys.version > '3':
         a = bytes(addr, 'ascii')
     else:
@@ -114,7 +114,7 @@ def decrypt(encrypted_privkey, passphrase):
     wif = Base58(privraw)
     """ Verify Salt """
     privkey = PrivateKey(format(wif, "wif"))
-    addr = format(privkey.uncompressed.address, "BTC")
+    addr = format(privkey.bitcoin.address, "BTC")
     if sys.version > '3':
         a = bytes(addr, 'ascii')
     else:
