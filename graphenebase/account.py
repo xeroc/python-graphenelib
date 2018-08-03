@@ -362,6 +362,9 @@ class PrivateKey():
             self._wif = Base58(wif)
         self.prefix = prefix
 
+        # test for valid key by trying to obtain a public key
+        self.pubkey
+
     @property
     def bitcoin(self):
         return BitcoinPublicKey.from_privkey(self)
