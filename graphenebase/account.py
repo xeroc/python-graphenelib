@@ -6,7 +6,7 @@ import re
 import os
 
 from binascii import hexlify, unhexlify
-from .base58 import ripemd160, Base58, doublesha256, base58encode
+from .base58 import ripemd160, Base58, doublesha256
 from .dictionary import words as BrainKeyDictionary
 
 import ecdsa
@@ -84,7 +84,9 @@ class BrainKey(object):
         return self
 
     def normalize(self, brainkey):
-        """ Correct formating with single whitespace syntax and no trailing space """
+        """ Correct formating with single whitespace syntax and no trailing
+            space
+        """
         return " ".join(re.compile("[\t\n\v\f\r ]+").split(brainkey))
 
     def get_brainkey(self):
@@ -215,9 +217,12 @@ class PublicKey():
             # We only ever deal with compressed keys, so let's make it
             # compressed
             order = ecdsa.SECP256k1.order
-            p = ecdsa.VerifyingKey.from_string(unhexlify(pk[2:]), curve=ecdsa.SECP256k1).pubkey.point
+            p = ecdsa.VerifyingKey.from_string(
+                unhexlify(pk[2:]), curve=ecdsa.SECP256k1).pubkey.point
             x_str = ecdsa.util.number_to_string(p.x(), order)
-            pk = hexlify(chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
+            pk = hexlify(
+                chr(2 + (p.y() & 1)).encode('ascii') + x_str
+            ).decode('ascii')
 
         self._pk = Base58(pk, prefix=prefix)
         self.prefix = prefix
@@ -261,7 +266,8 @@ class PublicKey():
     def point(self):
         """ Return the point for the public key """
         string = unhexlify(self.unCompressed())
-        return ecdsa.VerifyingKey.from_string(string[1:], curve=ecdsa.SECP256k1).pubkey.point
+        return ecdsa.VerifyingKey.from_string(
+            string[1:], curve=ecdsa.SECP256k1).pubkey.point
 
     def child(self, offset256):
         a = bytes(self) + offset256
@@ -277,13 +283,15 @@ class PublicKey():
         """ Derive uncompressed public key """
         privkey = PrivateKey(privkey)
         secret = unhexlify(repr(privkey))
-        order = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).curve.generator.order()
-        p = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).verifying_key.pubkey.point
+        order = ecdsa.SigningKey.from_string(
+            secret, curve=ecdsa.SECP256k1).curve.generator.order()
+        p = ecdsa.SigningKey.from_string(
+            secret, curve=ecdsa.SECP256k1).verifying_key.pubkey.point
         x_str = ecdsa.util.number_to_string(p.x(), order)
-        y_str = ecdsa.util.number_to_string(p.y(), order)
+        # y_str = ecdsa.util.number_to_string(p.y(), order)
         compressed = hexlify(
             chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
-        #uncompressed = hexlify(
+        # uncompressed = hexlify(
         #    chr(4).encode('ascii') + x_str + y_str).decode('ascii')
         if prefix:
             return cls(compressed, prefix=prefix)
@@ -301,7 +309,9 @@ class PublicKey():
         return format(self._pk, self.prefix)
 
     def __format__(self, _format):
-        """ Formats the instance of:doc:`Base58 <base58>` according to ``_format`` """
+        """ Formats the instance of:doc:`Base58 <base58>` according to
+            ``_format``
+        """
         return format(self._pk, _format)
 
     def __bytes__(self):
@@ -352,6 +362,9 @@ class PrivateKey():
             self._wif = Base58(wif)
         self.prefix = prefix
 
+        # test for valid key by trying to obtain a public key
+        assert len(repr(self._wif)) == 64
+
     @property
     def bitcoin(self):
         return BitcoinPublicKey.from_privkey(self)
@@ -362,6 +375,10 @@ class PrivateKey():
 
     @property
     def pubkey(self):
+        return self.compressed
+
+    @property
+    def compressed(self):
         return PublicKey.from_privkey(self, prefix=self.prefix)
 
     @property
@@ -380,7 +397,8 @@ class PrivateKey():
         encoded = "%s %d" % (str(self), sequence)
         a = bytes(encoded, 'ascii')
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
-        return PrivateKey(hexlify(s).decode('ascii'), prefix=self.pubkey.prefix)
+        return PrivateKey(
+            hexlify(s).decode('ascii'), prefix=self.pubkey.prefix)
 
     def child(self, offset256):
         """ Derive new private key from this key and a sha256 "offset"
@@ -437,7 +455,8 @@ class BitcoinAddress(Address):
             pubkey = pubkey.uncompressed()
 
         """ Derive address using ``RIPEMD160(SHA256(x))`` """
-        addressbin = ripemd160(hexlify(hashlib.sha256(unhexlify(pubkey)).digest()))
+        addressbin = ripemd160(
+            hexlify(hashlib.sha256(unhexlify(pubkey)).digest()))
         return cls(hexlify(addressbin).decode('ascii'))
 
     def __str__(self):
