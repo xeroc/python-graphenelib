@@ -363,7 +363,7 @@ class PrivateKey():
         self.prefix = prefix
 
         # test for valid key by trying to obtain a public key
-        self.pubkey
+        assert len(repr(self._wif)) == 64
 
     @property
     def bitcoin(self):
@@ -375,6 +375,10 @@ class PrivateKey():
 
     @property
     def pubkey(self):
+        return self.compressed
+
+    @property
+    def compressed(self):
         return PublicKey.from_privkey(self, prefix=self.prefix)
 
     @property
