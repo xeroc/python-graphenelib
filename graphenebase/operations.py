@@ -22,6 +22,6 @@ class Demooepration(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
             super().__init__(OrderedDict([
-                ('string', String(kwargs["string"], "account")),
+                ('string', String(kwargs["string"])),
                 ('extensions', Set([])),
             ]))

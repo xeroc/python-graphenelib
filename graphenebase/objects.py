@@ -12,55 +12,86 @@ from .chains import known_chains
 from .objecttypes import object_type
 from .account import PublicKey
 from .chains import default_prefix
-from .operationids import operations
+from .operationids import operations, ops
 
 
 class Operation():
+    """ The superclass for an operation. This class i used to instanciate an
+        operation, identify the operationid/name and serialize the operation
+        into bytes.
+    """
     def __init__(self, op):
+        self.op = GrapheneObject({})
+
+        # Are we dealing with an actual operation as list of opid and payload?
         if isinstance(op, list) and len(op) == 2:
-            if isinstance(op[0], int):
-                self.opId = op[0]
-                name = self.getOperationNameForId(self.opId)
-            else:
-                self.opId = self.operations().get(op[0], None)
-                name = op[0]
-                if self.opId is None:
-                    raise ValueError("Unknown operation")
-            self.name = name[0].upper() + name[1:]  # klassname
-            try:
-                klass = self._getklass(self.name)
-            except Exception:
-                raise NotImplementedError("Unimplemented Operation %s" % self.name)
-            self.op = klass(op[1])
+            self._setidanename(op[0])
+            self.set(op[1])
+
+        # Here, we allow to only load the Operation as Template without data
+        elif isinstance(op, str) or isinstance(op, int):
+            self._setidanename(op)
+
         else:
-            self.op = op
-            self.name = type(self.op).__name__.lower()  # also store name
-            self.opId = self.operations()[self.name]
+            raise ValueError("Unknown format for Operation()")
+
+    def set(self, data):
+        try:
+            klass = self.klass()
+        except Exception:
+            raise NotImplementedError("Unimplemented Operation %s" % self.name)
+        self.op = klass(data)
+
+    def _setidanename(self, identifier):
+        if isinstance(identifier, int):
+            self.id = int(identifier)
+            assert len(ops) > self.id
+            self.name = ops[self.id]
+        else:
+            assert identifier in self.operations()
+            self.id = self.operations()[identifier]
+            self.name = identifier
+
+    @property
+    def opId(self):
+        return self.id
+
+    @property
+    def klass_name(self):
+        return self.name[0].upper() + self.name[1:]  # klassname
 
     def operations(self):
+        # This returns the 'operations' as loaded into global namespace
+        # which is ugly like shit!
         return operations
 
-    def getOperationNameForId(self, i):
+    def _getOperationNameForId(self, i):
         """ Convert an operation id into the corresponding string
         """
-        for key in operations:
-            if int(operations[key]) is int(i):
+        for key in self.operations():
+            if int(self.operations()[key]) is int(i):
                 return key
         return "Unknown Operation ID %d" % i
 
-    def _getklass(self, name):
+    def klass(self):
         module = __import__("graphenebase.operations", fromlist=["operations"])
-        class_ = getattr(module, name)
+        class_ = getattr(module, self.klass_name)
         return class_
 
     def __bytes__(self):
-        return bytes(Id(self.opId)) + bytes(self.op)
+        return bytes(Id(self.id)) + bytes(self.op)
 
     def __str__(self):
-        return json.dumps([self.opId, self.op.toJson()])
+        return json.dumps(self.__json__())
+
+    def __json__(self):
+        return [self.id, self.op.json()]
+
+    toJson = __json__
+    json = __json__
 
 
-class GrapheneObject(object):
+class GrapheneObject(dict):
     """ Core abstraction class
 
         This class is used for any JSON reflected object in Graphene.
@@ -70,14 +101,14 @@ class GrapheneObject(object):
         * ``str(instances)``: dumps json object as string
 
     """
-    def __init__(self, data=None):
-        self.data = data
+    def __init__(self, data={}):
+        dict.__init__(self, data)
 
     def __bytes__(self):
-        if self.data is None:
+        if len(self) is 0:
             return bytes()
         b = b""
-        for name, value in self.data.items():
+        for name, value in self.items():
             if isinstance(value, str):
                 b += bytes(value, 'utf-8')
             else:
@@ -85,10 +116,10 @@ class GrapheneObject(object):
         return b
 
     def __json__(self):
-        if self.data is None:
+        if len(self) is 0:
             return {}
         d = {}  # JSON output is *not* ordered
-        for name, value in self.data.items():
+        for name, value in self.items():
             if isinstance(value, Optional) and value.isempty():
                 continue
 
@@ -104,11 +135,12 @@ class GrapheneObject(object):
     def __str__(self):
         return json.dumps(self.__json__())
 
-    def toJson(self):
-        return self.__json__()
+    @property
+    def data(self):
+        return self
 
-    def json(self):
-        return self.__json__()
+    toJson = __json__
+    json = __json__
 
 
 def isArgsThisClass(self, args):
