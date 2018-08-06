@@ -33,6 +33,7 @@ setup(
     ],
     packages=["grapheneapi",
               "graphenebase",
+              "graphenestorage",
               ],
     install_requires=["ecdsa",
                       "requests",
