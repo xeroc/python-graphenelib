@@ -192,6 +192,27 @@ class Address(object):
             return self._address.__bytes__()
 
 
+class GrapheneAddress(Address):
+    """ Graphene Addresses are different. Hence we have a different class
+    """
+    @classmethod
+    def from_pubkey(cls, pubkey, compressed=True, version=56, prefix=None):
+        # Ensure this is a public key
+        pubkey = PublicKey(pubkey)
+        if compressed:
+            pubkey = pubkey.compressed()
+        else:
+            pubkey = pubkey.uncompressed()
+
+        """ Derive address using ``RIPEMD160(SHA512(x))`` """
+        addressbin = ripemd160(hashlib.sha512(unhexlify(pubkey)).hexdigest())
+        result = Base58(hexlify(addressbin).decode('ascii'))
+        if prefix:
+            return cls(result, prefix=prefix)
+        else:
+            return cls(result)
+
+
 class PublicKey():
     """ This class deals with Public Keys and inherits ``Address``.
 
@@ -324,7 +345,7 @@ class PublicKey():
 
     @property
     def address(self):
-        return Address.from_pubkey(repr(self), prefix=self.prefix)
+        return GrapheneAddress.from_pubkey(repr(self), prefix=self.prefix)
 
 
 class PrivateKey():
