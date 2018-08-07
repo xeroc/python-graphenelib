@@ -84,10 +84,14 @@ class MasterPassword(object):
         try:
             decrypted_master = aes.decrypt(encrypted_master)
         except:
-            raise WrongMasterPasswordException
+            self.raiseWrongMasterPasswordException()
         if checksum != self.deriveChecksum(decrypted_master):
-            raise WrongMasterPasswordException
+            self.raiseWrongMasterPasswordException()
         self.decrypted_master = decrypted_master
+
+    def raiseWrongMasterPasswordException(self):
+        self.password = None
+        raise WrongMasterPasswordException
 
     def saveEncrytpedMaster(self):
         self.config[self.config_key] = self.getEncryptedMaster()
@@ -140,7 +144,7 @@ class MasterPassword(object):
             log.debug("Trying to use environmental variable to unlock wallet")
             self.unlock(os.environ.get("UNLOCK"))
         else:
-            raise WrongMasterPasswordException
+            self.raiseWrongMasterPasswordException()
 
     def decrypt(self, wif):
         return format(

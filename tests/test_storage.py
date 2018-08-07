@@ -1,6 +1,8 @@
+import os
 import unittest
 
 from graphenebase.account import PrivateKey
+from graphenestorage.exceptions import WrongMasterPasswordException
 
 import graphenestorage as storage
 
@@ -130,10 +132,32 @@ class Testcases(unittest.TestCase):
         )
 
     def test_wrongmastermass(self):
-        from graphenestorage.exceptions import WrongMasterPasswordException
         config = storage.InRamConfigurationStore()
         keys = storage.InRamEncryptedKeyStore(config=config)
         keys.newMaster("foobar")
         keys.lock()
         with self.assertRaises(WrongMasterPasswordException):
             keys.unlock("foobar2")
+
+    def test_masterpwd(self):
+        with self.assertRaises(Exception):
+            storage.InRamEncryptedKeyStore()
+        config = storage.InRamConfigurationStore()
+        keys = storage.InRamEncryptedKeyStore(config=config)
+        self.assertTrue(keys.locked())
+        keys.unlock("foobar")
+        keys.password = "FOoo"
+        with self.assertRaises(Exception):
+            keys.decryptEncryptedMaster()
+        keys.lock()
+
+        with self.assertRaises(WrongMasterPasswordException):
+            keys.unlock("foobar2")
+
+        with self.assertRaises(Exception):
+            keys.getEncryptedMaster()
+
+        os.environ["UNLOCK"] = "foobar"
+        keys.unlocked()
+
+        self.assertFalse(keys.locked())
