@@ -21,12 +21,12 @@ class Operation():
         into bytes.
     """
     def __init__(self, op):
-        self.op = GrapheneObject({})
+        self.op = GrapheneObject()
 
         # Are we dealing with an actual operation as list of opid and payload?
         if isinstance(op, list) and len(op) == 2:
             self._setidanename(op[0])
-            self.set(op[1])
+            self.set(**op[1])
 
         # Here, we allow to only load the Operation as Template without data
         elif isinstance(op, str) or isinstance(op, int):
@@ -35,12 +35,12 @@ class Operation():
         else:
             raise ValueError("Unknown format for Operation()")
 
-    def set(self, data):
+    def set(self, **data):
         try:
             klass = self.klass()
         except Exception:
             raise NotImplementedError("Unimplemented Operation %s" % self.name)
-        self.op = klass(data)
+        self.op = klass(**data)
 
     def _setidanename(self, identifier):
         if isinstance(identifier, int):
@@ -91,7 +91,7 @@ class Operation():
     json = __json__
 
 
-class GrapheneObject(dict):
+class GrapheneObject(OrderedDict):
     """ Core abstraction class
 
         This class is used for any JSON reflected object in Graphene.
@@ -101,8 +101,24 @@ class GrapheneObject(dict):
         * ``str(instances)``: dumps json object as string
 
     """
-    def __init__(self, data={}):
-        dict.__init__(self, data)
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0], dict):
+            if hasattr(self, "detail"):
+                super().__init__(self.detail(**args[0]))
+            else:
+                OrderedDict.__init__(self, args[0])
+            return
+
+        elif len(args) == 1 and isinstance(args[0], OrderedDict):
+            if hasattr(self, "detail"):
+                super().__init__(self.detail(**args[0]))
+            else:
+                OrderedDict.__init__(self, args[0])
+            return
+
+        elif kwargs and hasattr(self, "detail"):
+            # If I receive kwargs, I need detail() implemented!
+            super().__init__(self.detail(*args, **kwargs))
 
     def __bytes__(self):
         if len(self) is 0:
@@ -143,5 +159,6 @@ class GrapheneObject(dict):
     json = __json__
 
 
+# Legacy
 def isArgsThisClass(self, args):
     return (len(args) == 1 and type(args[0]).__name__ == type(self).__name__)

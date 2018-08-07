@@ -190,7 +190,7 @@ class Void():
 
 class Array():
     def __init__(self, d):
-        self.data = d
+        self.data = d or []
         self.length = Varint32(len(self.data))
 
     def __bytes__(self):
@@ -257,7 +257,7 @@ class Optional():
         self.data = d
 
     def __bytes__(self):
-        if not self.data:
+        if not bool(self.data):
             return bytes(Bool(0))
         else:
             return bytes(Bool(1)) + bytes(self.data) if bytes(self.data) else bytes(Bool(0))
@@ -266,7 +266,9 @@ class Optional():
         return str(self.data)
 
     def isempty(self):
-        if not self.data:
+        if self.data is None:
+            return True
+        if self.data.data is None:
             return True
         return not bool(bytes(self.data))
 

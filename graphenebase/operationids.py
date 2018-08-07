@@ -1,6 +1,7 @@
 #: Operation ids
 ops = [
-    "demooepration"
+    "demooepration",
+    "newdemooepration",
 ]
 operations = {o: ops.index(o) for o in ops}
 

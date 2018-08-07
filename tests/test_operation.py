@@ -1,5 +1,6 @@
 import unittest
 from graphenebase.objects import Operation, GrapheneObject
+from graphenebase.operations import Newdemooepration
 
 
 class Testcases(unittest.TestCase):
@@ -37,7 +38,7 @@ class Testcases(unittest.TestCase):
 
     def test_init_data_afterwards(self):
         op = Operation("demooepration")
-        op.set(dict(string="1.2.0"))
+        op.set(string="1.2.0")
         self.assertEqual(op.name, "demooepration")
         self.assertEqual(op.id, 0)
         self.assertEqual(op.klass_name, "Demooepration")
@@ -62,3 +63,25 @@ class Testcases(unittest.TestCase):
         self.assertEqual(o.json(), {"string": "demooepration"})
         self.assertEqual(o.toJson(), {"string": "demooepration"})
         self.assertEqual(o.data, o)
+
+    def test_newdemo_op(self):
+        for op in [
+            Newdemooepration(**dict(string="1.2.0")),
+            Newdemooepration(dict(string="1.2.0"))
+        ]:
+            self.assertEqual(op.json()["string"], "1.2.0")
+            self.assertIn("string", op.json())
+            self.assertIn("extensions", op.json())
+            # Test order of attributes
+            self.assertEqual(list(op.items())[0][0], "string")
+            self.assertEqual(list(op.items())[1][0], "optional")
+            self.assertEqual(list(op.items())[2][0], "extensions")
+
+        op = Newdemooepration(dict(string="1.2.0", optional="foobar"))
+        self.assertEqual(op.json()["string"], "1.2.0")
+        self.assertIn("string", op.json())
+        self.assertIn("optional", op.json())
+        self.assertIn("extensions", op.json())
+        self.assertEqual(list(op.items())[0][0], "string")
+        self.assertEqual(list(op.items())[1][0], "optional")
+        self.assertEqual(list(op.items())[2][0], "extensions")
