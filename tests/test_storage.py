@@ -5,6 +5,7 @@ from graphenebase.account import PrivateKey
 from graphenestorage.exceptions import WrongMasterPasswordException
 
 import graphenestorage as storage
+from graphenestorage.interfaces import StoreInterface, KeyInterface, ConfigInterface
 
 
 def pubprivpair(wif):
@@ -15,6 +16,36 @@ def pubprivpair(wif):
 
 
 class Testcases(unittest.TestCase):
+
+    def test_interface(self):
+            for k in [
+                ConfigInterface(),
+                KeyInterface(),
+                StoreInterface()
+            ]:
+                k["foobar"] = "value"
+                k["foobar"]
+                iter(k)
+                len(k)
+                "foobar" in k
+                k.items()
+                k.get("foobar")
+                k.delete("foobar")
+                k.wipe()
+
+            keys = KeyInterface()
+            keys.getPublicKeys()
+            keys.getPrivateKeyForPublicKey("x")
+            keys.add("x")
+            keys.delete("x")
+            keys.is_encrypted()
+            keys.unlock("")
+            keys.locked()
+            keys.lock()
+
+    def test_default_config(self):
+        config = storage.get_default_config_store()
+        config["node"]
 
     def test_configstorage(self):
         for config in [
@@ -63,7 +94,12 @@ class Testcases(unittest.TestCase):
             storage.InRamEncryptedKeyStore,
         )):
             keys.newMaster(password)
+            keys.lock()
+            keys.unlock(password)
             assert keys.unlocked()
+            assert keys.is_encrypted()
+        else:
+            assert not keys.is_encrypted()
 
         keys.add(
             *pubprivpair("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
@@ -96,6 +132,8 @@ class Testcases(unittest.TestCase):
         )
         keys.delete("GPH5u9tEsKaqtCpKibrXJAMhaRUVBspB5pr9X34PPdrSbvBb6ajZY")
         self.assertEqual(len(keys.getPublicKeys()), 1)
+
+        keys.lock()
 
     def test_masterpassword(self):
         password = "foobar"
@@ -157,7 +195,9 @@ class Testcases(unittest.TestCase):
         with self.assertRaises(Exception):
             keys.getEncryptedMaster()
 
+        self.assertFalse(keys.unlocked())
+
         os.environ["UNLOCK"] = "foobar"
-        keys.unlocked()
+        self.assertTrue(keys.unlocked())
 
         self.assertFalse(keys.locked())

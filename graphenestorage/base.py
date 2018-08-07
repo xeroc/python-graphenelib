@@ -59,20 +59,8 @@ class InRamEncryptedKeyStore(MasterPassword, InRamStore, KeyInterface):
         assert self.unlocked()  # From Masterpassword
         self[str(pub)] = self.encrypt(str(wif))  # From Masterpassword
 
-    def delete(self, pub):
-        InRamStore.delete(self, str(pub))
-
     def is_encrypted(self):
         return True
-
-    def locked(self):
-        return MasterPassword.locked(self)
-
-    def unlock(self, password):
-        return MasterPassword.unlock(self, password)
-
-    def lock(self):
-        return MasterPassword.lock(self)
 
 
 class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
@@ -123,17 +111,5 @@ class SqliteEncryptedKeyStore(MasterPassword, SQLiteStore, KeyInterface):
         assert self.unlocked()  # From Masterpassword
         self[str(pub)] = self.encrypt(str(wif))  # From Masterpassword
 
-    def delete(self, pub):
-        SQLiteStore.delete(self, str(pub))
-
     def is_encrypted(self):
         return True
-
-    def locked(self):
-        return MasterPassword.locked(self)
-
-    def unlock(self, password):
-        return MasterPassword.unlock(self, password)
-
-    def lock(self):
-        return MasterPassword.lock(self)

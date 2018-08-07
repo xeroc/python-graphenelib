@@ -3,7 +3,7 @@ from .interfaces import StoreInterface
 
 # StoreInterface is done first, then dict which overwrites the interface
 # methods
-class InRamStore(dict, StoreInterface):
+class InRamStore(StoreInterface):
     # Specific for this library
     def delete(self, key):
         """ Delete a key from the store

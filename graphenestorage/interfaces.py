@@ -1,4 +1,4 @@
-class StoreInterface:
+class StoreInterface(dict):
 
     defaults = {}
 
@@ -8,37 +8,37 @@ class StoreInterface:
     def __setitem__(self, key, value):
         """ Sets an item in the store
         """
-        pass
+        return dict.__setitem__(self, key, value)
 
     def __getitem__(self, key):
         """ Gets an item from the store as if it was a dictionary
         """
-        pass
+        return dict.__getitem__(self, key)
 
     def __iter__(self):
         """ Iterates through the store
         """
-        pass
+        return dict.__iter__(self)
 
     def __len__(self):
         """ return lenght of store
         """
-        pass
+        return dict.__len__(self)
 
     def __contains__(self, key):
         """ Tests if a key is contained in the store.
         """
-        pass
+        return dict.__contains__(self, key)
 
     def items(self):
         """ returns all items off the store as tuples
         """
-        pass
+        return dict.items(self)
 
     def get(self, key, default=None):
         """ Return the key if exists or a default value
         """
-        pass
+        return dict.get(self, key, default)
 
     # Specific for this library
     def delete(self, key):

@@ -53,12 +53,7 @@ class SQLiteFile():
         if os.path.isdir(self.data_dir):
             return
         else:
-            try:
-                os.makedirs(self.data_dir)
-            except FileExistsError:
-                return
-            except OSError:
-                raise
+            os.makedirs(self.data_dir)
 
 
 class SQLiteStore(SQLiteFile, StoreInterface):

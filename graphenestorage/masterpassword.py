@@ -19,13 +19,6 @@ class MasterPassword(object):
         of the password
     """
 
-    password = None
-    decrypted_master = None
-
-    #: This key identifies the encrypted master password stored in the
-    #: confiration
-    config_key = "encrypted_master_password"
-
     def __init__(self, config=None, **kwargs):
         """ The encrypted private keys in `keys` are encrypted with a
             random encrypted masterpassword that is stored in the
@@ -38,6 +31,9 @@ class MasterPassword(object):
             raise ValueError(
                 "If using encrypted store, a config store is required!")
         self.config = config
+        self.password = None
+        self.decrypted_master = None
+        self.config_key = "encrypted_master_password"
 
     @property
     def masterkey(self):
@@ -50,11 +46,16 @@ class MasterPassword(object):
         return not self.unlocked()
 
     def unlocked(self):
-        try:
-            self.tryUnlockFromEnv()
-        except:
-            pass
-        return bool(self.password)
+        if self.password is not None:
+            return bool(self.password)
+        else:
+            if "UNLOCK" in os.environ and os.environ["UNLOCK"]:
+                log.debug(
+                    "Trying to use environmental "
+                    "variable to unlock wallet")
+                self.unlock(os.environ.get("UNLOCK"))
+                return bool(self.password)
+        return False
 
     def lock(self):
         self.password = None
@@ -136,15 +137,6 @@ class MasterPassword(object):
         assert self.unlocked()
         self.password = newpassword
         self.saveEncrytpedMaster()
-
-    def tryUnlockFromEnv(self):
-        if self.unlocked():
-            return
-        if "UNLOCK" in os.environ:
-            log.debug("Trying to use environmental variable to unlock wallet")
-            self.unlock(os.environ.get("UNLOCK"))
-        else:
-            self.raiseWrongMasterPasswordException()
 
     def decrypt(self, wif):
         return format(
