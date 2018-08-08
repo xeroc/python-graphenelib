@@ -16,4 +16,4 @@ class Testcases(unittest.TestCase):
         self.assertEqual(getOperationNameForId(0), "demooepration")
 
         with self.assertRaises(ValueError):
-            getOperationNameForId(2)
+            getOperationNameForId(20)

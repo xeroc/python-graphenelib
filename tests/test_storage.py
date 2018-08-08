@@ -72,6 +72,20 @@ class Testcases(unittest.TestCase):
             config.delete("foobar")
             config["empty"] = "notempty"
             self.assertNotIn("foobar", config)
+
+            for k in config:
+                self.assertIsInstance(k, str)
+
+            for k, v in config.items():
+                self.assertIsInstance(k, str)
+                self.assertIsInstance(v, str)
+
+            # change a value
+            config["change"] = "first"
+            self.assertEqual(config["change"], "first")
+            config["change"] = "second"
+            self.assertEqual(config["change"], "second")
+
             config.wipe()
             self.assertNotIn("empty", config)
 
