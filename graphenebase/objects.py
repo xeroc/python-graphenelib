@@ -15,13 +15,13 @@ from .chains import default_prefix
 from .operationids import operations, ops
 
 
-class Operation():
+class Operation(list):
     """ The superclass for an operation. This class i used to instanciate an
         operation, identify the operationid/name and serialize the operation
         into bytes.
     """
-    def __init__(self, op):
-        self.op = GrapheneObject()
+    def __init__(self, op, **kwargs):
+        list.__init__(self, [0, GrapheneObject()])
 
         # Are we dealing with an actual operation as list of opid and payload?
         if isinstance(op, list) and len(op) == 2:
@@ -31,16 +31,44 @@ class Operation():
         # Here, we allow to only load the Operation as Template without data
         elif isinstance(op, str) or isinstance(op, int):
             self._setidanename(op)
+            if kwargs:
+                self.set(**kwargs)
+
+        elif isinstance(op, GrapheneObject):
+            self._loadGrapheneObject(op)
 
         else:
-            raise ValueError("Unknown format for Operation()")
+            raise ValueError(
+                "Unknown format for Operation({})".format(type(op)))
+
+    @property
+    def id(self):
+        return self[0]
+
+    @id.setter
+    def id(self, value):
+        assert isinstance(value, int)
+        self[0] = value
+
+    @property
+    def operation(self):
+        return self[1]
+
+    @operation.setter
+    def operation(self, value):
+        assert isinstance(value, dict)
+        self[1] = value
+
+    @property
+    def op(self):
+        return self[1]
 
     def set(self, **data):
         try:
             klass = self.klass()
         except Exception:
             raise NotImplementedError("Unimplemented Operation %s" % self.name)
-        self.op = klass(**data)
+        self.operation = klass(**data)
 
     def _setidanename(self, identifier):
         if isinstance(identifier, int):
@@ -72,6 +100,12 @@ class Operation():
             if int(self.operations()[key]) is int(i):
                 return key
         return "Unknown Operation ID %d" % i
+
+    def _loadGrapheneObject(self, op):
+        assert isinstance(op, GrapheneObject)
+        self.operation = op
+        self.name = op.__class__.__name__.lower()
+        self.id = list(self.operations().keys()).index(self.name)
 
     def klass(self):
         module = __import__("graphenebase.operations", fromlist=["operations"])

@@ -36,7 +36,6 @@ class SQLiteFile():
 
     appname = "graphene"
     appauthor = "Fabian Schuh"
-    data_dir = user_data_dir(appname, appauthor)
 
     def __init__(self, *args, **kwargs):
         if "profile" in kwargs:
@@ -44,16 +43,18 @@ class SQLiteFile():
         else:
             self.storageDatabase = "{}.sqlite".format(self.appname)
 
+        data_dir = user_data_dir(self.appname, self.appauthor)
+
         self.sqlDataBaseFile = os.path.join(
-            self.data_dir, self.storageDatabase)
+            data_dir, self.storageDatabase)
 
         """ Ensure that the directory in which the data is stored
             exists
         """
-        if os.path.isdir(self.data_dir):
+        if os.path.isdir(data_dir):
             return
         else:
-            os.makedirs(self.data_dir)
+            os.makedirs(data_dir)
 
 
 class SQLiteStore(SQLiteFile, StoreInterface):

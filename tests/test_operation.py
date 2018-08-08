@@ -37,8 +37,7 @@ class Testcases(unittest.TestCase):
         self.assertEqual(bytes(op), b"\x00\x051.2.0\x00")
 
     def test_init_data_afterwards(self):
-        op = Operation("demooepration")
-        op.set(string="1.2.0")
+        op = Operation("demooepration", string="1.2.0")
         self.assertEqual(op.name, "demooepration")
         self.assertEqual(op.id, 0)
         self.assertEqual(op.klass_name, "Demooepration")
@@ -85,3 +84,12 @@ class Testcases(unittest.TestCase):
         self.assertEqual(list(op.items())[0][0], "string")
         self.assertEqual(list(op.items())[1][0], "optional")
         self.assertEqual(list(op.items())[2][0], "extensions")
+
+    def test_loadingofGrapheneObject(self):
+        op = Newdemooepration(dict(string="1.2.0", optional="foobar"))
+        op2 = Operation(op)
+        self.assertEqual(op.json()["string"], "1.2.0")
+
+        self.assertEqual(op2.json()[0], 1)
+        self.assertEqual(list(op2[1].items())[1][0], "optional")
+        self.assertEqual(list(op2[1].items())[2][0], "extensions")
