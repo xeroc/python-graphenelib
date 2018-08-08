@@ -26,9 +26,25 @@ class Testcases(unittest.TestCase):
                                 ref_block_prefix=ref_block_prefix,
                                 expiration=expiration,
                                 operations=ops)
+        self.assertEqual(tx.id, "0e67819255826ebe19c81f850cb8bf880a5ea9be")
+
+        # Sign with prefix
         tx = tx.sign([wif], chain=prefix)
         tx.verify([PrivateKey(wif).pubkey], prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
+
+        # Sign with manual chain id object
+        tx2 = tx.sign([wif], chain={
+            "chain_id": "b8d1603965b3eb1acba27e62ff59f74efa3154d43a4188d381088ac7cdf35539",
+            "core_symbol": "CORE",
+            "prefix": "GPH"})
+        tx2.verify([PrivateKey(wif).pubkey], "GPH")
+        txWire2 = hexlify(bytes(tx)).decode("ascii")
+
+        # identify by chain id
+        tx3 = tx.sign([wif], chain="b8d1603965b3eb1acba27e62ff59f74efa3154d43a4188d381088ac7cdf35539")
+        tx3.verify([PrivateKey(wif).pubkey], "GPH")
+        txWire3 = hexlify(bytes(tx)).decode("ascii")
 
         if printWire:
             print()
@@ -37,9 +53,10 @@ class Testcases(unittest.TestCase):
 
         # Compare expected result with test unit
         self.assertEqual(self.cm[:-130], txWire[:-130])
+        self.assertEqual(self.cm[:-130], txWire2[:-130])
+        self.assertEqual(self.cm[:-130], txWire3[:-130])
 
     def test_create_account(self):
-        self.maxDiff = None
         self.op = Account_create(**{
             "fee": {"amount": 1467634,
                     "asset_id": "1.3.0"

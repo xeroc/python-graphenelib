@@ -40,36 +40,23 @@ class Signed_Transaction(GrapheneObject):
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
-    def __init__(self, *args, **kwargs):
-        if isArgsThisClass(self, args):
-            self.data = args[0].data
+    def detail(self, *args, **kwargs):
+        if "signatures" not in kwargs:
+            kwargs["signatures"] = Array([])
         else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-            if "extensions" not in kwargs:
-                kwargs["extensions"] = Set([])
-            elif not kwargs.get("extensions"):
-                kwargs["extensions"] = Set([])
-            if "signatures" not in kwargs:
-                kwargs["signatures"] = Array([])
-            else:
-                kwargs["signatures"] = Array([Signature(unhexlify(a)) for a in kwargs["signatures"]])
+            kwargs["signatures"] = Array([Signature(unhexlify(a)) for a in kwargs["signatures"]])
 
-            if "operations" in kwargs:
-                opklass = self.getOperationKlass()
-                if all([not isinstance(a, opklass) for a in kwargs["operations"]]):
-                    kwargs['operations'] = Array([opklass(a) for a in kwargs["operations"]])
-                else:
-                    kwargs['operations'] = Array(kwargs["operations"])
+        ops = kwargs.get("operations", [])
+        kwargs['operations'] = Array(ops)
 
-            super().__init__(OrderedDict([
-                ('ref_block_num', Uint16(kwargs['ref_block_num'])),
-                ('ref_block_prefix', Uint32(kwargs['ref_block_prefix'])),
-                ('expiration', PointInTime(kwargs['expiration'])),
-                ('operations', kwargs['operations']),
-                ('extensions', kwargs['extensions']),
-                ('signatures', kwargs['signatures']),
-            ]))
+        return OrderedDict([
+            ('ref_block_num', Uint16(kwargs['ref_block_num'])),
+            ('ref_block_prefix', Uint32(kwargs['ref_block_prefix'])),
+            ('expiration', PointInTime(kwargs['expiration'])),
+            ('operations', kwargs['operations']),
+            ('extensions', Set([])),
+            ('signatures', kwargs['signatures']),
+        ])
 
     @property
     def id(self):
@@ -89,19 +76,16 @@ class Signed_Transaction(GrapheneObject):
         # Return properly truncated tx hash
         return hexlify(h[:20]).decode("ascii")
 
-    def getOperationKlass(self):
-        return Operation
-
-    def derSigToHexSig(self, s):
-        """ Format DER to HEX signature
-        """
-        s, junk = ecdsa.der.remove_sequence(unhexlify(s))
-        if junk:
-            log.debug('JUNK: %s', hexlify(junk).decode('ascii'))
-        assert(junk == b'')
-        x, s = ecdsa.der.remove_integer(s)
-        y, s = ecdsa.der.remove_integer(s)
-        return '%064x%064x' % (x, y)
+#     def derSigToHexSig(self, s):
+#         """ Format DER to HEX signature
+#         """
+#         s, junk = ecdsa.der.remove_sequence(unhexlify(s))
+#         if junk:
+#             log.debug('JUNK: %s', hexlify(junk).decode('ascii'))
+#         assert(junk == b'')
+#         x, s = ecdsa.der.remove_integer(s)
+#         y, s = ecdsa.der.remove_integer(s)
+#         return '%064x%064x' % (x, y)
 
     def getKnownChains(self):
         return known_chains
@@ -175,15 +159,13 @@ class Signed_Transaction(GrapheneObject):
                 raise Exception("Signature for %s missing!" % f)
         return pubKeysFound
 
-    def sign(self, wifkeys, chain=None):
+    def sign(self, wifkeys, chain):
         """ Sign the transaction with the provided private keys.
 
             :param array wifkeys: Array of wif keys
             :param str chain: identifier for the chain
 
         """
-        if not chain:
-            raise Exception("Chain needs to be provided!")
         self.deriveDigest(chain)
 
         # Get Unique private keys

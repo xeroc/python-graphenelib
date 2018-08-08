@@ -7,10 +7,26 @@ from graphenebase.base58 import (
     base58CheckEncode,
     base58CheckDecode,
     gphBase58CheckEncode,
-    gphBase58CheckDecode)
+    gphBase58CheckDecode,
+    b58decode,
+    b58encode
+)
 
 
 class Testcases(unittest.TestCase):
+    def test_init(self):
+        Base58('800c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d507a5b8d')
+        with self.assertRaises(ValueError):
+            Base58("Invalid$")
+
+    def test_format_warning(self):
+        b = Base58('800c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d507a5b8d')
+        format(b, "Unkown")
+
+    def test_aliasnames(self):
+        v = '800c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d507a5b8d'
+        self.assertEqual(b58decode(b58encode(v)), base58decode(base58encode(v)))
+
     def test_base58decode(self):
         self.assertEqual([base58decode('5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'),
                           base58decode('5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss'),

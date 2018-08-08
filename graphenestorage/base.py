@@ -78,7 +78,7 @@ class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
     def getPrivateKeyForPublicKey(self, pub):
         return self[pub]
 
-    def add(self, wif, pub=None):
+    def add(self, wif, pub):
         self[str(pub)] = str(wif)
 
     def delete(self, pub):
