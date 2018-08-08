@@ -15,5 +15,5 @@ __all__ = [
 ]
 
 
-def get_default_config_store():
-    return SqliteConfigurationStore()
+def get_default_config_store(*args, **kwargs):
+    return SqliteConfigurationStore(*args, **kwargs)

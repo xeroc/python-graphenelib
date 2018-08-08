@@ -2,6 +2,10 @@
 ops = [
     "demooepration",
     "newdemooepration",
+    "nonexisting",
+    "nonexisting2",
+    "nonexisting3",
+    "account_create",
 ]
 operations = {o: ops.index(o) for o in ops}
 

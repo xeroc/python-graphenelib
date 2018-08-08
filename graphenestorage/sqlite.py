@@ -133,7 +133,16 @@ class SQLiteStore(SQLiteFile, StoreInterface):
     def __iter__(self):
         """ Iterates through the store
         """
-        return iter(self.items())
+        return iter(self.keys())
+
+    def keys(self):
+        query = ("SELECT {} from {}".format(
+            self.__key__,
+            self.__tablename__))
+        connection = sqlite3.connect(self.sqlDataBaseFile)
+        cursor = connection.cursor()
+        cursor.execute(query)
+        return [x[0] for x in cursor.fetchall()]
 
     def __len__(self):
         """ return lenght of store

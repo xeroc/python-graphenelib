@@ -17,8 +17,7 @@ from .types import (
     Uint16,
     Uint32,
 )
-from .objects import GrapheneObject, isArgsThisClass
-from .operations import Operation
+from .objects import GrapheneObject, isArgsThisClass, Operation
 from .chains import known_chains
 log = logging.getLogger(__name__)
 

@@ -342,6 +342,8 @@ class ObjectId():
             self.instance = Id(int(id))
             self.Id = object_str
             if type_verify:
+                assert type_verify in self.object_types,\
+                    "Type {} is not defined!".format(type_verify)
                 assert self.object_types[type_verify] == int(type),\
                     "Object id does not match object type! " +\
                     "Excpected %d, got %d" %\
