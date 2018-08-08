@@ -332,6 +332,8 @@ class VoteId():
 class ObjectId():
     """ Encodes protocol ids - serializes to the *instance* only!
     """
+    object_types = object_type
+
     def __init__(self, object_str, type_verify=None):
         if len(object_str.split(".")) == 3:
             space, type, id = object_str.split(".")
@@ -340,10 +342,10 @@ class ObjectId():
             self.instance = Id(int(id))
             self.Id = object_str
             if type_verify:
-                assert object_type[type_verify] == int(type),\
+                assert self.object_types[type_verify] == int(type),\
                     "Object id does not match object type! " +\
                     "Excpected %d, got %d" %\
-                    (object_type[type_verify], int(type))
+                    (self.object_types[type_verify], int(type))
         else:
             raise Exception("Object id is invalid")
 

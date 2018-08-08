@@ -5,7 +5,11 @@ from graphenebase.account import PrivateKey
 from graphenestorage.exceptions import WrongMasterPasswordException
 
 import graphenestorage as storage
-from graphenestorage.interfaces import StoreInterface, KeyInterface, ConfigInterface
+from graphenestorage.interfaces import (
+    StoreInterface,
+    KeyInterface,
+    ConfigInterface
+)
 
 
 def pubprivpair(wif):
@@ -23,8 +27,11 @@ class Testcases(unittest.TestCase):
                 KeyInterface(),
                 StoreInterface()
             ]:
+                k.setdefault("node", "foobar")
+                assert k["node"] == "foobar"
                 k["foobar"] = "value"
                 k["foobar"]
+                assert k["foobar"] == "value"
                 iter(k)
                 len(k)
                 "foobar" in k

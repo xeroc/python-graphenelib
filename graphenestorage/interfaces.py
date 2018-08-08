@@ -2,6 +2,12 @@ class StoreInterface(dict):
 
     defaults = {}
 
+    @classmethod
+    def setdefault(cls, key, value):
+        """ Allows to define default values
+        """
+        cls.defaults[key] = value
+
     def __init__(self, *args, **kwargs):
         pass
 
@@ -12,8 +18,17 @@ class StoreInterface(dict):
 
     def __getitem__(self, key):
         """ Gets an item from the store as if it was a dictionary
+
+            .. note:: Special behavior! If a key is not found, ``None`` is
+                returned instead of raising an exception, unless a default
+                value is found, then that is returned.
         """
-        return dict.__getitem__(self, key)
+        if key in self:
+            return dict.__getitem__(self, key)
+        elif key in self.defaults:
+            return self.defaults[key]
+        else:
+            return None
 
     def __iter__(self):
         """ Iterates through the store

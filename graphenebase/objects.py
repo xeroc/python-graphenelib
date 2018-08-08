@@ -20,6 +20,11 @@ class Operation(list):
         operation, identify the operationid/name and serialize the operation
         into bytes.
     """
+
+    module = "graphenebase.operations"
+    fromlist = ["operations"]
+    operations = operations
+
     def __init__(self, op, **kwargs):
         list.__init__(self, [0, GrapheneObject()])
 
@@ -73,11 +78,10 @@ class Operation(list):
     def _setidanename(self, identifier):
         if isinstance(identifier, int):
             self.id = int(identifier)
-            assert len(ops) > self.id
-            self.name = ops[self.id]
+            self.name = self.getOperationNameForId(self.id)
         else:
-            assert identifier in self.operations()
-            self.id = self.operations()[identifier]
+            assert identifier in self.operations
+            self.id = self.operations[identifier]
             self.name = identifier
 
     @property
@@ -88,29 +92,11 @@ class Operation(list):
     def klass_name(self):
         return self.name[0].upper() + self.name[1:]  # klassname
 
-    def operations(self):
-        # This returns the 'operations' as loaded into global namespace
-        # which is ugly like shit!
-        return operations
-
-    def _getOperationNameForId(self, i):
-        """ Convert an operation id into the corresponding string
-        """
-        for key in self.operations():
-            if int(self.operations()[key]) is int(i):
-                return key
-        return "Unknown Operation ID %d" % i
-
     def _loadGrapheneObject(self, op):
         assert isinstance(op, GrapheneObject)
         self.operation = op
         self.name = op.__class__.__name__.lower()
-        self.id = list(self.operations().keys()).index(self.name)
-
-    def klass(self):
-        module = __import__("graphenebase.operations", fromlist=["operations"])
-        class_ = getattr(module, self.klass_name)
-        return class_
+        self.id = list(self.operations.keys()).index(self.name)
 
     def __bytes__(self):
         return bytes(Id(self.id)) + bytes(self.op)
@@ -120,6 +106,19 @@ class Operation(list):
 
     def __json__(self):
         return [self.id, self.op.json()]
+
+    def klass(self):
+        module = __import__(self.module, fromlist=self.fromlist)
+        class_ = getattr(module, self.klass_name)
+        return class_
+
+    def getOperationNameForId(self, i):
+        """ Convert an operation id into the corresponding string
+        """
+        for key in self.operations:
+            if int(self.operations[key]) is int(i):
+                return key
+        return "Unknown Operation ID %d" % i
 
     toJson = __json__
     json = __json__

@@ -34,16 +34,19 @@ class SQLiteFile():
             argument ``profile``.
     """
 
-    appname = "graphene"
-    appauthor = "Fabian Schuh"
-
     def __init__(self, *args, **kwargs):
+        appauthor = "Fabian Schuh"
+        appname = kwargs.get(
+            "appname",
+            "graphene")
+        data_dir = kwargs.get(
+            "data_dir",
+            user_data_dir(appname, appauthor))
+
         if "profile" in kwargs:
             self.storageDatabase = "{}.sqlite".format(kwargs["profile"])
         else:
-            self.storageDatabase = "{}.sqlite".format(self.appname)
-
-        data_dir = user_data_dir(self.appname, self.appauthor)
+            self.storageDatabase = "{}.sqlite".format(appname)
 
         self.sqlDataBaseFile = os.path.join(
             data_dir, self.storageDatabase)
