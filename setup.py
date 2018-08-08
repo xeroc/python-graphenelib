@@ -35,12 +35,9 @@ setup(
               "graphenebase",
               "graphenestorage",
               ],
-    install_requires=["ecdsa",
-                      "requests",
-                      "websocket-client",
-                      "pylibscrypt",
-                      "pycryptodome",
-                      ],
+    install_requires=[
+        open("requirements.txt").readlines()
+    ],
     classifiers=['License :: OSI Approved :: MIT License',
                  'Operating System :: OS Independent',
                  'Programming Language :: Python :: 3',

@@ -1,0 +1,6 @@
+ecdsa
+requests
+websocket-client
+pylibscrypt
+pycryptodome
+appdirs
