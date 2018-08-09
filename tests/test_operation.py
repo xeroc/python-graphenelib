@@ -1,6 +1,6 @@
 import unittest
 from graphenebase.objects import Operation, GrapheneObject
-from graphenebase.operations import Newdemooepration
+from graphenebase.operations import Newdemooepration, Newdemooepration2
 
 
 class Testcases(unittest.TestCase):
@@ -91,3 +91,15 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op2.json()[0], 1)
         self.assertEqual(list(op2[1].items())[1][0], "optional")
         self.assertEqual(list(op2[1].items())[2][0], "extensions")
+
+    def test_order(self):
+        op1 = Newdemooepration(string="1.2.0", optional="foobar")
+        op2 = Newdemooepration2(string="1.2.0", optional="foobar")
+
+        self.assertEqual(list(op1.items())[0][0], "string")
+        self.assertEqual(list(op1.items())[1][0], "optional")
+        self.assertEqual(list(op1.items())[2][0], "extensions")
+
+        self.assertEqual(list(op2.items())[0][0], "optional")
+        self.assertEqual(list(op2.items())[1][0], "string")
+        self.assertEqual(list(op2.items())[2][0], "extensions")

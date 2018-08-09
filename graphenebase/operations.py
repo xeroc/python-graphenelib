@@ -36,6 +36,16 @@ class Newdemooepration(GrapheneObject):
         ])
 
 
+class Newdemooepration2(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        return OrderedDict([
+            # Different order
+            ('optional', Optional(String(kwargs.get("optional")))),
+            ('string', String(kwargs["string"])),
+            ('extensions', Set([])),
+        ])
+
+
 class Asset(GrapheneObject):
     def detail(self, *args, **kwargs):
         return OrderedDict([
