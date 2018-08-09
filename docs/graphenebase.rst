@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    graphenebase.account
+   graphenebase.aes
    graphenebase.base58
    graphenebase.bip38
    graphenebase.chains
