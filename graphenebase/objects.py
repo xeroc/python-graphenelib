@@ -1,5 +1,6 @@
-from collections import OrderedDict
 import json
+
+from collections import OrderedDict
 from graphenebase.types import (
     Uint8, Int16, Uint16, Uint32, Uint64,
     Varint32, Int64, String, Bytes, Void,
@@ -96,7 +97,7 @@ class Operation(list):
         assert isinstance(op, GrapheneObject)
         self.operation = op
         self.name = op.__class__.__name__.lower()
-        self.id = list(self.operations.keys()).index(self.name)
+        self.id = self.operations[self.name]
 
     def __bytes__(self):
         return bytes(Id(self.id)) + bytes(self.op)

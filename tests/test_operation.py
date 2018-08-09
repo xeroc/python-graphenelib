@@ -26,8 +26,6 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op.name, "demooepration")
         self.assertEqual(op.id, 0)
         self.assertEqual(op.klass_name, "Demooepration")
-        self.assertEqual(
-            str(op), '[0, {"string": "1.2.0", "extensions": []}]')
         self.assertEqual(op.json(), op.toJson())
         self.assertEqual(len(op.json()), 2)
         self.assertEqual(len(op.json()[1]), 2)
@@ -40,8 +38,6 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op.name, "demooepration")
         self.assertEqual(op.id, 0)
         self.assertEqual(op.klass_name, "Demooepration")
-        self.assertEqual(
-            str(op), '[0, {"string": "1.2.0", "extensions": []}]')
         self.assertEqual(op.json(), op.toJson())
         self.assertEqual(len(op.json()), 2)
         self.assertEqual(len(op.json()[1]), 2)
@@ -84,13 +80,11 @@ class Testcases(unittest.TestCase):
         self.assertEqual(list(op.items())[2][0], "extensions")
 
     def test_loadingofGrapheneObject(self):
-        op = Newdemooepration(dict(string="1.2.0", optional="foobar"))
-        op2 = Operation(op)
-        self.assertEqual(op.json()["string"], "1.2.0")
+        op = Operation(Newdemooepration(dict(string="1.2.0", optional="foobar")))
 
-        self.assertEqual(op2.json()[0], 1)
-        self.assertEqual(list(op2[1].items())[1][0], "optional")
-        self.assertEqual(list(op2[1].items())[2][0], "extensions")
+        self.assertEqual(op.json()[0], 1)
+        self.assertEqual(list(op[1].items())[1][0], "optional")
+        self.assertEqual(list(op[1].items())[2][0], "extensions")
 
     def test_order(self):
         op1 = Newdemooepration(string="1.2.0", optional="foobar")

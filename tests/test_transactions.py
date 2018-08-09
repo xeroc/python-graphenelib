@@ -118,12 +118,13 @@ class Testcases(unittest.TestCase):
         self.doit()
 
     def test_timefromnow(self):
+        # Careful! This does not do UTC! but takes the local time!
         t = formatTimeFromNow(60)
-        t2 = datetime.strptime(t, '%Y-%m-%dT%H:%M:%S').astimezone(tz=timezone.utc)
+        t2 = datetime.strptime(t, '%Y-%m-%dT%H:%M:%S')
         self.assertIsInstance(t, str)
-        self.assertGreater(t2, datetime.utcnow().astimezone(tz=timezone.utc))
-        self.assertGreater(t2, datetime.utcnow().astimezone(tz=timezone.utc) + timedelta(seconds=59))
-        self.assertLess(t2, datetime.utcnow().astimezone(tz=timezone.utc) + timedelta(seconds=61))
+        self.assertGreater(t2, datetime.utcnow())
+        self.assertGreater(t2, datetime.utcnow() + timedelta(seconds=59))
+        self.assertLess(t2, datetime.utcnow() + timedelta(seconds=61))
 
 
 if __name__ == '__main__':
