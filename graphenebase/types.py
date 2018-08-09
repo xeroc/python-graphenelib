@@ -159,12 +159,9 @@ class String():
 
 
 class Bytes():
-    def __init__(self, d, length=None):
+    def __init__(self, d):
         self.data = d
-        if length:
-            self.length = length
-        else:
-            self.length = len(self.data)
+        self.length = len(self.data)
 
     def __bytes__(self):
         # FIXME constraint data to self.length
