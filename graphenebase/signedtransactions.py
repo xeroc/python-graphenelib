@@ -17,7 +17,7 @@ from .types import (
     Uint16,
     Uint32,
 )
-from .objects import GrapheneObject
+from .objects import GrapheneObject, Operation
 from .chains import known_chains
 log = logging.getLogger(__name__)
 
@@ -41,6 +41,10 @@ class Signed_Transaction(GrapheneObject):
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
+    known_chains = known_chains
+    default_prefix = "GPH"
+    operation_klass = Operation
+
     def detail(self, *args, **kwargs):
         if "signatures" not in kwargs:
             kwargs["signatures"] = Array([])
@@ -50,7 +54,7 @@ class Signed_Transaction(GrapheneObject):
             ])
 
         ops = kwargs.get("operations", [])
-        opklass = self.getOperationKlass()
+        opklass = self.operation_klass
         if all([not isinstance(a, opklass) for a in ops]):
             kwargs['operations'] = Array([opklass(a) for a in ops])
         else:
@@ -94,14 +98,11 @@ class Signed_Transaction(GrapheneObject):
 #         y, s = ecdsa.der.remove_integer(s)
 #         return '%064x%064x' % (x, y)
 
-    def getKnownChains(self):
-        return known_chains
-
     def getChainParams(self, chain):
         # chain may be an identifier, the chainid, or the prefix
         # ultimately, we need to be able to identify the chain id
         def find_in_known_chains(identifier):
-            chains = self.getKnownChains()
+            chains = self.known_chains
             for _id, chain in chains.items():
                 if _id == identifier:
                     return chain
@@ -141,7 +142,8 @@ class Signed_Transaction(GrapheneObject):
 
     def verify(self, pubkeys=[], chain=None):
         if not chain:
-            raise
+            chain = self.default_prefix
+
         chain_params = self.getChainParams(chain)
         self.deriveDigest(chain)
         signatures = self.data["signatures"].data
@@ -166,13 +168,15 @@ class Signed_Transaction(GrapheneObject):
                 raise Exception("Signature for %s missing!" % f)
         return pubKeysFound
 
-    def sign(self, wifkeys, chain):
+    def sign(self, wifkeys, chain=None):
         """ Sign the transaction with the provided private keys.
 
             :param array wifkeys: Array of wif keys
             :param str chain: identifier for the chain
 
         """
+        if not chain:
+            chain = self.default_prefix
         self.deriveDigest(chain)
 
         # Get Unique private keys
