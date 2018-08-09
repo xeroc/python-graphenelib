@@ -3,7 +3,7 @@ import hashlib
 import logging
 
 # We load 'ecdsa' from installation and .ecdsa from relative
-import ecdsa
+# import ecdsa
 from .ecdsa import sign_message, verify_message
 
 from binascii import hexlify, unhexlify
@@ -17,7 +17,7 @@ from .types import (
     Uint16,
     Uint32,
 )
-from .objects import GrapheneObject, isArgsThisClass, Operation
+from .objects import GrapheneObject
 from .chains import known_chains
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ try:
     import secp256k1
     USE_SECP256K1 = True
     log.debug("Loaded secp256k1 binding.")
-except Exception:
+except ImportError:
     USE_SECP256K1 = False
     log.debug("To speed up transactions signing install \n"
               "    pip install secp256k1")
@@ -36,7 +36,8 @@ class Signed_Transaction(GrapheneObject):
         signature
 
         :param num refNum: parameter ref_block_num (see ``getBlockParams``)
-        :param num refPrefix: parameter ref_block_prefix (see ``getBlockParams``)
+        :param num refPrefix: parameter ref_block_prefix (see
+            ``getBlockParams``)
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
@@ -44,10 +45,16 @@ class Signed_Transaction(GrapheneObject):
         if "signatures" not in kwargs:
             kwargs["signatures"] = Array([])
         else:
-            kwargs["signatures"] = Array([Signature(unhexlify(a)) for a in kwargs["signatures"]])
+            kwargs["signatures"] = Array([
+                Signature(unhexlify(a)) for a in kwargs["signatures"]
+            ])
 
         ops = kwargs.get("operations", [])
-        kwargs['operations'] = Array(ops)
+        opklass = self.getOperationKlass()
+        if all([not isinstance(a, opklass) for a in ops]):
+            kwargs['operations'] = Array([opklass(a) for a in ops])
+        else:
+            kwargs['operations'] = Array(ops)
 
         return OrderedDict([
             ('ref_block_num', Uint16(kwargs['ref_block_num'])),
@@ -170,7 +177,9 @@ class Signed_Transaction(GrapheneObject):
 
         # Get Unique private keys
         self.privkeys = []
-        [self.privkeys.append(item) for item in wifkeys if item not in self.privkeys]
+        for item in wifkeys:
+            if item not in self.privkeys:
+                self.privkeys.append(item)
 
         # Sign the message with every private key given!
         sigs = []
