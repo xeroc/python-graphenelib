@@ -26,7 +26,6 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op.name, "demooepration")
         self.assertEqual(op.id, 0)
         self.assertEqual(op.klass_name, "Demooepration")
-        self.assertEqual(op.__str__(), '[0, {"string": "1.2.0", "extensions": []}]')
         self.assertEqual(
             str(op), '[0, {"string": "1.2.0", "extensions": []}]')
         self.assertEqual(op.json(), op.toJson())
@@ -41,7 +40,6 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op.name, "demooepration")
         self.assertEqual(op.id, 0)
         self.assertEqual(op.klass_name, "Demooepration")
-        self.assertEqual(op.__str__(), '[0, {"string": "1.2.0", "extensions": []}]')
         self.assertEqual(
             str(op), '[0, {"string": "1.2.0", "extensions": []}]')
         self.assertEqual(op.json(), op.toJson())
