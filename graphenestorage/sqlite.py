@@ -61,7 +61,24 @@ class SQLiteFile():
 
 
 class SQLiteStore(SQLiteFile, StoreInterface):
+    """ The SQLiteStore deals with the sqlite3 part of storing data into a
+        database file.
 
+        .. note:: This module is limited to two columns and merely stores
+            key/value pairs into the sqlite database
+
+        On first launch, the database file as well as the tables are created
+        automatically.
+
+        When inheriting from this class, the following three class members must
+        be defined:
+
+            * ``__tablename__``: Name of the table
+            * ``__key__``: Name of the key column
+            * ``__value__``: Name of the value column
+    """
+
+    #:
     __tablename__ = None
     __key__ = None
     __value__ = None
@@ -70,6 +87,14 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         #: Storage
         SQLiteFile.__init__(self, *args, **kwargs)
         StoreInterface.__init__(self, *args, **kwargs)
+        if (
+            self.__tablename__ is None or
+            self.__key__ is None or
+            self.__value__ is None
+        ):
+            raise ValueError(
+                "Values missing for tablename, key, or value!"
+            )
         if not self.exists():
             self.create()
 
@@ -89,6 +114,9 @@ class SQLiteStore(SQLiteFile, StoreInterface):
 
     def __setitem__(self, key, value):
         """ Sets an item in the store
+
+            :param str key: Key
+            :param str value: Value
         """
         if self._haveKey(key):
             query = (
@@ -111,6 +139,8 @@ class SQLiteStore(SQLiteFile, StoreInterface):
 
     def __getitem__(self, key):
         """ Gets an item from the store as if it was a dictionary
+
+            :param str value: Value
         """
         query = (
             "SELECT {} FROM {} WHERE {}=?".format(
@@ -157,6 +187,8 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         """ Tests if a key is contained in the store.
 
             May test againsts self.defaults
+
+            :param str value: Value
         """
         if self._haveKey(key) or key in self.defaults:
             return True
@@ -180,6 +212,9 @@ class SQLiteStore(SQLiteFile, StoreInterface):
 
     def get(self, key, default=None):
         """ Return the key if exists or a default value
+
+            :param str value: Value
+            :param str default: Default value if key not present
         """
         if key in self:
             return self.__getitem__(key)
@@ -189,6 +224,8 @@ class SQLiteStore(SQLiteFile, StoreInterface):
     # Specific for this library
     def delete(self, key):
         """ Delete a key from the store
+
+            :param str value: Value
         """
         query = (
             "DELETE FROM {} WHERE {}=?".format(

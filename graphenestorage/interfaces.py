@@ -1,5 +1,34 @@
 class StoreInterface(dict):
 
+    """ The store interface is the most general store that we can have.
+
+        It inherits dict and thus behaves like a dictionary. As such any
+        key/value store can be used as store with or even without an adaptor.
+
+        .. note:: This class defines ``defaults`` that are used to return
+            reasonable defaults for the library.
+
+        .. warning:: If you are trying to obtain a value for a key that does
+            **not** exist in the store, the library will **NOT** raise but
+            return a ``None`` value. This represents the biggest difference to
+            a regular ``dict`` class.
+
+        Methods that need to be implemented:
+
+          * ``def setdefault(cls, key, value)``
+          * ``def __init__(self, *args, **kwargs)``
+          * ``def __setitem__(self, key, value)``
+          * ``def __getitem__(self, key)``
+          * ``def __iter__(self)``
+          * ``def __len__(self)``
+          * ``def __contains__(self, key)``
+
+
+        .. note:: Configuration and Key classes are subclasses of this to allow
+            storing keys separate from configuration.
+
+    """
+
     defaults = {}
 
     @classmethod
@@ -46,7 +75,7 @@ class StoreInterface(dict):
         return dict.__contains__(self, key)
 
     def items(self):
-        """ returns all items off the store as tuples
+        """ Returns all items off the store as tuples
         """
         return dict.items(self)
 
@@ -68,7 +97,11 @@ class StoreInterface(dict):
 
 
 class KeyInterface(StoreInterface):
-    """ The BaseKeyStore defines the interface for key storage
+    """ The BaseKeyStore defines the interface for key storage.
+
+        .. note:: This class inherits
+            :class:`graphenestorage.interfaces.StoreInterface` and defines
+            additional key-specific methods.
     """
 
     # Interface to deal with encrypted keys
@@ -98,6 +131,8 @@ class KeyInterface(StoreInterface):
 
     def delete(self, pub):
         """ Delete a pubkey/privatekey pair from the store
+
+           :param str pub: Public key
         """
         pass
 
@@ -108,6 +143,8 @@ class KeyInterface(StoreInterface):
 
     def unlock(self, password):
         """ Tries to unlock the wallet if required
+
+           :param str password: Plain password
         """
         pass
 
@@ -125,6 +162,8 @@ class KeyInterface(StoreInterface):
 class ConfigInterface(StoreInterface):
     """ The BaseKeyStore defines the interface for key storage
 
-        Inherits StoreInterface. Not additional methods required.
+        .. note:: This class inherits
+            :class:`graphenestorage.interfaces.StoreInterface` and defines
+            **no** additional configuration-specific methods.
     """
     pass

@@ -4,6 +4,17 @@ from .interfaces import StoreInterface
 # StoreInterface is done first, then dict which overwrites the interface
 # methods
 class InRamStore(StoreInterface):
+    """ The InRamStore inherits
+        :class:`graphenestore.interfaces.StoreInterface` and extends it by two
+        further calls for wipe and delete.
+
+        The store is syntactically equivalent to a regular dictionary.
+
+        .. warning:: If you are trying to obtain a value for a key that does
+            **not** exist in the store, the library will **NOT** raise but
+            return a ``None`` value. This represents the biggest difference to
+            a regular ``dict`` class.
+    """
     # Specific for this library
     def delete(self, key):
         """ Delete a key from the store
