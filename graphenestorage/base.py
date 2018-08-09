@@ -5,6 +5,7 @@ from .masterpassword import MasterPassword
 from .interfaces import KeyInterface, ConfigInterface
 from .ram import InRamStore
 from .sqlite import SQLiteStore
+from .exceptions import KeyAlreadyInStoreException
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ class InRamPlainKeyStore(InRamStore, KeyInterface):
         return self.get(str(pub), None)
 
     def add(self, wif, pub):
+        if str(pub) in self:
+            raise KeyAlreadyInStoreException
         self[str(pub)] = str(wif)
 
     def delete(self, pub):
@@ -56,6 +59,8 @@ class InRamEncryptedKeyStore(MasterPassword, InRamStore, KeyInterface):
             return self.decrypt(wif)  # From Masterpassword
 
     def add(self, wif, pub):
+        if str(pub) in self:
+            raise KeyAlreadyInStoreException
         assert self.unlocked()  # From Masterpassword
         self[str(pub)] = self.encrypt(str(wif))  # From Masterpassword
 
@@ -79,6 +84,8 @@ class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
         return self[pub]
 
     def add(self, wif, pub):
+        if str(pub) in self:
+            raise KeyAlreadyInStoreException
         self[str(pub)] = str(wif)
 
     def delete(self, pub):
@@ -108,6 +115,8 @@ class SqliteEncryptedKeyStore(MasterPassword, SQLiteStore, KeyInterface):
             return self.decrypt(wif)  # From Masterpassword
 
     def add(self, wif, pub):
+        if str(pub) in self:
+            raise KeyAlreadyInStoreException
         assert self.unlocked()  # From Masterpassword
         self[str(pub)] = self.encrypt(str(wif))  # From Masterpassword
 

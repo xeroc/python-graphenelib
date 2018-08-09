@@ -2,7 +2,10 @@ import os
 import unittest
 
 from graphenebase.account import PrivateKey
-from graphenestorage.exceptions import WrongMasterPasswordException
+from graphenestorage.exceptions import (
+    WrongMasterPasswordException,
+    KeyAlreadyInStoreException
+)
 
 import graphenestorage as storage
 from graphenestorage.interfaces import (
@@ -126,9 +129,10 @@ class Testcases(unittest.TestCase):
             *pubprivpair("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
         )
         # Duplicate key
-        keys.add(
-            *pubprivpair("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
-        )
+        with self.assertRaises(KeyAlreadyInStoreException):
+            keys.add(
+                *pubprivpair("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
+            )
         self.assertIn(
             "GPH6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
             keys.getPublicKeys()
