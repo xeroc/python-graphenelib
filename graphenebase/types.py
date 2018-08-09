@@ -2,9 +2,7 @@ import json
 import struct
 import time
 from calendar import timegm
-from datetime import datetime
 from binascii import hexlify, unhexlify
-from collections import OrderedDict
 from .objecttypes import object_type
 
 timeformat = '%Y-%m-%dT%H:%M:%S%Z'
@@ -27,7 +25,7 @@ def varintdecode(data):
     shift = 0
     result = 0
     for c in data:
-        b = ord(c)
+        b = ord(bytes(c))
         result |= ((b & 0x7f) << shift)
         if not (b & 0x80):
             break
@@ -211,7 +209,12 @@ class PointInTime():
         self.data = d
 
     def __bytes__(self):
-        return struct.pack("<I", timegm(time.strptime((self.data + "UTC"), timeformat)))
+        return struct.pack(
+            "<I",
+            timegm(time.strptime(
+                (self.data + "UTC"),
+                timeformat))
+        )
 
     def __str__(self):
         return self.data
@@ -242,14 +245,7 @@ class Set(Array):  # Set = Array
 
 
 class Fixed_array():
-    def __init__(self, d):
-        raise NotImplementedError
-
-    def __bytes__(self):
-        raise NotImplementedError
-
-    def __str__(self):
-        raise NotImplementedError
+    pass
 
 
 class Optional():
@@ -260,7 +256,12 @@ class Optional():
         if not bool(self.data):
             return bytes(Bool(0))
         else:
-            return bytes(Bool(1)) + bytes(self.data) if bytes(self.data) else bytes(Bool(0))
+            return (
+                bytes(Bool(1)) +
+                bytes(self.data)
+                if bytes(self.data)
+                else bytes(Bool(0))
+            )
 
     def __str__(self):
         return str(self.data)

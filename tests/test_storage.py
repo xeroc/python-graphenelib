@@ -54,8 +54,18 @@ class Testcases(unittest.TestCase):
             keys.lock()
 
     def test_default_config(self):
-        config = storage.get_default_config_store()
+        config = storage.get_default_config_store(
+            appname="testing-")
         config["node"]
+
+    def test_default_key(self):
+        config = storage.get_default_config_store(
+            appname="testing-")
+        keys = storage.get_default_key_store(
+            appname="testing2",
+            config=config,
+        )
+        keys["node"]
 
     def test_configstorage(self):
         for config in [
@@ -131,7 +141,8 @@ class Testcases(unittest.TestCase):
         # Duplicate key
         with self.assertRaises(KeyAlreadyInStoreException):
             keys.add(
-                *pubprivpair("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
+                *pubprivpair(
+                    "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
             )
         self.assertIn(
             "GPH6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
