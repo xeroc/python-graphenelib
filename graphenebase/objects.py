@@ -147,7 +147,7 @@ class GrapheneObject(OrderedDict):
             if hasattr(self, "detail"):
                 super().__init__(self.detail(**args[0]))
             else:
-                OrderedDict.__init__(self, args[0])
+                OrderedDict.__init__(self, args[0])  # pragma: no cover
             return
 
         elif kwargs and hasattr(self, "detail"):

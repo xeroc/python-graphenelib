@@ -39,7 +39,7 @@ class Testcases(unittest.TestCase):
             b'\xc5\x01', b'\xc6\x01', b'\xc7\x01']
         for i in range(1, 200):
             self.assertEqual(types.varint(i), expected[i])
-            # self.assertEqual(types.varintdecode(expected[i]), i)
+            self.assertEqual(types.varintdecode(expected[i]), i)
 
     def test_variable_buffer(self):
         self.assertEqual(
@@ -58,35 +58,35 @@ class Testcases(unittest.TestCase):
         self.assertEqual(str(u), "10")
 
     def test_uint16(self):
-        u = types.Uint16(2**16-1)
+        u = types.Uint16(2**16 - 1)
         self.assertEqual(bytes(u), b"\xff\xff")
-        self.assertEqual(str(u), str(2**16-1))
+        self.assertEqual(str(u), str(2**16 - 1))
 
     def test_uint32(self):
-        u = types.Uint32(2**32-1)
+        u = types.Uint32(2**32 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff")
-        self.assertEqual(str(u), str(2**32-1))
+        self.assertEqual(str(u), str(2**32 - 1))
 
     def test_uint64(self):
-        u = types.Uint64(2**64-1)
+        u = types.Uint64(2**64 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff\xff\xff\xff\xff")
-        self.assertEqual(str(u), str(2**64-1))
+        self.assertEqual(str(u), str(2**64 - 1))
 
     def test_int64(self):
-        u = types.Int64(2**63-1)
+        u = types.Int64(2**63 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff\xff\xff\xff\x7f")
         self.assertEqual(str(u), str(9223372036854775807))
 
     def test_int16(self):
-        u = types.Int16(2**15-1)
+        u = types.Int16(2**15 - 1)
         self.assertEqual(bytes(u), b"\xff\x7f")
-        self.assertEqual(str(u), str(2**15-1))
+        self.assertEqual(str(u), str(2**15 - 1))
 
     def test_varint32(self):
-        u = types.Varint32(2**32-1)
+        u = types.Varint32(2**32 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff\x0f")
         self.assertEqual(str(u), str(4294967295))
-        u = types.Id(2**32-1)
+        u = types.Id(2**32 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff\x0f")
         self.assertEqual(str(u), str(4294967295))
 
@@ -95,9 +95,9 @@ class Testcases(unittest.TestCase):
         self.assertEqual(bytes(u), b"\x0bHelloFoobar")
         self.assertEqual(str(u), "HelloFoobar")
 
-        u = types.String("\x07\x08\x09\x10\x11\x12\x13\x14")
-        self.assertEqual(bytes(u), b" u0007b\tu0010u0011u0012u0013u0014")
-        self.assertEqual(str(u), "\x07\x08\t\x10\x11\x12\x13\x14")
+        u = types.String("\x07\x08\x09\x0a\x0b\x0c\x0d\x0e")
+        self.assertEqual(bytes(u), b"\x14u0007b\t\nu000bf\ru000e")
+        self.assertEqual(str(u), "\x07\x08\x09\x0a\x0b\x0c\x0d\x0e")
 
     def test_void(self):
         u = types.Void()
@@ -168,6 +168,8 @@ class Testcases(unittest.TestCase):
         u = types.ObjectId("1.2.30")
         self.assertEqual(bytes(u), b"\x1e")
         self.assertEqual(str(u), '1.2.30')
+        with self.assertRaises(Exception):
+            types.ObjectId("1.2")
 
     def test_fullobjectid(self):
         u = types.FullObjectId("1.2.30")
@@ -181,3 +183,6 @@ class Testcases(unittest.TestCase):
         u = MyEnum("bar")
         self.assertEqual(bytes(u), b"\x01")
         self.assertEqual(str(u), 'bar')
+
+        with self.assertRaises(ValueError):
+            u = MyEnum("barbar")

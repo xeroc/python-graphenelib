@@ -19,7 +19,7 @@ if not SCRYPT_MODULE:
     try:
         import scrypt
         SCRYPT_MODULE = "scrypt"
-    except ImportError:
+    except ImportError:   # pragma: no cover
         try:
             import pylibscrypt as scrypt
             SCRYPT_MODULE = "pylibscrypt"
@@ -67,7 +67,7 @@ def encrypt(privkey, passphrase):
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
     elif SCRYPT_MODULE == "pylibscrypt":
         key = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
-    else:
+    else:   # pragma: no cover
         raise ValueError("No scrypt module loaded")
     (derived_half1, derived_half2) = (key[:32], key[32:])
     aes = AES.new(derived_half2, AES.MODE_ECB)
@@ -89,7 +89,8 @@ def decrypt(encrypted_privkey, passphrase):
     :param str passphrase: UTF-8 encoded passphrase for decryption
     :return: BIP0038 non-ec-multiply decrypted key
     :rtype: Base58
-    :raises SaltException: if checksum verification failed (e.g. wrong password)
+    :raises SaltException: if checksum verification failed (e.g. wrong
+        password)
 
     """
 
@@ -125,6 +126,7 @@ def decrypt(encrypted_privkey, passphrase):
     else:
         a = bytes(addr).encode('ascii')
     saltverify = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
-    if saltverify != salt:
-        raise SaltException('checksum verification failed! Password may be incorrect.')
+    if saltverify != salt:   # pragma: no cover
+        raise SaltException(
+            'checksum verification failed! Password may be incorrect.')
     return wif

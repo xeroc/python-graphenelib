@@ -1,6 +1,6 @@
 import unittest
 from graphenebase.base58 import Base58
-from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey, PasswordKey
+from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey, PasswordKey, GrapheneAddress, BitcoinAddress
 
 
 class Testcases(unittest.TestCase):
@@ -53,6 +53,31 @@ class Testcases(unittest.TestCase):
                           "BTS3qXyZnjJneeAddgNDYNYXbF7ARZrRv5dr",
                           ])
 
+        self.assertEqual([bytes(Address("BTSFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi", prefix="BTS")),
+                          bytes(Address("BTSdXrrTXimLb6TEt3nHnePwFmBT6Cck112", prefix="BTS")),
+                          bytes(Address("BTSJQUAt4gz4civ8gSs5srTK4r82F7HvpChk", prefix="BTS")),
+                          bytes(Address("BTSFPXXHXXGbyTBwdKoJaAPXRnhFNtTRS4EL", prefix="BTS")),
+                          bytes(Address("BTS3qXyZnjJneeAddgNDYNYXbF7ARZrRv5dr", prefix="BTS")),
+                          ], [
+                            b'\x9d\x91\xe1}\xa7\x8ff\xd9\xfb\x1b\xd6P\x9c\x97\xc5\x96\xee\x95\x81]',
+                            b'\x06\xe8\xbc\x1f\xf1P\xad\x9f-4^v5\xc1^\xc9\xac\xf0\xa4\xac',
+                            b'\xbe\xeab\xd8K\x94t\xfe^#M\x89\x84\xbcO\xc4x\x1d\x8aU',
+                            b'\x9d\xd4d\x07\xc1\xc6qa7\x1e\xf0\x9b\xef\xbb\x05E\x14,\x98\xa2',
+                            b'\x1f\x1e\x13\x17\xcay\x82\xe9\xb3pe a\x15(\xea7\x98\x1a\xe1'])
+
+        self.assertEqual([bytes(GrapheneAddress.from_pubkey(PublicKey("BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL", prefix="BTS"), prefix="BTS")),
+                          bytes(GrapheneAddress.from_pubkey(PublicKey("BTS8YAMLtNcnqGNd3fx28NP3WoyuqNtzxXpwXTkZjbfe9scBmSyGT", prefix="BTS"), prefix="BTS")),
+                          bytes(GrapheneAddress.from_pubkey(PublicKey("BTS7HUo6bm7Gfoi3RqAtzwZ83BFCwiCZ4tp37oZjtWxGEBJVzVVGw", prefix="BTS"), prefix="BTS")),
+                          bytes(GrapheneAddress.from_pubkey(PublicKey("BTS6676cZ9qmqPnWMrm4McjCuHcnt6QW5d8oRJ4t8EDH8DdCjvh4V", prefix="BTS"), prefix="BTS", compressed=True)),
+                          bytes(GrapheneAddress.from_pubkey(PublicKey("BTS7u8m6zUNuzPNK1tPPLtnipxgqV9mVmTzrFNJ9GvovvSTCkVUra", prefix="BTS"), prefix="BTS", compressed=False)),
+                          ], [
+                            b'7\xd6\x90p+B\xe9r\xf4\xd1-[\xea\x1f<\xbe#m\xbdu',
+                            b'\xc9\x92\x97b\x7f\xc0u9\xd2\x9a\xe4E=\x81\xeb\x96l\xcf(3',
+                            b'M/\xbf\x83\xac\x9f\xff\xf6\xcf=\x9e@\xd45U\x91\xfe\xda\xf26',
+                            b'\xef\xf8\x9e\xa7\x8ei:\x83L\xc57\xaa*4\xdb\x9ff\xbcs\xf6',
+                            b'\x0f\xec\xc4I\x8a\xfbUAg\xa5\xe9\xb5\xac\xea\x1dJ\x14\x87\x11\xf7'
+                          ])
+
     def test_PubKey(self):
         self.assertEqual([format(PublicKey("BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL", prefix="BTS").address, "BTS"),
                           format(PublicKey("BTS8YAMLtNcnqGNd3fx28NP3WoyuqNtzxXpwXTkZjbfe9scBmSyGT", prefix="BTS").address, "BTS"),
@@ -66,9 +91,8 @@ class Testcases(unittest.TestCase):
                             'BTSNsrLFWTziSZASnNJjWafFtGBfSu8VG8KU',
                             'BTSDjAGuXzk3WXabBEgKKc8NsuQM412boBdR'])
 
-
     def test_btsprivkey(self):
-        self.assertEqual([format(PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd").address, "BTS"),
+        self.assertEqual([format(PrivateKey(Base58("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")).address, "BTS"),
                           format(PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S").address, "BTS"),
                           format(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").address, "BTS"),
                           format(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").address, "BTS"),
@@ -79,6 +103,19 @@ class Testcases(unittest.TestCase):
                             'BTSBXqRucGm7nRkk6jm7BNspTJTWRtNcx7k5',
                             'BTS5tTDDR6M3mkcyVv16edsw8dGUyNQZrvKU',
                             'BTS8G9ATJbJewVjTgTGmLGLNe1uP5XDWzaKX'])
+
+    def test_uncompressed_privatekey(self):
+        self.assertEqual([format(PrivateKey(Base58("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")).uncompressed, "BTS"),
+                          format(PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S").uncompressed, "BTS"),
+                          format(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").uncompressed, "BTS"),
+                          format(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").uncompressed, "BTS"),
+                          format(PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").uncompressed, "BTS")
+                          ], [
+                            'BTS677ZZd62Ca7SoUJoT1CytBhj4aJewzzi8tQZxYNqpSSK69FTuF',
+                            'BTS5z5e3BawwMY6UmcBQxYpkKZ8QQm4wdtS4KMZiWAcWBUC3RJuLT',
+                            'BTS7W5qsanXHgRAZPijbrLMDwX6VmHqUdL2s8PZiYKD5h1R7JaqRJ',
+                            'BTS86qPFWptPfUNKVi6hemeEWshoLerN6JvzCvFjqnRSEJg7nackU',
+                            'BTS57qhJwt9hZtBsGgV7J5ZPHFi5r5MEeommYnFpDb6grK3qev2qX'])
 
     def test_PublicKey(self):
         self.assertEqual([str(PublicKey("BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL", prefix="BTS")),
@@ -180,8 +217,9 @@ class Testcases(unittest.TestCase):
              "STM7ZZFhEBjujcKjkmY31i1spPMx6xDSRhkursZLigi2HKLuALe5t",
              ]
         for i, pwd in enumerate(a):
-            p = format(PasswordKey("xeroc", pwd, "posting").get_public(), "STM")
-            self.assertEqual(p, b[i])
+            password = PasswordKey("xeroc", pwd, "posting")
+            self.assertEqual(format(password.get_public(), "STM"), b[i])
+            self.assertEqual(format(password.get_public_key(), "STM"), b[i])
 
     def test_btcprivkey(self):
         self.assertEqual([format(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").bitcoin.address, "BTC"),
@@ -192,3 +230,24 @@ class Testcases(unittest.TestCase):
                           "12c7KAAZfpREaQZuvjC5EhpoN6si9vekqK",
                           "1Gu5191CVHmaoU3Zz3prept87jjnpFDrXL",
                           ])
+
+    def test_btcprivkeystr(self):
+        self.assertEqual([str(BitcoinAddress.from_pubkey(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").pubkey)),
+                          str(BitcoinAddress.from_pubkey(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").pubkey)),
+                          str(BitcoinAddress.from_pubkey(PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").pubkey, compressed=True)),
+                          ],
+                         ["1G7qw8FiVfHEFrSt3tDi6YgfAdrDrEM44Z",
+                          "12c7KAAZfpREaQZuvjC5EhpoN6si9vekqK",
+                          "1HddTuNjpuFVBwMb4TW9vDWgFMUDtSN9Vn",
+                          ])
+
+    def test_password_suggest(self):
+        self.assertEqual(
+            len(BrainKey.suggest().split(" ")),
+            16)
+
+    def test_child(self):
+        p = PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S")
+        p2 = p.child(b"Foobar")
+        self.assertIsInstance(p2, PrivateKey)
+        self.assertEqual(str(p2), "5JQ6AQmjpbEZjJBLnoa3BaWa9y3LDTUBeSDwEGQD2UjYkb1gY2x")

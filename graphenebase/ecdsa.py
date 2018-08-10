@@ -93,7 +93,7 @@ def recover_public_key(digest, signature, i, message=None):
 
     if SECP256K1_MODULE == "cryptography" and message is not None:
         if not isinstance(message, bytes):
-            message = bytes(message, "utf-8")
+            message = bytes(message, "utf-8")   # pragma: no cover
         sigder = encode_dss_signature(r, s)
         public_key = ec.EllipticCurvePublicNumbers(Q._Point__x, Q._Point__y, ec.SECP256K1()).public_key(default_backend())
         public_key.verify(sigder, message, ec.ECDSA(hashes.SHA256()))
@@ -101,7 +101,7 @@ def recover_public_key(digest, signature, i, message=None):
     else:
         # Not strictly necessary, but let's verify the message for paranoia's sake.
         if not ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1).verify_digest(signature, digest, sigdecode=ecdsa.util.sigdecode_string):
-            return None
+            return None   # pragma: no cover
         return ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1)
 
 
@@ -110,9 +110,9 @@ def recoverPubkeyParameter(message, digest, signature, pubkey):
         public key from the signature
     """
     if not isinstance(message, bytes):
-        message = bytes(message, "utf-8")
+        message = bytes(message, "utf-8")  # pragma: no cover
     for i in range(0, 4):
-        if SECP256K1_MODULE == "secp256k1":
+        if SECP256K1_MODULE == "secp256k1":  # pragma: no cover
             sig = pubkey.ecdsa_recoverable_deserialize(signature, i)
             p = secp256k1.PublicKey(pubkey.ecdsa_recover(message, sig))
             if p.serialize() == pubkey.serialize():
@@ -168,7 +168,7 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
                 secp256k1.ffi.NULL,
                 ndata
             )
-            if not signed == 1:
+            if not signed == 1:  # pragma: no cover
                 raise AssertionError()
             signature, i = privkey.ecdsa_recoverable_serialize(sig)
             if _is_canonical(signature):
@@ -181,7 +181,7 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
         public_key = private_key.public_key()
         while True:
             cnt += 1
-            if not cnt % 20:
+            if not cnt % 20:  # pragma: no cover
                 log.info("Still searching for a canonical signature. Tried %d times already!" % cnt)
             order = ecdsa.SECP256k1.order
             # signer = private_key.signer(ec.ECDSA(hashes.SHA256()))

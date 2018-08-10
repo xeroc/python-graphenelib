@@ -49,6 +49,7 @@ class Testcases(unittest.TestCase):
         o = GrapheneObject()
         self.assertEqual(bytes(o), b"")
         self.assertEqual(dict(o), {})
+        self.assertIsInstance(str(o), str)
 
         o = GrapheneObject({"string": "demooepration"})
         self.assertEqual(bytes(o), b"demooepration")
@@ -56,6 +57,7 @@ class Testcases(unittest.TestCase):
         self.assertEqual(o.json(), {"string": "demooepration"})
         self.assertEqual(o.toJson(), {"string": "demooepration"})
         self.assertEqual(o.data, o)
+        self.assertIsInstance(str(o), str)
 
     def test_newdemo_op(self):
         for op in [

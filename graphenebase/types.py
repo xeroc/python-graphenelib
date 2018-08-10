@@ -24,8 +24,7 @@ def varintdecode(data):
     """
     shift = 0
     result = 0
-    for c in data:
-        b = ord(bytes(c))
+    for b in bytes(data):
         result |= ((b & 0x7f) << shift)
         if not (b & 0x80):
             break
@@ -380,15 +379,19 @@ class FullObjectId():
 
 
 class Enum8(Uint8):
+    # List needs to be provided by super class
+    options = []
+
     def __init__(self, selection):
-        assert selection in self.options or \
-            isinstance(selection, int) and len(self.options) < selection, \
-            "Options are %s. Given '%s'" % (
-                self.options, selection)
-        if selection in self.options:
-            super(Enum8, self).__init__(self.options.index(selection))
-        else:
-            super(Enum8, self).__init__(selection)
+        if (
+            selection not in self.options and
+            isinstance(selection, int) and len(self.options) < selection
+        ):
+            raise ValueError(
+                "Options are {}. Given '{}'".format(
+                    str(self.options), selection))
+
+        super(Enum8, self).__init__(self.options.index(selection))
 
     def __str__(self):
         return str(self.options[self.data])

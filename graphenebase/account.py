@@ -67,7 +67,7 @@ class BrainKey(object):
 
     def __init__(self, brainkey=None, sequence=0):
         if not brainkey:
-            self.brainkey = self.suggest()
+            self.brainkey = BrainKey.suggest()
         else:
             self.brainkey = self.normalize(brainkey).strip()
         self.sequence = sequence
@@ -114,7 +114,8 @@ class BrainKey(object):
     def get_public_key(self):
         return self.get_public()
 
-    def suggest(self):
+    @staticmethod
+    def suggest():
         """ Suggest a new random brain key. Randomness is provided by the
             operating system using ``os.urandom()``.
         """
@@ -127,7 +128,7 @@ class BrainKey(object):
             rndMult = num / 2 ** 16  # returns float between 0..1 (inclusive)
             wIdx = round(len(dict_lines) * rndMult)
             brainkey[j] = dict_lines[wIdx]
-        return " ".join(brainkey).upper()
+        return (" ".join(brainkey).upper())
 
 
 class Address(object):
@@ -456,7 +457,7 @@ class PrivateKey():
         """
         return format(self._wif, "WIF")
 
-    def __bytes__(self):
+    def __bytes__(self):    # pragma: no cover
         """ Returns the raw private key """
         if sys.version > '3':
             return bytes(self._wif)

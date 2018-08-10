@@ -19,7 +19,7 @@ class Demooepration(GrapheneObject):
             self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
+                kwargs = args[0]  # pragma: no cover
             super().__init__(OrderedDict([
                 ('string', String(kwargs["string"])),
                 ('extensions', Set([])),

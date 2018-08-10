@@ -257,7 +257,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         cursor.execute(*query)
         return True if cursor.fetchone() else False
 
-    def create(self):
+    def create(self):  # pragma: no cover
         """ Create the new table in the SQLite database
         """
         query = (

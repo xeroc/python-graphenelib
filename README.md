@@ -1,23 +1,23 @@
 Python Library for Graphene
 ===========================
 
-Python 3 library for Graphene 2.0!
+![](https://img.shields.io/pypi/v/graphenelib.svg?style=for-the-badge)
+![](https://img.shields.io/github/downloads/xeroc/python-graphenelib/total.svg?style=for-the-badge)
+![](https://img.shields.io/pypi/pyversions/graphenelib.svg?style=for-the-badge)
+![](https://img.shields.io/pypi/l/graphenelib.svg?style=for-the-badge)
+![](https://cla-assistant.io/readme/badge/graphenelib/python-graphenelib)
 
 **Stable**
 
-[![docs master](https://readthedocs.org/projects/python-graphenelib/badge/?version=latest)](http://python-graphenelib.readthedocs.io/en/latest/)
 [![Travis master](https://travis-ci.org/xeroc/python-graphenelib.png?branch=master)](https://travis-ci.org/xeroc/python-graphenelib)
+[![docs master](https://readthedocs.org/projects/python-graphenelib/badge/?version=latest)](http://python-graphenelib.readthedocs.io/en/latest/)
 [![codecov](https://codecov.io/gh/xeroc/python-graphenelib/branch/master/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
 
 
-[![PyPI](https://img.shields.io/pypi/dm/graphenelib.svg?maxAge=2592000)]()
-[![PyPI](https://img.shields.io/pypi/dw/graphenelib.svg?maxAge=2592000)]()
-[![PyPI](https://img.shields.io/pypi/dd/graphenelib.svg?maxAge=2592000)]()
-
 **Develop**
 
-[![docs develop](https://readthedocs.org/projects/python-graphenelib/badge/?version=develop)](http://python-graphenelib.readthedocs.io/en/develop/)
 [![Travis develop](https://travis-ci.org/xeroc/python-graphenelib.png?branch=develop)](https://travis-ci.org/xeroc/python-graphenelib)
+[![docs develop](https://readthedocs.org/projects/python-graphenelib/badge/?version=develop)](http://python-graphenelib.readthedocs.io/en/develop/)
 [![codecov develop](https://codecov.io/gh/xeroc/python-graphenelib/branch/develop/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
 
 Installation
