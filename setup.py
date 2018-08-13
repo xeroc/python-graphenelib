@@ -31,10 +31,12 @@ setup(
         'ecdsa',
         'secp256k1'
     ],
-    packages=["grapheneapi",
-              "graphenebase",
-              "graphenestorage",
-              ],
+    packages=[
+        "graphene",
+        "grapheneapi",
+        "graphenebase",
+        "graphenestorage",
+    ],
     install_requires=[
         open("requirements.txt").readlines()
     ],
