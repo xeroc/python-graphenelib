@@ -60,37 +60,6 @@ class InRamPlainKeyStore(InRamStore, KeyInterface):
         InRamStore.delete(self, str(pub))
 
 
-class InRamEncryptedKeyStore(MasterPassword, InRamStore, KeyInterface):
-    """ An in-RAM Store that stores keys **encrypted** in RAM.
-
-        Internally, this works by simply inheriting
-        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
-        :class:`graphenestorage.interfaces.KeyInterface`.
-
-        .. note:: This module also inherits
-            :class:`graphenestorage.masterpassword.MasterPassword` which offers
-            additional methods and deals with encrypting the keys.
-    """
-    # Interface to deal with encrypted keys
-    def getPublicKeys(self):
-        return [k for k, v in self.items()]
-
-    def getPrivateKeyForPublicKey(self, pub):
-        assert self.unlocked()
-        wif = self.get(str(pub), None)
-        if wif:
-            return self.decrypt(wif)  # From Masterpassword
-
-    def add(self, wif, pub):
-        if str(pub) in self:
-            raise KeyAlreadyInStoreException
-        assert self.unlocked()  # From Masterpassword
-        self[str(pub)] = self.encrypt(str(wif))  # From Masterpassword
-
-    def is_encrypted(self):
-        return True
-
-
 class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
     """ This is the key storage that stores the public key and the
         **unencrypted** private key in the `keys` table in the SQLite3
@@ -127,25 +96,11 @@ class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
         return False
 
 
-class SqliteEncryptedKeyStore(MasterPassword, SQLiteStore, KeyInterface):
-    """ This is the key storage that stores the public key and the
-        **encrypted** private key in the `keys` table in the SQLite3 database.
-
-        Internally, this works by simply inheriting
-        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
-        :class:`graphenestorage.interfaces.KeyInterface`.
-
-        .. note:: This module also inherits
-            :class:`graphenestorage.masterpassword.MasterPassword` which offers
-            additional methods and deals with encrypting the keys.
+class EncryptedKeyInterface(MasterPassword):
+    """ This is an interface class that provides the methods required for
+        KeyInterface and links them to the MasterPassword-provided
+        functionatlity, accordingly.
     """
-    __tablename__ = 'keys'
-    __key__ = "pub"
-    __value__ = "wif"
-
-    def __init__(self, *args, **kwargs):
-        SQLiteStore.__init__(self, *args, **kwargs)
-        MasterPassword.__init__(self, *args, **kwargs)
 
     # Interface to deal with encrypted keys
     def getPublicKeys(self):
@@ -165,3 +120,42 @@ class SqliteEncryptedKeyStore(MasterPassword, SQLiteStore, KeyInterface):
 
     def is_encrypted(self):
         return True
+
+
+class InRamEncryptedKeyStore(EncryptedKeyInterface, InRamStore, KeyInterface):
+    """ An in-RAM Store that stores keys **encrypted** in RAM.
+
+        Internally, this works by simply inheriting
+        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
+        :class:`graphenestorage.interfaces.KeyInterface`.
+
+        .. note:: This module also inherits
+            :class:`graphenestorage.masterpassword.MasterPassword` which offers
+            additional methods and deals with encrypting the keys.
+    """
+    pass
+
+
+class SqliteEncryptedKeyStore(
+    EncryptedKeyInterface,
+    SQLiteStore,
+    KeyInterface
+):
+    """ This is the key storage that stores the public key and the
+        **encrypted** private key in the `keys` table in the SQLite3 database.
+
+        Internally, this works by simply inheriting
+        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
+        :class:`graphenestorage.interfaces.KeyInterface`.
+
+        .. note:: This module also inherits
+            :class:`graphenestorage.masterpassword.MasterPassword` which offers
+            additional methods and deals with encrypting the keys.
+    """
+    __tablename__ = 'keys'
+    __key__ = "pub"
+    __value__ = "wif"
+
+    def __init__(self, *args, **kwargs):
+        SQLiteStore.__init__(self, *args, **kwargs)
+        MasterPassword.__init__(self, *args, **kwargs)
