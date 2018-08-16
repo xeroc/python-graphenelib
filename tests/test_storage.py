@@ -40,18 +40,21 @@ class Testcases(unittest.TestCase):
                 "foobar" in k
                 k.items()
                 k.get("foobar")
-                k.delete("foobar")
-                k.wipe()
+                with self.assertRaises(NotImplementedError):
+                    k.delete("foobar")
+                with self.assertRaises(NotImplementedError):
+                    k.wipe()
 
             keys = KeyInterface()
-            keys.getPublicKeys()
-            keys.getPrivateKeyForPublicKey("x")
-            keys.add("x")
-            keys.delete("x")
-            keys.is_encrypted()
-            keys.unlock("")
-            keys.locked()
-            keys.lock()
+            # Don't exist in keyinterface!
+            with self.assertRaises(NotImplementedError):
+                keys.getPublicKeys()
+            with self.assertRaises(NotImplementedError):
+                keys.getPrivateKeyForPublicKey("x")
+            with self.assertRaises(NotImplementedError):
+                keys.add("x")
+            with self.assertRaises(NotImplementedError):
+                keys.delete("x")
 
     def test_default_config(self):
         config = storage.get_default_config_store(
@@ -132,8 +135,6 @@ class Testcases(unittest.TestCase):
             keys.unlock(password)
             assert keys.unlocked()
             assert keys.is_encrypted()
-        else:
-            assert not keys.is_encrypted()
 
         keys.add(
             *pubprivpair("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
@@ -169,7 +170,11 @@ class Testcases(unittest.TestCase):
         keys.delete("GPH5u9tEsKaqtCpKibrXJAMhaRUVBspB5pr9X34PPdrSbvBb6ajZY")
         self.assertEqual(len(keys.getPublicKeys()), 1)
 
-        keys.lock()
+        if isinstance(keys, (
+            storage.SqliteEncryptedKeyStore,
+            storage.InRamEncryptedKeyStore,
+        )):
+            keys.lock()
 
     def test_masterpassword(self):
         password = "foobar"

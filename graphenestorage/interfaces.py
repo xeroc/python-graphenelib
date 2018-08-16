@@ -38,7 +38,7 @@ class StoreInterface(dict):
         cls.defaults[key] = value
 
     def __init__(self, *args, **kwargs):
-        raise NotImplemented
+        pass
 
     def __setitem__(self, key, value):
         """ Sets an item in the store
@@ -88,16 +88,16 @@ class StoreInterface(dict):
     def delete(self, key):
         """ Delete a key from the store
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def wipe(self):
         """ Wipe the store
         """
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class KeyInterface(StoreInterface):
-    """ The BaseKeyStore defines the interface for key storage.
+    """ The KeyInterface defines the interface for key storage.
 
         .. note:: This class inherits
             :class:`graphenestorage.interfaces.StoreInterface` and defines
@@ -108,7 +108,7 @@ class KeyInterface(StoreInterface):
     def getPublicKeys(self):
         """ Returns the public keys stored in the database
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def getPrivateKeyForPublicKey(self, pub):
         """ Returns the (possibly encrypted) private key that
@@ -118,7 +118,7 @@ class KeyInterface(StoreInterface):
 
            The encryption scheme is BIP38
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def add(self, wif, pub=None):
         """ Add a new public/private key pair (correspondence has to be
@@ -127,14 +127,20 @@ class KeyInterface(StoreInterface):
            :param str pub: Public key
            :param str wif: Private key
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def delete(self, pub):
         """ Delete a pubkey/privatekey pair from the store
 
            :param str pub: Public key
         """
-        raise NotImplemented
+        raise NotImplementedError
+
+
+class EncryptedKeyInterface(KeyInterface):
+    """ The EncryptedKeyInterface extends KeyInterface to work with encrypted
+        keys
+    """
 
     def is_encrypted(self):
         """ Returns True/False to indicate required use of unlock
@@ -146,7 +152,7 @@ class KeyInterface(StoreInterface):
 
            :param str password: Plain password
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def locked(self):
         """ is the wallet locked?
@@ -156,7 +162,7 @@ class KeyInterface(StoreInterface):
     def lock(self):
         """ Lock the wallet again
         """
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class ConfigInterface(StoreInterface):
@@ -166,4 +172,4 @@ class ConfigInterface(StoreInterface):
             :class:`graphenestorage.interfaces.StoreInterface` and defines
             **no** additional configuration-specific methods.
     """
-    raise NotImplemented
+    pass

@@ -1,7 +1,7 @@
 import logging
 
 from .masterpassword import MasterPassword
-from .interfaces import KeyInterface, ConfigInterface
+from .interfaces import KeyInterface, ConfigInterface, EncryptedKeyInterface
 from .ram import InRamStore
 from .sqlite import SQLiteStore
 from .exceptions import KeyAlreadyInStoreException
@@ -10,7 +10,10 @@ log = logging.getLogger(__name__)
 
 
 # Configuration
-class InRamConfigurationStore(InRamStore, ConfigInterface):
+class InRamConfigurationStore(
+    InRamStore,
+    ConfigInterface
+):
     """ A simple example that stores configuration in RAM.
 
         Internally, this works by simply inheriting
@@ -20,7 +23,10 @@ class InRamConfigurationStore(InRamStore, ConfigInterface):
     pass
 
 
-class SqliteConfigurationStore(SQLiteStore, ConfigInterface):
+class SqliteConfigurationStore(
+    SQLiteStore,
+    ConfigInterface
+):
     """ This is the configuration storage that stores key/value
         pairs in the `config` table of the SQLite3 database.
 
@@ -38,7 +44,10 @@ class SqliteConfigurationStore(SQLiteStore, ConfigInterface):
 
 
 # Keys
-class InRamPlainKeyStore(InRamStore, KeyInterface):
+class InRamPlainKeyStore(
+    InRamStore,
+    KeyInterface
+):
     """ A simple in-RAM Store that stores keys unencrypted in RAM
 
         Internally, this works by simply inheriting
@@ -60,7 +69,10 @@ class InRamPlainKeyStore(InRamStore, KeyInterface):
         InRamStore.delete(self, str(pub))
 
 
-class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
+class SqlitePlainKeyStore(
+    SQLiteStore,
+    KeyInterface
+):
     """ This is the key storage that stores the public key and the
         **unencrypted** private key in the `keys` table in the SQLite3
         database.
@@ -96,9 +108,12 @@ class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
         return False
 
 
-class EncryptedKeyInterface(MasterPassword):
+class KeyEncryption(
+    MasterPassword,
+    EncryptedKeyInterface
+):
     """ This is an interface class that provides the methods required for
-        KeyInterface and links them to the MasterPassword-provided
+        EncryptedKeyInterface and links them to the MasterPassword-provided
         functionatlity, accordingly.
     """
 
@@ -122,7 +137,10 @@ class EncryptedKeyInterface(MasterPassword):
         return True
 
 
-class InRamEncryptedKeyStore(EncryptedKeyInterface, InRamStore, KeyInterface):
+class InRamEncryptedKeyStore(
+    InRamStore,
+    KeyEncryption
+):
     """ An in-RAM Store that stores keys **encrypted** in RAM.
 
         Internally, this works by simply inheriting
@@ -137,9 +155,8 @@ class InRamEncryptedKeyStore(EncryptedKeyInterface, InRamStore, KeyInterface):
 
 
 class SqliteEncryptedKeyStore(
-    EncryptedKeyInterface,
     SQLiteStore,
-    KeyInterface
+    KeyEncryption
 ):
     """ This is the key storage that stores the public key and the
         **encrypted** private key in the `keys` table in the SQLite3 database.
