@@ -38,7 +38,7 @@ class StoreInterface(dict):
         cls.defaults[key] = value
 
     def __init__(self, *args, **kwargs):
-        pass
+        raise NotImplemented
 
     def __setitem__(self, key, value):
         """ Sets an item in the store
@@ -88,12 +88,12 @@ class StoreInterface(dict):
     def delete(self, key):
         """ Delete a key from the store
         """
-        pass
+        raise NotImplemented
 
     def wipe(self):
         """ Wipe the store
         """
-        pass
+        raise NotImplemented
 
 
 class KeyInterface(StoreInterface):
@@ -108,7 +108,7 @@ class KeyInterface(StoreInterface):
     def getPublicKeys(self):
         """ Returns the public keys stored in the database
         """
-        pass
+        raise NotImplemented
 
     def getPrivateKeyForPublicKey(self, pub):
         """ Returns the (possibly encrypted) private key that
@@ -118,7 +118,7 @@ class KeyInterface(StoreInterface):
 
            The encryption scheme is BIP38
         """
-        pass
+        raise NotImplemented
 
     def add(self, wif, pub=None):
         """ Add a new public/private key pair (correspondence has to be
@@ -127,14 +127,14 @@ class KeyInterface(StoreInterface):
            :param str pub: Public key
            :param str wif: Private key
         """
-        pass
+        raise NotImplemented
 
     def delete(self, pub):
         """ Delete a pubkey/privatekey pair from the store
 
            :param str pub: Public key
         """
-        pass
+        raise NotImplemented
 
     def is_encrypted(self):
         """ Returns True/False to indicate required use of unlock
@@ -146,7 +146,7 @@ class KeyInterface(StoreInterface):
 
            :param str password: Plain password
         """
-        pass
+        raise NotImplemented
 
     def locked(self):
         """ is the wallet locked?
@@ -156,7 +156,7 @@ class KeyInterface(StoreInterface):
     def lock(self):
         """ Lock the wallet again
         """
-        pass
+        raise NotImplemented
 
 
 class ConfigInterface(StoreInterface):
@@ -166,4 +166,4 @@ class ConfigInterface(StoreInterface):
             :class:`graphenestorage.interfaces.StoreInterface` and defines
             **no** additional configuration-specific methods.
     """
-    pass
+    raise NotImplemented
