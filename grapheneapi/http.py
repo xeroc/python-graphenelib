@@ -28,7 +28,7 @@ class Http(Rpc):
             self.url,
             json=payload
         )
-        if query.status_code != 200:
+        if query.status_code != 200:  # pragma: no cover
             raise HttpInvalidStatusCode("Status code returned: {}".format(
                 query.status_code))
 

@@ -1,13 +1,13 @@
 from __future__ import absolute_import
 
 import hashlib
-import sys
 import re
 import os
 
 from binascii import hexlify, unhexlify
 from .base58 import ripemd160, Base58, doublesha256
 from .dictionary import words as BrainKeyDictionary
+from .utils import _bytes
 
 import ecdsa
 
@@ -28,10 +28,7 @@ class PasswordKey(object):
         """ Derive private key from the brain key and the current sequence
             number
         """
-        if sys.version > '3':
-            a = bytes(self.account + self.role + self.password, 'utf8')
-        else:
-            a = bytes(self.account + self.role + self.password).encode('utf8')
+        a = _bytes(self.account + self.role + self.password)
         s = hashlib.sha256(a).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
@@ -98,10 +95,7 @@ class BrainKey(object):
             number
         """
         encoded = "%s %d" % (self.brainkey, self.sequence)
-        if sys.version > '3':
-            a = bytes(encoded, 'ascii')
-        else:
-            a = bytes(encoded).encode('ascii')
+        a = _bytes(encoded)
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
@@ -187,10 +181,7 @@ class Address(object):
 
     def __bytes__(self):
         """ Returns the raw content of the ``Base58CheckEncoded`` address """
-        if sys.version > '3':
-            return bytes(self._address)
-        else:
-            return self._address.__bytes__()
+        return bytes(self._address)
 
 
 class GrapheneAddress(Address):
@@ -459,10 +450,7 @@ class PrivateKey():
 
     def __bytes__(self):    # pragma: no cover
         """ Returns the raw private key """
-        if sys.version > '3':
-            return bytes(self._wif)
-        else:
-            return self._wif.__bytes__()
+        return bytes(self._wif)
 
 
 class BitcoinAddress(Address):

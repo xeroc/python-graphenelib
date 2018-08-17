@@ -12,3 +12,11 @@ class NumRetriesReached(Exception):
 
 class RPCRequestError(Exception):
     pass
+
+
+class UnauthorizedError(Exception):
+    pass
+
+
+class RPCConnection(Exception):
+    pass

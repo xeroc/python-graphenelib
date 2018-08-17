@@ -44,19 +44,16 @@ class Rpc:
     def disconnect(self):
         pass
 
-    def post_process_exception(self, exception):
-        raise exception
-
     def parse_response(self, query):
         ret = {}
         try:
             ret = json.loads(query, strict=False)
-        except ValueError:
+        except ValueError:  # pragma: nocover
             raise ValueError("Client returned invalid format. Expected JSON!")
 
         log.debug(json.dumps(query))
 
-        if 'error' in ret:
+        if 'error' in ret:  # pragma: no cover
             if 'detail' in ret['error']:
                 raise RPCError(ret['error']['detail'])
             else:
@@ -70,7 +67,7 @@ class Rpc:
         def method(*args, **kwargs):
 
             # Sepcify the api to talk to
-            if "api_id" not in kwargs:
+            if "api_id" not in kwargs:  # pragma: no cover
                 if ("api" in kwargs):
                     if (kwargs["api"] in self.api_id and
                             self.api_id[kwargs["api"]]):
@@ -79,7 +76,7 @@ class Rpc:
                         api_id = kwargs["api"]
                 else:
                     api_id = 0
-            else:
+            else:  # pragma: no cover
                 api_id = kwargs["api_id"]
 
             # let's be able to define the num_retries per query
