@@ -1,9 +1,11 @@
-import sys
+# import sys
 import logging
 import hashlib
 from binascii import hexlify, unhexlify
 from .account import PrivateKey
 from .base58 import Base58, base58decode
+from .utils import _bytes
+
 log = logging.getLogger(__name__)
 
 try:
@@ -15,11 +17,11 @@ except ImportError:
         raise ImportError("Missing dependency: pyCryptodome")
 
 SCRYPT_MODULE = None
-if not SCRYPT_MODULE:
+if not SCRYPT_MODULE:  # pragma: no branch
     try:
         import scrypt
         SCRYPT_MODULE = "scrypt"
-    except ImportError:   # pragma: no cover
+    except ImportError:
         try:
             import pylibscrypt as scrypt
             SCRYPT_MODULE = "pylibscrypt"
@@ -58,14 +60,17 @@ def encrypt(privkey, passphrase):
 
     privkeyhex = repr(privkey)   # hex
     addr = format(privkey.bitcoin.address, "BTC")
+    """
     if sys.version > '3':
         a = bytes(addr, 'ascii')
     else:
         a = bytes(addr).encode('ascii')
+    """
+    a = _bytes(addr)
     salt = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
-    if SCRYPT_MODULE == "scrypt":
+    if SCRYPT_MODULE == "scrypt":  # pragma: no branch
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
-    elif SCRYPT_MODULE == "pylibscrypt":
+    elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no branch
         key = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
     else:   # pragma: no cover
         raise ValueError("No scrypt module loaded")
@@ -101,9 +106,9 @@ def decrypt(encrypted_privkey, passphrase):
     assert flagbyte == b'\xc0', "Flagbyte has to be 0xc0"
     salt = d[0:4]
     d = d[4:-4]
-    if SCRYPT_MODULE == "scrypt":
+    if SCRYPT_MODULE == "scrypt":  # pragma: no branch
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
-    elif SCRYPT_MODULE == "pylibscrypt":
+    elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no branch
         key = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
     else:
         raise ValueError("No scrypt module loaded")
@@ -121,10 +126,13 @@ def decrypt(encrypted_privkey, passphrase):
     """ Verify Salt """
     privkey = PrivateKey(format(wif, "wif"))
     addr = format(privkey.bitcoin.address, "BTC")
+    """
     if sys.version > '3':
         a = bytes(addr, 'ascii')
     else:
         a = bytes(addr).encode('ascii')
+    """
+    a = _bytes(addr)
     saltverify = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
     if saltverify != salt:   # pragma: no cover
         raise SaltException(

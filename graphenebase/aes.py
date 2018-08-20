@@ -1,4 +1,4 @@
-try:
+try:   # pragma: no cover
     from Cryptodome.Cipher import AES
     from Cryptodome import Random
 except ImportError:   # pragma: no cover

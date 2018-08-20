@@ -119,6 +119,27 @@ class Testcases(unittest.TestCase):
                           "5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R",
                           "5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7"])
 
+    def test_leading_zeros(self):
+        # Leading zeros become ones
+        for i in range(1, 10):
+            self.assertEqual(
+                base58encode('00' * i),
+                '1' * (i + 1)
+            )
+
+        # Leading zeros become ones
+        self.assertEqual([
+            base58decode(base58encode('00')),
+            base58decode(base58encode('0000')),
+            base58decode(base58encode('000000')),
+            base58decode(base58encode('00000000')),
+        ], [
+            '000000',
+            '00000000',
+            '0000000000',
+            '000000000000'
+        ])
+
 
 if __name__ == '__main__':
     unittest.main()

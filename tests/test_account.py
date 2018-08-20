@@ -1,4 +1,6 @@
+import ecdsa
 import unittest
+import hashlib
 from graphenebase.base58 import Base58
 from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey, PasswordKey, GrapheneAddress, BitcoinAddress
 
@@ -242,14 +244,15 @@ class Testcases(unittest.TestCase):
                           ])
 
     def test_gphprivkeystr(self):
-        self.assertEqual([str(Address.from_pubkey(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").pubkey)),
-                          str(Address.from_pubkey(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").pubkey)),
-                          str(Address.from_pubkey(PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").pubkey, compressed=False, prefix="BTS")),
-                          ], [
-                            'GPHBXqRucGm7nRkk6jm7BNspTJTWRtNcx7k5',
-                            'GPH5tTDDR6M3mkcyVv16edsw8dGUyNQZrvKU',
-                            'BTS4XPkBqYw882fH5aR5S8mMKXCaZ1yVA76f'
-                          ])
+        self.assertEqual([
+            str(Address.from_pubkey(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").pubkey)),
+            str(Address.from_pubkey(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").pubkey)),
+            str(Address.from_pubkey(PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").pubkey, compressed=False, prefix="BTS")),
+        ], [
+            'GPHBXqRucGm7nRkk6jm7BNspTJTWRtNcx7k5',
+            'GPH5tTDDR6M3mkcyVv16edsw8dGUyNQZrvKU',
+            'BTS4XPkBqYw882fH5aR5S8mMKXCaZ1yVA76f'
+        ])
 
     def test_password_suggest(self):
         self.assertEqual(
@@ -261,6 +264,26 @@ class Testcases(unittest.TestCase):
         p2 = p.child(b"Foobar")
         self.assertIsInstance(p2, PrivateKey)
         self.assertEqual(str(p2), "5JQ6AQmjpbEZjJBLnoa3BaWa9y3LDTUBeSDwEGQD2UjYkb1gY2x")
+
+    def test_child_pub(self):
+        p = PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S")
+        pub = p.pubkey
+        point = pub.point()
+        self.assertEqual([
+            ecdsa.util.number_to_string(point.x(), ecdsa.SECP256k1.order),
+            ecdsa.util.number_to_string(point.y(), ecdsa.SECP256k1.order)
+        ], [
+            b"\x90d5\xf6\xf9\xceo=NL\xf8\xd3\xd0\xdd\xce \x9a\x83'w8\xff\xdc~\xaec\x08\xf4\xed)c\xdf",
+            b'\r\xa8tl\xf1:a\x89\xa2\x81\x96\\X\x0fBA]\x86\xe9l#*\x89%\xea\x152T\xbb\x87\x9f`'
+        ])
+        self.assertEqual(
+            repr(pub.child(b"foobar")),
+            "022a42ae1e9af8f84544c9a1970308c31f864dfb4f5998c45ef76e11d307cc77d5"
+        )
+        self.assertEqual(
+            repr(pub.add(hashlib.sha256(b"Foobar").digest())),
+            "0354a2c06c398990c52933df0c93b9904a4b23b0e2d524a3b0075c72adaa4e459e"
+        )
 
     def test_BrainKey_sequence(self):
         b = BrainKey("COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN MATZO")
@@ -275,3 +298,17 @@ class Testcases(unittest.TestCase):
         w = BrainKey().get_private_key()
         self.assertIsInstance(w, PrivateKey)
         self.assertEqual(str(w)[0], "5")  # is a wif key that starts with 5
+
+    def test_derive_private_key(self):
+        p = PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S")
+        p2 = p.derive_private_key(10)
+        self.assertEqual(
+            repr(p2),
+            "2dc7cb99933132e25b37710f9ea806228b04a583da11a137ef97fd42c0007390"
+        )
+
+    def test_init_wrong_format(self):
+        with self.assertRaises(NotImplementedError):
+            PrivateKey("KJWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S")
+        with self.assertRaises(NotImplementedError):
+            PrivateKey("LJWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S")
