@@ -111,6 +111,10 @@ class Testcases(unittest.TestCase):
         u = types.Set([types.Uint16(10) for x in range(10)])
         self.assertEqual(bytes(u), b"\n\n\x00\n\x00\n\x00\n\x00\n\x00\n\x00\n\x00\n\x00\n\x00\n\x00")
         self.assertEqual(str(u), "[10, 10, 10, 10, 10, 10, 10, 10, 10, 10]")
+        u = types.Array(["Foobar"])
+        # We do not support bytes of Array containing String only!
+        # self.assertEqual(bytes(u), b'')
+        self.assertEqual(str(u), '["Foobar"]')
 
     def test_PointInTime(self):
         u = types.PointInTime("2018-07-06T22:10:00")
@@ -175,6 +179,8 @@ class Testcases(unittest.TestCase):
         u = types.FullObjectId("1.2.30")
         self.assertEqual(bytes(u), b"\x1e\x00\x00\x00\x00\x00\x02\x01")
         self.assertEqual(str(u), '1.2.30')
+        with self.assertRaises(ValueError):
+            types.FullObjectId("1.2")
 
     def test_enum8(self):
         class MyEnum(types.Enum8):
@@ -185,4 +191,4 @@ class Testcases(unittest.TestCase):
         self.assertEqual(str(u), 'bar')
 
         with self.assertRaises(ValueError):
-            u = MyEnum("barbar")
+            MyEnum("barbar")

@@ -1,6 +1,8 @@
 import unittest
+
+from collections import OrderedDict
 from graphenebase.objects import Operation, GrapheneObject
-from graphenebase.operations import Newdemooepration, Newdemooepration2
+from graphenebase.operations import Newdemooepration, Newdemooepration2, Demooepration
 
 
 class Testcases(unittest.TestCase):
@@ -12,6 +14,19 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op.klass_name, "Demooepration")
         self.assertEqual(bytes(op), b"\x00")
         self.assertEqual(op.json(), op.toJson())
+
+    def test_loadfromGrapheneObject(self):
+        op = Operation(Newdemooepration(dict(string="1.2.0", optional="foobar")))
+        self.assertIsInstance(op.operation, Newdemooepration)
+        self.assertEqual(op.opId, op.id)
+        op.__str__()
+        self.assertEqual(op.getOperationNameForId(1), "newdemooepration")
+        with self.assertRaises(ValueError):
+            op.getOperationNameForId(996)
+
+    def test_raiseinit_valueerror(self):
+        with self.assertRaises(ValueError):
+            Operation({"foobar"})
 
     def test_init_int(self):
         op = Operation(0)
@@ -62,7 +77,8 @@ class Testcases(unittest.TestCase):
     def test_newdemo_op(self):
         for op in [
             Newdemooepration(**dict(string="1.2.0")),
-            Newdemooepration(dict(string="1.2.0"))
+            Newdemooepration(dict(string="1.2.0")),
+            Newdemooepration(OrderedDict([("string", "1.2.0")]))
         ]:
             self.assertEqual(op.json()["string"], "1.2.0")
             self.assertIn("string", op.json())
@@ -99,3 +115,16 @@ class Testcases(unittest.TestCase):
         self.assertEqual(list(op2.items())[0][0], "optional")
         self.assertEqual(list(op2.items())[1][0], "string")
         self.assertEqual(list(op2.items())[2][0], "extensions")
+
+    def test_old_init(self):
+        for op in [
+            Demooepration(**dict(string="1.2.0")),
+            Demooepration(dict(string="1.2.0")),
+            Demooepration(OrderedDict([("string","1.2.0")]))
+        ]:
+            self.assertEqual(op.json()["string"], "1.2.0")
+            self.assertIn("string", op.json())
+            self.assertIn("extensions", op.json())
+            # Test order of attributes
+            self.assertEqual(list(op.items())[0][0], "string")
+            self.assertEqual(list(op.items())[1][0], "extensions")

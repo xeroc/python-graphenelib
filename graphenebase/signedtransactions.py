@@ -31,6 +31,10 @@ except ImportError:
               "    pip install secp256k1")
 
 
+class MissingSignatureForKey(Exception):
+    pass
+
+
 class Signed_Transaction(GrapheneObject):
     """ Create a signed transaction and offer method to create the
         signature
@@ -46,9 +50,9 @@ class Signed_Transaction(GrapheneObject):
     operation_klass = Operation
 
     def detail(self, *args, **kwargs):
-        if "signatures" not in kwargs:
+        if "signatures" not in kwargs:  # pragma: no branch
             kwargs["signatures"] = Array([])
-        else:
+        else:  # pragma: no cover
             kwargs["signatures"] = Array([
                 Signature(unhexlify(a)) for a in kwargs["signatures"]
             ])
@@ -117,9 +121,9 @@ class Signed_Transaction(GrapheneObject):
         elif isinstance(chain, dict):
             chain_params = chain
         else:
-            raise Exception("sign() only takes a string or a dict as chain!")
+            raise ValueError("sign() only takes a string or a dict as chain!")
         if "chain_id" not in chain_params:
-            raise Exception("sign() needs a 'chain_id' in chain params!")
+            raise ValueError("sign() needs a 'chain_id' in chain params!")
         return chain_params
 
     def deriveDigest(self, chain):
@@ -159,13 +163,13 @@ class Signed_Transaction(GrapheneObject):
 
         for pubkey in pubkeys:
             if not isinstance(pubkey, PublicKey):
-                raise Exception("Pubkeys must be array of 'PublicKey'")
+                raise ValueError("Pubkeys must be array of 'PublicKey'")
 
             k = pubkey.unCompressed()[2:]
             if k not in pubKeysFound and repr(pubkey) not in pubKeysFound:
                 k = PublicKey(PublicKey(k).compressed())
                 f = format(k, chain_params["prefix"])
-                raise Exception("Signature for %s missing!" % f)
+                raise MissingSignatureForKey("Signature for %s missing!" % f)
         return pubKeysFound
 
     def sign(self, wifkeys, chain=None):

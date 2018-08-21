@@ -2,17 +2,21 @@ import os
 import unittest
 
 from graphenebase.account import PrivateKey
+from graphenebase import bip38
 from graphenestorage.exceptions import (
     WrongMasterPasswordException,
-    KeyAlreadyInStoreException
+    KeyAlreadyInStoreException,
+    WalletLocked
 )
 
 import graphenestorage as storage
 from graphenestorage.interfaces import (
     StoreInterface,
     KeyInterface,
-    ConfigInterface
+    ConfigInterface,
+    EncryptedKeyInterface,
 )
+from graphenestorage.sqlite import SQLiteStore
 
 
 def pubprivpair(wif):
@@ -25,36 +29,42 @@ def pubprivpair(wif):
 class Testcases(unittest.TestCase):
 
     def test_interface(self):
-            for k in [
-                ConfigInterface(),
-                KeyInterface(),
-                StoreInterface()
-            ]:
-                k.setdefault("node", "foobar")
-                assert k["node"] == "foobar"
-                k["foobar"] = "value"
-                k["foobar"]
-                assert k["foobar"] == "value"
-                iter(k)
-                len(k)
-                "foobar" in k
-                k.items()
-                k.get("foobar")
-                with self.assertRaises(NotImplementedError):
-                    k.delete("foobar")
-                with self.assertRaises(NotImplementedError):
-                    k.wipe()
+        for k in [
+            ConfigInterface(),
+            KeyInterface(),
+            StoreInterface(),
+            EncryptedKeyInterface(),
+        ]:
+            k.setdefault("node", "foobar")
+            assert k["node"] == "foobar"
+            k["foobar"] = "value"
+            k["foobar"]
+            assert k["foobar"] == "value"
+            self.assertIsNone(k["none"])
+            iter(k)
+            len(k)
+            "foobar" in k
+            k.items()
+            k.get("foobar")
+            with self.assertRaises(NotImplementedError):
+                k.delete("foobar")
+            with self.assertRaises(NotImplementedError):
+                k.wipe()
 
-            keys = KeyInterface()
-            # Don't exist in keyinterface!
-            with self.assertRaises(NotImplementedError):
-                keys.getPublicKeys()
-            with self.assertRaises(NotImplementedError):
-                keys.getPrivateKeyForPublicKey("x")
-            with self.assertRaises(NotImplementedError):
-                keys.add("x")
-            with self.assertRaises(NotImplementedError):
-                keys.delete("x")
+        keys = KeyInterface()
+        # Don't exist in keyinterface!
+        with self.assertRaises(NotImplementedError):
+            keys.getPublicKeys()
+        with self.assertRaises(NotImplementedError):
+            keys.getPrivateKeyForPublicKey("x")
+        with self.assertRaises(NotImplementedError):
+            keys.add("x")
+        with self.assertRaises(NotImplementedError):
+            keys.delete("x")
+
+        x = EncryptedKeyInterface()
+        self.assertFalse(x.locked())
+        self.assertTrue(x.is_encrypted())
 
     def test_default_config(self):
         config = storage.get_default_config_store(
@@ -105,36 +115,53 @@ class Testcases(unittest.TestCase):
             config.wipe()
             self.assertNotIn("empty", config)
 
+    """
     def test_inramkeystore(self):
-            self.do_keystore(storage.InRamPlainKeyStore())
+        self.do_keystore(storage.InRamPlainKeyStore())
 
     def test_inramencryptedkeystore(self):
-            self.do_keystore(
-                storage.InRamEncryptedKeyStore(
-                    config=storage.InRamConfigurationStore()))
+        self.do_keystore(
+            storage.InRamEncryptedKeyStore(
+                config=storage.InRamConfigurationStore()))
 
     def test_sqlitekeystore(self):
-            self.do_keystore(storage.SqlitePlainKeyStore(profile="testing"))
+        s = storage.SqlitePlainKeyStore(profile="testing")
+        s.wipe()
+        self.do_keystore(s)
+        self.assertFalse(s.is_encrypted())
+    """
 
     def test_sqliteencryptedkeystore(self):
-            self.do_keystore(
-                storage.SqliteEncryptedKeyStore(
-                    profile="testing",
-                    config=storage.InRamConfigurationStore()))
+        self.do_keystore(storage.SqliteEncryptedKeyStore(
+            profile="testing",
+            config=storage.InRamConfigurationStore()
+        ))
 
     def do_keystore(self, keys):
         keys.wipe()
+        keys.config.wipe()
         password = "foobar"
 
         if isinstance(keys, (
             storage.SqliteEncryptedKeyStore,
             storage.InRamEncryptedKeyStore,
         )):
+            with self.assertRaises(WalletLocked):
+                keys.decrypt("6PRViepa2zaXXGEQTYUsoLM1KudLmNBB1t812jtdKx1TEhQtvxvmtEm6Yh")
+            with self.assertRaises(WalletLocked):
+                keys.encrypt("6PRViepa2zaXXGEQTYUsoLM1KudLmNBB1t812jtdKx1TEhQtvxvmtEm6Yh")
+            with self.assertRaises(WalletLocked):
+                keys.getEncryptedMaster()
+
+            # set the first MasterPassword here!
             keys.newMaster(password)
             keys.lock()
             keys.unlock(password)
             assert keys.unlocked()
             assert keys.is_encrypted()
+
+            with self.assertRaises(bip38.SaltException):
+                keys.decrypt("6PRViepa2zaXXGEQTYUsoLM1KudLmNBB1t812jtdKx1TEhQtvxvmtEm6Yh")
 
         keys.add(
             *pubprivpair("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
@@ -156,6 +183,12 @@ class Testcases(unittest.TestCase):
             ),
             "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
         )
+        self.assertEqual(
+            keys.getPrivateKeyForPublicKey(
+                "GPH6MRy"
+            ),
+            None
+        )
         self.assertEqual(len(keys.getPublicKeys()), 1)
         keys.add(
             *pubprivpair("5Hqr1Rx6v3MLAvaYCxLYqaSEsm4eHaDFkLksPF2e1sDS7omneaZ")
@@ -175,6 +208,8 @@ class Testcases(unittest.TestCase):
             storage.InRamEncryptedKeyStore,
         )):
             keys.lock()
+            keys.wipe()
+            keys.config.wipe()
 
     def test_masterpassword(self):
         password = "foobar"
@@ -242,3 +277,9 @@ class Testcases(unittest.TestCase):
         self.assertTrue(keys.unlocked())
 
         self.assertFalse(keys.locked())
+
+    def test_inherit_properly(self):
+        class MyStore(SQLiteStore):
+            pass
+        with self.assertRaises(ValueError):
+            MyStore()

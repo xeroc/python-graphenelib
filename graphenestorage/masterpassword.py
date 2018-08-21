@@ -7,7 +7,10 @@ from binascii import hexlify
 from graphenebase import bip38
 from graphenebase.aes import AESCipher
 
-from .exceptions import WrongMasterPasswordException
+from .exceptions import (
+    WrongMasterPasswordException,
+    WalletLocked
+)
 
 
 log = logging.getLogger(__name__)
@@ -57,7 +60,10 @@ class MasterPassword(object):
         if self.password is not None:
             return bool(self.password)
         else:
-            if "UNLOCK" in os.environ and os.environ["UNLOCK"]:
+            if (
+                "UNLOCK" in os.environ and os.environ["UNLOCK"] and
+                self.config_key in self.config and self.config[self.config_key]
+            ):
                 log.debug(
                     "Trying to use environmental "
                     "variable to unlock wallet")
@@ -83,11 +89,11 @@ class MasterPassword(object):
             :param str password: Password to use for en-/de-cryption
         """
         self.password = password
-        if self.config_key not in self.config:
+        if self.config_key in self.config and self.config[self.config_key]:
+            self.decryptEncryptedMaster()
+        else:
             self.newMaster(password)
             self.saveEncrytpedMaster()
-        else:
-            self.decryptEncryptedMaster()
 
     def decryptEncryptedMaster(self):
         """ Decrypt the encrypted masterkey
@@ -143,9 +149,9 @@ class MasterPassword(object):
                 checksum is only 4 bytes long!
         """
         if not self.masterkey:
-            raise Exception("master not decrypted")
+            raise WalletLocked
         if not self.unlocked():
-            raise Exception("Need to unlock storage!")
+            raise WalletLocked
         aes = AESCipher(self.password)
         return "{}${}".format(
             self.deriveChecksum(self.masterkey),
@@ -155,7 +161,8 @@ class MasterPassword(object):
     def changePassword(self, newpassword):
         """ Change the password that allows to decrypt the master key
         """
-        assert self.unlocked()
+        if not self.unlocked():
+            raise WalletLocked
         self.password = newpassword
         self.saveEncrytpedMaster()
 
@@ -164,6 +171,8 @@ class MasterPassword(object):
 
             :param str wif: Encrypted key
         """
+        if not self.unlocked():
+            raise WalletLocked
         return format(
             bip38.decrypt(wif, self.masterkey),
             "wif"
@@ -174,6 +183,8 @@ class MasterPassword(object):
 
             :param str wif: Unencrypted key
         """
+        if not self.unlocked():
+            raise WalletLocked
         return format(bip38.encrypt(
             str(wif),
             self.masterkey

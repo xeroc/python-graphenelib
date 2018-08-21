@@ -214,7 +214,7 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
                 i += 4   # compressed
                 i += 27  # compact
                 break
-    else:   # pragma: no branch
+    else:  # pragma: no branch # pragma: no cover
         cnt = 0
         sk = ecdsa.SigningKey.from_string(p, curve=ecdsa.SECP256k1)
         while 1:
@@ -300,7 +300,7 @@ def verify_message(message, signature, hashfn=hashlib.sha256):
         sigder = encode_dss_signature(r, s)
         p.verify(sigder, message, ec.ECDSA(hashes.SHA256()))
         phex = compressedPubkey(p)
-    else:  # pragma: no branch
+    else:  # pragma: no branch  # pragma: no cover
         p = recover_public_key(digest, sig, recoverParameter)
         # Will throw an exception of not valid
         p.verify_digest(

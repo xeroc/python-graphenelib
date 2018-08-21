@@ -4,6 +4,7 @@ import time
 from calendar import timegm
 from binascii import hexlify, unhexlify
 from .objecttypes import object_type
+from .utils import unicodify
 
 timeformat = '%Y-%m-%dT%H:%M:%S%Z'
 
@@ -19,7 +20,7 @@ def varint(n):
     return data
 
 
-def varintdecode(data):
+def varintdecode(data):  # pragma: no cover
     """ Varint decoding
     """
     shift = 0
@@ -126,35 +127,11 @@ class String():
         self.data = d
 
     def __bytes__(self):
-        d = self.unicodify()
+        d = unicodify(self.data)
         return varint(len(d)) + d
 
     def __str__(self):
         return '%s' % str(self.data)
-
-    def unicodify(self):
-        r = []
-        for s in self.data:
-            o = ord(s)
-            if o <= 7:
-                r.append("u%04x" % o)
-            elif o == 8:
-                r.append("b")
-            elif o == 9:
-                r.append("\t")
-            elif o == 10:
-                r.append("\n")
-            elif o == 11:
-                r.append("u%04x" % o)
-            elif o == 12:
-                r.append("f")
-            elif o == 13:
-                r.append("\r")
-            elif o > 13 and o < 32:
-                r.append("u%04x" % o)
-            else:
-                r.append(s)
-        return bytes("".join(r), "utf-8")
 
 
 class Bytes():
@@ -367,7 +344,7 @@ class FullObjectId():
             self.instance = Id(int(id))
             self.Id = object_str
         else:
-            raise Exception("Object id is invalid")
+            raise ValueError("Object id is invalid")
 
     def __bytes__(self):
         return (
@@ -384,8 +361,8 @@ class Enum8(Uint8):
 
     def __init__(self, selection):
         if (
-            selection not in self.options and
-            isinstance(selection, int) and len(self.options) < selection
+            selection not in self.options or
+            (isinstance(selection, int) and len(self.options) < selection)
         ):
             raise ValueError(
                 "Options are {}. Given '{}'".format(

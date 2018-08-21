@@ -54,9 +54,9 @@ class SQLiteFile():
         """ Ensure that the directory in which the data is stored
             exists
         """
-        if os.path.isdir(data_dir):
+        if os.path.isdir(data_dir):  # pragma: no cover
             return
-        else:
+        else:  # pragma: no cover
             os.makedirs(data_dir)
 
 
@@ -95,7 +95,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
             raise ValueError(
                 "Values missing for tablename, key, or value!"
             )
-        if not self.exists():
+        if not self.exists():  # pragma: no cover
             self.create()
 
     def _haveKey(self, key):

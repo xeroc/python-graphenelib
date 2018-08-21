@@ -31,7 +31,7 @@ class StoreInterface(dict):
 
     defaults = {}
 
-    @classmethod
+    # @classmethod
     def setdefault(cls, key, value):
         """ Allows to define default values
         """
@@ -145,7 +145,7 @@ class EncryptedKeyInterface(KeyInterface):
     def is_encrypted(self):
         """ Returns True/False to indicate required use of unlock
         """
-        return False
+        return True
 
     def unlock(self, password):
         """ Tries to unlock the wallet if required

@@ -117,12 +117,15 @@ class KeyEncryption(
         functionatlity, accordingly.
     """
 
+    def __init__(self, *args, **kwargs):
+        EncryptedKeyInterface.__init__(self, *args, **kwargs)
+        MasterPassword.__init__(self, *args, **kwargs)
+
     # Interface to deal with encrypted keys
     def getPublicKeys(self):
         return [k for k, v in self.items()]
 
     def getPrivateKeyForPublicKey(self, pub):
-        assert self.unlocked()
         wif = self.get(str(pub), None)
         if wif:
             return self.decrypt(wif)  # From Masterpassword
@@ -130,7 +133,6 @@ class KeyEncryption(
     def add(self, wif, pub):
         if str(pub) in self:
             raise KeyAlreadyInStoreException
-        assert self.unlocked()  # From Masterpassword
         self[str(pub)] = self.encrypt(str(wif))  # From Masterpassword
 
     def is_encrypted(self):
@@ -151,7 +153,9 @@ class InRamEncryptedKeyStore(
             :class:`graphenestorage.masterpassword.MasterPassword` which offers
             additional methods and deals with encrypting the keys.
     """
-    pass
+    def __init__(self, *args, **kwargs):
+        InRamStore.__init__(self, *args, **kwargs)
+        KeyEncryption.__init__(self, *args, **kwargs)
 
 
 class SqliteEncryptedKeyStore(
@@ -175,4 +179,4 @@ class SqliteEncryptedKeyStore(
 
     def __init__(self, *args, **kwargs):
         SQLiteStore.__init__(self, *args, **kwargs)
-        MasterPassword.__init__(self, *args, **kwargs)
+        KeyEncryption.__init__(self, *args, **kwargs)

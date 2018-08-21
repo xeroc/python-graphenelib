@@ -72,7 +72,7 @@ class Operation(list):
     def set(self, **data):
         try:
             klass = self.klass()
-        except Exception:
+        except Exception:  # pragma: no cover
             raise NotImplementedError("Unimplemented Operation %s" % self.name)
         self.operation = klass(**data)
 
@@ -119,7 +119,7 @@ class Operation(list):
         for key in self.operations:
             if int(self.operations[key]) is int(i):
                 return key
-        return "Unknown Operation ID %d" % i
+        raise ValueError("Unknown Operation ID %d" % i)
 
     toJson = __json__
     json = __json__
@@ -136,18 +136,11 @@ class GrapheneObject(OrderedDict):
 
     """
     def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], dict):
+        if len(args) == 1 and isinstance(args[0], (dict, OrderedDict)):
             if hasattr(self, "detail"):
                 super().__init__(self.detail(**args[0]))
             else:
                 OrderedDict.__init__(self, args[0])
-            return
-
-        elif len(args) == 1 and isinstance(args[0], OrderedDict):
-            if hasattr(self, "detail"):
-                super().__init__(self.detail(**args[0]))
-            else:
-                OrderedDict.__init__(self, args[0])  # pragma: no cover
             return
 
         elif kwargs and hasattr(self, "detail"):
