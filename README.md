@@ -1,11 +1,10 @@
-Python Library for Graphene
-===========================
+# Python Library for Graphene
 
 ![](https://img.shields.io/pypi/v/graphenelib.svg?style=for-the-badge)
 ![](https://img.shields.io/github/downloads/xeroc/python-graphenelib/total.svg?style=for-the-badge)
 ![](https://img.shields.io/pypi/pyversions/graphenelib.svg?style=for-the-badge)
 ![](https://img.shields.io/pypi/l/graphenelib.svg?style=for-the-badge)
-![](https://cla-assistant.io/readme/badge/graphenelib/python-graphenelib)
+![](https://cla-assistant.io/readme/badge/xeroc/python-graphenelib)
 
 **Stable**
 
@@ -20,51 +19,40 @@ Python Library for Graphene
 [![docs develop](https://readthedocs.org/projects/python-graphenelib/badge/?version=develop)](http://python-graphenelib.readthedocs.io/en/develop/)
 [![codecov develop](https://codecov.io/gh/xeroc/python-graphenelib/branch/develop/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
 
-Installation
-------------
+---
+## Documentation
 
-Install with `pip`:
+Visit the [pygraphenelib website](http://docs.pygraphenelib.com/en/latest/) for in depth documentation on this Python library.
+
+## Installation
+
+### Install with `pip3`:
 
     $ sudo apt-get install libffi-dev libssl-dev python-dev
     $ pip3 install graphenelib
 
-Manual installation:
+### Manual installation:
 
     $ git clone https://github.com/xeroc/python-graphenelib/
     $ cd python-graphenelib
     $ python3 setup.py install --user
 
-Dependencies
-------------
-
-Some dependencies are not required for parts of the library to run
-properly. However these modules require some additional libraries to be
-present:
-
-* `graphenebase.bip38`
-   * `pycrypto==2.6.1`
-   * `scrypt==0.7.1` (to speedup scrypt hashing)
-* `graphenebase.memo`
-   * `pycrypto==2.6.1`
-
-Upgrade
--------
+### Upgrade
 
     $ pip install --user --upgrade graphenelib
 
-Documentation
--------------
+## Contributing
 
-Thanks to readthedocs.io, the documentation can be viewed
-[online](http://python-graphenelib.readthedocs.io/en/latest/)
+python-bitshares welcomes contributions from anyone and everyone. Please
+see our [guidelines for contributing](CONTRIBUTING.md) and the [code of
+conduct](CODE_OF_CONDUCT.md).
 
-Documentation is written with the help of sphinx and can be compile to
-html with:
+### Discussion and Developers
 
-    cd docs
-    make html
+Discussions around development and use of this library can be found in a
+[dedicated Telegram Channel](https://t.me/pybitshares)
 
-Licence
--------
+### License
 
-MIT, see `LICENCE.txt`
+A copy of the license is available in the repository's
+[LICENSE](LICENSE.txt) file.
