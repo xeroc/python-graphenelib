@@ -48,7 +48,7 @@ class Rpc:
         ret = {}
         try:
             ret = json.loads(query, strict=False)
-        except ValueError:  # pragma: nocover
+        except ValueError:  # pragma: no cover  pragma: no branch
             raise ValueError("Client returned invalid format. Expected JSON!")
 
         log.debug(json.dumps(query))

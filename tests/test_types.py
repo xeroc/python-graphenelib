@@ -1,6 +1,6 @@
 import json
 import unittest
-from graphenebase import types
+from .fixtures import types
 from datetime import datetime
 
 

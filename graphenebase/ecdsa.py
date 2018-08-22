@@ -58,7 +58,7 @@ def compressedPubkey(pk):
         order = ecdsa.SECP256k1.order
         x = pk.public_numbers().x
         y = pk.public_numbers().y
-    else:
+    else:  # pragma: no cover
         order = pk.curve.generator.order()
         p = pk.pubkey.point
         x = p.x()
@@ -129,7 +129,7 @@ def recoverPubkeyParameter(message, digest, signature, pubkey):
             pubkey_comp = hexlify(compressedPubkey(pubkey))
             if (p_comp == pubkey_comp):
                 return i
-        else:
+        else:  # pragma: no cover
             p = recover_public_key(digest, signature, i)
             p_comp = hexlify(compressedPubkey(p))
             p_string = hexlify(p.to_string())
@@ -313,7 +313,7 @@ def verify_message(message, signature, hashfn=hashlib.sha256):
     return phex
 
 
-def pointToPubkey(x, y, order=None):
+def pointToPubkey(x, y, order=None):  # pragma: no cover
     order = order or ecdsa.SECP256k1.order
     x_str = ecdsa.util.number_to_string(x, order)
     """

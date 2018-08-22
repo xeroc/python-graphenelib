@@ -1,5 +1,9 @@
 import unittest
-from graphenebase.operationids import ops, operations, getOperationNameForId
+from .fixtures import (
+    ops,
+    operations,
+    getOperationNameForId
+)
 
 
 class Testcases(unittest.TestCase):

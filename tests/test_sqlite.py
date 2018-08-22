@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from graphenestorage.sqlite import SQLiteStore
+from .fixtures import SQLiteStore
 
 
 class MyStore(SQLiteStore):

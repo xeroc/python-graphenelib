@@ -148,8 +148,6 @@ class MasterPassword(object):
                 figure out that a provided password is correct or not. The
                 checksum is only 4 bytes long!
         """
-        if not self.masterkey:
-            raise WalletLocked
         if not self.unlocked():
             raise WalletLocked
         aes = AESCipher(self.password)

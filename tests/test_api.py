@@ -1,6 +1,10 @@
 import unittest
-from grapheneapi.api import Api, Websocket, Http
-from grapheneapi import exceptions
+from .fixtures import (
+    Api,
+    Websocket,
+    Http,
+    exceptions
+)
 
 urls = [
     "wss://node.bitshares.eu",

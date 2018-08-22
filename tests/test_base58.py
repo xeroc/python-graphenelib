@@ -1,5 +1,5 @@
 import unittest
-from graphenebase.base58 import (
+from .fixtures import (
     Base58,
     base58decode,
     base58encode,

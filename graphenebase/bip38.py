@@ -17,7 +17,7 @@ except ImportError:
         raise ImportError("Missing dependency: pyCryptodome")
 
 SCRYPT_MODULE = None
-if not SCRYPT_MODULE:  # pragma: no branch
+if not SCRYPT_MODULE:  # pragma: no cover
     try:
         import scrypt
         SCRYPT_MODULE = "scrypt"
@@ -68,12 +68,12 @@ def encrypt(privkey, passphrase):
     """
     a = _bytes(addr)
     salt = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
-    if SCRYPT_MODULE == "scrypt":  # pragma: no branch
+    if SCRYPT_MODULE == "scrypt":  # pragma: no cover
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
-    elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no branch
+    elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no cover
         key = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
     else:   # pragma: no cover
-        raise ValueError("No scrypt module loaded")
+        raise ValueError("No scrypt module loaded")  # pragma: no cover
     (derived_half1, derived_half2) = (key[:32], key[32:])
     aes = AES.new(derived_half2, AES.MODE_ECB)
     encrypted_half1 = _encrypt_xor(privkeyhex[:32], derived_half1[:16], aes)
@@ -106,12 +106,12 @@ def decrypt(encrypted_privkey, passphrase):
     assert flagbyte == b'\xc0', "Flagbyte has to be 0xc0"
     salt = d[0:4]
     d = d[4:-4]
-    if SCRYPT_MODULE == "scrypt":  # pragma: no branch
+    if SCRYPT_MODULE == "scrypt":  # pragma: no cover
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
-    elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no branch
+    elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no cover
         key = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
     else:
-        raise ValueError("No scrypt module loaded")
+        raise ValueError("No scrypt module loaded")  # pragma: no cover
     derivedhalf1 = key[0:32]
     derivedhalf2 = key[32:64]
     encryptedhalf1 = d[0:16]

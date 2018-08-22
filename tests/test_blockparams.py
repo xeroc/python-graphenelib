@@ -1,7 +1,7 @@
 import mock
 import unittest
 
-from graphenebase.transactions import getBlockParams
+from .fixtures import getBlockParams
 
 
 class Testcases(unittest.TestCase):

@@ -268,8 +268,6 @@ class PublicKey():
         """ Derive uncompressed key """
         public_key = repr(self._pk)
         prefix = public_key[0:2]
-        if prefix == "04":
-            return public_key
         assert prefix == "02" or prefix == "03"
         x = int(public_key[2:], 16)
         y = self._derive_y_from_x(x, (prefix == "02"))

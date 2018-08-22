@@ -1,22 +1,19 @@
 import os
 import unittest
 
-from graphenebase.account import PrivateKey
-from graphenebase import bip38
-from graphenestorage.exceptions import (
+from .fixtures import (
+    PrivateKey,
+    bip38,
     WrongMasterPasswordException,
     KeyAlreadyInStoreException,
-    WalletLocked
-)
-
-import graphenestorage as storage
-from graphenestorage.interfaces import (
+    WalletLocked,
+    storage,
     StoreInterface,
     KeyInterface,
     ConfigInterface,
     EncryptedKeyInterface,
+    SQLiteStore
 )
-from graphenestorage.sqlite import SQLiteStore
 
 
 def pubprivpair(wif):
@@ -115,7 +112,6 @@ class Testcases(unittest.TestCase):
             config.wipe()
             self.assertNotIn("empty", config)
 
-    """
     def test_inramkeystore(self):
         self.do_keystore(storage.InRamPlainKeyStore())
 
@@ -129,7 +125,6 @@ class Testcases(unittest.TestCase):
         s.wipe()
         self.do_keystore(s)
         self.assertFalse(s.is_encrypted())
-    """
 
     def test_sqliteencryptedkeystore(self):
         self.do_keystore(storage.SqliteEncryptedKeyStore(
@@ -139,13 +134,13 @@ class Testcases(unittest.TestCase):
 
     def do_keystore(self, keys):
         keys.wipe()
-        keys.config.wipe()
         password = "foobar"
 
         if isinstance(keys, (
             storage.SqliteEncryptedKeyStore,
             storage.InRamEncryptedKeyStore,
         )):
+            keys.config.wipe()
             with self.assertRaises(WalletLocked):
                 keys.decrypt("6PRViepa2zaXXGEQTYUsoLM1KudLmNBB1t812jtdKx1TEhQtvxvmtEm6Yh")
             with self.assertRaises(WalletLocked):

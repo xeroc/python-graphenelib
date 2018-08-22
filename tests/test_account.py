@@ -1,8 +1,16 @@
 import ecdsa
 import unittest
 import hashlib
-from graphenebase.base58 import Base58
-from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey, PasswordKey, GrapheneAddress, BitcoinAddress
+from .fixtures import (
+    Base58,
+    BrainKey,
+    Address,
+    PublicKey,
+    PrivateKey,
+    PasswordKey,
+    GrapheneAddress,
+    BitcoinAddress
+)
 
 
 class Testcases(unittest.TestCase):
@@ -119,22 +127,37 @@ class Testcases(unittest.TestCase):
                             'BTS86qPFWptPfUNKVi6hemeEWshoLerN6JvzCvFjqnRSEJg7nackU',
                             'BTS57qhJwt9hZtBsGgV7J5ZPHFi5r5MEeommYnFpDb6grK3qev2qX'])
 
+    def test_get_secret(self):
+        self.maxDiff = None
+        self.assertEqual([PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S").get_secret(),
+                          PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").get_secret(),
+                          PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").get_secret(),
+                          PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").get_secret()
+                          ], [
+                              b'\xf4\x8d\xeb\xee\x1b\x00\xab\xc0\x07xIu\xcf\xd3:X\x88b\x86\xc8\xeeD\x1c~a\xf0j"\xbb\xb1t.',
+                              b'\xdc\x86\xb1&\x82\xfdF\x8a\xd3*\x85\xfa\x05\x1d\xd6_\x00\xdc\x88\x93\x1e\xcb\x11\x82\xc35\x01\xf4\xce\xdc\xc3\x94',
+                              b'g\x13\x80\x85*\x17d7C\xa3X\xbc\x18G\xd3\x08\xee\x02<("(\x9a\xc2WB]\x89\x13\xd9Z\x97',
+                              b"Q?\xa0\x9e\xc7\xae\xcb\x1a\x1c,\xa5'\x8b\x0e;\x84I\xc2\x9a\xb0\x8ay\x9d@\xfa\xd7\xe4\x9d\xfbj\x1eD"
+                          ])
+
     def test_PublicKey(self):
         self.assertEqual([str(PublicKey("BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL", prefix="BTS")),
                           str(PublicKey("BTS8YAMLtNcnqGNd3fx28NP3WoyuqNtzxXpwXTkZjbfe9scBmSyGT", prefix="BTS")),
                           str(PublicKey("BTS7HUo6bm7Gfoi3RqAtzwZ83BFCwiCZ4tp37oZjtWxGEBJVzVVGw", prefix="BTS")),
                           str(PublicKey("BTS6676cZ9qmqPnWMrm4McjCuHcnt6QW5d8oRJ4t8EDH8DdCjvh4V", prefix="BTS")),
-                          str(PublicKey("BTS7u8m6zUNuzPNK1tPPLtnipxgqV9mVmTzrFNJ9GvovvSTCkVUra", prefix="BTS"))
+                          str(PublicKey("BTS7u8m6zUNuzPNK1tPPLtnipxgqV9mVmTzrFNJ9GvovvSTCkVUra", prefix="BTS").pubkey),
+                          str(PublicKey("BTS7u8m6zUNuzPNK1tPPLtnipxgqV9mVmTzrFNJ9GvovvSTCkVUra", prefix="BTS").compressed_key)
                           ],
                          ["BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL",
                           "BTS8YAMLtNcnqGNd3fx28NP3WoyuqNtzxXpwXTkZjbfe9scBmSyGT",
                           "BTS7HUo6bm7Gfoi3RqAtzwZ83BFCwiCZ4tp37oZjtWxGEBJVzVVGw",
                           "BTS6676cZ9qmqPnWMrm4McjCuHcnt6QW5d8oRJ4t8EDH8DdCjvh4V",
-                          "BTS7u8m6zUNuzPNK1tPPLtnipxgqV9mVmTzrFNJ9GvovvSTCkVUra"
+                          "7u8m6zUNuzPNK1tPPLtnipxgqV9mVmTzrFNJ9GvovvSTCkVUra",
+                          "GPH7u8m6zUNuzPNK1tPPLtnipxgqV9mVmTzrFNJ9GvovvSTCkVUra",
                           ])
 
     def test_Privatekey(self):
-        self.assertEqual([str(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq")),
+        self.assertEqual([format(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq"), "wif"),
                           str(PrivateKey("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R")),
                           str(PrivateKey("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7")),
                           repr(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq")),
@@ -218,10 +241,23 @@ class Testcases(unittest.TestCase):
              "STM7VNFRjrE1hs1CKpEAP9NAabdFpwvzYXRKvkrVBBv2kTQCbNHz7",
              "STM7ZZFhEBjujcKjkmY31i1spPMx6xDSRhkursZLigi2HKLuALe5t",
              ]
+        c = ["5Jaa3d8fC4FpiYFGNapPCQZ1id5p9WsMsTEU3N8AjfuH7Wga5nW",
+             "5J7xXhZktey6VEcETjc7VkbbeNqDPPhB5iKsZfqfZ4kYDx6qUtZ",
+             "5KPiL353VqrCvRTjCBo4A16c1caai9MEZWPoLddoqDozF8Zp1U7",
+             "5KE7YercwKDzQtRipD7cTJaXP1d7BGtmdgvHbHgTqCXMC7tWym1",
+             "5KfzkwQ2JNTXhxkernFyv5epfCHkPh64W9XG24HQBYMEdnF9wFG",
+             "5K554APUTdVL5NbvgSrJz2mwPWqsWU98B71V9oXCkviDGpssMNG",
+             "5KAqbJufq9B5GREfKUADU9QiVR7BryatEFSUCP2dBkeE1txwPdy",
+             "5JthkzjpiYzCV7o8ArB9i9JtLSfSjU11W1y177d6pt4Vd1eyL2d",
+             "5K4uhyNjYYxUG4i5Wx3umUQSsHn2StH86APNLa2tuE9yHqZVHZD",
+             "5HwK7gZTrk69vEtnU1hrTsbmVuEAQMehBxtZogojMSoj7jikXhx",
+             ]
         for i, pwd in enumerate(a):
             password = PasswordKey("xeroc", pwd, "posting")
             self.assertEqual(format(password.get_public(), "STM"), b[i])
             self.assertEqual(format(password.get_public_key(), "STM"), b[i])
+            self.assertEqual(str(password.get_private_key()), c[i])
+            self.assertEqual(str(password.get_private()), c[i])
 
     def test_btcprivkey(self):
         self.assertEqual([format(PrivateKey("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").bitcoin.address, "BTC"),
@@ -287,7 +323,19 @@ class Testcases(unittest.TestCase):
 
     def test_BrainKey_sequence(self):
         b = BrainKey("COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN MATZO")
-        self.assertEqual(str(next(b).get_private_key()), "5Hsbn6kXio4bb7eW5bX7kTp2sdkmbzP8kGWoau46Cf7en7T1RRE")
+        b = next(b)
+        self.assertEqual(
+            str(b.get_private_key()),
+            "5Hsbn6kXio4bb7eW5bX7kTp2sdkmbzP8kGWoau46Cf7en7T1RRE")
+        self.assertEqual(
+            str(b.get_private()),
+            "5Hsbn6kXio4bb7eW5bX7kTp2sdkmbzP8kGWoau46Cf7en7T1RRE")
+        self.assertEqual(
+            str(b.get_public_key()),
+            "GPH6Lduu3V4hoDBeasWrdG45tAGeKG4b7XZFqF4GiryqTNZmWDdW7")
+        self.assertEqual(
+            str(b.get_public()),
+            "GPH6Lduu3V4hoDBeasWrdG45tAGeKG4b7XZFqF4GiryqTNZmWDdW7")
 
     def test_new_privatekey(self):
         w = PrivateKey()

@@ -32,7 +32,6 @@ setup(
         'secp256k1'
     ],
     packages=[
-        "graphene",
         "grapheneapi",
         "graphenebase",
         "graphenestorage",

@@ -1,8 +1,13 @@
 import unittest
 
 from collections import OrderedDict
-from graphenebase.objects import Operation, GrapheneObject
-from graphenebase.operations import Newdemooepration, Newdemooepration2, Demooepration
+from .fixtures import (
+    Operation,
+    GrapheneObject,
+    Newdemooepration,
+    Newdemooepration2,
+    Demooepration
+)
 
 
 class Testcases(unittest.TestCase):
