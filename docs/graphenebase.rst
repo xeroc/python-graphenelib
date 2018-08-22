@@ -20,6 +20,7 @@ Submodules
    graphenebase.signedtransactions
    graphenebase.transactions
    graphenebase.types
+   graphenebase.utils
 
 Module contents
 ---------------

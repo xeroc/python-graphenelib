@@ -9,11 +9,6 @@ Submodules
    grapheneapi.api
    grapheneapi.exceptions
    grapheneapi.grapheneapi
-   grapheneapi.grapheneclient
-   grapheneapi.graphenehttprpc
-   grapheneapi.graphenews
-   grapheneapi.graphenewsprotocol
-   grapheneapi.graphenewsrpc
    grapheneapi.http
    grapheneapi.rpc
    grapheneapi.websocket
