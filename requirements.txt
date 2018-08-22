@@ -1,3 +1,5 @@
+pyyaml
+dateutils
 ecdsa
 requests
 websocket-client
