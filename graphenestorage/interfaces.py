@@ -31,7 +31,7 @@ class StoreInterface(dict):
 
     defaults = {}
 
-    # @classmethod
+    @classmethod
     def setdefault(cls, key, value):
         """ Allows to define default values
         """
