@@ -3,7 +3,7 @@ import hashlib
 import logging
 
 # We load 'ecdsa' from installation and .ecdsa from relative
-import ecdsa
+# import ecdsa
 from .ecdsa import sign_message, verify_message
 
 from binascii import hexlify, unhexlify
@@ -17,8 +17,7 @@ from .types import (
     Uint16,
     Uint32,
 )
-from .objects import GrapheneObject, isArgsThisClass
-from .operations import Operation
+from .objects import GrapheneObject, Operation
 from .chains import known_chains
 log = logging.getLogger(__name__)
 
@@ -26,10 +25,14 @@ try:
     import secp256k1
     USE_SECP256K1 = True
     log.debug("Loaded secp256k1 binding.")
-except Exception:
+except ImportError:
     USE_SECP256K1 = False
     log.debug("To speed up transactions signing install \n"
               "    pip install secp256k1")
+
+
+class MissingSignatureForKey(Exception):
+    pass
 
 
 class Signed_Transaction(GrapheneObject):
@@ -37,40 +40,38 @@ class Signed_Transaction(GrapheneObject):
         signature
 
         :param num refNum: parameter ref_block_num (see ``getBlockParams``)
-        :param num refPrefix: parameter ref_block_prefix (see ``getBlockParams``)
+        :param num refPrefix: parameter ref_block_prefix (see
+            ``getBlockParams``)
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
-    def __init__(self, *args, **kwargs):
-        if isArgsThisClass(self, args):
-            self.data = args[0].data
+    known_chains = known_chains
+    default_prefix = "GPH"
+    operation_klass = Operation
+
+    def detail(self, *args, **kwargs):
+        if "signatures" not in kwargs:  # pragma: no branch
+            kwargs["signatures"] = Array([])
+        else:  # pragma: no cover
+            kwargs["signatures"] = Array([
+                Signature(unhexlify(a)) for a in kwargs["signatures"]
+            ])
+
+        ops = kwargs.get("operations", [])
+        opklass = self.operation_klass
+        if all([not isinstance(a, opklass) for a in ops]):
+            kwargs['operations'] = Array([opklass(a) for a in ops])
         else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-            if "extensions" not in kwargs:
-                kwargs["extensions"] = Set([])
-            elif not kwargs.get("extensions"):
-                kwargs["extensions"] = Set([])
-            if "signatures" not in kwargs:
-                kwargs["signatures"] = Array([])
-            else:
-                kwargs["signatures"] = Array([Signature(unhexlify(a)) for a in kwargs["signatures"]])
+            kwargs['operations'] = Array(ops)
 
-            if "operations" in kwargs:
-                opklass = self.getOperationKlass()
-                if all([not isinstance(a, opklass) for a in kwargs["operations"]]):
-                    kwargs['operations'] = Array([opklass(a) for a in kwargs["operations"]])
-                else:
-                    kwargs['operations'] = Array(kwargs["operations"])
-
-            super().__init__(OrderedDict([
-                ('ref_block_num', Uint16(kwargs['ref_block_num'])),
-                ('ref_block_prefix', Uint32(kwargs['ref_block_prefix'])),
-                ('expiration', PointInTime(kwargs['expiration'])),
-                ('operations', kwargs['operations']),
-                ('extensions', kwargs['extensions']),
-                ('signatures', kwargs['signatures']),
-            ]))
+        return OrderedDict([
+            ('ref_block_num', Uint16(kwargs['ref_block_num'])),
+            ('ref_block_prefix', Uint32(kwargs['ref_block_prefix'])),
+            ('expiration', PointInTime(kwargs['expiration'])),
+            ('operations', kwargs['operations']),
+            ('extensions', Set([])),
+            ('signatures', kwargs['signatures']),
+        ])
 
     @property
     def id(self):
@@ -90,28 +91,22 @@ class Signed_Transaction(GrapheneObject):
         # Return properly truncated tx hash
         return hexlify(h[:20]).decode("ascii")
 
-    def getOperationKlass(self):
-        return Operation
-
-    def derSigToHexSig(self, s):
-        """ Format DER to HEX signature
-        """
-        s, junk = ecdsa.der.remove_sequence(unhexlify(s))
-        if junk:
-            log.debug('JUNK: %s', hexlify(junk).decode('ascii'))
-        assert(junk == b'')
-        x, s = ecdsa.der.remove_integer(s)
-        y, s = ecdsa.der.remove_integer(s)
-        return '%064x%064x' % (x, y)
-
-    def getKnownChains(self):
-        return known_chains
+#     def derSigToHexSig(self, s):
+#         """ Format DER to HEX signature
+#         """
+#         s, junk = ecdsa.der.remove_sequence(unhexlify(s))
+#         if junk:
+#             log.debug('JUNK: %s', hexlify(junk).decode('ascii'))
+#         assert(junk == b'')
+#         x, s = ecdsa.der.remove_integer(s)
+#         y, s = ecdsa.der.remove_integer(s)
+#         return '%064x%064x' % (x, y)
 
     def getChainParams(self, chain):
         # chain may be an identifier, the chainid, or the prefix
         # ultimately, we need to be able to identify the chain id
         def find_in_known_chains(identifier):
-            chains = self.getKnownChains()
+            chains = self.known_chains
             for _id, chain in chains.items():
                 if _id == identifier:
                     return chain
@@ -126,9 +121,9 @@ class Signed_Transaction(GrapheneObject):
         elif isinstance(chain, dict):
             chain_params = chain
         else:
-            raise Exception("sign() only takes a string or a dict as chain!")
+            raise ValueError("sign() only takes a string or a dict as chain!")
         if "chain_id" not in chain_params:
-            raise Exception("sign() needs a 'chain_id' in chain params!")
+            raise ValueError("sign() needs a 'chain_id' in chain params!")
         return chain_params
 
     def deriveDigest(self, chain):
@@ -151,7 +146,8 @@ class Signed_Transaction(GrapheneObject):
 
     def verify(self, pubkeys=[], chain=None):
         if not chain:
-            raise
+            chain = self.default_prefix
+
         chain_params = self.getChainParams(chain)
         self.deriveDigest(chain)
         signatures = self.data["signatures"].data
@@ -167,13 +163,13 @@ class Signed_Transaction(GrapheneObject):
 
         for pubkey in pubkeys:
             if not isinstance(pubkey, PublicKey):
-                raise Exception("Pubkeys must be array of 'PublicKey'")
+                raise ValueError("Pubkeys must be array of 'PublicKey'")
 
             k = pubkey.unCompressed()[2:]
             if k not in pubKeysFound and repr(pubkey) not in pubKeysFound:
                 k = PublicKey(PublicKey(k).compressed())
                 f = format(k, chain_params["prefix"])
-                raise Exception("Signature for %s missing!" % f)
+                raise MissingSignatureForKey("Signature for %s missing!" % f)
         return pubKeysFound
 
     def sign(self, wifkeys, chain=None):
@@ -184,12 +180,14 @@ class Signed_Transaction(GrapheneObject):
 
         """
         if not chain:
-            raise Exception("Chain needs to be provided!")
+            chain = self.default_prefix
         self.deriveDigest(chain)
 
         # Get Unique private keys
         self.privkeys = []
-        [self.privkeys.append(item) for item in wifkeys if item not in self.privkeys]
+        for item in wifkeys:
+            if item not in self.privkeys:
+                self.privkeys.append(item)
 
         # Sign the message with every private key given!
         sigs = []

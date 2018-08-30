@@ -2,10 +2,9 @@ import json
 import struct
 import time
 from calendar import timegm
-from datetime import datetime
 from binascii import hexlify, unhexlify
-from collections import OrderedDict
 from .objecttypes import object_type
+from .utils import unicodify
 
 timeformat = '%Y-%m-%dT%H:%M:%S%Z'
 
@@ -21,13 +20,12 @@ def varint(n):
     return data
 
 
-def varintdecode(data):
+def varintdecode(data):  # pragma: no cover
     """ Varint decoding
     """
     shift = 0
     result = 0
-    for c in data:
-        b = ord(c)
+    for b in bytes(data):
         result |= ((b & 0x7f) << shift)
         if not (b & 0x80):
             break
@@ -129,44 +127,17 @@ class String():
         self.data = d
 
     def __bytes__(self):
-        d = self.unicodify()
+        d = unicodify(self.data)
         return varint(len(d)) + d
 
     def __str__(self):
         return '%s' % str(self.data)
 
-    def unicodify(self):
-        r = []
-        for s in self.data:
-            o = ord(s)
-            if o <= 7:
-                r.append("u%04x" % o)
-            elif o == 8:
-                r.append("b")
-            elif o == 9:
-                r.append("\t")
-            elif o == 10:
-                r.append("\n")
-            elif o == 11:
-                r.append("u%04x" % o)
-            elif o == 12:
-                r.append("f")
-            elif o == 13:
-                r.append("\r")
-            elif o > 13 and o < 32:
-                r.append("u%04x" % o)
-            else:
-                r.append(s)
-        return bytes("".join(r), "utf-8")
-
 
 class Bytes():
-    def __init__(self, d, length=None):
+    def __init__(self, d):
         self.data = d
-        if length:
-            self.length = length
-        else:
-            self.length = len(self.data)
+        self.length = len(self.data)
 
     def __bytes__(self):
         # FIXME constraint data to self.length
@@ -190,7 +161,7 @@ class Void():
 
 class Array():
     def __init__(self, d):
-        self.data = d
+        self.data = d or []
         self.length = Varint32(len(self.data))
 
     def __bytes__(self):
@@ -211,7 +182,12 @@ class PointInTime():
         self.data = d
 
     def __bytes__(self):
-        return struct.pack("<I", timegm(time.strptime((self.data + "UTC"), timeformat)))
+        return struct.pack(
+            "<I",
+            timegm(time.strptime(
+                (self.data + "UTC"),
+                timeformat))
+        )
 
     def __str__(self):
         return self.data
@@ -242,14 +218,7 @@ class Set(Array):  # Set = Array
 
 
 class Fixed_array():
-    def __init__(self, d):
-        raise NotImplementedError
-
-    def __bytes__(self):
-        raise NotImplementedError
-
-    def __str__(self):
-        raise NotImplementedError
+    pass
 
 
 class Optional():
@@ -257,16 +226,23 @@ class Optional():
         self.data = d
 
     def __bytes__(self):
-        if not self.data:
+        if not bool(self.data):
             return bytes(Bool(0))
         else:
-            return bytes(Bool(1)) + bytes(self.data) if bytes(self.data) else bytes(Bool(0))
+            return (
+                bytes(Bool(1)) +
+                bytes(self.data)
+                if bytes(self.data)
+                else bytes(Bool(0))
+            )
 
     def __str__(self):
         return str(self.data)
 
     def isempty(self):
-        if not self.data:
+        if self.data is None:
+            return True
+        if self.data.data is None:
             return True
         return not bool(bytes(self.data))
 
@@ -330,6 +306,8 @@ class VoteId():
 class ObjectId():
     """ Encodes protocol ids - serializes to the *instance* only!
     """
+    object_types = object_type
+
     def __init__(self, object_str, type_verify=None):
         if len(object_str.split(".")) == 3:
             space, type, id = object_str.split(".")
@@ -338,10 +316,12 @@ class ObjectId():
             self.instance = Id(int(id))
             self.Id = object_str
             if type_verify:
-                assert object_type[type_verify] == int(type),\
+                assert type_verify in self.object_types,\
+                    "Type {} is not defined!".format(type_verify)
+                assert self.object_types[type_verify] == int(type),\
                     "Object id does not match object type! " +\
                     "Excpected %d, got %d" %\
-                    (object_type[type_verify], int(type))
+                    (self.object_types[type_verify], int(type))
         else:
             raise Exception("Object id is invalid")
 
@@ -364,7 +344,7 @@ class FullObjectId():
             self.instance = Id(int(id))
             self.Id = object_str
         else:
-            raise Exception("Object id is invalid")
+            raise ValueError("Object id is invalid")
 
     def __bytes__(self):
         return (
@@ -376,15 +356,19 @@ class FullObjectId():
 
 
 class Enum8(Uint8):
+    # List needs to be provided by super class
+    options = []
+
     def __init__(self, selection):
-        assert selection in self.options or \
-            isinstance(selection, int) and len(self.options) < selection, \
-            "Options are %s. Given '%s'" % (
-                self.options, selection)
-        if selection in self.options:
-            super(Enum8, self).__init__(self.options.index(selection))
-        else:
-            super(Enum8, self).__init__(selection)
+        if (
+            selection not in self.options or
+            (isinstance(selection, int) and len(self.options) < selection)
+        ):
+            raise ValueError(
+                "Options are {}. Given '{}'".format(
+                    str(self.options), selection))
+
+        super(Enum8, self).__init__(self.options.index(selection))
 
     def __str__(self):
         return str(self.options[self.data])

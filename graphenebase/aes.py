@@ -1,7 +1,7 @@
-try:
+try:   # pragma: no cover
     from Cryptodome.Cipher import AES
     from Cryptodome import Random
-except ImportError:
+except ImportError:   # pragma: no cover
     try:
         from Crypto.Cipher import AES
         from Crypto import Random
@@ -45,4 +45,3 @@ class AESCipher(object):
         iv = enc[:AES.block_size]
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
         return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
-

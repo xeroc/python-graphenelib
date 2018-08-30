@@ -3,7 +3,7 @@ import random
 import unittest
 import base64
 from pprint import pprint
-from graphenebase.aes import AESCipher
+from .fixtures import AESCipher
 
 
 class Testcases(unittest.TestCase):

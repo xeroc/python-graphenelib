@@ -50,10 +50,9 @@ Packages
 --------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
 
-   grapheneapi
-   graphenebase
+   modules
 
 Indices and tables
 ==================

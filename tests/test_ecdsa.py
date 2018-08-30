@@ -1,8 +1,10 @@
 import pytest
 import unittest
 from binascii import hexlify
-from graphenebase.account import PrivateKey
-import graphenebase.ecdsa as ecdsa
+from .fixtures import (
+    PrivateKey,
+    ecdsa
+)
 
 
 wif = "5J4KCbg1G3my9b9hCaQXnHSm6vrwW9xQTJS6ZciW2Kek7cCkCEk"

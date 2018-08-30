@@ -34,35 +34,51 @@ class SQLiteFile():
             argument ``profile``.
     """
 
-    appname = "graphene"
-    appauthor = "Fabian Schuh"
-    data_dir = user_data_dir(appname, appauthor)
-
     def __init__(self, *args, **kwargs):
+        appauthor = "Fabian Schuh"
+        appname = kwargs.get(
+            "appname",
+            "graphene")
+        data_dir = kwargs.get(
+            "data_dir",
+            user_data_dir(appname, appauthor))
+
         if "profile" in kwargs:
             self.storageDatabase = "{}.sqlite".format(kwargs["profile"])
         else:
-            self.storageDatabase = "{}.sqlite".format(self.appname)
+            self.storageDatabase = "{}.sqlite".format(appname)
 
         self.sqlDataBaseFile = os.path.join(
-            self.data_dir, self.storageDatabase)
+            data_dir, self.storageDatabase)
 
         """ Ensure that the directory in which the data is stored
             exists
         """
-        if os.path.isdir(self.data_dir):
+        if os.path.isdir(data_dir):  # pragma: no cover
             return
-        else:
-            try:
-                os.makedirs(self.data_dir)
-            except FileExistsError:
-                return
-            except OSError:
-                raise
+        else:  # pragma: no cover
+            os.makedirs(data_dir)
 
 
 class SQLiteStore(SQLiteFile, StoreInterface):
+    """ The SQLiteStore deals with the sqlite3 part of storing data into a
+        database file.
 
+        .. note:: This module is limited to two columns and merely stores
+            key/value pairs into the sqlite database
+
+        On first launch, the database file as well as the tables are created
+        automatically.
+
+        When inheriting from this class, the following three class members must
+        be defined:
+
+            * ``__tablename__``: Name of the table
+            * ``__key__``: Name of the key column
+            * ``__value__``: Name of the value column
+    """
+
+    #:
     __tablename__ = None
     __key__ = None
     __value__ = None
@@ -71,7 +87,15 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         #: Storage
         SQLiteFile.__init__(self, *args, **kwargs)
         StoreInterface.__init__(self, *args, **kwargs)
-        if not self.exists():
+        if (
+            self.__tablename__ is None or
+            self.__key__ is None or
+            self.__value__ is None
+        ):
+            raise ValueError(
+                "Values missing for tablename, key, or value!"
+            )
+        if not self.exists():  # pragma: no cover
             self.create()
 
     def _haveKey(self, key):
@@ -90,6 +114,9 @@ class SQLiteStore(SQLiteFile, StoreInterface):
 
     def __setitem__(self, key, value):
         """ Sets an item in the store
+
+            :param str key: Key
+            :param str value: Value
         """
         if self._haveKey(key):
             query = (
@@ -112,6 +139,8 @@ class SQLiteStore(SQLiteFile, StoreInterface):
 
     def __getitem__(self, key):
         """ Gets an item from the store as if it was a dictionary
+
+            :param str value: Value
         """
         query = (
             "SELECT {} FROM {} WHERE {}=?".format(
@@ -134,7 +163,16 @@ class SQLiteStore(SQLiteFile, StoreInterface):
     def __iter__(self):
         """ Iterates through the store
         """
-        return iter(self.items())
+        return iter(self.keys())
+
+    def keys(self):
+        query = ("SELECT {} from {}".format(
+            self.__key__,
+            self.__tablename__))
+        connection = sqlite3.connect(self.sqlDataBaseFile)
+        cursor = connection.cursor()
+        cursor.execute(query)
+        return [x[0] for x in cursor.fetchall()]
 
     def __len__(self):
         """ return lenght of store
@@ -149,6 +187,8 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         """ Tests if a key is contained in the store.
 
             May test againsts self.defaults
+
+            :param str value: Value
         """
         if self._haveKey(key) or key in self.defaults:
             return True
@@ -172,6 +212,9 @@ class SQLiteStore(SQLiteFile, StoreInterface):
 
     def get(self, key, default=None):
         """ Return the key if exists or a default value
+
+            :param str value: Value
+            :param str default: Default value if key not present
         """
         if key in self:
             return self.__getitem__(key)
@@ -181,6 +224,8 @@ class SQLiteStore(SQLiteFile, StoreInterface):
     # Specific for this library
     def delete(self, key):
         """ Delete a key from the store
+
+            :param str value: Value
         """
         query = (
             "DELETE FROM {} WHERE {}=?".format(
@@ -212,7 +257,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         cursor.execute(*query)
         return True if cursor.fetchone() else False
 
-    def create(self):
+    def create(self):  # pragma: no cover
         """ Create the new table in the SQLite database
         """
         query = (
