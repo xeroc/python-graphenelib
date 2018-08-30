@@ -1,5 +1,4 @@
 import hashlib
-# import sys
 import string
 import logging
 
@@ -59,7 +58,6 @@ class Base58(object):
             raise NotImplementedError(
                 "Private Keys starting with L or K are not supported!"
             )
-            self._hex = base58CheckDecode(data)[:-2]
         elif data[:len(self._prefix)] == self._prefix:
             self._hex = gphBase58CheckDecode(data[len(self._prefix):])
         else:
@@ -119,12 +117,6 @@ BASE58_ALPHABET = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 
 def base58decode(base58_str):
-    """
-    if sys.version > '3':
-        base58_text = bytes(base58_str, "ascii")
-    else:  # pragma: no cover
-        base58_text = base58_str.encode("ascii")
-    """
     base58_text = _bytes(base58_str)
     n = 0
     leading_zeroes_count = 0
@@ -143,12 +135,6 @@ def base58decode(base58_str):
 
 
 def base58encode(hexstring):
-    """
-    if sys.version > '3':
-        byteseq = bytes(unhexlify(bytes(hexstring, 'ascii')))
-    else:
-        byteseq = bytearray(unhexlify(hexstring.decode("ascii")))
-    """
     byteseq = unhexlify(_bytes(hexstring))
     n = 0
     leading_zeroes_count = 0

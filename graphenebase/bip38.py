@@ -1,4 +1,3 @@
-# import sys
 import logging
 import hashlib
 from binascii import hexlify, unhexlify
@@ -60,12 +59,6 @@ def encrypt(privkey, passphrase):
 
     privkeyhex = repr(privkey)   # hex
     addr = format(privkey.bitcoin.address, "BTC")
-    """
-    if sys.version > '3':
-        a = bytes(addr, 'ascii')
-    else:
-        a = bytes(addr).encode('ascii')
-    """
     a = _bytes(addr)
     salt = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
     if SCRYPT_MODULE == "scrypt":  # pragma: no cover
@@ -126,12 +119,6 @@ def decrypt(encrypted_privkey, passphrase):
     """ Verify Salt """
     privkey = PrivateKey(format(wif, "wif"))
     addr = format(privkey.bitcoin.address, "BTC")
-    """
-    if sys.version > '3':
-        a = bytes(addr, 'ascii')
-    else:
-        a = bytes(addr).encode('ascii')
-    """
     a = _bytes(addr)
     saltverify = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
     if saltverify != salt:   # pragma: no cover

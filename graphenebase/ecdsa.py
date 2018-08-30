@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-# import sys
 import time
 import ecdsa
 import hashlib
@@ -64,12 +63,6 @@ def compressedPubkey(pk):
         x = p.x()
         y = p.y()
     x_str = ecdsa.util.number_to_string(x, order)
-    """
-    if sys.version > '3':
-        return bytes(chr(2 + (y & 1)), 'ascii') + x_str
-    else:
-        return bytes(chr(2 + (y & 1))).encode("ascii") + x_str
-    """
     return _bytes(chr(2 + (y & 1))) + x_str
 
 
@@ -153,12 +146,6 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
 
     digest = hashfn(message).digest()
     priv_key = PrivateKey(wif)
-    """
-    if sys.version > '3':
-        p = bytes(priv_key)
-    else:
-        p = bytes(priv_key.__bytes__())
-    """
     p = bytes(priv_key)
 
     if SECP256K1_MODULE == "secp256k1":
@@ -319,12 +306,6 @@ def verify_message(message, signature, hashfn=hashlib.sha256):
 # def pointToPubkey(x, y, order=None):  # pragma: no cover
 #     order = order or ecdsa.SECP256k1.order
 #     x_str = ecdsa.util.number_to_string(x, order)
-#     """
-#     if sys.version > '3':
-#         return bytes(chr(2 + (y & 1)), 'ascii') + x_str
-#     else:
-#         return bytes(chr(2 + (y & 1))).encode("ascii") + x_str
-#     """
 #     return _bytes(chr(2 + (y & 1))) + x_str   # pragma: no cover
 #
 #
