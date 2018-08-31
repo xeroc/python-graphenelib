@@ -103,6 +103,10 @@ class KeyInterface(StoreInterface):
             :class:`graphenestorage.interfaces.StoreInterface` and defines
             additional key-specific methods.
     """
+    def is_encrypted(self):
+        """ Returns True/False to indicate required use of unlock
+        """
+        return False
 
     # Interface to deal with encrypted keys
     def getPublicKeys(self):
