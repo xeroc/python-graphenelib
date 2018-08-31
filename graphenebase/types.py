@@ -127,7 +127,10 @@ class String():
         self.data = d
 
     def __bytes__(self):
-        d = unicodify(self.data)
+        if self.data:
+            d = unicodify(self.data)
+        else:
+            d = b""
         return varint(len(d)) + d
 
     def __str__(self):
@@ -242,7 +245,7 @@ class Optional():
     def isempty(self):
         if self.data is None:
             return True
-        if self.data.data is None:
+        if not bool(str(self.data)):
             return True
         return not bool(bytes(self.data))
 

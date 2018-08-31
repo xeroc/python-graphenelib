@@ -178,9 +178,18 @@ class GrapheneObject(OrderedDict):
     def __str__(self):
         return json.dumps(self.__json__())
 
+    # Legacy support
     @property
     def data(self):
+        """ Read data explicitly (backwards compatibility)
+        """
         return self
+
+    @data.setter
+    def data(self, data):
+        """ Set data through a setter (backwards compatibility)
+        """
+        self.update(data)
 
     toJson = __json__
     json = __json__
