@@ -1,12 +1,8 @@
 import websocket
 import ssl
 import json
-import time
 import logging
-from .exceptions import (
-    RPCError,
-    NumRetriesReached
-)
+from .exceptions import RPCError
 from .rpc import Rpc
 
 log = logging.getLogger(__name__)
@@ -42,11 +38,17 @@ class Websocket(Rpc):
 
             :param json payload: Payload data
             :raises ValueError: if the server does not respond in proper JSON
-            format
+                format
             :raises RPCError: if the server returns an error
         """
+        if not self.ws:
+            self.connect()
+
         log.debug(json.dumps(payload))
-        self.ws.send(
-            json.dumps(payload, ensure_ascii=False).encode('utf8')
-        )
-        return self.ws.recv()
+        try:
+            self.ws.send(
+                json.dumps(payload, ensure_ascii=False).encode('utf8')
+            )
+            return self.ws.recv()
+        except Exception as e:
+            raise RPCError(str(e))
