@@ -1,3 +1,4 @@
+import traceback
 import logging
 from collections import Counter
 from itertools import cycle
@@ -145,7 +146,9 @@ class Api:
                     self.post_process_exception(e)
                     break
                 except Exception as e:
+                    log.warning(traceback.format_exc())
                     log.warning(str(e))
+                    log.warning("Reconnecting ...")
                     self.error_url()
                     self.next()
 
