@@ -156,6 +156,10 @@ class Api:
                     # the above line should raise. Let's be sure to at least
                     # break
                     break  # pragma: no cover
+                except IOError as e:
+                    log.critical("Connection was closed remotely. Retrying")
+                    self.error_url()
+                    self.next()
                 except Exception as e:
                     log.warning(traceback.format_exc())
                     log.warning(str(e))
