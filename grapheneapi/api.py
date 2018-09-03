@@ -145,6 +145,12 @@ class Api:
                 except RPCError as e:
                     self.post_process_exception(e)
                     break
+                except IOError as e:
+                    log.warning(traceback.format_exc())
+                    log.warning(str(e))
+                    log.warning("Reconnecting ...")
+                    self.error_url()
+                    self.next()
                 except Exception as e:
                     log.warning(traceback.format_exc())
                     log.warning(str(e))
