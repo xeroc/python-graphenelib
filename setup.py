@@ -11,14 +11,16 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.6.8'
+VERSION = '0.6.9'
 
 setup(
     name='graphenelib',
     version=VERSION,
     description='Python library for graphene-based blockchains',
     long_description=open('README.md').read(),
-    download_url='https://github.com/xeroc/python-graphenelib/tarball/' + VERSION,
+    download_url=(
+        'https://github.com/xeroc/python-graphenelib/tarball/{}'.format(
+            VERSION)),
     author='Fabian Schuh',
     author_email='Fabian@chainsquad.com',
     maintainer='Fabian Schuh',
