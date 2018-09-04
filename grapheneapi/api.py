@@ -140,19 +140,15 @@ class Api:
                     break
                 except KeyboardInterrupt:
                     raise
-                except ValueError:
-                    raise
                 except RPCError as e:
+                    """ When the backend actual returns an error
+                    """
                     self.post_process_exception(e)
                     break
-                except IOError as e:
-                    log.warning(traceback.format_exc())
-                    log.warning(str(e))
-                    log.warning("Reconnecting ...")
-                    self.error_url()
-                    self.next()
                 except Exception as e:
-                    log.warning(traceback.format_exc())
+                    """ When something fails talking to the backend
+                    """
+                    # log.warning(traceback.format_exc())
                     log.warning(str(e))
                     log.warning("Reconnecting ...")
                     self.error_url()
