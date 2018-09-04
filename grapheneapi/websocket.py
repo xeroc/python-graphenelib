@@ -45,10 +45,7 @@ class Websocket(Rpc):
             self.connect()
 
         log.debug(json.dumps(payload))
-        try:
-            self.ws.send(
-                json.dumps(payload, ensure_ascii=False).encode('utf8')
-            )
-            return self.ws.recv()
-        except Exception as e:
-            raise RPCError(str(e))
+        self.ws.send(
+            json.dumps(payload, ensure_ascii=False).encode('utf8')
+        )
+        return self.ws.recv()

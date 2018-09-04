@@ -149,9 +149,9 @@ class Api:
                     break
                 except KeyboardInterrupt:  # pragma: no cover
                     raise
-                except ValueError:  # pragma: no cover
-                    raise
                 except RPCError as e:  # pragma: no cover
+                    """ When the backend actual returns an error
+                    """
                     self.post_process_exception(e)
                     # the above line should raise. Let's be sure to at least
                     # break
@@ -161,7 +161,9 @@ class Api:
                     self.error_url()
                     self.next()
                 except Exception as e:
-                    log.warning(traceback.format_exc())
+                    """ When something fails talking to the backend
+                    """
+                    # log.warning(traceback.format_exc())
                     log.warning(str(e))
                     log.warning("Reconnecting ...")
                     self.error_url()
