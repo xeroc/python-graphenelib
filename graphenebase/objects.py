@@ -180,13 +180,13 @@ class GrapheneObject(OrderedDict):
 
     # Legacy support
     @property
-    def data(self):
+    def data(self):  # pragma: no cover
         """ Read data explicitly (backwards compatibility)
         """
         return self
 
     @data.setter
-    def data(self, data):
+    def data(self, data):  # pragma: no cover
         """ Set data through a setter (backwards compatibility)
         """
         self.update(data)

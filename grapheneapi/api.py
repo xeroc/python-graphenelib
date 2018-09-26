@@ -1,4 +1,3 @@
-import traceback
 import logging
 from collections import Counter
 from itertools import cycle
@@ -156,14 +155,15 @@ class Api:
                     # the above line should raise. Let's be sure to at least
                     # break
                     break  # pragma: no cover
-                except IOError as e:
+                except IOError as e:  # pragma: no cover
                     log.critical("Connection was closed remotely. Retrying")
                     self.error_url()
                     self.next()
-                except Exception as e:
+                except Exception as e:  # pragma: no cover
                     """ When something fails talking to the backend
                     """
-                    # log.warning(traceback.format_exc())
+                    import traceback
+                    log.debug(traceback.format_exc())
                     log.warning(str(e))
                     log.warning("Reconnecting ...")
                     self.error_url()

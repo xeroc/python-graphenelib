@@ -1,8 +1,7 @@
-import websocket
 import ssl
 import json
 import logging
-from .exceptions import RPCError
+import websocket
 from .rpc import Rpc
 
 log = logging.getLogger(__name__)
@@ -39,9 +38,8 @@ class Websocket(Rpc):
             :param json payload: Payload data
             :raises ValueError: if the server does not respond in proper JSON
                 format
-            :raises RPCError: if the server returns an error
         """
-        if not self.ws:
+        if not self.ws:  # pragma: no cover
             self.connect()
 
         log.debug(json.dumps(payload))
