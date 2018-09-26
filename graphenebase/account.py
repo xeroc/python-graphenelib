@@ -329,12 +329,21 @@ class PublicKey():
         """ Returns the raw public key (has length 33)"""
         return bytes(self._pk)
 
+    def __lt__(self, other):
+        """ For sorting of public keys (due to graphene),
+            we actually sort according to addresses
+        """
+        assert isinstance(other, PublicKey)
+        return repr(self.address) < repr(other.address)
+
     def unCompressed(self):
         """ Alias for self.uncompressed() - LEGACY"""
         return self.uncompressed()
 
     @property
     def address(self):
+        """ Obtain a GrapheneAddress from a public key
+        """
         return GrapheneAddress.from_pubkey(repr(self), prefix=self.prefix)
 
 

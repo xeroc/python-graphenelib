@@ -1,15 +1,11 @@
 from collections import OrderedDict
 from .types import (
-    Uint8, Int16, Uint16, Uint32, Uint64,
-    Varint32, Int64, String, Bytes, Void,
-    Array, PointInTime, Signature, Bool,
-    Set, Fixed_array, Optional, Static_variant,
-    Map, Id, VoteId, ObjectId,
+    Uint16, Uint32, Int64, String,
+    Array, Set, Optional, Map, VoteId, ObjectId,
 )
 from .objects import GrapheneObject, isArgsThisClass
 from .account import PublicKey
 from .chains import default_prefix
-from .operationids import operations
 
 
 # Old style of defining an operation
@@ -57,11 +53,9 @@ class Asset(GrapheneObject):
 class Permission(GrapheneObject):
     def detail(self, *args, **kwargs):
         prefix = kwargs.pop("prefix", default_prefix)
-        # Sort keys (FIXME: ideally, the sorting is part of Public
-        # Key and not located here)
         kwargs["key_auths"] = sorted(
             kwargs["key_auths"],
-            key=lambda x: repr(PublicKey(x[0], prefix=prefix).address),
+            key=lambda x: PublicKey(x[0], prefix=prefix),
             reverse=False,
         )
         accountAuths = Map([
