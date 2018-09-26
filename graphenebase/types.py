@@ -140,10 +140,8 @@ class String():
 class Bytes():
     def __init__(self, d):
         self.data = d
-        self.length = len(self.data)
 
     def __bytes__(self):
-        # FIXME constraint data to self.length
         d = unhexlify(bytes(self.data, 'utf-8'))
         return varint(len(d)) + d
 
