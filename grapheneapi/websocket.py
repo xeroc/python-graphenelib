@@ -1,8 +1,7 @@
-import websocket
 import ssl
 import json
 import logging
-from .exceptions import RPCError
+import websocket
 from .rpc import Rpc
 
 log = logging.getLogger(__name__)
@@ -16,7 +15,7 @@ class Websocket(Rpc):
             ssl_defaults = ssl.get_default_verify_paths()
             sslopt_ca_certs = {'ca_certs': ssl_defaults.cafile}
             self.ws = websocket.WebSocket(sslopt=sslopt_ca_certs)
-        else:
+        else:  # pragma: no cover
             self.ws = websocket.WebSocket()
 
         self.ws.connect(self.url)
@@ -27,7 +26,8 @@ class Websocket(Rpc):
         if self.ws:
             try:
                 self.ws.close()
-            except Exception:
+                self.ws = None
+            except Exception:  # pragma: no cover
                 pass
 
     """ RPC Calls
@@ -38,9 +38,8 @@ class Websocket(Rpc):
             :param json payload: Payload data
             :raises ValueError: if the server does not respond in proper JSON
                 format
-            :raises RPCError: if the server returns an error
         """
-        if not self.ws:
+        if not self.ws:  # pragma: no cover
             self.connect()
 
         log.debug(json.dumps(payload))

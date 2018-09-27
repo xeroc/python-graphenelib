@@ -1,8 +1,10 @@
-from binascii import hexlify, unhexlify
 import hashlib
-import sys
 import string
 import logging
+
+from binascii import hexlify, unhexlify
+from .utils import _bytes
+
 log = logging.getLogger(__name__)
 
 """ Default Prefix """
@@ -23,12 +25,13 @@ class Base58(object):
     """Base58 base class
 
     This class serves as an abstraction layer to deal with base58 encoded
-    strings and their corresponding hex and binary representation throughout the
-    library.
+    strings and their corresponding hex and binary representation throughout
+    the library.
 
     :param data: Data to initialize object, e.g. pubkey data, address data, ...
     :type data: hex, wif, bip38 encrypted wif, base58 string
-    :param str prefix: Prefix to use for Address/PubKey strings (defaults to ``GPH``)
+    :param str prefix: Prefix to use for Address/PubKey strings (defaults to
+        ``GPH``)
     :return: Base58 object initialized with ``data``
     :rtype: Base58
     :raises ValueError: if data cannot be decoded
@@ -36,7 +39,8 @@ class Base58(object):
     * ``bytes(Base58)``: Returns the raw data
     * ``str(Base58)``:   Returns the readable ``Base58CheckEncoded`` data.
     * ``repr(Base58)``:  Gives the hex representation of the data.
-    *  ``format(Base58,_format)`` Formats the instance according to ``_format``:
+    *  ``format(Base58,_format)`` Formats the instance according to
+        ``_format``:
         * ``"wif"``: prefixed with ``0x00``. Yields a valid wif key
         * ``"bts"``: prefixed with ``BTS``
         * etc.
@@ -50,8 +54,10 @@ class Base58(object):
             self._hex = data
         elif data[0] == "5" or data[0] == "6":
             self._hex = base58CheckDecode(data)
-        elif data[0] == "K" or data[0] == "L":
-            self._hex = base58CheckDecode(data)[:-2]
+        elif data[0] == "K" or data[0] == "L":  # pragma: no cover
+            raise NotImplementedError(
+                "Private Keys starting with L or K are not supported!"
+            )
         elif data[:len(self._prefix)] == self._prefix:
             self._hex = gphBase58CheckDecode(data[len(self._prefix):])
         else:
@@ -74,7 +80,10 @@ class Base58(object):
         elif _format.upper() in known_prefixes:
             return _format.upper() + str(self)
         else:
-            log.warn("Format %s unkown. You've been warned!\n" % _format)
+            log.warning(
+                "Format {} unkown. You've been warned!\n".format(
+                    _format
+                ))
             return _format.upper() + str(self)
 
     def __repr__(self):
@@ -108,10 +117,7 @@ BASE58_ALPHABET = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 
 def base58decode(base58_str):
-    if sys.version > '3':
-        base58_text = bytes(base58_str, "ascii")
-    else:
-        base58_text = base58_str.encode("ascii")
+    base58_text = _bytes(base58_str)
     n = 0
     leading_zeroes_count = 0
     for b in base58_text:
@@ -129,10 +135,7 @@ def base58decode(base58_str):
 
 
 def base58encode(hexstring):
-    if sys.version > '3':
-        byteseq = bytes(unhexlify(bytes(hexstring, 'ascii')))
-    else:
-        byteseq = bytearray(unhexlify(hexstring.decode("ascii")))
+    byteseq = unhexlify(_bytes(hexstring))
     n = 0
     leading_zeroes_count = 0
     for c in byteseq:

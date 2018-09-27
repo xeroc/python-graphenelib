@@ -1,13 +1,13 @@
 from __future__ import absolute_import
 
 import hashlib
-import sys
 import re
 import os
 
 from binascii import hexlify, unhexlify
 from .base58 import ripemd160, Base58, doublesha256
 from .dictionary import words as BrainKeyDictionary
+from .utils import _bytes
 
 import ecdsa
 
@@ -28,10 +28,7 @@ class PasswordKey(object):
         """ Derive private key from the brain key and the current sequence
             number
         """
-        if sys.version > '3':
-            a = bytes(self.account + self.role + self.password, 'utf8')
-        else:
-            a = bytes(self.account + self.role + self.password).encode('utf8')
+        a = _bytes(self.account + self.role + self.password)
         s = hashlib.sha256(a).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
@@ -67,7 +64,7 @@ class BrainKey(object):
 
     def __init__(self, brainkey=None, sequence=0):
         if not brainkey:
-            self.brainkey = self.suggest()
+            self.brainkey = BrainKey.suggest()
         else:
             self.brainkey = self.normalize(brainkey).strip()
         self.sequence = sequence
@@ -98,10 +95,7 @@ class BrainKey(object):
             number
         """
         encoded = "%s %d" % (self.brainkey, self.sequence)
-        if sys.version > '3':
-            a = bytes(encoded, 'ascii')
-        else:
-            a = bytes(encoded).encode('ascii')
+        a = _bytes(encoded)
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
@@ -114,7 +108,8 @@ class BrainKey(object):
     def get_public_key(self):
         return self.get_public()
 
-    def suggest(self):
+    @staticmethod
+    def suggest():
         """ Suggest a new random brain key. Randomness is provided by the
             operating system using ``os.urandom()``.
         """
@@ -127,7 +122,7 @@ class BrainKey(object):
             rndMult = num / 2 ** 16  # returns float between 0..1 (inclusive)
             wIdx = round(len(dict_lines) * rndMult)
             brainkey[j] = dict_lines[wIdx]
-        return " ".join(brainkey).upper()
+        return (" ".join(brainkey).upper())
 
 
 class Address(object):
@@ -186,10 +181,28 @@ class Address(object):
 
     def __bytes__(self):
         """ Returns the raw content of the ``Base58CheckEncoded`` address """
-        if sys.version > '3':
-            return bytes(self._address)
+        return bytes(self._address)
+
+
+class GrapheneAddress(Address):
+    """ Graphene Addresses are different. Hence we have a different class
+    """
+    @classmethod
+    def from_pubkey(cls, pubkey, compressed=True, version=56, prefix=None):
+        # Ensure this is a public key
+        pubkey = PublicKey(pubkey)
+        if compressed:
+            pubkey = pubkey.compressed()
         else:
-            return self._address.__bytes__()
+            pubkey = pubkey.uncompressed()
+
+        """ Derive address using ``RIPEMD160(SHA512(x))`` """
+        addressbin = ripemd160(hashlib.sha512(unhexlify(pubkey)).hexdigest())
+        result = Base58(hexlify(addressbin).decode('ascii'))
+        if prefix:
+            return cls(result, prefix=prefix)
+        else:
+            return cls(result)
 
 
 class PublicKey():
@@ -255,8 +268,6 @@ class PublicKey():
         """ Derive uncompressed key """
         public_key = repr(self._pk)
         prefix = public_key[0:2]
-        if prefix == "04":
-            return public_key
         assert prefix == "02" or prefix == "03"
         x = int(public_key[2:], 16)
         y = self._derive_y_from_x(x, (prefix == "02"))
@@ -318,13 +329,22 @@ class PublicKey():
         """ Returns the raw public key (has length 33)"""
         return bytes(self._pk)
 
+    def __lt__(self, other):
+        """ For sorting of public keys (due to graphene),
+            we actually sort according to addresses
+        """
+        assert isinstance(other, PublicKey)
+        return repr(self.address) < repr(other.address)
+
     def unCompressed(self):
         """ Alias for self.uncompressed() - LEGACY"""
         return self.uncompressed()
 
     @property
     def address(self):
-        return Address.from_pubkey(repr(self), prefix=self.prefix)
+        """ Obtain a GrapheneAddress from a public key
+        """
+        return GrapheneAddress.from_pubkey(repr(self), prefix=self.prefix)
 
 
 class PrivateKey():
@@ -435,12 +455,9 @@ class PrivateKey():
         """
         return format(self._wif, "WIF")
 
-    def __bytes__(self):
+    def __bytes__(self):    # pragma: no cover
         """ Returns the raw private key """
-        if sys.version > '3':
-            return bytes(self._wif)
-        else:
-            return self._wif.__bytes__()
+        return bytes(self._wif)
 
 
 class BitcoinAddress(Address):

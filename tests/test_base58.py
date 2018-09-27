@@ -1,5 +1,5 @@
 import unittest
-from graphenebase.base58 import (
+from .fixtures import (
     Base58,
     base58decode,
     base58encode,
@@ -7,10 +7,26 @@ from graphenebase.base58 import (
     base58CheckEncode,
     base58CheckDecode,
     gphBase58CheckEncode,
-    gphBase58CheckDecode)
+    gphBase58CheckDecode,
+    b58decode,
+    b58encode
+)
 
 
 class Testcases(unittest.TestCase):
+    def test_init(self):
+        Base58('800c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d507a5b8d')
+        with self.assertRaises(ValueError):
+            Base58("Invalid$")
+
+    def test_format_warning(self):
+        b = Base58('800c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d507a5b8d')
+        format(b, "Unkown")
+
+    def test_aliasnames(self):
+        v = '800c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d507a5b8d'
+        self.assertEqual(b58decode(b58encode(v)), base58decode(base58encode(v)))
+
     def test_base58decode(self):
         self.assertEqual([base58decode('5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'),
                           base58decode('5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss'),
@@ -102,6 +118,27 @@ class Testcases(unittest.TestCase):
                           "5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq",
                           "5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R",
                           "5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7"])
+
+    def test_leading_zeros(self):
+        # Leading zeros become ones
+        for i in range(1, 10):
+            self.assertEqual(
+                base58encode('00' * i),
+                '1' * (i + 1)
+            )
+
+        # Leading zeros become ones
+        self.assertEqual([
+            base58decode(base58encode('00')),
+            base58decode(base58encode('0000')),
+            base58decode(base58encode('000000')),
+            base58decode(base58encode('00000000')),
+        ], [
+            '000000',
+            '00000000',
+            '0000000000',
+            '000000000000'
+        ])
 
 
 if __name__ == '__main__':

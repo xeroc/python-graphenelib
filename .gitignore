@@ -63,3 +63,5 @@ target/
 
 # script data
 .ropeproject/
+.pytest_cache/
+.scannerwork/
