@@ -130,6 +130,23 @@ class Api:
     def post_process_exception(self, exception):
         raise exception
 
+    @property
+    def api_id(self):
+        """ This allows to list api_ids, if they have been registered through
+            api_register() -- LEGACY
+
+            In previous API version, one would connect and register to APIs
+            like this
+
+            .. code-block:: python
+
+                self.api_id["database"] = self.database(api_id=1)
+                self.api_id["history"] = self.history(api_id=1)
+                self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
+
+        """
+        return self.connection.api_id
+
     def register_apis(self):  # pragma: no cover
         """ This method is called right after connection and has previously
             been used to register to different APIs within the backend that are
