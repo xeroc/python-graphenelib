@@ -58,7 +58,7 @@ class Signed_Transaction(GrapheneObject):
             ])
 
         ops = kwargs.get("operations", [])
-        opklass = self.operation_klass
+        opklass = self.getOperationKlass()
         if all([not isinstance(a, opklass) for a in ops]):
             kwargs['operations'] = Array([opklass(a) for a in ops])
         else:
@@ -72,6 +72,15 @@ class Signed_Transaction(GrapheneObject):
             ('extensions', Set([])),
             ('signatures', kwargs['signatures']),
         ])
+
+    def getKnownChains(self):
+        return self.known_chains
+
+    def get_default_prefix(self):
+        return self.default_prefix
+
+    def getOperationKlass(self):
+        return self.operation_klass
 
     @property
     def id(self):
@@ -106,7 +115,7 @@ class Signed_Transaction(GrapheneObject):
         # chain may be an identifier, the chainid, or the prefix
         # ultimately, we need to be able to identify the chain id
         def find_in_known_chains(identifier):
-            chains = self.known_chains
+            chains = self.getKnownChains()
             for _id, chain in chains.items():
                 if _id == identifier:
                     return chain
@@ -146,7 +155,7 @@ class Signed_Transaction(GrapheneObject):
 
     def verify(self, pubkeys=[], chain=None):
         if not chain:
-            chain = self.default_prefix
+            chain = self.get_default_prefix()
 
         chain_params = self.getChainParams(chain)
         self.deriveDigest(chain)
@@ -180,7 +189,7 @@ class Signed_Transaction(GrapheneObject):
 
         """
         if not chain:
-            chain = self.default_prefix
+            chain = self.get_default_prefix()
         self.deriveDigest(chain)
 
         # Get Unique private keys

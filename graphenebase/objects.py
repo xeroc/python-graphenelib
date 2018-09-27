@@ -13,7 +13,7 @@ from .chains import known_chains
 from .objecttypes import object_type
 from .account import PublicKey
 from .chains import default_prefix
-from .operationids import operations, ops
+from .operationids import operations
 
 
 class Operation(list):
@@ -81,8 +81,8 @@ class Operation(list):
             self.id = int(identifier)
             self.name = self.getOperationNameForId(self.id)
         else:
-            assert identifier in self.operations
-            self.id = self.operations[identifier]
+            assert identifier in self.ops
+            self.id = self.getOperationIdForName(identifier)
             self.name = identifier
 
     @property
@@ -97,7 +97,7 @@ class Operation(list):
         assert isinstance(op, GrapheneObject)
         self.operation = op
         self.name = op.__class__.__name__.lower()
-        self.id = self.operations[self.name]
+        self.id = self.getOperationIdForName(self.name)
 
     def __bytes__(self):
         return bytes(Id(self.id)) + bytes(self.op)
@@ -108,16 +108,30 @@ class Operation(list):
     def __json__(self):
         return [self.id, self.op.json()]
 
-    def klass(self):
+    def _getklass(self, name):
         module = __import__(self.module, fromlist=self.fromlist)
-        class_ = getattr(module, self.klass_name)
+        class_ = getattr(module, name)
         return class_
+
+    def klass(self):
+        return self._getklass(self.klass_name)
+
+    @property
+    def ops(self):
+        if callable(self.operations):
+            # Legacy support
+            return self.operations()
+        else:
+            return self.operations
+
+    def getOperationIdForName(self, name):
+        return self.ops[name]
 
     def getOperationNameForId(self, i):
         """ Convert an operation id into the corresponding string
         """
-        for key in self.operations:
-            if int(self.operations[key]) is int(i):
+        for key in self.ops:
+            if int(self.ops[key]) is int(i):
                 return key
         raise ValueError("Unknown Operation ID %d" % i)
 
