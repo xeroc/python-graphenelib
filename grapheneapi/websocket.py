@@ -10,10 +10,9 @@ log = logging.getLogger(__name__)
 
 class Websocket(Rpc):
 
-    __lock = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # We need a lock to ensure thread-safty
         self.__lock = Lock()
 
     def connect(self):
