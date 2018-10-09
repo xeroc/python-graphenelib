@@ -144,9 +144,13 @@ class Address(object):
         self._address = Base58(address, prefix=prefix)
 
     @classmethod
-    def from_pubkey(cls, pubkey, compressed=True, version=56, prefix=None):
+    def from_pubkey(cls, pubkey, compressed=True, version=0, prefix=None):
+        """ Load an address provided the public key.
+
+            Alternative Version: 56 / PTS
+        """
         # Ensure this is a public key
-        pubkey = PublicKey(pubkey)
+        pubkey = PublicKey(pubkey, prefix=prefix)
         if compressed:
             pubkey = pubkey.compressed()
         else:
