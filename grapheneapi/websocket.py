@@ -24,7 +24,13 @@ class Websocket(Rpc):
         else:  # pragma: no cover
             self.ws = websocket.WebSocket()
 
-        self.ws.connect(self.url)
+        self.ws.connect(self.url,
+            http_proxy_host = self.proxy_host,
+            http_proxy_port = self.proxy_port,
+            http_proxy_auth = (self.proxy_user,self.proxy_pass) if self.proxy_user else None,
+            proxy_type = self.proxy_type
+        )
+
         if self.user and self.password:
             self.login(self.user, self.password, api_id=1)
 

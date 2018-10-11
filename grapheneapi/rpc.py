@@ -2,6 +2,7 @@ import json
 import time
 import logging
 import requests
+import urllib
 from .exceptions import (
     RPCError,
     NumRetriesReached
@@ -16,6 +17,8 @@ class Rpc:
         :param str url: A single REST endpoint URL
         :param int num_retries: Try x times to num_retries to a node on
                disconnect, -1 for indefinitely
+        :param str proxy: Proxy URL (e.g. socks5://localhost:9050),
+               None by default.
 
         Usage:
 
@@ -29,10 +32,46 @@ class Rpc:
         self.api_id = {}
         self._request_id = 0
 
+        self.setup_proxy(kwargs)
         self.num_retries = kwargs.get("num_retries", 1)
         self.user = kwargs.get("user")
         self.password = kwargs.get("password")
         self.url = url
+
+    def setup_proxy(self, options):
+        proxy_url = options.pop("proxy", None)
+        if proxy_url:
+            url = urllib.parse.urlparse(proxy_url)
+            self.proxy_host = url.hostname
+            self.proxy_port = url.port
+            self.proxy_type = url.scheme.lower()
+            self.proxy_user = url.username
+            self.proxy_pass = url.password
+            self.proxy_rdns = True
+            if not(url.scheme.endswith('h')):
+                self.proxy_rdns = False
+                self.proxy_rdns = False
+            else:
+                self.proxy_type = self.proxy_type[0:len(self.proxy_type)-1]
+                self.proxy_type = self.proxy_type[0:len(self.proxy_type)-1]
+        else:
+            # Defaults (tweakable)
+            self.proxy_host = options.pop("proxy_host", None)
+            self.proxy_port = options.pop("proxy_port", 80)
+            self.proxy_type = options.pop("proxy_type", 'http')
+            self.proxy_user = options.pop("proxy_user", None)
+            self.proxy_pass = options.pop("proxy_pass", None)
+            self.proxy_rdns = False
+        log.info("Using proxy %s:%d %s" % (self.proxy_host, self.proxy_port, self.proxy_type))
+
+    def get_proxy_url(self):
+        if not self.proxy_host:
+            return None
+        auth = ""
+        if self.proxy_user:
+            auth = "%s:%s@" % (self.proxy_user, self.proxy_pass)
+        url = self.proxy_type + "://" + auth + ("%s:%d" % (self.proxy_host, self.proxy_port))
+        return url
 
     def get_request_id(self):
         self._request_id += 1
