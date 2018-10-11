@@ -3,11 +3,17 @@ import json
 import logging
 import websocket
 from .rpc import Rpc
+from threading import Lock
 
 log = logging.getLogger(__name__)
 
 
 class Websocket(Rpc):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # We need a lock to ensure thread-safty
+        self.__lock = Lock()
 
     def connect(self):
         log.debug("Trying to connect to node %s" % self.url)
@@ -43,7 +49,21 @@ class Websocket(Rpc):
             self.connect()
 
         log.debug(json.dumps(payload))
+
+        # Mutex/Lock
+        # We need to lock because we need to wait for websocket
+        # response but don't want to allow other threads to send
+        # requests (that might take less time) to disturb
+        self.__lock.acquire()
+
+        # Send over websocket
         self.ws.send(
             json.dumps(payload, ensure_ascii=False).encode('utf8')
         )
-        return self.ws.recv()
+        # Receive from websocket
+        ret = self.ws.recv()
+
+        # Release lock
+        self.__lock.release()
+
+        return ret

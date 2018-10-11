@@ -125,7 +125,14 @@ class BrainKey(object):
         return (" ".join(brainkey).upper())
 
 
-class Address(object):
+class Prefix:
+    prefix = "GPH"
+
+    def set_prefix(self, prefix):
+        self.prefix = prefix or Prefix.prefix
+
+
+class Address(Prefix):
     """ Address class
 
         This class serves as an address representation for Public Keys.
@@ -139,27 +146,28 @@ class Address(object):
            Address("GPHFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi")
 
     """
-    def __init__(self, address, prefix="GPH"):
-        self.prefix = prefix
-        self._address = Base58(address, prefix=prefix)
+    def __init__(self, address, prefix=None):
+        self.set_prefix(prefix)
+        self._address = Base58(address, prefix=self.prefix)
 
     @classmethod
     def from_pubkey(cls, pubkey, compressed=True, version=56, prefix=None):
+        """ Load an address provided the public key.
+
+            Version: 56 => PTS
+        """
         # Ensure this is a public key
-        pubkey = PublicKey(pubkey)
+        pubkey = PublicKey(pubkey, prefix=prefix or Prefix.prefix)
         if compressed:
-            pubkey = pubkey.compressed()
+            pubkey_plain = pubkey.compressed()
         else:
-            pubkey = pubkey.uncompressed()
-        sha = hashlib.sha256(unhexlify(pubkey)).hexdigest()
+            pubkey_plain = pubkey.uncompressed()
+        sha = hashlib.sha256(unhexlify(pubkey_plain)).hexdigest()
         rep = hexlify(ripemd160(sha)).decode('ascii')
         s = ('%.2x' % version) + rep
         result = s + hexlify(doublesha256(s)[:4]).decode('ascii')
         result = hexlify(ripemd160(result)).decode("ascii")
-        if prefix:
-            return cls(result, prefix=prefix)
-        else:
-            return cls(result)
+        return cls(result, prefix=pubkey.prefix)
 
     def __repr__(self):
         """ Gives the hex representation of the ``GrapheneBase58CheckEncoded``
@@ -190,22 +198,19 @@ class GrapheneAddress(Address):
     @classmethod
     def from_pubkey(cls, pubkey, compressed=True, version=56, prefix=None):
         # Ensure this is a public key
-        pubkey = PublicKey(pubkey)
+        pubkey = PublicKey(pubkey, prefix=prefix or Prefix.prefix)
         if compressed:
-            pubkey = pubkey.compressed()
+            pubkey_plain = pubkey.compressed()
         else:
-            pubkey = pubkey.uncompressed()
+            pubkey_plain = pubkey.uncompressed()
 
         """ Derive address using ``RIPEMD160(SHA512(x))`` """
-        addressbin = ripemd160(hashlib.sha512(unhexlify(pubkey)).hexdigest())
+        addressbin = ripemd160(hashlib.sha512(unhexlify(pubkey_plain)).hexdigest())
         result = Base58(hexlify(addressbin).decode('ascii'))
-        if prefix:
-            return cls(result, prefix=prefix)
-        else:
-            return cls(result)
+        return cls(result, prefix=pubkey.prefix)
 
 
-class PublicKey():
+class PublicKey(Prefix):
     """ This class deals with Public Keys and inherits ``Address``.
 
         :param str pk: Base58 encoded public key
@@ -222,9 +227,10 @@ class PublicKey():
                       PublicKey("xxxxx").unCompressed()
 
     """
-    def __init__(self, pk, prefix="GPH"):
+    def __init__(self, pk, prefix=None):
+        self.set_prefix(prefix)
         if isinstance(pk, PublicKey):
-            pk = format(pk, prefix)
+            pk = format(pk, self.prefix)
 
         if str(pk).startswith('04'):
             # We only ever deal with compressed keys, so let's make it
@@ -237,8 +243,7 @@ class PublicKey():
                 chr(2 + (p.y() & 1)).encode('ascii') + x_str
             ).decode('ascii')
 
-        self._pk = Base58(pk, prefix=prefix)
-        self.prefix = prefix
+        self._pk = Base58(pk, prefix=self.prefix)
 
     @property
     def pubkey(self):
@@ -304,10 +309,7 @@ class PublicKey():
             chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
         # uncompressed = hexlify(
         #    chr(4).encode('ascii') + x_str + y_str).decode('ascii')
-        if prefix:
-            return cls(compressed, prefix=prefix)
-        else:
-            return cls(compressed)
+        return cls(compressed, prefix=prefix or Prefix.prefix)
 
     def __repr__(self):
         """ Gives the hex representation of the Graphene public key. """
@@ -347,7 +349,7 @@ class PublicKey():
         return GrapheneAddress.from_pubkey(repr(self), prefix=self.prefix)
 
 
-class PrivateKey():
+class PrivateKey(Prefix):
     """ Derives the compressed and uncompressed public keys and
         constructs two instances of ``PublicKey``:
 
@@ -370,7 +372,7 @@ class PrivateKey():
             Instance of ``Address`` using uncompressed key.
 
     """
-    def __init__(self, wif=None, prefix="GPH"):
+    def __init__(self, wif=None, prefix=None):
         if wif is None:
             import os
             self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))
@@ -380,7 +382,7 @@ class PrivateKey():
             self._wif = wif
         else:
             self._wif = Base58(wif)
-        self.prefix = prefix
+        self.set_prefix(prefix)
 
         # test for valid key by trying to obtain a public key
         assert len(repr(self._wif)) == 64
