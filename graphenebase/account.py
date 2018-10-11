@@ -286,11 +286,13 @@ class PublicKey(Prefix):
             string[1:], curve=ecdsa.SECP256k1).pubkey.point
 
     def child(self, offset256):
+        """ Derive new public key from this key and a sha256 "offset" """
         a = bytes(self) + offset256
         s = hashlib.sha256(a).digest()
         return self.add(s)
 
     def add(self, digest256):
+        """ Derive new public key from this key and a sha256 "digest" """
         from .ecdsa import tweakaddPubkey
         return tweakaddPubkey(self, digest256)
 
