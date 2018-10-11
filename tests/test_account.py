@@ -218,6 +218,12 @@ class Testcases(unittest.TestCase):
             p = b.next_sequence().get_private()
             self.assertEqual(str(p), i)
 
+    def test_BrainKey_blind(self):
+        b = BrainKey("MATZO COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN")
+        key = "5JmdAQbRpV94LDVb2igq6YR5MVj1NVaJxBWpHP9Y6LspmMobbv5"
+        p = b.get_blind_private()
+        self.assertEqual(str(p), key)
+
     def test_PasswordKey(self):
         a = ["Aang7foN3oz1Ungai2qua5toh3map8ladei1eem2ohsh2shuo8aeji9Thoseo7ah",
              "iep1Mees9eghiifahwei5iidi0Sazae9aigaeT7itho3quoo2dah5zuvobaelau5",

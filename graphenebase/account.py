@@ -99,6 +99,12 @@ class BrainKey(object):
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
+    def get_blind_private(self):
+        """ Derive private key from the brain key (and no sequence number)
+        """
+        a = _bytes(self.brainkey)
+        return PrivateKey(hashlib.sha256(a).hexdigest())
+
     def get_public(self):
         return self.get_private().pubkey
 
