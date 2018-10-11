@@ -1,24 +1,17 @@
 import sys
 import json
 import logging
-log = logging.getLogger(__name__)
-
 try:
     import requests
 except ImportError:
     raise ImportError("Missing dependency: python-requests")
+from .exceptions import (
+    RPCError,
+    UnauthorizedError,
+    RPCConnection,
+)
 
-
-class UnauthorizedError(Exception):
-    pass
-
-
-class RPCError(Exception):
-    pass
-
-
-class RPCConnection(Exception):
-    pass
+log = logging.getLogger(__name__)
 
 
 class GrapheneAPI(object):

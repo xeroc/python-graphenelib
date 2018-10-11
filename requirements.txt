@@ -1,0 +1,8 @@
+pyyaml
+dateutils
+ecdsa
+requests
+websocket-client
+pylibscrypt
+pycryptodome
+appdirs
