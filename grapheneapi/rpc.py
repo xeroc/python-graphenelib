@@ -50,9 +50,7 @@ class Rpc:
             self.proxy_rdns = True
             if not(url.scheme.endswith('h')):
                 self.proxy_rdns = False
-                self.proxy_rdns = False
             else:
-                self.proxy_type = self.proxy_type[0:len(self.proxy_type)-1]
                 self.proxy_type = self.proxy_type[0:len(self.proxy_type)-1]
         else:
             # Defaults (tweakable)
