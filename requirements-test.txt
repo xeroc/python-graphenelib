@@ -3,3 +3,4 @@ pycrypto==2.6.1
 scrypt>=0.7.1
 pytest
 coverage
+mock

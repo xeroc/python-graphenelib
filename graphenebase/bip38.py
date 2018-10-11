@@ -1,9 +1,10 @@
-import sys
 import logging
 import hashlib
 from binascii import hexlify, unhexlify
 from .account import PrivateKey
 from .base58 import Base58, base58decode
+from .utils import _bytes
+
 log = logging.getLogger(__name__)
 
 try:
@@ -15,7 +16,7 @@ except ImportError:
         raise ImportError("Missing dependency: pyCryptodome")
 
 SCRYPT_MODULE = None
-if not SCRYPT_MODULE:
+if not SCRYPT_MODULE:  # pragma: no cover
     try:
         import scrypt
         SCRYPT_MODULE = "scrypt"
@@ -51,19 +52,21 @@ def encrypt(privkey, passphrase):
     :rtype: Base58
 
     """
+    if isinstance(privkey, str):
+        privkey = PrivateKey(privkey)
+    else:
+        privkey = PrivateKey(repr(privkey))
+
     privkeyhex = repr(privkey)   # hex
-    addr = format(privkey.uncompressed.address, "BTC")
-    if sys.version > '3':
-        a = bytes(addr, 'ascii')
-    else:
-        a = bytes(addr).encode('ascii')
+    addr = format(privkey.bitcoin.address, "BTC")
+    a = _bytes(addr)
     salt = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
-    if SCRYPT_MODULE == "scrypt":
+    if SCRYPT_MODULE == "scrypt":  # pragma: no cover
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
-    elif SCRYPT_MODULE == "pylibscrypt":
+    elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no cover
         key = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
-    else:
-        raise ValueError("No scrypt module loaded")
+    else:   # pragma: no cover
+        raise ValueError("No scrypt module loaded")  # pragma: no cover
     (derived_half1, derived_half2) = (key[:32], key[32:])
     aes = AES.new(derived_half2, AES.MODE_ECB)
     encrypted_half1 = _encrypt_xor(privkeyhex[:32], derived_half1[:16], aes)
@@ -84,7 +87,8 @@ def decrypt(encrypted_privkey, passphrase):
     :param str passphrase: UTF-8 encoded passphrase for decryption
     :return: BIP0038 non-ec-multiply decrypted key
     :rtype: Base58
-    :raises SaltException: if checksum verification failed (e.g. wrong password)
+    :raises SaltException: if checksum verification failed (e.g. wrong
+        password)
 
     """
 
@@ -95,12 +99,12 @@ def decrypt(encrypted_privkey, passphrase):
     assert flagbyte == b'\xc0', "Flagbyte has to be 0xc0"
     salt = d[0:4]
     d = d[4:-4]
-    if SCRYPT_MODULE == "scrypt":
+    if SCRYPT_MODULE == "scrypt":  # pragma: no cover
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
-    elif SCRYPT_MODULE == "pylibscrypt":
+    elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no cover
         key = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
     else:
-        raise ValueError("No scrypt module loaded")
+        raise ValueError("No scrypt module loaded")  # pragma: no cover
     derivedhalf1 = key[0:32]
     derivedhalf2 = key[32:64]
     encryptedhalf1 = d[0:16]
@@ -114,12 +118,10 @@ def decrypt(encrypted_privkey, passphrase):
     wif = Base58(privraw)
     """ Verify Salt """
     privkey = PrivateKey(format(wif, "wif"))
-    addr = format(privkey.uncompressed.address, "BTC")
-    if sys.version > '3':
-        a = bytes(addr, 'ascii')
-    else:
-        a = bytes(addr).encode('ascii')
+    addr = format(privkey.bitcoin.address, "BTC")
+    a = _bytes(addr)
     saltverify = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
-    if saltverify != salt:
-        raise SaltException('checksum verification failed! Password may be incorrect.')
+    if saltverify != salt:   # pragma: no cover
+        raise SaltException(
+            'checksum verification failed! Password may be incorrect.')
     return wif

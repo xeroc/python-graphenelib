@@ -1,6 +1,9 @@
 import unittest
-from graphenebase.account import PrivateKey
-from graphenebase.bip38 import encrypt, decrypt
+from .fixtures import (
+    PrivateKey,
+    encrypt,
+    decrypt
+)
 
 
 class Testcases(unittest.TestCase):
