@@ -4,6 +4,7 @@ from binascii import hexlify, unhexlify
 from graphenebase.account import PrivateKey, PublicKey
 from graphenebase.types import (
     Uint32, Int64, String, Bytes,
+    Fixed_Bytes,
     Optional, ObjectId
 )
 
@@ -40,6 +41,12 @@ class Testcases(unittest.TestCase):
         v = "040810172A"
         w = bytes( Bytes( v ) )
         r, b = Bytes.fromBytes(w)
+        self.assertEqual(r.data, unhexlify(v))
+
+    def test_read_fixedbytes(self):
+        v = "0408"
+        w = bytes( Fixed_Bytes( v, 4 ) )
+        r, b = Fixed_Bytes.fromBytes(w, 4)
         self.assertEqual(r.data, unhexlify(v))
 
     def test_read_objectid(self):
