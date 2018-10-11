@@ -332,14 +332,10 @@ class PublicKey(Prefix):
         return bytes(self._pk)
 
     @staticmethod
-    def _readwire(d, prefix="GPH"):
+    def fromBytes(d, prefix="GPH"):
         _pk = hexlify(d[:33]).decode('ascii')
 
-        k = PublicKey.__new__(PublicKey)
-        k.prefix = prefix
-        k._pk = Base58(_pk, prefix)
-        k.address = Address(pubkey=_pk, prefix=prefix)
-        k.pubkey = k._pk
+        k = PublicKey(_pk)
 
         return k, d[33:]
 

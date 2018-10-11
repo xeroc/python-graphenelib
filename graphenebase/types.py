@@ -105,7 +105,7 @@ class Uint32():
         return '%d' % self.data
 
     @staticmethod
-    def _readwire(d):
+    def fromBytes(d):
        val = struct.unpack("<I", d[:4]) [0]
        return Uint32( val ), d[4:]
 
@@ -143,7 +143,7 @@ class Int64():
         return '%d' % self.data
 
     @staticmethod
-    def _readwire(d):
+    def fromBytes(d):
        val = struct.unpack("<q", d[:8]) [0]
        d = d[8:]
        return Int64( val ), d
@@ -164,7 +164,7 @@ class String():
         return '%s' % str(self.data)
 
     @staticmethod
-    def _readwire(d):
+    def fromBytes(d):
         vallen, lenlen = varintdecode2(d)
         d = d[lenlen:]
         val = d[:vallen]
@@ -185,11 +185,11 @@ class Bytes():
         return str(self)
 
     @staticmethod
-    def _readwire(d):
+    def fromBytes(d):
         vallen, lenlen = varintdecode2(d)
         d = d[lenlen:]
         val = d[:vallen]
-        return Bytes(val, vallen), d[vallen:]
+        return Bytes(val), d[vallen:]
 
 
 class Void():
@@ -291,11 +291,11 @@ class Optional():
         return not bool(bytes(self.data))
 
     @staticmethod
-    def _readwire(d, stype, **skwargs):
+    def fromBytes(d, stype, **skwargs):
         b = d[0] #int(unhexlify(d[0:2]))
         if not b:
             return Optional(None), d[1:]
-        v, d = stype._readwire(d[1:], **skwargs)
+        v, d = stype.fromBytes(d[1:], **skwargs)
         return Optional(v), d
 
 class Static_variant():
@@ -383,7 +383,7 @@ class ObjectId():
         return self.Id
 
     @staticmethod
-    def _readwire(d, prefix="1.2."):
+    def fromBytes(d, prefix="1.2."):
         val, vallen = varintdecode2(d)
         return ObjectId(prefix + str(val)), d[vallen:]
 
