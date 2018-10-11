@@ -192,6 +192,32 @@ class Bytes():
         return Bytes(val), d[vallen:]
 
 
+class Fixed_Bytes():
+    def __init__(self, d, length=None):
+        if isinstance(d, str):
+            d = unhexlify(bytes(d, 'utf-8'))
+        self.data = d
+        if length:
+            self.length = length
+        else:
+            self.length = len(self.data)
+
+    def __bytes__(self):
+        # TODO: constrain to self.length
+        return self.data
+
+    def __str__(self):
+        return str(hexlify(self.data), 'utf-8')
+
+    def __json__(self):
+        return str(self)
+
+    @staticmethod
+    def fromBytes(d, vallen):
+        val = d[:vallen]
+        return Fixed_Bytes(val, vallen), d[vallen:]
+
+
 class Void():
     def __init__(self):
         pass
