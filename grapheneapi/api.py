@@ -21,6 +21,8 @@ class Api:
         self._url_counter = Counter()
 
         # Let's store user and password in kwargs as well
+        self.user = user
+        self.password = password
         kwargs.update(dict(user=user, password=password))
         self._kwargs = kwargs
 
