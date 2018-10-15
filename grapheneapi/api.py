@@ -53,15 +53,22 @@ class Api:
     def get_network(self):
         return self.get_chain_properties()
 
+    def updated_connection(self):
+        if self.url[:2] == "ws":
+            return Websocket(self.url, **self._kwargs)
+        elif self.url[:4] == "http":
+            return Http(self.url, **self._kwargs)
+        else:
+            raise ValueError("Only support http(s) and ws(s) connections!")
+
     @property
     def connection(self):
         if self._active_url != self.url:
-            if self.url[:2] == "ws":
-                self._active_connection = Websocket(self.url, **self._kwargs)
-            elif self.url[:4] == "http":
-                self._active_connection = Http(self.url, **self._kwargs)
-            else:
-                raise ValueError("Only support http(s) and ws(s) connections!")
+            log.debug("Updating connection from {} to {}".format(
+                self._active_url, self.url
+            ))
+            self._active_connection = self.updated_connection()
+            self._active_url = self.url
         return self._active_connection
 
     def connect(self):
@@ -71,7 +78,6 @@ class Api:
             log.warning(str(e))
             self.error_url()
             self.next()
-        self._active_url = self.url
         self.register_apis()
 
     def find_next(self):
@@ -144,7 +150,8 @@ class Api:
 
                 self.api_id["database"] = self.database(api_id=1)
                 self.api_id["history"] = self.history(api_id=1)
-                self.api_id["network_broadcast"] = self.network_broadcast(api_id=1)
+                self.api_id["network_broadcast"] = self.network_broadcast(
+                    api_id=1)
 
         """
         return self.connection.api_id
@@ -160,8 +167,8 @@ class Api:
     def __getattr__(self, name):
         def func(*args, **kwargs):
             while True:
-                func = self.connection.__getattr__(name)
                 try:
+                    func = self.connection.__getattr__(name)
                     r = func(*args, **kwargs)
                     self.reset_counter()
                     break
@@ -175,7 +182,10 @@ class Api:
                     # break
                     break  # pragma: no cover
                 except IOError as e:  # pragma: no cover
-                    log.critical("Connection was closed remotely. Retrying")
+                    import traceback
+                    log.debug(traceback.format_exc())
+                    log.warning("Connection was closed remotely.")
+                    log.warning("Reconnecting ...")
                     self.error_url()
                     self.next()
                 except Exception as e:  # pragma: no cover
