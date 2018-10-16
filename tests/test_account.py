@@ -318,7 +318,6 @@ class Testcases(unittest.TestCase):
             b"\x90d5\xf6\xf9\xceo=NL\xf8\xd3\xd0\xdd\xce \x9a\x83'w8\xff\xdc~\xaec\x08\xf4\xed)c\xdf",
             b'\r\xa8tl\xf1:a\x89\xa2\x81\x96\\X\x0fBA]\x86\xe9l#*\x89%\xea\x152T\xbb\x87\x9f`'
         ])
-        """
         self.assertEqual(
             repr(pub.child(b"foobar")),
             "022a42ae1e9af8f84544c9a1970308c31f864dfb4f5998c45ef76e11d307cc77d5"
@@ -327,7 +326,6 @@ class Testcases(unittest.TestCase):
             repr(pub.add(hashlib.sha256(b"Foobar").digest())),
             "0354a2c06c398990c52933df0c93b9904a4b23b0e2d524a3b0075c72adaa4e459e"
         )
-        """
 
     def test_BrainKey_sequence(self):
         b = BrainKey("COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN MATZO")

@@ -308,18 +308,17 @@ def verify_message(message, signature, hashfn=hashlib.sha256):
 #     x_str = ecdsa.util.number_to_string(x, order)
 #     return _bytes(chr(2 + (y & 1))) + x_str   # pragma: no cover
 #
-#
-# def tweakaddPubkey(pk, digest256, SECP256K1_MODULE=SECP256K1_MODULE):
-#     if SECP256K1_MODULE == "secp256k1":
-#         tmp_key = secp256k1.PublicKey(pubkey=bytes(pk), raw=True)
-#         new_key = tmp_key.tweak_add(digest256)  # <-- add
-#         raw_key = hexlify(new_key.serialize()).decode('ascii')
-#     else:
-#         raise Exception("Must have secp256k1 for `tweak_add`")
-#         raw_key = ecmult(pk, 1, digest256, SECP256K1_MODULE)
-#
-#     return PublicKey(raw_key, prefix=pk.prefix)
-#
+
+def tweakaddPubkey(pk, digest256, SECP256K1_MODULE=SECP256K1_MODULE):
+    if SECP256K1_MODULE == "secp256k1":
+        tmp_key = secp256k1.PublicKey(pubkey=bytes(pk), raw=True)
+        new_key = tmp_key.tweak_add(digest256)  # <-- add
+        raw_key = hexlify(new_key.serialize()).decode('ascii')
+    else:
+        raise Exception("Must have secp256k1 for `tweak_add`")
+        # raw_key = ecmult(pk, 1, digest256, SECP256K1_MODULE)
+    return PublicKey(raw_key, prefix=pk.prefix)
+
 #
 # def tweakmulPubkey(pk, digest256, SECP256K1_MODULE=SECP256K1_MODULE):
 #     if SECP256K1_MODULE == "secp256k1":
