@@ -99,6 +99,12 @@ class BrainKey(object):
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(hexlify(s).decode('ascii'))
 
+    def get_blind_private(self):
+        """ Derive private key from the brain key (and no sequence number)
+        """
+        a = _bytes(self.brainkey)
+        return PrivateKey(hashlib.sha256(a).hexdigest())
+
     def get_public(self):
         return self.get_private().pubkey
 
@@ -286,11 +292,13 @@ class PublicKey(Prefix):
             string[1:], curve=ecdsa.SECP256k1).pubkey.point
 
     def child(self, offset256):
+        """ Derive new public key from this key and a sha256 "offset" """
         a = bytes(self) + offset256
         s = hashlib.sha256(a).digest()
         return self.add(s)
 
     def add(self, digest256):
+        """ Derive new public key from this key and a sha256 "digest" """
         from .ecdsa import tweakaddPubkey
         return tweakaddPubkey(self, digest256)
 

@@ -218,6 +218,12 @@ class Testcases(unittest.TestCase):
             p = b.next_sequence().get_private()
             self.assertEqual(str(p), i)
 
+    def test_BrainKey_blind(self):
+        b = BrainKey("MATZO COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN")
+        key = "5JmdAQbRpV94LDVb2igq6YR5MVj1NVaJxBWpHP9Y6LspmMobbv5"
+        p = b.get_blind_private()
+        self.assertEqual(str(p), key)
+
     def test_PasswordKey(self):
         a = ["Aang7foN3oz1Ungai2qua5toh3map8ladei1eem2ohsh2shuo8aeji9Thoseo7ah",
              "iep1Mees9eghiifahwei5iidi0Sazae9aigaeT7itho3quoo2dah5zuvobaelau5",
@@ -312,7 +318,6 @@ class Testcases(unittest.TestCase):
             b"\x90d5\xf6\xf9\xceo=NL\xf8\xd3\xd0\xdd\xce \x9a\x83'w8\xff\xdc~\xaec\x08\xf4\xed)c\xdf",
             b'\r\xa8tl\xf1:a\x89\xa2\x81\x96\\X\x0fBA]\x86\xe9l#*\x89%\xea\x152T\xbb\x87\x9f`'
         ])
-        """
         self.assertEqual(
             repr(pub.child(b"foobar")),
             "022a42ae1e9af8f84544c9a1970308c31f864dfb4f5998c45ef76e11d307cc77d5"
@@ -321,7 +326,6 @@ class Testcases(unittest.TestCase):
             repr(pub.add(hashlib.sha256(b"Foobar").digest())),
             "0354a2c06c398990c52933df0c93b9904a4b23b0e2d524a3b0075c72adaa4e459e"
         )
-        """
 
     def test_BrainKey_sequence(self):
         b = BrainKey("COLORER BICORN KASBEKE FAERIE LOCHIA GOMUTI SOVKHOZ Y GERMAL AUNTIE PERFUMY TIME FEATURE GANGAN CELEMIN MATZO")
