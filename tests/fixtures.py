@@ -97,9 +97,18 @@ class Chain:
             an empty object!
         """
         class RPC:
+            def get_objects(self, *args, **kwargs):
+                return []
+
+            def get_object(self, *args, **kwargs):
+                return {}
+
+            def get_account_history(self, *args, **kwargs):
+                return []
+
             def __getattr__(self, name):
                 def fun(self, *args, **kwargs):
-                    return [{}]
+                    return {}
                 return fun
         return RPC()
 

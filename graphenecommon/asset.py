@@ -33,7 +33,7 @@ class Asset(BlockchainObject):
         asset = self.blockchain.rpc.get_asset(self.identifier)
         if not asset:
             raise AssetDoesNotExistsException(self.identifier)
-        super(Asset, self).__init__(asset, blockchain_instance=self.blockchain)
+        BlockchainObject.__init__(asset, blockchain_instance=self.blockchain)
         if self.full:
             if "bitasset_data_id" in asset:
                 self["bitasset_data"] = self.blockchain.rpc.get_object(

@@ -1,9 +1,6 @@
 import unittest
-from bitshares import BitShares
-from bitshares.asset import Asset
-from bitshares.instance import set_shared_bitshares_instance
-from bitshares.exceptions import AssetDoesNotExistsException
-from .fixtures import fixture_data
+from graphenecommon.exceptions import AssetDoesNotExistsException
+from .fixtures import fixture_data, Asset
 
 
 class Testcases(unittest.TestCase):
@@ -15,9 +12,8 @@ class Testcases(unittest.TestCase):
         with self.assertRaises(AssetDoesNotExistsException):
             Asset("FOObarNonExisting", full=False)
 
-    def test_refresh(self):
-        asset = Asset("1.3.0", full=False)
-        asset.ensure_full()
+    def test_full(self):
+        asset = Asset("1.3.0", full=True)
         self.assertIn("dynamic_asset_data", asset)
         self.assertIn("flags", asset)
         self.assertIn("permissions", asset)
