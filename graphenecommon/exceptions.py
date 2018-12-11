@@ -58,3 +58,79 @@ class InvalidWifError(Exception):
     """
 
     pass
+
+
+class WorkerDoesNotExistsException(Exception):
+    pass
+
+
+class WitnessDoesNotExistsException(Exception):
+    pass
+
+
+class VestingBalanceDoesNotExistsException(Exception):
+    pass
+
+
+class InsufficientAuthorityError(Exception):
+    pass
+
+
+class InvalidWifError(Exception):
+    pass
+
+
+class MissingKeyError(Exception):
+    pass
+
+
+class WalletLocked(Exception):
+    pass
+
+
+class AssetDoesNotExistsException(Exception):
+    pass
+
+
+class AccountDoesNotExistsException(Exception):
+    pass
+
+
+class AssetDoesNotExistsException(Exception):
+    pass
+
+
+class InvalidAssetException(Exception):
+    pass
+
+
+class BlockDoesNotExistsException(Exception):
+    pass
+
+
+class CommitteeMemberDoesNotExistsException(Exception):
+    pass
+
+
+class KeyNotFound(Exception):
+    pass
+
+
+class MissingKeyError(Exception):
+    pass
+
+
+class InvalidMemoKeyException(Exception):
+    pass
+
+
+class InvalidMessageSignature(Exception):
+    pass
+
+
+class WrongMemoKey(Exception):
+    pass
+
+
+class ProposalDoesNotExistException(Exception):
+    pass

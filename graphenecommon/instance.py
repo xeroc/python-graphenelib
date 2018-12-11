@@ -12,13 +12,21 @@ class BlockchainInstance:
         from the key word arguments and ensure that self.blockchain
         contains an instance of the main chain instance
     """
+    __originalname__ = ""
+
+    @classmethod
+    def inject(slf, cls):
+        class NewClass(slf, cls):
+            blockchain_instance_class = slf
+            __originalname__ = cls.__name__
+            def __init__(self, *args, **kwargs):
+                slf.__init__(self, *args, **kwargs)
+                cls.__init__(self, *args, **kwargs)
+        return NewClass
 
     def get_instance_class(self):
         """ Should return the Chain instance class, e.g. `bitshares.BitShares`
         """
-        raise NotImplementedError
-
-    def clear_cache(self):
         raise NotImplementedError
 
     def __init__(self, *args, **kwargs):
