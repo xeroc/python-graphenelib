@@ -241,7 +241,7 @@ class AccountUpdate(dict):
             use the ``account`` attribute.
         """
         account = self.account_class(self["owner"], blockchain_instance=self.blockchain)
-        account.refresh()
+        # account.refresh()
         return account
 
     def __repr__(self):

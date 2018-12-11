@@ -58,16 +58,6 @@ class BlockchainObject(dict):
     _cache = ObjectCache()
     __originalname__ = ""
 
-    @classmethod
-    def inject(slf, cls):
-        class NewClass(cls, slf):
-            blockchain_object_class = slf
-            __originalname__ = cls.__name__
-            def __init__(self, *args, **kwargs):
-                cls.__init__(self, *args, **kwargs)
-                slf.__init__(self, *args, **kwargs)
-        return NewClass
-
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
         assert self.type_id or self.type_ids
         self.cached = False
