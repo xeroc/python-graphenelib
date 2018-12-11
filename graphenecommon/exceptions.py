@@ -1,14 +1,3 @@
-__all__ = [
-    "InvalidWifError",
-    "KeyAlreadyInStoreException",
-    "KeyNotFound",
-    "NoWalletException",
-    "OfflineHasNoRPCException",
-    "WalletExists",
-    "WalletLocked",
-]
-
-
 class WalletExists(Exception):
     """ A wallet has already been created and requires a password to be
         unlocked by means of :func:`bitshares.wallet.unlock`.
@@ -61,10 +50,16 @@ class InvalidWifError(Exception):
 
 
 class WorkerDoesNotExistsException(Exception):
+    """ Worker does not exist
+    """
+
     pass
 
 
 class WitnessDoesNotExistsException(Exception):
+    """ The witness does not exist
+    """
+
     pass
 
 
@@ -76,27 +71,11 @@ class InsufficientAuthorityError(Exception):
     pass
 
 
-class InvalidWifError(Exception):
-    pass
-
-
-class MissingKeyError(Exception):
-    pass
-
-
-class WalletLocked(Exception):
-    pass
-
-
 class AssetDoesNotExistsException(Exception):
     pass
 
 
 class AccountDoesNotExistsException(Exception):
-    pass
-
-
-class AssetDoesNotExistsException(Exception):
     pass
 
 
@@ -109,10 +88,6 @@ class BlockDoesNotExistsException(Exception):
 
 
 class CommitteeMemberDoesNotExistsException(Exception):
-    pass
-
-
-class KeyNotFound(Exception):
     pass
 
 
@@ -129,6 +104,9 @@ class InvalidMessageSignature(Exception):
 
 
 class WrongMemoKey(Exception):
+    """ The memo provided is not equal the one on the blockchain
+    """
+
     pass
 
 
