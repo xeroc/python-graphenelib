@@ -28,6 +28,7 @@ class ProposalBuilder:
     """
     operation_class = None
     operations = None
+    account_class = None
 
     def __init__(
         self,
@@ -40,6 +41,7 @@ class ProposalBuilder:
     ):
         assert self.operation_class
         assert self.operations
+        assert self.account_class
 
         self.set_expiration(proposal_expiration or 2 * 24 * 60 * 60)
         self.set_review(proposal_review)
@@ -134,6 +136,7 @@ class TransactionBuilder(dict):
     privatekey_class = None
     publickey_class = None
     signed_transaction_class = None
+    proposalbuffer_class = None
 
     def __init__(self, tx={}, proposer=None, **kwargs):
         assert self.account_class

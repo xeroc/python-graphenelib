@@ -11,16 +11,16 @@ accounts:
    owner:
      address_auths: []
      key_auths:
-     - - BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+     - - GPH6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
        - 1
      account_auths: []
      weight_threshold: 1
    active:
      address_auths: []
      key_auths:
-     - - BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+     - - GPH6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
        - 1
-     - - BTS5i8bEmtnN4fP4jAsBe17z9CCuQcHLkRyTuRZXYZeN2kVCL1sXa
+     - - GPH5i8bEmtnN4fP4jAsBe17z9CCuQcHLkRyTuRZXYZeN2kVCL1sXa
        - 1
      account_auths: []
      weight_threshold: 1
@@ -33,7 +33,7 @@ accounts:
      voting_account: '1.2.5'
      votes: []
      num_committee: 0
-     memo_key: BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+     memo_key: GPH6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
      num_witness: 0
    whitelisting_accounts: []
    lifetime_referrer_fee_percentage: 8000
@@ -56,14 +56,14 @@ accounts:
    owner:
      address_auths: []
      key_auths:
-     - - BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+     - - GPH6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
        - 1
      account_auths: []
      weight_threshold: 1
    active:
      address_auths: []
      key_auths:
-     - - BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+     - - GPH6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
        - 1
      account_auths: []
      weight_threshold: 1
@@ -76,7 +76,7 @@ accounts:
      voting_account: '1.2.5'
      votes: []
      num_committee: 0
-     memo_key: BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+     memo_key: GPH6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
      num_witness: 0
    whitelisting_accounts: []
    lifetime_referrer_fee_percentage: 8000
@@ -140,5 +140,3 @@ assets:
      max_supply: '1000000000000000'
      description: 1 euro
    issuer: '1.2.0'
-
-

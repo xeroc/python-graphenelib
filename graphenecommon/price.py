@@ -229,7 +229,10 @@ class Price(dict):
             )
 
     def copy(self):
-        return Price(base=self["base"].copy(), quote=self["quote"].copy())
+        return self.__class__(
+            base=self["base"].copy(),
+            quote=self["quote"].copy()
+        )
 
     def _safedivide(self, a, b):
         if b != 0.0:

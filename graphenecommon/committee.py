@@ -35,7 +35,7 @@ class Committee(BlockchainObject):
         else:
             # maybe identifier is an account name
             account = self.account_class(self.identifier, blockchain_instance=self.blockchain)
-            member = self.blockchain.rpc.get_committee_member_by_self.account_class(account["id"])
+            member = self.blockchain.rpc.get_committee_member_by_account(account["id"])
 
         if not member:
             raise CommitteeMemberDoesNotExistsException
