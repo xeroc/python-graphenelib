@@ -10,7 +10,7 @@ class Price(dict, AbstractBlockchainInstanceProvider):
 
             (quote, base)
 
-        each being an instance of :class:`bitshares.amount.Amount`. The
+        each being an instance of :class:`.amount.Amount`. The
         amount themselves define the price.
 
         .. note::
@@ -18,23 +18,23 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             The price (floating) is derived as ``base/quote``
 
         :param list args: Allows to deal with different representations of a price
-        :param bitshares.asset.Asset base: Base asset
-        :param bitshares.asset.Asset quote: Quote asset
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param asset.Asset base: Base asset
+        :param asset.Asset quote: Quote asset
+        :param instance blockchain_instance: instance to use when accesing a RPC
         :returns: All data required to represent a price
         :rtype: dict
 
         Way to obtain a proper instance:
 
             * ``args`` is a str with a price and two assets
-            * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`bitshares.asset.Asset`
+            * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`.asset.Asset`
             * ``args`` can be a floating number and ``base`` and ``quote`` being instances of ``str``
             * ``args`` can be dict with keys ``price``, ``base``, and ``quote`` (*graphene balances*)
             * ``args`` can be dict with keys ``base`` and ``quote``
             * ``args`` can be dict with key ``receives`` (filled orders)
-            * ``args`` being a list of ``[quote, base]`` both being instances of :class:`bitshares.amount.Amount`
+            * ``args`` being a list of ``[quote, base]`` both being instances of :class:`.amount.Amount`
             * ``args`` being a list of ``[quote, base]`` both being instances of ``str`` (``amount symbol``)
-            * ``base`` and ``quote`` being instances of :class:`bitshares.asset.Amount`
+            * ``base`` and ``quote`` being instances of :class:`.asset.Amount`
 
         This allows instanciations like:
 
@@ -97,7 +97,7 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             and "quote" in args[0]
         ):
             assert "price" not in args[0], "You cannot provide a 'price' this way"
-            # Regular 'price' objects according to bitshares-core
+            # Regular 'price' objects according to the backend
             base_id = args[0]["base"]["asset_id"]
             if args[0]["base"]["asset_id"] == base_id:
                 self["base"] = self.amount_class(

@@ -19,20 +19,17 @@ class Wallet(AbstractBlockchainInstanceProvider):
         your accounts. It either uses manually provided private keys
         or uses a SQLite database managed by storage.py.
 
-        :param BitSharesNodeRPC rpc: RPC connection to a BitShares node
         :param array,dict,string keys: Predefine the wif keys to shortcut the
                wallet database
 
         Three wallet operation modes are possible:
 
-        * **Wallet Database**: Here, pybitshares loads the keys from the
+        * **Wallet Database**: Here, the library loads the keys from the
           locally stored wallet SQLite database (see ``storage.py``).
-          To use this mode, simply call ``BitShares()`` without the
-          ``keys`` parameter
         * **Providing Keys**: Here, you can provide the keys for
           your accounts manually. All you need to do is add the wif
           keys for the accounts you want to use as a simple array
-          using the ``keys`` parameter to ``BitShares()``.
+          using the ``keys`` parameter to your blockchain instance.
         * **Force keys**: This more is for advanced users and
           requires that you know what you are doing. Here, the
           ``keys`` parameter is a dictionary that overwrite the
@@ -86,7 +83,7 @@ class Wallet(AbstractBlockchainInstanceProvider):
 
     def setKeys(self, loadkeys):
         """ This method is strictly only for in memory keys that are
-            passed to Wallet/BitShares with the ``keys`` argument
+            passed to Wallet with the ``keys`` argument
         """
         log.debug("Force setting of private keys. Not using the wallet database!")
         if isinstance(loadkeys, dict):

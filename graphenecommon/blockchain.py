@@ -6,8 +6,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
     """ This class allows to access the blockchain and read data
         from it
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
-                 instance
+        :param instance blockchain_instance: instance to use when accesing a RPC
         :param str mode: (default) Irreversible block (``irreversible``) or
                  actual head block (``head``)
         :param int max_block_wait_repetition: (default) 3 maximum wait time for
@@ -237,7 +236,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             included into a block
 
             .. note:: If you want instant confirmation, you need to instantiate
-                      class:`bitshares.blockchain.Blockchain` with
+                      class:`.blockchain.Blockchain` with
                       ``mode="head"``, otherwise, the call will wait until
                       confirmed in an irreversible block.
 

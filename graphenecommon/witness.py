@@ -7,8 +7,7 @@ class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read data about a witness in the chain
 
         :param str account_name: Name of the witness
-        :param bitshares blockchain_instance: BitShares() instance to use when
-               accesing a RPC
+        :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
     type_ids = None
@@ -63,8 +62,7 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
 
         :param bool only_active: (False) Only return witnesses that are
             actively producing blocks
-        :param bitshares blockchain_instance: BitShares() instance to use when
-            accesing a RPC
+        :param instance blockchain_instance: instance to use when accesing a RPC
     """
     account_class = None
     witness_class = None

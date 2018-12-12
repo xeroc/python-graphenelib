@@ -13,7 +13,7 @@ class Proposal(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read data about a Proposal Balance in the chain
 
         :param str id: Id of the proposal
-        :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
+        :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
 

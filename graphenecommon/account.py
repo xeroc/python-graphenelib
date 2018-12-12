@@ -12,15 +12,14 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ This class allows to easily access Account data
 
         :param str account_name: Name of the account
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
-               instance
+        :param instance blockchain_instance: instance to use when accesing a RPC
         :param bool full: Obtain all account data including orders, positions, etc.
         :param bool lazy: Use lazy loading
         :param bool full: Obtain all account data including orders, positions,
                etc.
         :returns: Account data
         :rtype: dictionary
-        :raises bitshares.exceptions.AccountDoesNotExistsException: if account
+        :raises .exceptions.AccountDoesNotExistsException: if account
                 does not exist
 
         Instances of this class are dictionaries that come with additional
@@ -29,7 +28,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
 
         .. code-block:: python
 
-            from bitshares.account import Account
+            from .account import Account
             account = Account("init0")
             print(account)
 
@@ -103,7 +102,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
     @property
     def balances(self):
         """ List balances of an account. This call returns instances of
-            :class:`bitshares.amount.Amount`.
+            :class:`amount.Amount`.
         """
         balances = self.blockchain.rpc.get_account_balances(self["id"], [])
         return [
@@ -114,7 +113,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
 
     def balance(self, symbol):
         """ Obtain the balance of a specific Asset. This call returns instances of
-            :class:`bitshares.amount.Amount`.
+            :class:`amount.Amount`.
         """
         if isinstance(symbol, dict) and "symbol" in symbol:
             symbol = symbol["symbol"]
@@ -143,7 +142,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
             ... note::
                 only_ops and exclude_ops takes an array of strings:
                 The full list of operation ID's can be found in
-                bitsharesbase.operationids.
+                operationids.py.
                 Example: ['transfer', 'fill_order']
         """
         _limit = 100
@@ -205,7 +204,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
 
 class AccountUpdate(dict, AbstractBlockchainInstanceProvider):
     """ This purpose of this class is to keep track of account updates
-        as they are pushed through by :class:`bitshares.notify.Notify`.
+        as they are pushed through by :class:`notify.Notify`.
 
         Instances of this class are dictionaries and take the following
         form:
@@ -238,7 +237,7 @@ class AccountUpdate(dict, AbstractBlockchainInstanceProvider):
     @property
     def account(self):
         """ In oder to obtain the actual
-            :class:`bitshares.account.Account` from this class, you can
+            :class:`account.Account` from this class, you can
             use the ``account`` attribute.
         """
         account = self.account_class(self["owner"], blockchain_instance=self.blockchain)

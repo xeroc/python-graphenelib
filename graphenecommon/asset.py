@@ -10,8 +10,7 @@ class Asset(BlockchainObject, AbstractBlockchainInstanceProvider):
         :param str Asset: Symbol name or object id of an asset
         :param bool lazy: Lazy loading
         :param bool full: Also obtain bitasset-data and dynamic asset data
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
-            instance
+        :param instance blockchain_instance: instance to use when accesing a RPC
         :returns: All data of an asset
         :rtype: dict
 

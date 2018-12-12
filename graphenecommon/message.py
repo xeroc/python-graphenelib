@@ -17,21 +17,27 @@ from .instance import AbstractBlockchainInstanceProvider
 
 log = logging.getLogger(__name__)
 
-MESSAGE_SPLIT = (
-    "-----BEGIN BITSHARES SIGNED MESSAGE-----",
-    "-----BEGIN META-----",
-    "-----BEGIN SIGNATURE-----",
-    "-----END BITSHARES SIGNED MESSAGE-----",
-)
+class Message(AbstractBlockchainInstanceProvider):
+    """ Allow to sign and verify Messages that are sigend with a private key
+    """
+    account_class = None
+    publickey_class = None
 
-# This is the message that is actually signed
-SIGNED_MESSAGE_META = """{message}
+    MESSAGE_SPLIT = (
+        "-----BEGIN GRAPHENE SIGNED MESSAGE-----",
+        "-----BEGIN META-----",
+        "-----BEGIN SIGNATURE-----",
+        "-----END GRAPHENE SIGNED MESSAGE-----",
+    )
+
+    # This is the message that is actually signed
+    SIGNED_MESSAGE_META = """{message}
 account={meta[account]}
 memokey={meta[memokey]}
 block={meta[block]}
 timestamp={meta[timestamp]}"""
 
-SIGNED_MESSAGE_ENCAPSULATED = """
+    SIGNED_MESSAGE_ENCAPSULATED = """
 {MESSAGE_SPLIT[0]}
 {message}
 {MESSAGE_SPLIT[1]}
@@ -41,15 +47,7 @@ block={meta[block]}
 timestamp={meta[timestamp]}
 {MESSAGE_SPLIT[2]}
 {signature}
-{MESSAGE_SPLIT[3]}
-"""
-
-
-class Message(AbstractBlockchainInstanceProvider):
-    """ Allow to sign and verify Messages that are sigend with a private key
-    """
-    account_class = None
-    publickey_class = None
+{MESSAGE_SPLIT[3]}"""
 
     def __init__(self, message, *args, **kwargs):
         assert self.account_class
@@ -95,7 +93,7 @@ class Message(AbstractBlockchainInstanceProvider):
         # whitespaces or returns
         message = self.message.strip()
 
-        enc_message = SIGNED_MESSAGE_META.format(**locals())
+        enc_message = self.SIGNED_MESSAGE_META.format(**locals())
 
         # signature
         signature = hexlify(sign_message(enc_message, wif)).decode("ascii")
@@ -105,8 +103,8 @@ class Message(AbstractBlockchainInstanceProvider):
         self.meta = meta
         self.plain_message = message
 
-        return SIGNED_MESSAGE_ENCAPSULATED.format(
-            MESSAGE_SPLIT=MESSAGE_SPLIT, **locals()
+        return self.SIGNED_MESSAGE_ENCAPSULATED.format(
+            MESSAGE_SPLIT=self.MESSAGE_SPLIT, **locals()
         )
 
     def verify(self, **kwargs):
@@ -119,7 +117,7 @@ class Message(AbstractBlockchainInstanceProvider):
             :raises InvalidMessageSignature if the signature is not ok
         """
         # Split message into its parts
-        parts = re.split("|".join(MESSAGE_SPLIT), self.message)
+        parts = re.split("|".join(self.MESSAGE_SPLIT), self.message)
         parts = [x for x in parts if x.strip()]
 
         assert len(parts) > 2, "Incorrect number of message parts"
@@ -168,7 +166,7 @@ class Message(AbstractBlockchainInstanceProvider):
             )
 
         # Reformat message
-        enc_message = SIGNED_MESSAGE_META.format(**locals())
+        enc_message = self.SIGNED_MESSAGE_META.format(**locals())
 
         # Verify Signature
         pubkey = verify_message(enc_message, unhexlify(signature))

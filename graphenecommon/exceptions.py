@@ -1,6 +1,6 @@
 class WalletExists(Exception):
     """ A wallet has already been created and requires a password to be
-        unlocked by means of :func:`bitshares.wallet.unlock`.
+        unlocked by means of :func:`wallet.unlock`.
     """
 
     pass
@@ -21,7 +21,7 @@ class OfflineHasNoRPCException(Exception):
 
 
 class NoWalletException(Exception):
-    """ No Wallet could be found, please use :func:`bitshares.wallet.create` to
+    """ No Wallet could be found, please use :func:`wallet.create` to
         create a new wallet
     """
 

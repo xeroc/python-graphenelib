@@ -10,7 +10,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
         :param list args: Allows to deal with different representations of an amount
         :param float amount: Let's create an instance with a specific amount
         :param str asset: Let's you create an instance with a specific asset (symbol)
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param instance blockchain_instance: instance to use when accesing a RPC
         :returns: All data required to represent an Amount/Asset
         :rtype: dict
         :raises ValueError: if the data provided is not recognized
@@ -33,14 +33,14 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
             * ``args`` can be a dictionary containing ``amount`` and ``asset_id``
             * ``args`` can be a dictionary containing ``amount`` and ``asset``
             * ``args`` can be a list of a ``float`` and ``str`` (symbol)
-            * ``args`` can be a list of a ``float`` and a :class:`bitshares.asset.Asset`
+            * ``args`` can be a list of a ``float`` and a :class:`.asset.Asset`
             * ``amount`` and ``asset`` are defined manually
 
         An instance is a dictionary and comes with the following keys:
 
             * ``amount`` (float)
             * ``symbol`` (str)
-            * ``asset`` (instance of :class:`bitshares.asset.Asset`)
+            * ``asset`` (instance of :class:`.asset.Asset`)
 
         Instances of this class can be used in regular mathematical expressions
         (``+-*/%``) such as:
@@ -154,7 +154,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
 
     @property
     def asset(self):
-        """ Returns the asset as instance of :class:`bitshares.asset.Asset`
+        """ Returns the asset as instance of :class:`.asset.Asset`
         """
         if not self["asset"]:
             self["asset"] = self.asset_class(self["symbol"], blockchain_instance=self.blockchain)

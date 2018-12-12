@@ -8,8 +8,7 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read a single block from the chain
 
         :param int block: block number
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
-            instance
+        :param instance blockchain_instance: instance to use when accesing a RPC
         :param bool lazy: Use lazy loading
 
         Instances of this class are dictionaries that come with additional
