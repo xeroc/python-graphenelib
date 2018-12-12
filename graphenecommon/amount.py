@@ -51,14 +51,10 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
             Amount("15 GOLD") + Amount("0.5 GOLD")
     """
 
-    asset_class = None
-    price_class = None
-
-    def get_price_class(self):
-        raise NotImplementedError
-
     def __init__(self, *args, **kwargs):
+        self.define_classes()
         assert self.asset_class
+        assert self.price_class
 
         self["asset"] = {}
 
@@ -209,8 +205,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
     def __floordiv__(self, other):
         a = self.copy()
         if isinstance(other, Amount):
-            price_class = self.get_price_class()
-            return price_class(self, other)
+            return self.price_class(self, other)
         else:
             a["amount"] //= other
         return a
@@ -218,8 +213,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
     def __div__(self, other):
         a = self.copy()
         if isinstance(other, Amount):
-            price_class = self.get_price_class()
-            return price_class(self, other)
+            return self.price_class(self, other)
         else:
             a["amount"] /= other
         return a

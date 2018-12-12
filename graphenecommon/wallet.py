@@ -37,11 +37,8 @@ class Wallet(AbstractBlockchainInstanceProvider):
           any account. This mode is only used for *foreign*
           signatures!
     """
-
-    privatekey_class = None
-    default_key_store_app_name = "graphene"
-
     def __init__(self, *args, **kwargs):
+        self.define_classes()
         assert self.privatekey_class
         assert self.default_key_store_app_name
 

@@ -12,10 +12,8 @@ class Committee(BlockchainObject, AbstractBlockchainInstanceProvider):
 
     """
 
-    type_id = None
-    account_class = None
-
     def __init__(self, *args, **kwargs):
+        self.define_classes()
         assert self.type_id
         assert self.account_class
         BlockchainObject.__init__(self, *args, **kwargs)

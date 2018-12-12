@@ -11,10 +11,8 @@ class Worker(BlockchainObject, AbstractBlockchainInstanceProvider):
         :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
-    type_id = None
-    account_class = None
-
     def __init__(self, *args, **kwargs):
+        self.define_classes()
         assert self.account_class
         assert self.type_id
         BlockchainObject.__init__(self, *args, **kwargs)
@@ -32,7 +30,6 @@ class Worker(BlockchainObject, AbstractBlockchainInstanceProvider):
             raise WorkerDoesNotExistsException
         super(Worker, self).__init__(worker, blockchain_instance=self.blockchain)
         self.post_format()
-        self.cached = True
 
     @property
     def account(self):
@@ -46,10 +43,10 @@ class Workers(list, AbstractBlockchainInstanceProvider):
         :param bitshares blockchain_instance: BitShares() instance to use when
             accesing a RPC
     """
-    account_class = None
-    worker_class = None
+    _cache = None
 
     def __init__(self, account_name=None, lazy=False, **kwargs):
+        self.define_classes()
         assert self.account_class
         assert self.worker_class
 

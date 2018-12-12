@@ -38,11 +38,8 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
 
     """
 
-    type_id = None
-    amount_class = None
-    opeations = None
-
     def __init__(self, *args, **kwargs):
+        self.define_classes()
         assert self.type_id
         assert self.amount_class
         assert self.operations
@@ -221,9 +218,8 @@ class AccountUpdate(dict, AbstractBlockchainInstanceProvider):
              'total_ops': 0}
 
     """
-    account_class = None
-
     def __init__(self, data, *args, **kwargs):
+        self.define_classes()
         assert self.account_class
         if isinstance(data, dict):
             super(AccountUpdate, self).__init__(data)

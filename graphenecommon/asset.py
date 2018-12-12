@@ -19,9 +19,8 @@ class Asset(BlockchainObject, AbstractBlockchainInstanceProvider):
                   refreshed with ``Asset.refresh()``.
     """
 
-    type_id = None
-
     def __init__(self, *args, **kwargs):
+        self.define_classes()
         assert self.type_id
 
         self.full = kwargs.pop("full", False)

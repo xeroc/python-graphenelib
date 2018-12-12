@@ -10,11 +10,9 @@ class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
         :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
-    type_ids = None
-    account_class = None
-
     def __init__(self, *args, **kwargs):
-        assert self.type_ids
+        self.define_classes()
+        assert self.type_id or self.type_ids
         assert self.account_class
         BlockchainObject.__init__(self, *args, **kwargs)
 
@@ -64,11 +62,8 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
             actively producing blocks
         :param instance blockchain_instance: instance to use when accesing a RPC
     """
-    account_class = None
-    witness_class = None
-    blockchain_object_class = None
-
     def __init__(self, *args, only_active=False, lazy=False, **kwargs):
+        self.define_classes()
         assert self.account_class
         assert self.witness_class
 

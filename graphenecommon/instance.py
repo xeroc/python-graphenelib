@@ -31,6 +31,11 @@ class AbstractBlockchainInstanceProvider:
         """
         raise NotImplementedError
 
+    def define_classes(self):
+        """ Needs to define instance variables that provide classes
+        """
+        raise NotImplementedError
+
     @property
     def blockchain(self):
         return self.shared_blockchain_instance()

@@ -16,11 +16,8 @@ class Proposal(BlockchainObject, AbstractBlockchainInstanceProvider):
         :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
-
-    type_id = 10
-    account_class = None
-
     def __init__(self, account, *args, **kwargs):
+        self.define_classes()
         assert self.account_class
         BlockchainObject.__init__(self, *args, **kwargs)
 
@@ -67,11 +64,8 @@ class Proposals(list, AbstractBlockchainInstanceProvider):
 
     cache = ObjectCache()
 
-    account_class = None
-    proposal_class = None
-
     def __init__(self, account, **kwargs):
-
+        self.define_classes()
         assert self.account_class
         assert self.proposal_class
 

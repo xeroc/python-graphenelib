@@ -93,6 +93,14 @@ from graphenecommon.message import Message as GMessage
 from graphenecommon.blockchainobject import ObjectCache
 from graphenecommon.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
+from graphenecommon.worker import (
+    Worker as GWorker,
+    Workers as GWorkers
+)
+from graphenecommon.witness import (
+    Witness as GWitness,
+    Witnesses as GWitnesss
+)
 
 
 class Chain:
@@ -136,6 +144,11 @@ class Chain:
             an empty object!
         """
         class RPC:
+            def _load(self, name):
+                with open(os.path.join(os.path.dirname(__file__), "fixtures.yaml")) as fid:
+                    d = yaml.safe_load(fid)
+                return d.get(name)
+
             def get_objects(self, *args, **kwargs):
                 return []
 
@@ -147,6 +160,12 @@ class Chain:
 
             def lookup_account_names(self, *args, **kwargs):
                 return [None]
+
+            def get_all_workers(self):
+                return self._load("workers")
+
+            def get_workers_by_account(self, name):
+                return [self._load("workers")[0]]
 
             def __getattr__(self, name):
                 def fun(self, *args, **kwargs):
@@ -165,61 +184,97 @@ class BlockchainInstance(GBlockchainInstance):
 
 @BlockchainInstance.inject
 class Asset(GAsset):
-    type_id = 3
+    def define_classes(self):
+        self.type_id = 3
 
 
 @BlockchainInstance.inject
 class Amount(GAmount):
-    asset_class = Asset
-
-    def get_price_class(self):
-        return Price
+    def define_classes(self):
+        self.asset_class = Asset
+        self.price_class = Price
 
 
 @BlockchainInstance.inject
 class Account(GAccount):
-    type_id = 2
-    amount_class = Amount
-    operations = operations
+    def define_classes(self):
+        self.type_id = 2
+        self.amount_class = Amount
+        self.operations = operations
 
 
 @BlockchainInstance.inject
 class AccountUpdate(GAccountUpdate):
-    account_class = Account
+    def define_classes(self):
+        self.account_class = Account
 
 
 @BlockchainInstance.inject
 class Committee(GCommittee):
-    type_id = 5
-    account_class = Account
+    def define_classes(self):
+        self.type_id = 5
+        self.account_class = Account
 
 
 @BlockchainInstance.inject
 class Block(GBlock):
-    pass
+    def define_classes(self):
+        pass
 
 
 @BlockchainInstance.inject
 class BlockHeader(GBlockHeader):
-    pass
+    def define_classes(self):
+        pass
 
 
 @BlockchainInstance.inject
 class Message(GMessage):
-    account_class = Account
-    publickey_class = PublicKey
+    def define_classes(self):
+        self.account_class = Account
+        self.publickey_class = PublicKey
 
 
 @BlockchainInstance.inject
 class Price(GPrice):
-    asset_class = Asset
-    amount_class = Amount
+    def define_classes(self):
+        self.asset_class = Asset
+        self.amount_class = Amount
 
 
 @BlockchainInstance.inject
 class Wallet(GWallet):
-    default_key_store_app_name = "graphene"
-    privatekey_class = PrivateKey
+    def define_classes(self):
+        self.default_key_store_app_name = "graphene"
+        self.privatekey_class = PrivateKey
+
+
+@BlockchainInstance.inject
+class Worker(GWorker):
+    def define_classes(self):
+        self.type_id = 14
+        self.account_class = Account
+
+
+@BlockchainInstance.inject
+class Workers(GWorkers):
+    def define_classes(self):
+        self.worker_class = Worker
+        self.account_class = Account
+
+
+@BlockchainInstance.inject
+class Witness(GWitness):
+    def define_classes(self):
+        self.type_id = 6
+        self.account_class = Account
+
+
+@BlockchainInstance.inject
+class Witnesses(GWitnesss):
+    def define_classes(self):
+        self.witness_class = Witness
+        self.account_class = Account
 
 
 def fixture_data():
@@ -241,3 +296,9 @@ def fixture_data():
     for blocknum, block in data.get("blocks").items():
         block["id"] = blocknum
         Block._cache[str(blocknum)] = block
+
+    for worker in data.get("workers"):
+        Worker._cache[worker["id"]] = worker
+
+    for witness in data.get("witnesses"):
+        Witness._cache[witness["id"]] = witness

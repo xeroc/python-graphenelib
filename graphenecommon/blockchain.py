@@ -14,8 +14,6 @@ class Blockchain(AbstractBlockchainInstanceProvider):
 
         This class let's you deal with blockchain related data and methods.
     """
-    block_class = None
-    operationids = None
 
     def __init__(
         self,
@@ -25,6 +23,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
         *args,
         **kwargs
     ):
+        self.define_classes()
         assert self.block_class
         assert self.operationids
 

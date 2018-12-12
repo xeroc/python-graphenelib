@@ -10,11 +10,8 @@ class Vesting(BlockchainObject, AbstractBlockchainInstanceProvider):
         :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
-    type_id = None
-    account_class = None
-    amount_class = None
-
     def __init__(self, *args, **kwargs):
+        self.define_classes()
         assert self.account_class
         assert self.type_id
         assert self.amount_class

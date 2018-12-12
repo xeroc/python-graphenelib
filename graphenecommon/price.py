@@ -59,9 +59,6 @@ class Price(dict, AbstractBlockchainInstanceProvider):
 
     """
 
-    amount_class = None
-    asset_class = None
-
     def __init__(
         self,
         *args,
@@ -70,6 +67,7 @@ class Price(dict, AbstractBlockchainInstanceProvider):
         base_asset=None,  # to identify sell/buy
         **kwargs
     ):
+        self.define_classes()
         assert self.amount_class
         assert self.asset_class
 

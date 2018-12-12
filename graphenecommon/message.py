@@ -17,12 +17,10 @@ from .instance import AbstractBlockchainInstanceProvider
 
 log = logging.getLogger(__name__)
 
+
 class Message(AbstractBlockchainInstanceProvider):
     """ Allow to sign and verify Messages that are sigend with a private key
     """
-    account_class = None
-    publickey_class = None
-
     MESSAGE_SPLIT = (
         "-----BEGIN GRAPHENE SIGNED MESSAGE-----",
         "-----BEGIN META-----",
@@ -50,6 +48,7 @@ timestamp={meta[timestamp]}
 {MESSAGE_SPLIT[3]}"""
 
     def __init__(self, message, *args, **kwargs):
+        self.define_classes()
         assert self.account_class
         assert self.publickey_class
 

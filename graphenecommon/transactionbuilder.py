@@ -27,10 +27,6 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
             your own instance of transaction builder (optional)
         :param instance blockchain_instance: Blockchain instance
     """
-    operation_class = None
-    operations = None
-    account_class = None
-
     def __init__(
         self,
         proposer,
@@ -40,6 +36,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
         *args,
         **kwargs
     ):
+        self.define_classes()
         assert self.operation_class
         assert self.operations
         assert self.account_class
@@ -129,17 +126,8 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
     """ This class simplifies the creation of transactions by adding
         operations and signers.
     """
-    account_class = None
-    asset_class = None
-    amount_class = None
-    operation_class = None
-    operations = None
-    privatekey_class = None
-    publickey_class = None
-    signed_transaction_class = None
-    proposalbuffer_class = None
-
     def __init__(self, tx={}, proposer=None, **kwargs):
+        self.define_classes()
         assert self.account_class
         assert self.asset_class
         assert self.operation_class

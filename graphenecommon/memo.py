@@ -43,11 +43,8 @@ class Memo(AbstractBlockchainInstanceProvider):
 
     """
 
-    account_class = None
-    privatekey_class = None
-    publickey_class = None
-
     def __init__(self, from_account=None, to_account=None, **kwargs):
+        self.define_classes()
         assert self.account_class
         assert self.privatekey_class
         assert self.publickey_class

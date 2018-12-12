@@ -206,8 +206,41 @@ committees:
 witnesses:
  - id: 1.6.0
    witness_account: 1.2.100
+ - id: 1.6.1
+   witness_account: 1.2.101
 
 blocks:
  1:
   previous: "0000000000000000000000000000000000000000"
   timestamp: "2015-10-13T14:12:24"
+
+workers:
+- vote_for: 2:463
+  total_votes_for: '4451279826672'
+  work_begin_date: 2018-11-30T00:00:00
+  worker_account: '1.2.100'
+  vote_against: 2:464
+  url: https://example.com
+  name: Foobar
+  work_end_date: 2019-03-31T00:00:00
+  id: '1.14.139'
+  daily_pay: 100000
+  total_votes_against: 0
+  worker:
+  - 1
+  - balance: '1.13.10000'
+
+- vote_for: 2:464
+  total_votes_for: '4451279826673'
+  work_begin_date: 2018-11-30T00:00:00
+  worker_account: '1.2.101'
+  vote_against: 2:464
+  url: https://example.com
+  name: Foobar2
+  work_end_date: 2019-03-31T00:00:00
+  id: '1.14.140'
+  daily_pay: 100000
+  total_votes_against: 0
+  worker:
+  - 1
+  - balance: '1.13.10000'
