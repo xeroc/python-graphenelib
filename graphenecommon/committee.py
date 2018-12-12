@@ -25,7 +25,7 @@ class Committee(BlockchainObject):
             _, i, _ = self.identifier.split(".")
             if int(i) == 2:
                 account = self.account_class(self.identifier, blockchain_instance=self.blockchain)
-                member = self.blockchain.rpc.get_committee_member_by_self.account_class(
+                member = self.blockchain.rpc.get_committee_member_by_account(
                     account["id"]
                 )
             elif int(i) == 5:
@@ -40,7 +40,10 @@ class Committee(BlockchainObject):
         if not member:
             raise CommitteeMemberDoesNotExistsException
         super(Committee, self).__init__(member, blockchain_instance=self.blockchain)
-        self.account_id = member["committee_member_account"]
+
+    @property
+    def account_id(self):
+        return self.get("committee_member_account")
 
     @property
     def account(self):

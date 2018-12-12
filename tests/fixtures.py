@@ -84,6 +84,7 @@ from graphenecommon.account import (
     AccountUpdate as GAccountUpdate
 )
 from graphenecommon.asset import Asset as GAsset
+from graphenecommon.committee import Committee as GCommittee
 
 
 class Chain:
@@ -105,6 +106,9 @@ class Chain:
 
             def get_account_history(self, *args, **kwargs):
                 return []
+
+            def lookup_account_names(self, *args, **kwargs):
+                return [None]
 
             def __getattr__(self, name):
                 def fun(self, *args, **kwargs):
@@ -143,6 +147,12 @@ class AccountUpdate(GAccountUpdate):
     account_class = Account
 
 
+@BlockchainInstance.inject
+class Committee(GCommittee):
+    type_id = 5
+    account_class = Account
+
+
 def fixture_data():
     with open(os.path.join(os.path.dirname(__file__), "fixtures.yaml")) as fid:
         data = yaml.safe_load(fid)
@@ -155,3 +165,6 @@ def fixture_data():
     for asset in data.get("assets"):
         Asset._cache[asset["symbol"]] = asset
         Asset._cache[asset["id"]] = asset
+
+    for committee in data.get("committees"):
+        Committee._cache[committee["id"]] = committee

@@ -170,3 +170,11 @@ assets:
      max_supply: '1000000000000000'
      description: 1 GPH
    issuer: '1.2.0'
+
+committees:
+ - id: 1.5.0
+   committee_member_account: 1.2.100
+
+witnesses:
+ - id: 1.6.0
+   witness_account: 1.2.100
