@@ -82,6 +82,9 @@ class BlockchainObject(dict):
         elif isinstance(data, int):
             # This is only for block number bascially
             self.identifier = data
+            if self.iscached(str(data)):
+                dict.__init__(self, self.getcache(str(data)))
+                self.cached = True
             if not lazy and not self.cached:
                 self.refresh()
             # make sure to store the blocknumber for caching

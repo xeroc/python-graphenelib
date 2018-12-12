@@ -203,7 +203,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
         return self.blockchain.account_whitelist(account, lists=[], account=self)
 
 
-class AccountUpdate(dict):
+class AccountUpdate(dict, AbstractBlockchainInstanceProvider):
     """ This purpose of this class is to keep track of account updates
         as they are pushed through by :class:`bitshares.notify.Notify`.
 

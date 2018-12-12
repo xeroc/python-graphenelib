@@ -5,7 +5,6 @@ class SharedInstance:
     instance = None
     config = {}
 
-
 class AbstractBlockchainInstanceProvider:
     """ This is a class that allows compatibility with previous
         naming conventions. It will extract 'blockchain_instance'
@@ -13,6 +12,9 @@ class AbstractBlockchainInstanceProvider:
         contains an instance of the main chain instance
     """
     __originalname__ = ""
+
+    def __init__(self, *args, **kwargs):
+        pass
 
     @classmethod
     def inject(slf, cls):
@@ -69,3 +71,6 @@ class AbstractBlockchainInstanceProvider:
         if SharedInstance.instance:
             self.shared_blockchain_instance().clear_cache()
             SharedInstance.instance = None
+
+# Legacy alias
+BlockchainInstance = AbstractBlockchainInstanceProvider

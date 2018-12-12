@@ -70,7 +70,7 @@ from graphenestorage.interfaces import (
     StoreInterface,
     KeyInterface,
     ConfigInterface,
-    EncryptedKeyInterface,
+    EncryptedKeyInterface
 )
 from graphenestorage.sqlite import SQLiteStore
 
@@ -85,11 +85,49 @@ from graphenecommon.account import (
 )
 from graphenecommon.asset import Asset as GAsset
 from graphenecommon.committee import Committee as GCommittee
+from graphenecommon.block import (
+    Block as GBlock,
+    BlockHeader as GBlockHeader
+)
+from graphenecommon.message import Message as GMessage
+from graphenecommon.blockchainobject import ObjectCache
+from graphenecommon.price import Price as GPrice
+from graphenecommon.wallet import Wallet as GWallet
 
 
 class Chain:
+    prefix = "GPH"
+
     def __init__(self, *args, **kwargs):
-        pass
+        self.config = storage.InRamConfigurationStore()
+
+    def is_connected(self):
+        return True
+
+    @property
+    def wallet(self):
+        return Wallet(
+            keys=["5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"]
+        )
+
+    def info(self):
+        # returns demo data
+        return {
+            "accounts_registered_this_interval": 18,
+            "current_aslot": 33206892,
+            "current_witness": "1.6.105",
+            "dynamic_flags": 0,
+            "head_block_id": "01f82b16db7ae25a4b9706b36c259438a9d4c8d1",
+            "head_block_number": 33041174,
+            "id": "2.1.0",
+            "last_budget_time": "2018-12-12T10:00:00",
+            "last_irreversible_block_num": 33041151,
+            "next_maintenance_time": "2018-12-12T11:00:00",
+            "recent_slots_filled": "340282366920938463463374607431768211455",
+            "recently_missed_count": 0,
+            "time": "2018-12-12T10:44:15",
+            "witness_budget": 31800000
+        }
 
     @property
     def rpc(self):
@@ -134,6 +172,9 @@ class Asset(GAsset):
 class Amount(GAmount):
     asset_class = Asset
 
+    def get_price_class(self):
+        return Price
+
 
 @BlockchainInstance.inject
 class Account(GAccount):
@@ -153,6 +194,34 @@ class Committee(GCommittee):
     account_class = Account
 
 
+@BlockchainInstance.inject
+class Block(GBlock):
+    pass
+
+
+@BlockchainInstance.inject
+class BlockHeader(GBlockHeader):
+    pass
+
+
+@BlockchainInstance.inject
+class Message(GMessage):
+    account_class = Account
+    publickey_class = PublicKey
+
+
+@BlockchainInstance.inject
+class Price(GPrice):
+    asset_class = Asset
+    amount_class = Amount
+
+
+@BlockchainInstance.inject
+class Wallet(GWallet):
+    default_key_store_app_name = "graphene"
+    privatekey_class = PrivateKey
+
+
 def fixture_data():
     with open(os.path.join(os.path.dirname(__file__), "fixtures.yaml")) as fid:
         data = yaml.safe_load(fid)
@@ -168,3 +237,7 @@ def fixture_data():
 
     for committee in data.get("committees"):
         Committee._cache[committee["id"]] = committee
+
+    for blocknum, block in data.get("blocks").items():
+        block["id"] = blocknum
+        Block._cache[str(blocknum)] = block

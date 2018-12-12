@@ -27,6 +27,7 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
                   refreshed with ``Account.refresh()``.
 
     """
+    type_id = "n/a"
 
     def refresh(self):
         """ Even though blocks never change, you freshly obtain its contents
@@ -43,7 +44,9 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
         return parse_time(self["timestamp"])
 
 
-class BlockHeader(BlockchainObject):
+class BlockHeader(BlockchainObject, AbstractBlockchainInstanceProvider):
+    type_id = "n/a"
+
     def refresh(self):
         """ Even though blocks never change, you freshly obtain its contents
             from an API with this method

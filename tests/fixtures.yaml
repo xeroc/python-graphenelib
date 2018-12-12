@@ -143,6 +143,34 @@ assets:
      description: 1 euro
    issuer: '1.2.0'
 
+ - dynamic_asset_data_id: '2.3.8'
+   dynamic_asset_data: {}
+   flags: {}
+   permissions: {}
+   precision: 5
+   symbol: GOLD
+   id: '1.3.8'
+   options:
+     issuer_permissions: 511
+     flags: 128
+     extensions: []
+     core_exchange_rate:
+       base:
+         amount: 1229
+         asset_id: '1.3.120'
+       quote:
+         amount: 74364
+         asset_id: '1.3.0'
+     whitelist_authorities: []
+     whitelist_markets: []
+     max_market_fee: '1000000000000000'
+     market_fee_percent: 0
+     blacklist_markets: []
+     blacklist_authorities: []
+     max_supply: '1000000000000000'
+     description: 1 GOLD
+   issuer: '1.2.0'
+
  - dynamic_asset_data_id: '2.3.0'
    dynamic_asset_data: {}
    flags: {}
@@ -178,3 +206,8 @@ committees:
 witnesses:
  - id: 1.6.0
    witness_account: 1.2.100
+
+blocks:
+ 1:
+  previous: "0000000000000000000000000000000000000000"
+  timestamp: "2015-10-13T14:12:24"

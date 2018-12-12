@@ -41,16 +41,12 @@ class Wallet(AbstractBlockchainInstanceProvider):
           signatures!
     """
 
-    chaininstance_class = None
     privatekey_class = None
     default_key_store_app_name = "graphene"
 
     def __init__(self, *args, **kwargs):
-        assert self.chaininstance_class
         assert self.privatekey_class
         assert self.default_key_store_app_name
-
-        self.chaininstance_class.__init__(self, *args, **kwargs)
 
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
