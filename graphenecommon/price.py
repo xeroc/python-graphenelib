@@ -1,9 +1,10 @@
 from fractions import Fraction
 from .exceptions import InvalidAssetException
 from .utils import assets_from_string, formatTimeString, parse_time
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Price(dict):
+class Price(dict, AbstractBlockchainInstanceProvider):
     """ This class deals with all sorts of prices of any pair of assets to
         simplify dealing with the tuple::
 

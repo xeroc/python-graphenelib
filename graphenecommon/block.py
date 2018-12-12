@@ -1,9 +1,10 @@
 from .blockchainobject import BlockchainObject
 from .exceptions import BlockDoesNotExistsException
 from .utils import parse_time
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Block(BlockchainObject):
+class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read a single block from the chain
 
         :param int block: block number

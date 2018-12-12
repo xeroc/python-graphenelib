@@ -8,12 +8,13 @@ from .exceptions import (
     WalletLocked,
 )
 from .utils import formatTimeFromNow
+from .instance import AbstractBlockchainInstanceProvider
 from graphenebase.objects import Asset
 
 log = logging.getLogger(__name__)
 
 
-class ProposalBuilder:
+class ProposalBuilder(AbstractBlockchainInstanceProvider):
     """ Proposal Builder allows us to construct an independent Proposal
         that may later be added to an instance ot TransactionBuilder
 
@@ -124,7 +125,7 @@ class ProposalBuilder:
         return self.operation_class(ops)
 
 
-class TransactionBuilder(dict):
+class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
     """ This class simplifies the creation of transactions by adding
         operations and signers.
     """

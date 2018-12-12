@@ -1,7 +1,8 @@
 from .asset import Asset
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Amount(dict):
+class Amount(dict, AbstractBlockchainInstanceProvider):
     """ This class deals with Amounts of any asset to simplify dealing with the tuple::
 
             (amount, asset)

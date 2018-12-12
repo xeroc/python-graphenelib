@@ -1,8 +1,9 @@
 from .exceptions import WitnessDoesNotExistsException
 from .blockchainobject import BlockchainObject
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Witness(BlockchainObject):
+class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read data about a witness in the chain
 
         :param str account_name: Name of the witness
@@ -57,7 +58,7 @@ class Witness(BlockchainObject):
         return self.account["id"] in [x[0] for x in account["active"]["account_auths"]]
 
 
-class Witnesses(list):
+class Witnesses(list, AbstractBlockchainInstanceProvider):
     """ Obtain a list of **active** witnesses and the current schedule
 
         :param bool only_active: (False) Only return witnesses that are

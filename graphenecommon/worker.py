@@ -1,9 +1,10 @@
 from .exceptions import WorkerDoesNotExistsException
 from .utils import formatTimeString
 from .blockchainobject import BlockchainObject
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Worker(BlockchainObject):
+class Worker(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read data about a worker in the chain
 
         :param str id: id of the worker
@@ -38,7 +39,7 @@ class Worker(BlockchainObject):
         return self.account_class(self["worker_account"], blockchain_instance=self.blockchain)
 
 
-class Workers(list):
+class Workers(list, AbstractBlockchainInstanceProvider):
     """ Obtain a list of workers for an account
 
         :param str account_name/id: Name/id of the account (optional)

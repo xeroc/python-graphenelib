@@ -1,8 +1,9 @@
 from .exceptions import VestingBalanceDoesNotExistsException
 from .blockchainobject import BlockchainObject
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Vesting(BlockchainObject):
+class Vesting(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read data about a Vesting Balance in the chain
 
         :param str id: Id of the vesting balance

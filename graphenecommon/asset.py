@@ -1,9 +1,10 @@
 import json
 from .blockchainobject import BlockchainObject
 from .exceptions import AssetDoesNotExistsException
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Asset(BlockchainObject):
+class Asset(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Deals with Assets of the network.
 
         :param str Asset: Symbol name or object id of an asset

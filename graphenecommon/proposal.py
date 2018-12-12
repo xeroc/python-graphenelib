@@ -2,14 +2,14 @@ import logging
 
 from .blockchainobject import BlockchainObject, ObjectCache
 from .exceptions import ProposalDoesNotExistException
-from .instance import BlockchainInstance
+from .instance import AbstractBlockchainInstanceProvider
 from .utils import parse_time
 
 
 log = logging.getLogger(__name__)
 
 
-class Proposal(BlockchainObject):
+class Proposal(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read data about a Proposal Balance in the chain
 
         :param str id: Id of the proposal
@@ -58,7 +58,7 @@ class Proposal(BlockchainObject):
         return now > self.review_period
 
 
-class Proposals(list):
+class Proposals(list, AbstractBlockchainInstanceProvider):
     """ Obtain a list of pending proposals for an account
 
         :param str account: Account name

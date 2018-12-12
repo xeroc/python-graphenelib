@@ -1,9 +1,10 @@
 import random
 from graphenebase import memo
 from .exceptions import KeyNotFound, MissingKeyError
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Memo:
+class Memo(AbstractBlockchainInstanceProvider):
     """ Deals with Memos that are attached to a transfer
 
         :param bitshares.account.Account from_account: Account that has sent

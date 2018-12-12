@@ -12,7 +12,7 @@ from .exceptions import (
     InvalidMessageSignature,
     WrongMemoKey,
 )
-from .instance import BlockchainInstance
+from .instance import AbstractBlockchainInstanceProvider
 
 
 log = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ timestamp={meta[timestamp]}
 """
 
 
-class Message:
+class Message(AbstractBlockchainInstanceProvider):
     """ Allow to sign and verify Messages that are sigend with a private key
     """
     account_class = None
@@ -184,4 +184,3 @@ class Message:
         self.plain_message = message
 
         return True
-

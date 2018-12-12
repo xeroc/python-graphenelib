@@ -6,7 +6,7 @@ class SharedInstance:
     config = {}
 
 
-class BlockchainInstance:
+class AbstractBlockchainInstanceProvider:
     """ This is a class that allows compatibility with previous
         naming conventions. It will extract 'blockchain_instance'
         from the key word arguments and ensure that self.blockchain
@@ -28,10 +28,6 @@ class BlockchainInstance:
         """ Should return the Chain instance class, e.g. `bitshares.BitShares`
         """
         raise NotImplementedError
-
-    def __init__(self, *args, **kwargs):
-        if "blockchain_instance" in kwargs and kwargs["blockchain_instance"]:
-            SharedInstance.instance = kwargs["blockchain_instance"]
 
     @property
     def blockchain(self):

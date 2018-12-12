@@ -1,7 +1,8 @@
 import time
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Blockchain(object):
+class Blockchain(AbstractBlockchainInstanceProvider):
     """ This class allows to access the blockchain and read data
         from it
 

@@ -2,12 +2,13 @@ import logging
 
 from .blockchainobject import BlockchainObject
 from .exceptions import AccountDoesNotExistsException
+from .instance import AbstractBlockchainInstanceProvider
 
 
 log = logging.getLogger()
 
 
-class Account(BlockchainObject):
+class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ This class allows to easily access Account data
 
         :param str account_name: Name of the account

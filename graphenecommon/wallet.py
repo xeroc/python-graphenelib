@@ -8,12 +8,13 @@ from graphenecommon.exceptions import (
     OfflineHasNoRPCException,
     WalletExists,
 )
+from .instance import AbstractBlockchainInstanceProvider
 
 
 log = logging.getLogger(__name__)
 
 
-class Wallet:
+class Wallet(AbstractBlockchainInstanceProvider):
     """ The wallet is meant to maintain access to private keys for
         your accounts. It either uses manually provided private keys
         or uses a SQLite database managed by storage.py.

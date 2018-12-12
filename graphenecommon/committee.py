@@ -1,8 +1,9 @@
 from .blockchainobject import BlockchainObject
 from .exceptions import CommitteeMemberDoesNotExistsException
+from .instance import AbstractBlockchainInstanceProvider
 
 
-class Committee(BlockchainObject):
+class Committee(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ Read data about a Committee Member in the chain
 
         :param str member: Name of the Committee Member

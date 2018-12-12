@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from .instance import AbstractBlockchainInstanceProvider
 
 
 class ObjectCache(dict):
@@ -168,7 +169,7 @@ class BlockchainObject(dict):
         return "<%s %s>" % (self.__originalname__, str(self.identifier))
 
 
-class Object(BlockchainObject):
+class Object(BlockchainObject, AbstractBlockchainInstanceProvider):
     def refresh(self):
         dict.__init__(
             self,
