@@ -117,7 +117,7 @@ def decode_memo(priv, pub, nonce, message):
     message = cleartext[4:]
     try:
         message = _unpad(message, 16)
-    except Exception:
+    except Exception as e:
         raise ValueError(message)
     " Verify checksum "
     check = hashlib.sha256(message).digest()[0:4]
