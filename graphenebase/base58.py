@@ -4,24 +4,15 @@ import logging
 
 from binascii import hexlify, unhexlify
 from .utils import _bytes
+from .prefix import Prefix
 
 log = logging.getLogger(__name__)
 
 """ Default Prefix """
 PREFIX = "GPH"
 
-known_prefixes = [
-    PREFIX,
-    "BTS",
-    "MUSE",
-    "TEST",
-    "STM",
-    "GLX",
-    "GLS",
-]
 
-
-class Base58(object):
+class Base58(Prefix):
     """Base58 base class
 
     This class serves as an abstraction layer to deal with base58 encoded
@@ -46,8 +37,8 @@ class Base58(object):
         * etc.
 
     """
-    def __init__(self, data, prefix=PREFIX):
-        self._prefix = prefix
+    def __init__(self, data, prefix=None):
+        self.set_prefix(prefix)
         if isinstance(data, Base58):
             data = repr(data)
         if all(c in string.hexdigits for c in data):
@@ -58,8 +49,8 @@ class Base58(object):
             raise NotImplementedError(
                 "Private Keys starting with L or K are not supported!"
             )
-        elif data[:len(self._prefix)] == self._prefix:
-            self._hex = gphBase58CheckDecode(data[len(self._prefix):])
+        elif data[:len(self.prefix)] == self.prefix:
+            self._hex = gphBase58CheckDecode(data[len(self.prefix):])
         else:
             raise ValueError("Error loading Base58 object")
 
@@ -77,13 +68,7 @@ class Base58(object):
             return base58encode(self._hex)
         elif _format.upper() == "BTC":
             return base58CheckEncode(0x00, self._hex)
-        elif _format.upper() in known_prefixes:
-            return _format.upper() + str(self)
         else:
-            log.warning(
-                "Format {} unkown. You've been warned!\n".format(
-                    _format
-                ))
             return _format.upper() + str(self)
 
     def __repr__(self):

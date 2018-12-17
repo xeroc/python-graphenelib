@@ -8,18 +8,9 @@ from binascii import hexlify, unhexlify
 from .base58 import ripemd160, Base58, doublesha256
 from .dictionary import words as BrainKeyDictionary
 from .utils import _bytes
+from .prefix import Prefix
 
 import ecdsa
-
-
-class Prefix:
-    """ This class is meant to allow changing the prefix.
-        The prefix is used to link a public key to a specific blockchain.
-    """
-    prefix = "GPH"
-
-    def set_prefix(self, prefix):
-        self.prefix = prefix
 
 
 class PasswordKey(Prefix):
@@ -29,8 +20,7 @@ class PasswordKey(Prefix):
         passphrase only.
     """
     def __init__(self, account, password, role="active", prefix=None):
-        if prefix:
-            self.set_prefix(prefix)
+        self.set_prefix(prefix)
         self.account = account
         self.role = role
         self.password = password
@@ -77,8 +67,7 @@ class BrainKey(Prefix):
     """
 
     def __init__(self, brainkey=None, sequence=0, prefix=None):
-        if prefix:
-            self.set_prefix(prefix)
+        self.set_prefix(prefix)
         if not brainkey:
             self.brainkey = BrainKey.suggest()
         else:
@@ -168,8 +157,7 @@ class Address(Prefix):
 
     """
     def __init__(self, address, prefix=None):
-        if prefix:
-            self.set_prefix(prefix)
+        self.set_prefix(prefix)
         self._address = Base58(address, prefix=self.prefix)
 
     @classmethod
@@ -250,8 +238,7 @@ class PublicKey(Prefix):
 
     """
     def __init__(self, pk, prefix=None):
-        if prefix:
-            self.set_prefix(prefix)
+        self.set_prefix(prefix)
         if isinstance(pk, PublicKey):
             pk = format(pk, self.prefix)
 
@@ -398,6 +385,7 @@ class PrivateKey(Prefix):
 
     """
     def __init__(self, wif=None, prefix=None):
+        self.set_prefix(prefix)
         if wif is None:
             import os
             self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))
@@ -407,7 +395,6 @@ class PrivateKey(Prefix):
             self._wif = wif
         else:
             self._wif = Base58(wif)
-        self.set_prefix(prefix)
 
         # test for valid key by trying to obtain a public key
         assert len(repr(self._wif)) == 64

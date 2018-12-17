@@ -114,6 +114,22 @@ class Testcases(unittest.TestCase):
                             'BTS5tTDDR6M3mkcyVv16edsw8dGUyNQZrvKU',
                             'BTS8G9ATJbJewVjTgTGmLGLNe1uP5XDWzaKX'])
 
+    def test_btsprivkey_change_prefix(self):
+        class P(PrivateKey):
+            prefix = "GGG"
+
+        self.assertEqual([str(P(Base58("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")).address),
+                          str(P("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S").address),
+                          str(P("5HvVz6XMx84aC5KaaBbwYrRLvWE46cH6zVnv4827SBPLorg76oq").address),
+                          str(P("5Jete5oFNjjk3aUMkKuxgAXsp7ZyhgJbYNiNjHLvq5xzXkiqw7R").address),
+                          str(P("5KDT58ksNsVKjYShG4Ls5ZtredybSxzmKec8juj7CojZj6LPRF7").address)
+                          ], [
+                            'GGGGu2U7Q3rmkCUCkQH2SToLMjEVUr86GrpA',
+                            'GGG9YgTfC8EfkgDG7DoRXJpMVKRougo64Lop',
+                            'GGGBXqRucGm7nRkk6jm7BNspTJTWRtNcx7k5',
+                            'GGG5tTDDR6M3mkcyVv16edsw8dGUyNQZrvKU',
+                            'GGG8G9ATJbJewVjTgTGmLGLNe1uP5XDWzaKX'])
+
     def test_uncompressed_privatekey(self):
         self.assertEqual([format(PrivateKey(Base58("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd")).uncompressed, "BTS"),
                           format(PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S").uncompressed, "BTS"),
