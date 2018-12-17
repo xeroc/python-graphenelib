@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 from .fixtures import fixture_data, Amount, Asset, Price
 import unittest
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
 
@@ -14,13 +14,19 @@ class Testcases(unittest.TestCase):
         Price(1.0, "USD/GOLD")
         Price(0.315, base="USD", quote="GPH")
         Price(0.315, base=Asset("USD"), quote=Asset("GPH"))
-        Price({
-            "base": {"amount": 1, "asset_id": "1.3.0"},
-            "quote": {"amount": 10, "asset_id": "1.3.8"}})
-        Price({
-            "receives": {"amount": 1, "asset_id": "1.3.0"},
-            "pays": {"amount": 10, "asset_id": "1.3.8"},
-        }, base_asset=Asset("1.3.0"))
+        Price(
+            {
+                "base": {"amount": 1, "asset_id": "1.3.0"},
+                "quote": {"amount": 10, "asset_id": "1.3.8"},
+            }
+        )
+        Price(
+            {
+                "receives": {"amount": 1, "asset_id": "1.3.0"},
+                "pays": {"amount": 10, "asset_id": "1.3.8"},
+            },
+            base_asset=Asset("1.3.0"),
+        )
         Price(quote="10 GOLD", base="1 USD")
         Price("10 GOLD", "1 USD")
         Price(Amount("10 GOLD"), Amount("1 USD"))

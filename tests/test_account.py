@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 import unittest
 from .fixtures import fixture_data, Account, AccountUpdate, getOperationNameForId
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
 
@@ -26,14 +26,16 @@ class Testcases(unittest.TestCase):
         account.upgrade()
 
     def test_accountupdate(self):
-        t = {'id': '2.6.29',
-             'lifetime_fees_paid': '44261516129',
-             'most_recent_op': '2.9.0',
-             'owner': '1.2.100',
-             'pending_fees': 0,
-             'pending_vested_fees': 16310,
-             'total_core_in_orders': '6788845277634',
-             'total_ops': 0}
+        t = {
+            "id": "2.6.29",
+            "lifetime_fees_paid": "44261516129",
+            "most_recent_op": "2.9.0",
+            "owner": "1.2.100",
+            "pending_fees": 0,
+            "pending_vested_fees": 16310,
+            "total_core_in_orders": "6788845277634",
+            "total_ops": 0,
+        }
         update = AccountUpdate(t)
         self.assertEqual(update["owner"], "1.2.100")
         self.assertIsInstance(update.account, Account)

@@ -1,14 +1,16 @@
+# -*- coding: utf-8 -*-
 import sys
 import time
 from datetime import datetime, timezone
-timeFormat = '%Y-%m-%dT%H:%M:%S'
+
+timeFormat = "%Y-%m-%dT%H:%M:%S"
 
 
 def _bytes(x):  # pragma: no branch
     """ Python3 and Python2 compatibility
     """
-    if sys.version > '3':
-        return bytes(x, 'utf8')
+    if sys.version > "3":
+        return bytes(x, "utf8")
     else:  # pragma: no cover
         return x.__bytes__()
 
@@ -54,16 +56,14 @@ def formatTimeFromNow(secs=0):
         :rtype: str
 
     """
-    return datetime.utcfromtimestamp(
-        time.time() + int(secs)).strftime(timeFormat)
+    return datetime.utcfromtimestamp(time.time() + int(secs)).strftime(timeFormat)
 
 
 def parse_time(block_time):
     """Take a string representation of time from the blockchain, and parse it
        into datetime object.
     """
-    return datetime.strptime(block_time, timeFormat).replace(
-        tzinfo=timezone.utc)
+    return datetime.strptime(block_time, timeFormat).replace(tzinfo=timezone.utc)
 
 
 # Legacy names

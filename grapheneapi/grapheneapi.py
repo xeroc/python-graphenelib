@@ -1,15 +1,13 @@
+# -*- coding: utf-8 -*-
 import sys
 import json
 import logging
+
 try:
     import requests
 except ImportError:
     raise ImportError("Missing dependency: python-requests")
-from .exceptions import (
-    RPCError,
-    UnauthorizedError,
-    RPCConnection,
-)
+from .exceptions import RPCError, UnauthorizedError, RPCConnection
 
 log = logging.getLogger(__name__)
 
@@ -59,12 +57,13 @@ class GrapheneAPI(object):
         and hence the calls available to the witness-rpc can be seen as read-only for
         the blockchain.
     """
+
     def __init__(self, host, port, username="", password=""):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
-        self.headers = {'content-type': 'application/json'}
+        self.headers = {"content-type": "application/json"}
 
     def rpcexec(self, payload):
         """ Manual execute a command on API (internally used)
@@ -83,19 +82,20 @@ class GrapheneAPI(object):
                 info -> grapheneapi.info()
         """
         try:
-            response = requests.post("http://{}:{}/rpc".format(self.host,
-                                                               self.port),
-                                     data=json.dumps(payload, ensure_ascii=False).encode('utf8'),
-                                     headers=self.headers,
-                                     auth=(self.username, self.password))
+            response = requests.post(
+                "http://{}:{}/rpc".format(self.host, self.port),
+                data=json.dumps(payload, ensure_ascii=False).encode("utf8"),
+                headers=self.headers,
+                auth=(self.username, self.password),
+            )
             if response.status_code == 401:
                 raise UnauthorizedError
             ret = json.loads(response.text)
-            if 'error' in ret:
-                if 'detail' in ret['error']:
-                    raise RPCError(ret['error']['detail'])
+            if "error" in ret:
+                if "detail" in ret["error"]:
+                    raise RPCError(ret["error"]["detail"])
                 else:
-                    raise RPCError(ret['error']['message'])
+                    raise RPCError(ret["error"]["message"])
         except requests.exceptions.RequestException:
             raise RPCConnection("Error connecting to Client!")
         except UnauthorizedError:
@@ -110,11 +110,10 @@ class GrapheneAPI(object):
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
         """
+
         def method(*args):
-            query = {"method": name,
-                     "params": args,
-                     "jsonrpc": "2.0",
-                     "id": 0}
+            query = {"method": name, "params": args, "jsonrpc": "2.0", "id": 0}
             r = self.rpcexec(query)
             return r
+
         return method

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .exceptions import VestingBalanceDoesNotExistsException
 from .blockchainobject import BlockchainObject
 from .instance import AbstractBlockchainInstanceProvider
@@ -10,6 +11,7 @@ class Vesting(BlockchainObject, AbstractBlockchainInstanceProvider):
         :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
+
     def __init__(self, *args, **kwargs):
         self.define_classes()
         assert self.account_class
@@ -39,7 +41,10 @@ class Vesting(BlockchainObject, AbstractBlockchainInstanceProvider):
                 if float(p["vesting_seconds"]) > 0.0
                 else 1
             )
-            return self.amount_class(self["balance"], blockchain_instance=self.blockchain) * ratio
+            return (
+                self.amount_class(self["balance"], blockchain_instance=self.blockchain)
+                * ratio
+            )
         else:
             raise NotImplementedError("This policy isn't implemented yet")
 

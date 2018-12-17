@@ -1,13 +1,9 @@
+# -*- coding: utf-8 -*-
 import unittest
-from .fixtures import (
-    ops,
-    operations,
-    getOperationNameForId
-)
+from .fixtures import ops, operations, getOperationNameForId
 
 
 class Testcases(unittest.TestCase):
-
     def test_ops(self):
         self.assertIsInstance(ops, list)
 

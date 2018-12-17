@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 import time
 import unittest
 from .fixtures import ObjectCache
 
 
 class Testcases(unittest.TestCase):
-
     def test_cache(self):
         cache = ObjectCache(default_expiration=1)
         self.assertEqual(str(cache), "ObjectCache(n=0, default_expiration=1)")

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from fractions import Fraction
 from .exceptions import InvalidAssetException
 from .utils import assets_from_string, formatTimeString, parse_time
@@ -115,7 +116,9 @@ class Price(dict, AbstractBlockchainInstanceProvider):
         elif len(args) == 1 and isinstance(args[0], dict) and "receives" in args[0]:
             # Filled order
             assert base_asset, "Need a 'base_asset' asset"
-            base_asset = self.asset_class(base_asset, blockchain_instance=self.blockchain)
+            base_asset = self.asset_class(
+                base_asset, blockchain_instance=self.blockchain
+            )
             if args[0]["receives"]["asset_id"] == base_asset["id"]:
                 # If the seller received "base" in a quote_base market, than
                 # it has been a sell order of quote
@@ -136,7 +139,9 @@ class Price(dict, AbstractBlockchainInstanceProvider):
                 )
                 self["type"] = "buy"
 
-        elif len(args) == 1 and (isinstance(base, self.asset_class) and isinstance(quote, self.asset_class)):
+        elif len(args) == 1 and (
+            isinstance(base, self.asset_class) and isinstance(quote, self.asset_class)
+        ):
             price = args[0]
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
             self["quote"] = self.amount_class(
@@ -170,13 +175,19 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             )
 
         elif len(args) == 0 and isinstance(base, str) and isinstance(quote, str):
-            self["quote"] = self.amount_class(quote, blockchain_instance=self.blockchain)
+            self["quote"] = self.amount_class(
+                quote, blockchain_instance=self.blockchain
+            )
             self["base"] = self.amount_class(base, blockchain_instance=self.blockchain)
 
         # len(args) > 1
         elif len(args) == 2 and isinstance(args[0], str) and isinstance(args[1], str):
-            self["base"] = self.amount_class(args[1], blockchain_instance=self.blockchain)
-            self["quote"] = self.amount_class(args[0], blockchain_instance=self.blockchain)
+            self["base"] = self.amount_class(
+                args[1], blockchain_instance=self.blockchain
+            )
+            self["quote"] = self.amount_class(
+                args[0], blockchain_instance=self.blockchain
+            )
 
         elif (
             len(args) == 2
@@ -186,7 +197,9 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             self["quote"], self["base"] = args[0], args[1]
 
         # len(args) == 0
-        elif isinstance(base, self.amount_class) and isinstance(quote, self.amount_class):
+        elif isinstance(base, self.amount_class) and isinstance(
+            quote, self.amount_class
+        ):
             self["quote"] = quote
             self["base"] = base
 
@@ -228,10 +241,7 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             )
 
     def copy(self):
-        return self.__class__(
-            base=self["base"].copy(),
-            quote=self["quote"].copy()
-        )
+        return self.__class__(base=self["base"].copy(), quote=self["quote"].copy())
 
     def _safedivide(self, a, b):
         if b != 0.0:

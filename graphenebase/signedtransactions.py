@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import hashlib
 import logging
@@ -9,26 +10,20 @@ from .ecdsa import sign_message, verify_message
 from binascii import hexlify, unhexlify
 from collections import OrderedDict
 from .account import PublicKey
-from .types import (
-    Array,
-    Set,
-    Signature,
-    PointInTime,
-    Uint16,
-    Uint32,
-)
+from .types import Array, Set, Signature, PointInTime, Uint16, Uint32
 from .objects import GrapheneObject, Operation
 from .chains import known_chains
+
 log = logging.getLogger(__name__)
 
 try:
     import secp256k1
+
     USE_SECP256K1 = True
     log.debug("Loaded secp256k1 binding.")
 except ImportError:
     USE_SECP256K1 = False
-    log.debug("To speed up transactions signing install \n"
-              "    pip install secp256k1")
+    log.debug("To speed up transactions signing install \n" "    pip install secp256k1")
 
 
 class MissingSignatureForKey(Exception):
@@ -45,6 +40,7 @@ class Signed_Transaction(GrapheneObject):
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
+
     known_chains = known_chains
     default_prefix = "GPH"
     operation_klass = Operation
@@ -53,25 +49,27 @@ class Signed_Transaction(GrapheneObject):
         if "signatures" not in kwargs:  # pragma: no branch
             kwargs["signatures"] = Array([])
         else:  # pragma: no cover
-            kwargs["signatures"] = Array([
-                Signature(unhexlify(a)) for a in kwargs["signatures"]
-            ])
+            kwargs["signatures"] = Array(
+                [Signature(unhexlify(a)) for a in kwargs["signatures"]]
+            )
 
         ops = kwargs.get("operations", [])
         opklass = self.getOperationKlass()
         if all([not isinstance(a, opklass) for a in ops]):
-            kwargs['operations'] = Array([opklass(a) for a in ops])
+            kwargs["operations"] = Array([opklass(a) for a in ops])
         else:
-            kwargs['operations'] = Array(ops)
+            kwargs["operations"] = Array(ops)
 
-        return OrderedDict([
-            ('ref_block_num', Uint16(kwargs['ref_block_num'])),
-            ('ref_block_prefix', Uint32(kwargs['ref_block_prefix'])),
-            ('expiration', PointInTime(kwargs['expiration'])),
-            ('operations', kwargs['operations']),
-            ('extensions', Set([])),
-            ('signatures', kwargs['signatures']),
-        ])
+        return OrderedDict(
+            [
+                ("ref_block_num", Uint16(kwargs["ref_block_num"])),
+                ("ref_block_prefix", Uint32(kwargs["ref_block_prefix"])),
+                ("expiration", PointInTime(kwargs["expiration"])),
+                ("operations", kwargs["operations"]),
+                ("extensions", Set([])),
+                ("signatures", kwargs["signatures"]),
+            ]
+        )
 
     def getKnownChains(self):
         return self.known_chains
@@ -100,16 +98,16 @@ class Signed_Transaction(GrapheneObject):
         # Return properly truncated tx hash
         return hexlify(h[:20]).decode("ascii")
 
-#     def derSigToHexSig(self, s):
-#         """ Format DER to HEX signature
-#         """
-#         s, junk = ecdsa.der.remove_sequence(unhexlify(s))
-#         if junk:
-#             log.debug('JUNK: %s', hexlify(junk).decode('ascii'))
-#         assert(junk == b'')
-#         x, s = ecdsa.der.remove_integer(s)
-#         y, s = ecdsa.der.remove_integer(s)
-#         return '%064x%064x' % (x, y)
+    #     def derSigToHexSig(self, s):
+    #         """ Format DER to HEX signature
+    #         """
+    #         s, junk = ecdsa.der.remove_sequence(unhexlify(s))
+    #         if junk:
+    #             log.debug('JUNK: %s', hexlify(junk).decode('ascii'))
+    #         assert(junk == b'')
+    #         x, s = ecdsa.der.remove_integer(s)
+    #         y, s = ecdsa.der.remove_integer(s)
+    #         return '%064x%064x' % (x, y)
 
     def getChainParams(self, chain):
         # chain may be an identifier, the chainid, or the prefix
@@ -163,11 +161,8 @@ class Signed_Transaction(GrapheneObject):
         pubKeysFound = []
 
         for signature in signatures:
-            p = verify_message(
-                self.message,
-                bytes(signature)
-            )
-            phex = hexlify(p).decode('ascii')
+            p = verify_message(self.message, bytes(signature))
+            phex = hexlify(p).decode("ascii")
             pubKeysFound.append(phex)
 
         for pubkey in pubkeys:

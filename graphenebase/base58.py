@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import hashlib
 import string
 import logging
@@ -7,9 +8,6 @@ from .utils import _bytes
 from .prefix import Prefix
 
 log = logging.getLogger(__name__)
-
-""" Default Prefix """
-PREFIX = "GPH"
 
 
 class Base58(Prefix):
@@ -37,6 +35,7 @@ class Base58(Prefix):
         * etc.
 
     """
+
     def __init__(self, data, prefix=None):
         self.set_prefix(prefix)
         if isinstance(data, Base58):
@@ -49,8 +48,8 @@ class Base58(Prefix):
             raise NotImplementedError(
                 "Private Keys starting with L or K are not supported!"
             )
-        elif data[:len(self.prefix)] == self.prefix:
-            self._hex = gphBase58CheckDecode(data[len(self.prefix):])
+        elif data[: len(self.prefix)] == self.prefix:
+            self._hex = gphBase58CheckDecode(data[len(self.prefix) :])
         else:
             raise ValueError("Error loading Base58 object")
 
@@ -116,7 +115,7 @@ def base58decode(base58_str):
         n = div
     else:
         res.insert(0, n)
-    return hexlify(bytearray(1) * leading_zeroes_count + res).decode('ascii')
+    return hexlify(bytearray(1) * leading_zeroes_count + res).decode("ascii")
 
 
 def base58encode(hexstring):
@@ -134,11 +133,11 @@ def base58encode(hexstring):
         n = div
     else:
         res.insert(0, BASE58_ALPHABET[n])
-    return (BASE58_ALPHABET[0:1] * leading_zeroes_count + res).decode('ascii')
+    return (BASE58_ALPHABET[0:1] * leading_zeroes_count + res).decode("ascii")
 
 
 def ripemd160(s):
-    ripemd160 = hashlib.new('ripemd160')
+    ripemd160 = hashlib.new("ripemd160")
     ripemd160.update(unhexlify(s))
     return ripemd160.digest()
 
@@ -156,29 +155,29 @@ def b58decode(v):
 
 
 def base58CheckEncode(version, payload):
-    s = ('%.2x' % version) + payload
+    s = ("%.2x" % version) + payload
     checksum = doublesha256(s)[:4]
-    result = s + hexlify(checksum).decode('ascii')
+    result = s + hexlify(checksum).decode("ascii")
     return base58encode(result)
 
 
 def base58CheckDecode(s):
     s = unhexlify(base58decode(s))
-    dec = hexlify(s[:-4]).decode('ascii')
+    dec = hexlify(s[:-4]).decode("ascii")
     checksum = doublesha256(dec)[:4]
-    assert(s[-4:] == checksum)
+    assert s[-4:] == checksum
     return dec[2:]
 
 
 def gphBase58CheckEncode(s):
     checksum = ripemd160(s)[:4]
-    result = s + hexlify(checksum).decode('ascii')
+    result = s + hexlify(checksum).decode("ascii")
     return base58encode(result)
 
 
 def gphBase58CheckDecode(s):
     s = unhexlify(base58decode(s))
-    dec = hexlify(s[:-4]).decode('ascii')
+    dec = hexlify(s[:-4]).decode("ascii")
     checksum = ripemd160(dec)[:4]
-    assert(s[-4:] == checksum)
+    assert s[-4:] == checksum
     return dec

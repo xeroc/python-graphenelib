@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import struct
 import logging
 from binascii import unhexlify
@@ -27,6 +28,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
             your own instance of transaction builder (optional)
         :param instance blockchain_instance: Blockchain instance
     """
+
     def __init__(
         self,
         proposer,
@@ -108,7 +110,9 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
         if not self.ops:
             return
         ops = [self.operations.Op_wrapper(op=o) for o in list(self.ops)]
-        proposer = self.account_class(self.proposer, blockchain_instance=self.blockchain)
+        proposer = self.account_class(
+            self.proposer, blockchain_instance=self.blockchain
+        )
         data = {
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "fee_paying_account": proposer["id"],
@@ -126,6 +130,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
     """ This class simplifies the creation of transactions by adding
         operations and signers.
     """
+
     def __init__(self, tx={}, proposer=None, **kwargs):
         self.define_classes()
         assert self.account_class
@@ -219,7 +224,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             try:
                 # Try obtain the private key from wallet
                 wif = self.blockchain.wallet.getPrivateKeyForPublicKey(authority[0])
-            except Exception as e:
+            except Exception:
                 continue
 
             if wif:
@@ -271,7 +276,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                 )
             # ... or should we rather obtain the keys from an account name
             else:
-                accountObj = self.account_class(account, blockchain_instance=self.blockchain)
+                accountObj = self.account_class(
+                    account, blockchain_instance=self.blockchain
+                )
                 required_treshold = accountObj[permission]["weight_threshold"]
                 keys = self._fetchkeys(
                     accountObj, permission, required_treshold=required_treshold
@@ -296,7 +303,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             try:
                 self.privatekey_class(wif)
                 self.wifs.add(wif)
-            except:
+            except Exception:
                 raise InvalidWifError
 
     def set_fee_asset(self, fee_asset):
@@ -327,7 +334,8 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                     ops[i].op.data["proposed_ops"].data[j].data["op"].op.data[
                         "fee"
                     ] = Asset(
-                        amount=fees[i][1][j]["amount"], asset_id=fees[i][1][j]["asset_id"]
+                        amount=fees[i][1][j]["amount"],
+                        asset_id=fees[i][1][j]["asset_id"],
                     )
             else:
                 # Operation is a regular operation
@@ -353,9 +361,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                 ops.extend([self.operation_class(op)])
 
         # We now wrap everything into an actual transaction
-        ops = self.add_required_fees(
-            ops, asset_id=self.fee_asset_id
-        )
+        ops = self.add_required_fees(ops, asset_id=self.fee_asset_id)
         expiration = formatTimeFromNow(
             self.expiration
             or self.blockchain.expiration
@@ -379,7 +385,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         ws = self.blockchain.rpc
         dynBCParams = ws.get_dynamic_global_properties()
         ref_block_num = dynBCParams["head_block_number"] & 0xFFFF
-        ref_block_prefix = struct.unpack_from("<I", unhexlify(dynBCParams["head_block_id"]), 4)[0]
+        ref_block_prefix = struct.unpack_from(
+            "<I", unhexlify(dynBCParams["head_block_id"]), 4
+        )[0]
         return ref_block_num, ref_block_prefix
 
     def sign(self):
@@ -415,7 +423,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
 
         try:
             signedtx = self.signed_transaction_class(**self.json())
-        except:
+        except Exception:
             raise ValueError("Invalid TransactionBuilder Format")
 
         if not any(self.wifs):

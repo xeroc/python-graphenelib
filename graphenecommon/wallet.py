@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 
 from graphenestorage import InRamPlainKeyStore, SqliteEncryptedKeyStore
@@ -37,6 +38,7 @@ class Wallet(AbstractBlockchainInstanceProvider):
           any account. This mode is only used for *foreign*
           signatures!
     """
+
     def __init__(self, *args, **kwargs):
         self.define_classes()
         assert self.privatekey_class
@@ -155,7 +157,7 @@ class Wallet(AbstractBlockchainInstanceProvider):
         """
         try:
             pub = self.publickey_from_wif(wif)
-        except:
+        except Exception:
             raise InvalidWifError("Invalid Key format!")
         if str(pub) in self.store:
             raise KeyAlreadyInStoreException("Key already in the store")
@@ -209,7 +211,7 @@ class Wallet(AbstractBlockchainInstanceProvider):
         for authority in account["active"]["key_auths"]:
             try:
                 return self.getPrivateKeyForPublicKey(authority[0])
-            except:
+            except Exception:
                 pass
         return False
 

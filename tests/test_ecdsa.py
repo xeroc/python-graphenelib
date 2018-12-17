@@ -1,10 +1,8 @@
+# -*- coding: utf-8 -*-
 import pytest
 import unittest
 from binascii import hexlify
-from .fixtures import (
-    PrivateKey,
-    ecdsa
-)
+from .fixtures import PrivateKey, ecdsa
 
 
 wif = "5J4KCbg1G3my9b9hCaQXnHSm6vrwW9xQTJS6ZciW2Kek7cCkCEk"
@@ -38,5 +36,5 @@ class Testcases(unittest.TestCase):
         self.assertEqual(hexlify(pub_key_sig).decode("latin"), pub_key)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

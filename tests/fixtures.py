@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import mock
 import yaml
@@ -19,18 +20,12 @@ from graphenebase.base58 import (
     gphBase58CheckEncode,
     gphBase58CheckDecode,
     b58decode,
-    b58encode
+    b58encode,
 )
 from graphenebase import types, utils
-from graphenebase.transactions import (
-    formatTimeFromNow,
-    timeformat
-)
+from graphenebase.transactions import formatTimeFromNow, timeformat
 from graphenebase.operations import Account_create
-from graphenebase.signedtransactions import (
-    Signed_Transaction,
-    MissingSignatureForKey
-)
+from graphenebase.signedtransactions import Signed_Transaction, MissingSignatureForKey
 from graphenebase.account import (
     BrainKey,
     Address,
@@ -38,22 +33,11 @@ from graphenebase.account import (
     PrivateKey,
     PasswordKey,
     GrapheneAddress,
-    BitcoinAddress
+    BitcoinAddress,
 )
-from graphenebase.objects import (
-    Operation,
-    GrapheneObject
-)
-from graphenebase.operations import (
-    Newdemooepration,
-    Newdemooepration2,
-    Demooepration
-)
-from graphenebase.operationids import (
-    ops,
-    operations,
-    getOperationNameForId
-)
+from graphenebase.objects import Operation, GrapheneObject
+from graphenebase.operations import Newdemooepration, Newdemooepration2, Demooepration
+from graphenebase.operationids import ops, operations, getOperationNameForId
 
 from graphenebase import bip38
 from graphenebase.bip38 import encrypt, decrypt
@@ -63,14 +47,14 @@ from graphenebase.transactions import getBlockParams
 from graphenestorage.exceptions import (
     WrongMasterPasswordException,
     KeyAlreadyInStoreException,
-    WalletLocked
+    WalletLocked,
 )
 import graphenestorage as storage
 from graphenestorage.interfaces import (
     StoreInterface,
     KeyInterface,
     ConfigInterface,
-    EncryptedKeyInterface
+    EncryptedKeyInterface,
 )
 from graphenestorage.sqlite import SQLiteStore
 
@@ -79,28 +63,16 @@ from graphenestorage.sqlite import SQLiteStore
 
 from graphenecommon.instance import BlockchainInstance as GBlockchainInstance
 from graphenecommon.amount import Amount as GAmount
-from graphenecommon.account import (
-    Account as GAccount,
-    AccountUpdate as GAccountUpdate
-)
+from graphenecommon.account import Account as GAccount, AccountUpdate as GAccountUpdate
 from graphenecommon.asset import Asset as GAsset
 from graphenecommon.committee import Committee as GCommittee
-from graphenecommon.block import (
-    Block as GBlock,
-    BlockHeader as GBlockHeader
-)
+from graphenecommon.block import Block as GBlock, BlockHeader as GBlockHeader
 from graphenecommon.message import Message as GMessage
 from graphenecommon.blockchainobject import ObjectCache
 from graphenecommon.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
-from graphenecommon.worker import (
-    Worker as GWorker,
-    Workers as GWorkers
-)
-from graphenecommon.witness import (
-    Witness as GWitness,
-    Witnesses as GWitnesss
-)
+from graphenecommon.worker import Worker as GWorker, Workers as GWorkers
+from graphenecommon.witness import Witness as GWitness, Witnesses as GWitnesss
 
 
 class Chain:
@@ -114,9 +86,7 @@ class Chain:
 
     @property
     def wallet(self):
-        return Wallet(
-            keys=["5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"]
-        )
+        return Wallet(keys=["5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"])
 
     def info(self):
         # returns demo data
@@ -134,7 +104,7 @@ class Chain:
             "recent_slots_filled": "340282366920938463463374607431768211455",
             "recently_missed_count": 0,
             "time": "2018-12-12T10:44:15",
-            "witness_budget": 31800000
+            "witness_budget": 31800000,
         }
 
     @property
@@ -143,9 +113,12 @@ class Chain:
             connection. However, it will always return
             an empty object!
         """
+
         class RPC:
             def _load(self, name):
-                with open(os.path.join(os.path.dirname(__file__), "fixtures.yaml")) as fid:
+                with open(
+                    os.path.join(os.path.dirname(__file__), "fixtures.yaml")
+                ) as fid:
                     d = yaml.safe_load(fid)
                 return d.get(name)
 
@@ -170,7 +143,9 @@ class Chain:
             def __getattr__(self, name):
                 def fun(self, *args, **kwargs):
                     return {}
+
                 return fun
+
         return RPC()
 
     def upgrade_account(self, *args, **kwargs):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from datetime import datetime
 from .fixtures import fixture_data, Worker, Workers, Account
@@ -5,12 +6,11 @@ from graphenecommon import exceptions
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
 
     def test_worker(self):
-        w = Worker('1.14.139')
+        w = Worker("1.14.139")
         self.assertIsInstance(w["work_end_date"], datetime)
         self.assertIsInstance(w["work_begin_date"], datetime)
         self.assertIsInstance(w["work_begin_date"], datetime)

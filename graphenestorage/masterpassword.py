@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import hashlib
 import logging
@@ -7,10 +8,7 @@ from binascii import hexlify
 from graphenebase import bip38
 from graphenebase.aes import AESCipher
 
-from .exceptions import (
-    WrongMasterPasswordException,
-    WalletLocked
-)
+from .exceptions import WrongMasterPasswordException, WalletLocked
 
 
 log = logging.getLogger(__name__)
@@ -30,8 +28,7 @@ class MasterPassword(object):
 
     def __init__(self, config=None, **kwargs):
         if config is None:
-            raise ValueError(
-                "If using encrypted store, a config store is required!")
+            raise ValueError("If using encrypted store, a config store is required!")
         self.config = config
         self.password = None
         self.decrypted_master = None
@@ -61,12 +58,12 @@ class MasterPassword(object):
             return bool(self.password)
         else:
             if (
-                "UNLOCK" in os.environ and os.environ["UNLOCK"] and
-                self.config_key in self.config and self.config[self.config_key]
+                "UNLOCK" in os.environ
+                and os.environ["UNLOCK"]
+                and self.config_key in self.config
+                and self.config[self.config_key]
             ):
-                log.debug(
-                    "Trying to use environmental "
-                    "variable to unlock wallet")
+                log.debug("Trying to use environmental " "variable to unlock wallet")
                 self.unlock(os.environ.get("UNLOCK"))
                 return bool(self.password)
         return False
@@ -102,7 +99,7 @@ class MasterPassword(object):
         checksum, encrypted_master = self.config[self.config_key].split("$")
         try:
             decrypted_master = aes.decrypt(encrypted_master)
-        except:
+        except Exception:
             self.raiseWrongMasterPasswordException()
         if checksum != self.deriveChecksum(decrypted_master):
             self.raiseWrongMasterPasswordException()
@@ -122,8 +119,7 @@ class MasterPassword(object):
             :param str password: Password to use for en-/de-cryption
         """
         # make sure to not overwrite an existing key
-        if (self.config_key in self.config and
-                self.config[self.config_key]):
+        if self.config_key in self.config and self.config[self.config_key]:
             raise Exception("Storage already has a masterpassword!")
 
         self.decrypted_master = hexlify(os.urandom(32)).decode("ascii")
@@ -152,8 +148,7 @@ class MasterPassword(object):
             raise WalletLocked
         aes = AESCipher(self.password)
         return "{}${}".format(
-            self.deriveChecksum(self.masterkey),
-            aes.encrypt(self.masterkey)
+            self.deriveChecksum(self.masterkey), aes.encrypt(self.masterkey)
         )
 
     def changePassword(self, newpassword):
@@ -171,10 +166,7 @@ class MasterPassword(object):
         """
         if not self.unlocked():
             raise WalletLocked
-        return format(
-            bip38.decrypt(wif, self.masterkey),
-            "wif"
-        )
+        return format(bip38.decrypt(wif, self.masterkey), "wif")
 
     def encrypt(self, wif):
         """ Encrypt the content according to BIP38
@@ -183,7 +175,4 @@ class MasterPassword(object):
         """
         if not self.unlocked():
             raise WalletLocked
-        return format(bip38.encrypt(
-            str(wif),
-            self.masterkey
-        ), "encwif")
+        return format(bip38.encrypt(str(wif), self.masterkey), "encwif")

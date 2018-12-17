@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import logging
 import re
@@ -21,6 +22,7 @@ log = logging.getLogger(__name__)
 class Message(AbstractBlockchainInstanceProvider):
     """ Allow to sign and verify Messages that are sigend with a private key
     """
+
     MESSAGE_SPLIT = (
         "-----BEGIN GRAPHENE SIGNED MESSAGE-----",
         "-----BEGIN META-----",
@@ -147,7 +149,9 @@ timestamp={meta[timestamp]}
 
         # Load account from blockchain
         try:
-            account = self.account_class(account_name, blockchain_instance=self.blockchain)
+            account = self.account_class(
+                account_name, blockchain_instance=self.blockchain
+            )
         except AccountDoesNotExistsException:
             raise AccountDoesNotExistsException(
                 "Could not find account {}. Are you connected to the right chain?".format(
@@ -171,7 +175,9 @@ timestamp={meta[timestamp]}
         pubkey = verify_message(enc_message, unhexlify(signature))
 
         # Verify pubky
-        pk = self.publickey_class(hexlify(pubkey).decode("ascii"), prefix=self.blockchain.prefix)
+        pk = self.publickey_class(
+            hexlify(pubkey).decode("ascii"), prefix=self.blockchain.prefix
+        )
         if format(pk, self.blockchain.prefix) != memo_key:
             raise InvalidMessageSignature("The signature doesn't match the memo key")
 

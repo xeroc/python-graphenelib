@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import time
 from .instance import AbstractBlockchainInstanceProvider
 
@@ -85,7 +86,9 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             .. note:: The block number returned depends on the ``mode`` used
                       when instanciating from this class.
         """
-        return self.block_class(self.get_current_block_num(), blockchain_instance=self.blockchain)
+        return self.block_class(
+            self.get_current_block_num(), blockchain_instance=self.blockchain
+        )
 
     def block_time(self, block_num):
         """ Returns a datetime of the block with the given block
@@ -102,7 +105,9 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             :param int block_num: Block number
         """
         return int(
-            self.block_class(block_num, blockchain_instance=self.blockchain).time().timestamp()
+            self.block_class(block_num, blockchain_instance=self.blockchain)
+            .time()
+            .timestamp()
         )
 
     def blocks(self, start=None, stop=None):

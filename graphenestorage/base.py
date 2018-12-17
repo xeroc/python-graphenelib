@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 
 from .masterpassword import MasterPassword
@@ -10,23 +11,18 @@ log = logging.getLogger(__name__)
 
 
 # Configuration
-class InRamConfigurationStore(
-    InRamStore,
-    ConfigInterface
-):
+class InRamConfigurationStore(InRamStore, ConfigInterface):
     """ A simple example that stores configuration in RAM.
 
         Internally, this works by simply inheriting
         :class:`graphenestorage.ram.InRamStore`. The interface is defined in
         :class:`graphenestorage.interfaces.ConfigInterface`.
     """
+
     pass
 
 
-class SqliteConfigurationStore(
-    SQLiteStore,
-    ConfigInterface
-):
+class SqliteConfigurationStore(SQLiteStore, ConfigInterface):
     """ This is the configuration storage that stores key/value
         pairs in the `config` table of the SQLite3 database.
 
@@ -44,16 +40,14 @@ class SqliteConfigurationStore(
 
 
 # Keys
-class InRamPlainKeyStore(
-    InRamStore,
-    KeyInterface
-):
+class InRamPlainKeyStore(InRamStore, KeyInterface):
     """ A simple in-RAM Store that stores keys unencrypted in RAM
 
         Internally, this works by simply inheriting
         :class:`graphenestorage.ram.InRamStore`. The interface is defined in
         :class:`graphenestorage.interfaces.KeyInterface`.
     """
+
     def getPublicKeys(self):
         return [k for k, v in self.items()]
 
@@ -69,10 +63,7 @@ class InRamPlainKeyStore(
         InRamStore.delete(self, str(pub))
 
 
-class SqlitePlainKeyStore(
-    SQLiteStore,
-    KeyInterface
-):
+class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
     """ This is the key storage that stores the public key and the
         **unencrypted** private key in the `keys` table in the SQLite3
         database.
@@ -81,8 +72,9 @@ class SqlitePlainKeyStore(
         :class:`graphenestorage.ram.InRamStore`. The interface is defined in
         :class:`graphenestorage.interfaces.KeyInterface`.
     """
+
     #: The table name for the configuration
-    __tablename__ = 'keys'
+    __tablename__ = "keys"
     #: The name of the 'key' column
     __key__ = "pub"
     #: The name of the 'value' column
@@ -108,10 +100,7 @@ class SqlitePlainKeyStore(
         return False
 
 
-class KeyEncryption(
-    MasterPassword,
-    EncryptedKeyInterface
-):
+class KeyEncryption(MasterPassword, EncryptedKeyInterface):
     """ This is an interface class that provides the methods required for
         EncryptedKeyInterface and links them to the MasterPassword-provided
         functionatlity, accordingly.
@@ -139,10 +128,7 @@ class KeyEncryption(
         return True
 
 
-class InRamEncryptedKeyStore(
-    InRamStore,
-    KeyEncryption
-):
+class InRamEncryptedKeyStore(InRamStore, KeyEncryption):
     """ An in-RAM Store that stores keys **encrypted** in RAM.
 
         Internally, this works by simply inheriting
@@ -153,15 +139,13 @@ class InRamEncryptedKeyStore(
             :class:`graphenestorage.masterpassword.MasterPassword` which offers
             additional methods and deals with encrypting the keys.
     """
+
     def __init__(self, *args, **kwargs):
         InRamStore.__init__(self, *args, **kwargs)
         KeyEncryption.__init__(self, *args, **kwargs)
 
 
-class SqliteEncryptedKeyStore(
-    SQLiteStore,
-    KeyEncryption
-):
+class SqliteEncryptedKeyStore(SQLiteStore, KeyEncryption):
     """ This is the key storage that stores the public key and the
         **encrypted** private key in the `keys` table in the SQLite3 database.
 
@@ -173,7 +157,8 @@ class SqliteEncryptedKeyStore(
             :class:`graphenestorage.masterpassword.MasterPassword` which offers
             additional methods and deals with encrypting the keys.
     """
-    __tablename__ = 'keys'
+
+    __tablename__ = "keys"
     __key__ = "pub"
     __value__ = "wif"
 

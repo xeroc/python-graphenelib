@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .blockchainobject import BlockchainObject
 from .exceptions import BlockDoesNotExistsException
 from .utils import parse_time
@@ -26,6 +27,7 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
                   refreshed with ``Account.refresh()``.
 
     """
+
     type_id = "n/a"
 
     def refresh(self):
