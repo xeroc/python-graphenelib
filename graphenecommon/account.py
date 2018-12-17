@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 
 from .blockchainobject import BlockchainObject
@@ -52,7 +53,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
         """
         import re
 
-        if re.match("^1\.2\.[0-9]*$", self.identifier):
+        if re.match(r"^1\.2\.[0-9]*$", self.identifier):
             account = self.blockchain.rpc.get_objects([self.identifier])[0]
         else:
             account = self.blockchain.rpc.lookup_account_names([self.identifier])[0]
@@ -158,9 +159,15 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
                 api="history",
             )
             for i in txs:
-                if exclude_ops and self.operations.getOperationNameForId(i["op"][0]) in exclude_ops:
+                if (
+                    exclude_ops
+                    and self.operations.getOperationNameForId(i["op"][0]) in exclude_ops
+                ):
                     continue
-                if not only_ops or self.operations.getOperationNameForId(i["op"][0]) in only_ops:
+                if (
+                    not only_ops
+                    or self.operations.getOperationNameForId(i["op"][0]) in only_ops
+                ):
                     cnt += 1
                     yield i
                     if limit >= 0 and cnt >= limit:
@@ -218,6 +225,7 @@ class AccountUpdate(dict, AbstractBlockchainInstanceProvider):
              'total_ops': 0}
 
     """
+
     def __init__(self, data, *args, **kwargs):
         self.define_classes()
         assert self.account_class

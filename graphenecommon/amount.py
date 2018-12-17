@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .asset import Asset
 from .instance import AbstractBlockchainInstanceProvider
 
@@ -69,7 +70,9 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
 
         elif len(args) == 1 and isinstance(args[0], str):
             self["amount"], self["symbol"] = args[0].split(" ")
-            self["asset"] = self.asset_class(self["symbol"], blockchain_instance=self.blockchain)
+            self["asset"] = self.asset_class(
+                self["symbol"], blockchain_instance=self.blockchain
+            )
 
         elif (
             len(args) == 1
@@ -89,7 +92,9 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
             and "amount" in args[0]
             and "asset" in args[0]
         ):
-            self["asset"] = self.asset_class(args[0]["asset"], blockchain_instance=self.blockchain)
+            self["asset"] = self.asset_class(
+                args[0]["asset"], blockchain_instance=self.blockchain
+            )
             self["symbol"] = self["asset"]["symbol"]
             self["amount"] = int(args[0]["amount"]) / 10 ** self["asset"]["precision"]
 
@@ -100,7 +105,9 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
 
         elif len(args) == 2 and isinstance(args[1], str):
             self["amount"] = args[0]
-            self["asset"] = self.asset_class(args[1], blockchain_instance=self.blockchain)
+            self["asset"] = self.asset_class(
+                args[1], blockchain_instance=self.blockchain
+            )
             self["symbol"] = self["asset"]["symbol"]
 
         elif isinstance(amount, (int, float)) and asset and isinstance(asset, Asset):
@@ -153,7 +160,9 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
         """ Returns the asset as instance of :class:`.asset.Asset`
         """
         if not self["asset"]:
-            self["asset"] = self.asset_class(self["symbol"], blockchain_instance=self.blockchain)
+            self["asset"] = self.asset_class(
+                self["symbol"], blockchain_instance=self.blockchain
+            )
         return self["asset"]
 
     def json(self):

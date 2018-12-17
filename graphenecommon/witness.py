@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .exceptions import WitnessDoesNotExistsException
 from .blockchainobject import BlockchainObject
 from .instance import AbstractBlockchainInstanceProvider
@@ -10,6 +11,7 @@ class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
         :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
+
     def __init__(self, *args, **kwargs):
         self.define_classes()
         assert self.type_id or self.type_ids
@@ -24,7 +26,9 @@ class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
             else:
                 witness = self.blockchain.rpc.get_witness_by_account(self.identifier)
         else:
-            account = self.account_class(self.identifier, blockchain_instance=self.blockchain)
+            account = self.account_class(
+                self.identifier, blockchain_instance=self.blockchain
+            )
             witness = self.blockchain.rpc.get_witness_by_account(account["id"])
         if not witness:
             raise WitnessDoesNotExistsException(self.identifier)
@@ -32,14 +36,18 @@ class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
 
     @property
     def account(self):
-        return self.account_class(self["witness_account"], blockchain_instance=self.blockchain)
+        return self.account_class(
+            self["witness_account"], blockchain_instance=self.blockchain
+        )
 
     @property
     def weight(self):
         if not self.is_active:
             return 0
         else:
-            account = self.account_class("witness-account", blockchain_instance=self.blockchain)
+            account = self.account_class(
+                "witness-account", blockchain_instance=self.blockchain
+            )
             threshold = account["active"]["weight_threshold"]
             weight = next(
                 filter(
@@ -51,7 +59,9 @@ class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
 
     @property
     def is_active(self):
-        account = self.account_class("witness-account", blockchain_instance=self.blockchain)
+        account = self.account_class(
+            "witness-account", blockchain_instance=self.blockchain
+        )
         return self.account["id"] in [x[0] for x in account["active"]["account_auths"]]
 
 
@@ -62,6 +72,7 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
             actively producing blocks
         :param instance blockchain_instance: instance to use when accesing a RPC
     """
+
     def __init__(self, *args, only_active=False, lazy=False, **kwargs):
         self.define_classes()
         assert self.account_class
@@ -77,7 +88,9 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
         ]
 
         if only_active:
-            account = self.account_class("witness-account", blockchain_instance=self.blockchain)
+            account = self.account_class(
+                "witness-account", blockchain_instance=self.blockchain
+            )
             filter_by = [x[0] for x in account["active"]["account_auths"]]
             witnesses = list(
                 filter(lambda x: x["witness_account"] in filter_by, witnesses)
@@ -87,6 +100,7 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
 
     def __contains__(self, item):
         from .account import Account
+
         assert self.blockchain_object_class
 
         if self.blockchain_object_class.objectid_valid(item):

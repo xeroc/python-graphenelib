@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from datetime import datetime
 from .fixtures import fixture_data, Witness, Witnesses, Account
@@ -5,12 +6,11 @@ from graphenecommon import exceptions
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
 
     def test_Witness(self):
-        w = Witness('1.6.1')
+        w = Witness("1.6.1")
         self.assertIsInstance(w.account, Account)
         self.assertEqual(w.account["id"], "1.2.101")
         Witness(w)

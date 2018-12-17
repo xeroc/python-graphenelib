@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 import mock
 from .fixtures import fixture_data, Message
@@ -5,7 +6,6 @@ from graphenecommon.exceptions import InvalidMessageSignature
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
 
@@ -14,7 +14,8 @@ class Testcases(unittest.TestCase):
         Message(p).verify()
 
     def test_verify_message(self):
-        Message("""
+        Message(
+            """
 -----BEGIN GRAPHENE SIGNED MESSAGE-----
 message foobar
 -----BEGIN META-----

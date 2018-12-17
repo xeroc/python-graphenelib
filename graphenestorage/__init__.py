@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Load modules from other classes
 from .base import (
     InRamConfigurationStore,
@@ -5,17 +6,11 @@ from .base import (
     InRamEncryptedKeyStore,
     SqliteConfigurationStore,
     SqlitePlainKeyStore,
-    SqliteEncryptedKeyStore
+    SqliteEncryptedKeyStore,
 )
 from .sqlite import SQLiteFile
 
-__all__ = [
-    "interfaces",
-    "masterpassword",
-    "base",
-    "sqlite",
-    "ram"
-]
+__all__ = ["interfaces", "masterpassword", "base", "sqlite", "ram"]
 
 
 def get_default_config_store(*args, **kwargs):

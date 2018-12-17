@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class SharedInstance:
     """ This class merely offers a singelton for the Blockchain Instance
     """
@@ -5,12 +6,14 @@ class SharedInstance:
     instance = None
     config = {}
 
+
 class AbstractBlockchainInstanceProvider:
     """ This is a class that allows compatibility with previous
         naming conventions. It will extract 'blockchain_instance'
         from the key word arguments and ensure that self.blockchain
         contains an instance of the main chain instance
     """
+
     __originalname__ = ""
 
     def __init__(self, *args, **kwargs):
@@ -21,9 +24,11 @@ class AbstractBlockchainInstanceProvider:
         class NewClass(slf, cls):
             blockchain_instance_class = slf
             __originalname__ = cls.__name__
+
             def __init__(self, *args, **kwargs):
                 slf.__init__(self, *args, **kwargs)
                 cls.__init__(self, *args, **kwargs)
+
         return NewClass
 
     def get_instance_class(self):
@@ -76,6 +81,7 @@ class AbstractBlockchainInstanceProvider:
         if SharedInstance.instance:
             self.shared_blockchain_instance().clear_cache()
             SharedInstance.instance = None
+
 
 # Legacy alias
 BlockchainInstance = AbstractBlockchainInstanceProvider

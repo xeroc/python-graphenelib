@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import random
 from graphenebase import memo
 from .exceptions import KeyNotFound, MissingKeyError
@@ -50,7 +51,9 @@ class Memo(AbstractBlockchainInstanceProvider):
         assert self.publickey_class
 
         if to_account:
-            self.to_account = self.account_class(to_account, blockchain_instance=self.blockchain)
+            self.to_account = self.account_class(
+                to_account, blockchain_instance=self.blockchain
+            )
         if from_account:
             self.from_account = self.account_class(
                 from_account, blockchain_instance=self.blockchain
@@ -86,7 +89,9 @@ class Memo(AbstractBlockchainInstanceProvider):
 
         enc = memo.encode_memo(
             self.privatekey_class(memo_wif),
-            self.publickey_class(self.to_account["options"]["memo_key"], prefix=self.chain_prefix),
+            self.publickey_class(
+                self.to_account["options"]["memo_key"], prefix=self.chain_prefix
+            ),
             nonce,
             message,
         )

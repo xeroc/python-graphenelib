@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .blockchainobject import BlockchainObject
 from .exceptions import CommitteeMemberDoesNotExistsException
 from .instance import AbstractBlockchainInstanceProvider
@@ -22,7 +23,9 @@ class Committee(BlockchainObject, AbstractBlockchainInstanceProvider):
         if self.test_valid_objectid(self.identifier):
             _, i, _ = self.identifier.split(".")
             if int(i) == 2:
-                account = self.account_class(self.identifier, blockchain_instance=self.blockchain)
+                account = self.account_class(
+                    self.identifier, blockchain_instance=self.blockchain
+                )
                 member = self.blockchain.rpc.get_committee_member_by_account(
                     account["id"]
                 )
@@ -32,7 +35,9 @@ class Committee(BlockchainObject, AbstractBlockchainInstanceProvider):
                 raise CommitteeMemberDoesNotExistsException
         else:
             # maybe identifier is an account name
-            account = self.account_class(self.identifier, blockchain_instance=self.blockchain)
+            account = self.account_class(
+                self.identifier, blockchain_instance=self.blockchain
+            )
             member = self.blockchain.rpc.get_committee_member_by_account(account["id"])
 
         if not member:

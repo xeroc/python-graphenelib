@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 import hashlib
 from binascii import hexlify, unhexlify
@@ -19,15 +20,15 @@ SCRYPT_MODULE = None
 if not SCRYPT_MODULE:  # pragma: no cover
     try:
         import scrypt
+
         SCRYPT_MODULE = "scrypt"
     except ImportError:
         try:
             import pylibscrypt as scrypt
+
             SCRYPT_MODULE = "pylibscrypt"
         except ImportError:
-            raise ImportError(
-                "Missing dependency: scrypt or pylibscrypt"
-            )
+            raise ImportError("Missing dependency: scrypt or pylibscrypt")
 
 log.debug("Using scrypt module: %s" % SCRYPT_MODULE)
 
@@ -38,7 +39,7 @@ class SaltException(Exception):
 
 def _encrypt_xor(a, b, aes):
     """ Returns encrypt(a ^ b). """
-    a = unhexlify('%0.32x' % (int((a), 16) ^ int(hexlify(b), 16)))
+    a = unhexlify("%0.32x" % (int((a), 16) ^ int(hexlify(b), 16)))
     return aes.encrypt(a)
 
 
@@ -57,7 +58,7 @@ def encrypt(privkey, passphrase):
     else:
         privkey = PrivateKey(repr(privkey))
 
-    privkeyhex = repr(privkey)   # hex
+    privkeyhex = repr(privkey)  # hex
     addr = format(privkey.bitcoin.address, "BTC")
     a = _bytes(addr)
     salt = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
@@ -65,18 +66,17 @@ def encrypt(privkey, passphrase):
         key = scrypt.hash(passphrase, salt, 16384, 8, 8)
     elif SCRYPT_MODULE == "pylibscrypt":  # pragma: no cover
         key = scrypt.scrypt(bytes(passphrase, "utf-8"), salt, 16384, 8, 8)
-    else:   # pragma: no cover
+    else:  # pragma: no cover
         raise ValueError("No scrypt module loaded")  # pragma: no cover
     (derived_half1, derived_half2) = (key[:32], key[32:])
     aes = AES.new(derived_half2, AES.MODE_ECB)
     encrypted_half1 = _encrypt_xor(privkeyhex[:32], derived_half1[:16], aes)
     encrypted_half2 = _encrypt_xor(privkeyhex[32:], derived_half1[16:], aes)
     " flag byte is forced 0xc0 because Graphene only uses compressed keys "
-    payload = (b'\x01' + b'\x42' + b'\xc0' +
-               salt + encrypted_half1 + encrypted_half2)
+    payload = b"\x01" + b"\x42" + b"\xc0" + salt + encrypted_half1 + encrypted_half2
     " Checksum "
     checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
-    privatkey = hexlify(payload + checksum).decode('ascii')
+    privatkey = hexlify(payload + checksum).decode("ascii")
     return Base58(privatkey)
 
 
@@ -93,10 +93,10 @@ def decrypt(encrypted_privkey, passphrase):
     """
 
     d = unhexlify(base58decode(encrypted_privkey))
-    d = d[2:]   # remove trailing 0x01 and 0x42
+    d = d[2:]  # remove trailing 0x01 and 0x42
     flagbyte = d[0:1]  # get flag byte
-    d = d[1:]   # get payload
-    assert flagbyte == b'\xc0', "Flagbyte has to be 0xc0"
+    d = d[1:]  # get payload
+    assert flagbyte == b"\xc0", "Flagbyte has to be 0xc0"
     salt = d[0:4]
     d = d[4:-4]
     if SCRYPT_MODULE == "scrypt":  # pragma: no cover
@@ -113,15 +113,13 @@ def decrypt(encrypted_privkey, passphrase):
     decryptedhalf2 = aes.decrypt(encryptedhalf2)
     decryptedhalf1 = aes.decrypt(encryptedhalf1)
     privraw = decryptedhalf1 + decryptedhalf2
-    privraw = ('%064x' % (int(hexlify(privraw), 16) ^
-                          int(hexlify(derivedhalf1), 16)))
+    privraw = "%064x" % (int(hexlify(privraw), 16) ^ int(hexlify(derivedhalf1), 16))
     wif = Base58(privraw)
     """ Verify Salt """
     privkey = PrivateKey(format(wif, "wif"))
     addr = format(privkey.bitcoin.address, "BTC")
     a = _bytes(addr)
     saltverify = hashlib.sha256(hashlib.sha256(a).digest()).digest()[0:4]
-    if saltverify != salt:   # pragma: no cover
-        raise SaltException(
-            'checksum verification failed! Password may be incorrect.')
+    if saltverify != salt:  # pragma: no cover
+        raise SaltException("checksum verification failed! Password may be incorrect.")
     return wif

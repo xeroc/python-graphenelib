@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 
 from .blockchainobject import BlockchainObject, ObjectCache
@@ -16,6 +17,7 @@ class Proposal(BlockchainObject, AbstractBlockchainInstanceProvider):
         :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
+
     def __init__(self, account, *args, **kwargs):
         self.define_classes()
         assert self.account_class
@@ -77,5 +79,8 @@ class Proposals(list, AbstractBlockchainInstanceProvider):
             Proposals.cache[account["id"]] = proposals
 
         super(Proposals, self).__init__(
-            [self.proposal_class(x, blockchain_instance=self.blockchain) for x in proposals]
+            [
+                self.proposal_class(x, blockchain_instance=self.blockchain)
+                for x in proposals
+            ]
         )

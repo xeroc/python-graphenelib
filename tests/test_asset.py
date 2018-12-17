@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 import unittest
 from graphenecommon.exceptions import AssetDoesNotExistsException
 from .fixtures import fixture_data, Asset
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
 
