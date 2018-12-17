@@ -212,3 +212,21 @@ class GrapheneObject(OrderedDict):
 # Legacy
 def isArgsThisClass(self, args):
     return (len(args) == 1 and type(args[0]).__name__ == type(self).__name__)
+
+
+# Common Objects
+class Asset(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("amount", Int64(kwargs["amount"])),
+                        ("asset_id", ObjectId(kwargs["asset_id"], "asset")),
+                    ]
+                )
+            )

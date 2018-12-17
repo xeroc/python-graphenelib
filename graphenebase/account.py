@@ -8,18 +8,19 @@ from binascii import hexlify, unhexlify
 from .base58 import ripemd160, Base58, doublesha256
 from .dictionary import words as BrainKeyDictionary
 from .utils import _bytes
+from .prefix import Prefix
 
 import ecdsa
 
 
-class PasswordKey(object):
+class PasswordKey(Prefix):
     """ This class derives a private key given the account name, the
         role and a password. It leverages the technology of Brainkeys
         and allows people to have a secure private key by providing a
         passphrase only.
     """
-
-    def __init__(self, account, password, role="active"):
+    def __init__(self, account, password, role="active", prefix=None):
+        self.set_prefix(prefix)
         self.account = account
         self.role = role
         self.password = password
@@ -30,7 +31,10 @@ class PasswordKey(object):
         """
         a = _bytes(self.account + self.role + self.password)
         s = hashlib.sha256(a).digest()
-        return PrivateKey(hexlify(s).decode('ascii'))
+        return PrivateKey(
+            hexlify(s).decode('ascii'),
+            prefix=self.prefix
+        )
 
     def get_public(self):
         return self.get_private().pubkey
@@ -42,7 +46,7 @@ class PasswordKey(object):
         return self.get_public()
 
 
-class BrainKey(object):
+class BrainKey(Prefix):
     """Brainkey implementation similar to the graphene-ui web-wallet.
 
         :param str brainkey: Brain Key
@@ -62,7 +66,8 @@ class BrainKey(object):
 
     """
 
-    def __init__(self, brainkey=None, sequence=0):
+    def __init__(self, brainkey=None, sequence=0, prefix=None):
+        self.set_prefix(prefix)
         if not brainkey:
             self.brainkey = BrainKey.suggest()
         else:
@@ -97,13 +102,19 @@ class BrainKey(object):
         encoded = "%s %d" % (self.brainkey, self.sequence)
         a = _bytes(encoded)
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
-        return PrivateKey(hexlify(s).decode('ascii'))
+        return PrivateKey(
+            hexlify(s).decode('ascii'),
+            prefix=self.prefix
+        )
 
     def get_blind_private(self):
         """ Derive private key from the brain key (and no sequence number)
         """
         a = _bytes(self.brainkey)
-        return PrivateKey(hashlib.sha256(a).hexdigest())
+        return PrivateKey(
+            hashlib.sha256(a).hexdigest(),
+            prefix=self.prefix
+        )
 
     def get_public(self):
         return self.get_private().pubkey
@@ -129,13 +140,6 @@ class BrainKey(object):
             wIdx = round(len(dict_lines) * rndMult)
             brainkey[j] = dict_lines[wIdx]
         return (" ".join(brainkey).upper())
-
-
-class Prefix:
-    prefix = "GPH"
-
-    def set_prefix(self, prefix):
-        self.prefix = prefix or Prefix.prefix
 
 
 class Address(Prefix):
@@ -305,7 +309,7 @@ class PublicKey(Prefix):
     @classmethod
     def from_privkey(cls, privkey, prefix=None):
         """ Derive uncompressed public key """
-        privkey = PrivateKey(privkey)
+        privkey = PrivateKey(privkey, prefix=prefix or Prefix.prefix)
         secret = unhexlify(repr(privkey))
         order = ecdsa.SigningKey.from_string(
             secret, curve=ecdsa.SECP256k1).curve.generator.order()
@@ -381,6 +385,7 @@ class PrivateKey(Prefix):
 
     """
     def __init__(self, wif=None, prefix=None):
+        self.set_prefix(prefix)
         if wif is None:
             import os
             self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))
@@ -390,7 +395,6 @@ class PrivateKey(Prefix):
             self._wif = wif
         else:
             self._wif = Base58(wif)
-        self.set_prefix(prefix)
 
         # test for valid key by trying to obtain a public key
         assert len(repr(self._wif)) == 64
@@ -428,7 +432,9 @@ class PrivateKey(Prefix):
         a = bytes(encoded, 'ascii')
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
         return PrivateKey(
-            hexlify(s).decode('ascii'), prefix=self.pubkey.prefix)
+            hexlify(s).decode('ascii'),
+            prefix=self.pubkey.prefix
+        )
 
     def child(self, offset256):
         """ Derive new private key from this key and a sha256 "offset"
@@ -447,7 +453,10 @@ class PrivateKey(Prefix):
         order = ecdsa.SECP256k1.order
         secexp = (seed + z) % order
         secret = "%0x" % secexp
-        return PrivateKey(secret, prefix=self.pubkey.prefix)
+        return PrivateKey(
+            secret,
+            prefix=self.pubkey.prefix
+        )
 
     def __format__(self, _format):
         """ Formats the instance of:doc:`Base58 <base58>` according to
