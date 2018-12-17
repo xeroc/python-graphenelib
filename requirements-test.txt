@@ -5,3 +5,8 @@ secp256k1
 pytest
 coverage
 mock
+
+# Code style
+black
+isort
+pre-commit
