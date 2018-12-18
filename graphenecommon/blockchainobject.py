@@ -62,7 +62,7 @@ class BlockchainObject(dict):
 
     @staticmethod
     def clear_cache():
-        raise ObjectCache.clear()
+        BlockchainObject._cache = ObjectCache()
 
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
         assert self.type_id or self.type_ids
