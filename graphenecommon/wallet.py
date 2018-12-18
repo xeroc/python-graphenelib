@@ -60,7 +60,7 @@ class Wallet(AbstractBlockchainInstanceProvider):
             )
 
     def privatekey(self, key):
-        return self.privatekey_class(key)
+        return self.privatekey_class(key, prefix=self.prefix)
 
     def publickey_from_wif(self, wif):
         return str(self.privatekey(str(wif)).pubkey)
@@ -68,11 +68,10 @@ class Wallet(AbstractBlockchainInstanceProvider):
     @property
     def prefix(self):
         if self.blockchain.is_connected():
-            prefix = self.blockchain.prefix
+            return self.blockchain.prefix
         else:
             # If not connected, load prefix from config
-            prefix = self.blockchain.config["prefix"]
-        return prefix or "BTS"  # default prefix is BTS
+            return self.blockchain.config["prefix"]
 
     @property
     def rpc(self):

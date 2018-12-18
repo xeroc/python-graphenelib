@@ -77,6 +77,7 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
         self.define_classes()
         assert self.account_class
         assert self.witness_class
+        assert self.blockchain_object_class
 
         self.schedule = self.blockchain.rpc.get_object("2.12.0").get(
             "current_shuffled_witnesses", []
@@ -99,13 +100,11 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
         super(Witnesses, self).__init__(witnesses)
 
     def __contains__(self, item):
-        from .account import Account
-
         assert self.blockchain_object_class
 
         if self.blockchain_object_class.objectid_valid(item):
             id = item
-        elif isinstance(item, Account):
+        elif isinstance(item, self.account_class):
             id = item["id"]
         else:
             account = self.account_class(item, blockchain_instance=self.blockchain)

@@ -76,9 +76,17 @@ class Memo(AbstractBlockchainInstanceProvider):
             return None
 
         nonce = str(random.getrandbits(64))
-        memo_wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
-            self.from_account["options"]["memo_key"]
-        )
+        try:
+            memo_wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
+                self.from_account["options"]["memo_key"]
+            )
+        except KeyNotFound:
+            # if all fails, raise exception
+            raise MissingKeyError(
+                "Memo private key {} for {} could not be found".format(
+                    self.from_account["options"]["memo_key"], self.from_account["name"]
+                )
+            )
         if not memo_wif:
             raise MissingKeyError(
                 "Memo key for %s missing!" % self.from_account["name"]
@@ -127,7 +135,7 @@ class Memo(AbstractBlockchainInstanceProvider):
             except KeyNotFound:
                 # if all fails, raise exception
                 raise MissingKeyError(
-                    "Non of the required memo keys are installed!"
+                    "None of the required memo keys are installed!"
                     "Need any of {}".format([message["to"], message["from"]])
                 )
 

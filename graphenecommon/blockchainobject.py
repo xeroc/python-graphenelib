@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 from .instance import AbstractBlockchainInstanceProvider
 
@@ -59,13 +60,17 @@ class BlockchainObject(dict):
     _cache = ObjectCache()
     __originalname__ = ""
 
+    @staticmethod
+    def clear_cache():
+        raise ObjectCache.clear()
+
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
         assert self.type_id or self.type_ids
         self.cached = False
         self.identifier = None
 
         if "_cache_expiration" in kwargs:
-            BlockchainObject.set_expiration(kwargs["_cache_expiration"])
+            self.set_expiration(kwargs["_cache_expiration"])
 
         # We don't read lists, sets, or tuples
         if isinstance(data, (list, set, tuple)):
@@ -106,10 +111,6 @@ class BlockchainObject(dict):
             self.cached = True
 
     @staticmethod
-    def clear_cache():
-        BlockchainObject._cache = ObjectCache()
-
-    @staticmethod
     def objectid_valid(i):
         if "." not in i:
             return False
@@ -118,12 +119,12 @@ class BlockchainObject(dict):
             try:
                 [int(x) for x in parts]
                 return True
-            except:
+            except Exception:
                 pass
             return False
 
     def test_valid_objectid(self, i):
-        return BlockchainObject.objectid_valid(i)
+        return self.objectid_valid(i)
 
     def testid(self, id):
         parts = id.split(".")
@@ -143,15 +144,15 @@ class BlockchainObject(dict):
     def cache(self, key=None):
         # store in cache
         if key is None and dict.__contains__(self, "id"):
-            BlockchainObject._cache[self.get("id")] = self
+            self._cache[self.get("id")] = self
         elif key:
-            BlockchainObject._cache[key] = self
+            self._cache[key] = self
 
     def iscached(self, id):
-        return id in BlockchainObject._cache
+        return id in self._cache
 
     def getcache(self, id):
-        return BlockchainObject._cache.get(id, None)
+        return self._cache.get(id, None)
 
     def __getitem__(self, key):
         if not self.cached:
