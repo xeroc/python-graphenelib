@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class WalletExists(Exception):
     """ A wallet has already been created and requires a password to be
         unlocked by means of :func:`wallet.unlock`.
@@ -111,4 +112,8 @@ class WrongMemoKey(Exception):
 
 
 class ProposalDoesNotExistException(Exception):
+    pass
+
+
+class GenesisBalanceDoesNotExistsException(Exception):
     pass
