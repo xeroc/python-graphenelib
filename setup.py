@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from setuptools import setup
 
@@ -12,7 +13,7 @@ except LookupError:
     ascii = codecs.lookup("ascii")
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == "mbcs"))
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 URL = "https://github.com/xeroc/python-graphenelib"
 
 setup(
