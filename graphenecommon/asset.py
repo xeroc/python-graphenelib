@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
 from .blockchainobject import BlockchainObject
 from .exceptions import AssetDoesNotExistsException
 from .instance import AbstractBlockchainInstanceProvider
@@ -59,7 +58,7 @@ class Asset(BlockchainObject, AbstractBlockchainInstanceProvider):
 
     @property
     def is_bitasset(self):
-        """ Is the asset a :doc:`mpa`?
+        """ Is the asset a market pegged asset?
         """
         return "bitasset_data_id" in self
 

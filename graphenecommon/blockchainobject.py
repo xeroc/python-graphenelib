@@ -134,10 +134,10 @@ class BlockchainObject(dict):
             self.type_ids = [self.type_id]
 
         assert int(parts[0]) == self.space_id, "Valid id's for {} are {}.{}.x".format(
-            self.__name__, self.space_id, self.type_id
+            self.__class__.__name__, self.space_id, self.type_id
         )
         assert int(parts[1]) in self.type_ids, "Valid id's for {} are {}.{}.x".format(
-            self.__name__, self.space_id, self.type_ids
+            self.__class__.__name__, self.space_id, self.type_ids
         )
 
     def cache(self, key=None):
@@ -169,7 +169,7 @@ class BlockchainObject(dict):
         return dict.__contains__(self, key)
 
     def __repr__(self):
-        return "<%s %s>" % (self.__name__, str(self.identifier))
+        return "<%s %s>" % (self.__class__.__name__, str(self.identifier))
 
 
 class Object(BlockchainObject, AbstractBlockchainInstanceProvider):
