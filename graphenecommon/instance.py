@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from functools import update_wrapper
+import types
+
+
 class SharedInstance:
     """ This class merely offers a singelton for the Blockchain Instance
     """
@@ -14,8 +18,6 @@ class AbstractBlockchainInstanceProvider:
         contains an instance of the main chain instance
     """
 
-    __originalname__ = ""
-
     def __init__(self, *args, **kwargs):
         pass
 
@@ -23,12 +25,14 @@ class AbstractBlockchainInstanceProvider:
     def inject(slf, cls):
         class NewClass(slf, cls):
             blockchain_instance_class = slf
-            __originalname__ = cls.__name__
 
             def __init__(self, *args, **kwargs):
                 slf.__init__(self, *args, **kwargs)
                 cls.__init__(self, *args, **kwargs)
 
+        NewClass.__name__ = cls.__name__
+        NewClass.__doc__ = cls.__doc__
+        NewClass.__module__ = cls.__module__
         return NewClass
 
     def get_instance_class(self):

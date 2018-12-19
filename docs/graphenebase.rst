@@ -13,10 +13,12 @@ Submodules
    graphenebase.chains
    graphenebase.dictionary
    graphenebase.ecdsa
+   graphenebase.memo
    graphenebase.objects
    graphenebase.objecttypes
    graphenebase.operationids
    graphenebase.operations
+   graphenebase.prefix
    graphenebase.signedtransactions
    graphenebase.transactions
    graphenebase.types

@@ -6,4 +6,5 @@ python-graphene
 
    grapheneapi
    graphenebase
+   graphenecommon
    graphenestorage
