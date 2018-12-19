@@ -7,6 +7,7 @@ coverage
 mock
 
 # Code style
-black
+
+# black   # not available pre 3.6
 isort
 pre-commit
