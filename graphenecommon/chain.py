@@ -166,7 +166,7 @@ class AbstractGrapheneChain:
         """
         if "append_to" in kwargs and kwargs["append_to"]:
             if self.proposer:
-                log.warn(
+                log.warning(
                     "You may not use append_to and bitshares.proposer at "
                     "the same time. Append bitshares.new_proposal(..) instead"
                 )
