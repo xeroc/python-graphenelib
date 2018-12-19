@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .blockchainobject import BlockchainObject
+from .blockchainobject import BlockchainObject, BlockchainObjects
 from .exceptions import CommitteeMemberDoesNotExistsException
 from .instance import AbstractBlockchainInstanceProvider
 

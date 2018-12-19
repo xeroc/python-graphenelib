@@ -28,5 +28,5 @@ class Testcases(unittest.TestCase):
         self.assertEqual(len(ws), 2)
 
     def test_workers2(self):
-        ws = Workers("init0")
-        self.assertEqual(len(ws), 1)
+        ws = Workers._cache["Workers"] = [dict(), dict()]
+        self.assertEqual(len(ws), 2)

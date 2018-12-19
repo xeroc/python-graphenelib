@@ -59,7 +59,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
             account = self.blockchain.rpc.lookup_account_names([self.identifier])[0]
         if not account:
             raise AccountDoesNotExistsException(self.identifier)
-        self.cache(account["name"])
+        self.store(account, "name")
 
         if self.full:
             accounts = self.blockchain.rpc.get_full_accounts([account["id"]], False)

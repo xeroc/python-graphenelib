@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .exceptions import WorkerDoesNotExistsException
 from .utils import formatTimeString
-from .blockchainobject import BlockchainObject
+from .blockchainobject import BlockchainObject, BlockchainObjects
 from .instance import AbstractBlockchainInstanceProvider
 
 
@@ -40,7 +40,7 @@ class Worker(BlockchainObject, AbstractBlockchainInstanceProvider):
         )
 
 
-class Workers(list, AbstractBlockchainInstanceProvider):
+class Workers(BlockchainObjects, AbstractBlockchainInstanceProvider):
     """ Obtain a list of workers for an account
 
         :param str account_name/id: Name/id of the account (optional)
@@ -48,24 +48,29 @@ class Workers(list, AbstractBlockchainInstanceProvider):
             accesing a RPC
     """
 
-    _cache = None
-
-    def __init__(self, account_name=None, lazy=False, **kwargs):
+    def __init__(self, *args, account_name=None, lazy=False, **kwargs):
         self.define_classes()
         assert self.account_class
         assert self.worker_class
 
-        if account_name:
+        self.account_name = account_name
+        self.lazy = lazy
+        super().__init__(*args, **kwargs)
+
+    def refresh(self, *args, **kwargs):
+        if self.account_name:
             account = self.account_class(
-                account_name, blockchain_instance=self.blockchain
+                self.account_name, blockchain_instance=self.blockchain
             )
             self.workers = self.blockchain.rpc.get_workers_by_account(account["id"])
         else:
             self.workers = self.blockchain.rpc.get_all_workers()
 
-        super(Workers, self).__init__(
+        self.store(
             [
-                self.worker_class(x, lazy=lazy, blockchain_instance=self.blockchain)
+                self.worker_class(
+                    x, lazy=self.lazy, blockchain_instance=self.blockchain
+                )
                 for x in self.workers
             ]
         )

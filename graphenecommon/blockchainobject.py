@@ -51,22 +51,98 @@ class ObjectCache(dict):
         self.default_expiration = expiration
 
 
-class BlockchainObject(dict):
+class Caching:
+    def _store_item(self, key=None):
+        if key is None and dict.__contains__(self, "id"):
+            self._cache[self.get("id")] = self
+        elif key:
+            self._cache[key] = self
+        self._cached = True
+
+    def _store_items(self, key=None):
+        key = key or self.__class__.__name__
+        self._cache[key] = list(self)
+        self._cached = True
+
+    def incached(self, id):
+        return id in self._cache
+
+    def getfromcache(self, id):
+        return self._cache.get(id, None)
+
+    def __getitem__(self, key):
+        if not self._cached:
+            self.refresh()
+        return dict.__getitem__(self, key)
+
+    def items(self):
+        if not self._cached:
+            self.refresh()
+        return dict.items(self)
+
+    def __contains__(self, key):
+        if not self._cached:
+            self.refresh()
+        return dict.__contains__(self, key)
+
+    def __repr__(self):
+        return "<%s %s>" % (self.__class__.__name__, str(self.identifier))
+
+    @classmethod
+    def clear_cache(cls):
+        cls._cache = ObjectCache()
+
+    __str__ = __repr__
+
+
+class BlockchainObjects(list, Caching):
+    _cache = ObjectCache()
+    identifier = None
+
+    @property
+    def _cache_key(self):
+        key = self.__class__.__name__
+        key += self.identifier or ""
+        return key
+
+    def __init__(self, *args, **kwargs):
+        key = self._cache_key
+        if self.incached(key):
+            list.__init__(self, self.getfromcache(key))
+        else:
+            if kwargs.get("refresh", True):
+                self.refresh(*args, **kwargs)
+
+    def store(self, data, *args, **kwargs):
+        list.__init__(self, data)
+        self._store_items(self._cache_key)
+
+    def refresh(self, *args, **kwargs):
+        raise NotImplementedError
+
+    @classmethod
+    def _import(cls, data, key=None):
+        c = cls(key, refresh=False)
+        c.store(data, key)
+        return c
+
+    # legacy
+    def cache(self, key):
+        self.store(self, key)
+
+
+class BlockchainObject(dict, Caching):
 
     space_id = 1
     type_id = None
     type_ids = []
+    identifier = None
 
     _cache = ObjectCache()
-
-    @staticmethod
-    def clear_cache():
-        BlockchainObject._cache = ObjectCache()
 
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
         assert self.type_id or self.type_ids
         self.cached = False
-        self.identifier = None
 
         if "_cache_expiration" in kwargs:
             self.set_expiration(kwargs["_cache_expiration"])
@@ -86,8 +162,8 @@ class BlockchainObject(dict):
         elif isinstance(data, int):
             # This is only for block number bascially
             self.identifier = data
-            if self.iscached(str(data)):
-                dict.__init__(self, self.getcache(str(data)))
+            if self.incached(str(data)):
+                dict.__init__(self, self.getfromcache(str(data)))
                 self.cached = True
             if not lazy and not self.cached:
                 self.refresh()
@@ -100,14 +176,17 @@ class BlockchainObject(dict):
             if self.test_valid_objectid(self.identifier):
                 # Here we assume we deal with an id
                 self.testid(self.identifier)
-            if self.iscached(data):
-                dict.__init__(self, self.getcache(data))
+            if self.incached(data):
+                dict.__init__(self, dict(self.getfromcache(data)))
             elif not lazy and not self.cached:
                 self.refresh()
 
         if use_cache and not lazy:
-            self.cache()
-            self.cached = True
+            self._store_item()
+
+    def store(self, data, key="id"):
+        dict.__init__(self, data)
+        self._store_item(key)
 
     @staticmethod
     def objectid_valid(i):
@@ -139,37 +218,6 @@ class BlockchainObject(dict):
         assert int(parts[1]) in self.type_ids, "Valid id's for {} are {}.{}.x".format(
             self.__class__.__name__, self.space_id, self.type_ids
         )
-
-    def cache(self, key=None):
-        # store in cache
-        if key is None and dict.__contains__(self, "id"):
-            self._cache[self.get("id")] = self
-        elif key:
-            self._cache[key] = self
-
-    def iscached(self, id):
-        return id in self._cache
-
-    def getcache(self, id):
-        return self._cache.get(id, None)
-
-    def __getitem__(self, key):
-        if not self.cached:
-            self.refresh()
-        return dict.__getitem__(self, key)
-
-    def items(self):
-        if not self.cached:
-            self.refresh()
-        return dict.items(self)
-
-    def __contains__(self, key):
-        if not self.cached:
-            self.refresh()
-        return dict.__contains__(self, key)
-
-    def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, str(self.identifier))
 
 
 class Object(BlockchainObject, AbstractBlockchainInstanceProvider):
