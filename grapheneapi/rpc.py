@@ -1,12 +1,11 @@
+# -*- coding: utf-8 -*-
 import json
 import time
 import logging
 import requests
 import urllib
-from .exceptions import (
-    RPCError,
-    NumRetriesReached
-)
+from .exceptions import RPCError, NumRetriesReached
+
 log = logging.getLogger(__name__)
 
 
@@ -28,6 +27,7 @@ class Rpc:
             print(ws.get_account_count())
 
     """
+
     def __init__(self, url, **kwargs):
         self.api_id = {}
         self._request_id = 0
@@ -48,19 +48,21 @@ class Rpc:
             self.proxy_user = url.username
             self.proxy_pass = url.password
             self.proxy_rdns = True
-            if not(url.scheme.endswith('h')):
+            if not (url.scheme.endswith("h")):
                 self.proxy_rdns = False
             else:
-                self.proxy_type = self.proxy_type[0:len(self.proxy_type)-1]
+                self.proxy_type = self.proxy_type[0 : len(self.proxy_type) - 1]
         else:
             # Defaults (tweakable)
             self.proxy_host = options.pop("proxy_host", None)
             self.proxy_port = options.pop("proxy_port", 80)
-            self.proxy_type = options.pop("proxy_type", 'http')
+            self.proxy_type = options.pop("proxy_type", "http")
             self.proxy_user = options.pop("proxy_user", None)
             self.proxy_pass = options.pop("proxy_pass", None)
             self.proxy_rdns = False
-        log.info("Using proxy %s:%d %s" % (self.proxy_host, self.proxy_port, self.proxy_type))
+        log.info(
+            "Using proxy %s:%d %s" % (self.proxy_host, self.proxy_port, self.proxy_type)
+        )
 
     def get_proxy_url(self):
         if not self.proxy_host:
@@ -68,7 +70,12 @@ class Rpc:
         auth = ""
         if self.proxy_user:
             auth = "%s:%s@" % (self.proxy_user, self.proxy_pass)
-        url = self.proxy_type + "://" + auth + ("%s:%d" % (self.proxy_host, self.proxy_port))
+        url = (
+            self.proxy_type
+            + "://"
+            + auth
+            + ("%s:%d" % (self.proxy_host, self.proxy_port))
+        )
         return url
 
     def get_request_id(self):
@@ -90,24 +97,24 @@ class Rpc:
 
         log.debug(json.dumps(query))
 
-        if 'error' in ret:  # pragma: no cover
-            if 'detail' in ret['error']:
-                raise RPCError(ret['error']['detail'])
+        if "error" in ret:  # pragma: no cover
+            if "detail" in ret["error"]:
+                raise RPCError(ret["error"]["detail"])
             else:
-                raise RPCError(ret['error']['message'])
+                raise RPCError(ret["error"]["message"])
         else:
             return ret["result"]
 
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
         """
+
         def method(*args, **kwargs):
 
             # Sepcify the api to talk to
             if "api_id" not in kwargs:  # pragma: no cover
-                if ("api" in kwargs):
-                    if (kwargs["api"] in self.api_id and
-                            self.api_id[kwargs["api"]]):
+                if "api" in kwargs:
+                    if kwargs["api"] in self.api_id and self.api_id[kwargs["api"]]:
                         api_id = self.api_id[kwargs["api"]]
                     else:
                         api_id = kwargs["api"]
@@ -119,11 +126,14 @@ class Rpc:
             # let's be able to define the num_retries per query
             self.num_retries = kwargs.get("num_retries", self.num_retries)
 
-            query = {"method": "call",
-                     "params": [api_id, name, list(args)],
-                     "jsonrpc": "2.0",
-                     "id": self.get_request_id()}
+            query = {
+                "method": "call",
+                "params": [api_id, name, list(args)],
+                "jsonrpc": "2.0",
+                "id": self.get_request_id(),
+            }
             r = self.rpcexec(query)
             message = self.parse_response(r)
             return message
+
         return method

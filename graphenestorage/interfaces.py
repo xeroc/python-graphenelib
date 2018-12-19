@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class StoreInterface(dict):
 
     """ The store interface is the most general store that we can have.
@@ -103,6 +104,7 @@ class KeyInterface(StoreInterface):
             :class:`graphenestorage.interfaces.StoreInterface` and defines
             additional key-specific methods.
     """
+
     def is_encrypted(self):
         """ Returns True/False to indicate required use of unlock
         """
@@ -176,4 +178,5 @@ class ConfigInterface(StoreInterface):
             :class:`graphenestorage.interfaces.StoreInterface` and defines
             **no** additional configuration-specific methods.
     """
+
     pass

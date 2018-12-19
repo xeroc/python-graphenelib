@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import unittest
 
@@ -13,7 +14,6 @@ class MyStore(SQLiteStore):
 
 
 class Testcases(unittest.TestCase):
-
     def test_init(self):
         store = MyStore()
         self.assertEqual(store.storageDatabase, "graphene.sqlite")

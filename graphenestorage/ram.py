@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .interfaces import StoreInterface
 
 
@@ -15,6 +16,7 @@ class InRamStore(StoreInterface):
             return a ``None`` value. This represents the biggest difference to
             a regular ``dict`` class.
     """
+
     # Specific for this library
     def delete(self, key):
         """ Delete a key from the store

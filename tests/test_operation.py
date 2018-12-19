@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 
 from collections import OrderedDict
@@ -6,12 +7,11 @@ from .fixtures import (
     GrapheneObject,
     Newdemooepration,
     Newdemooepration2,
-    Demooepration
+    Demooepration,
 )
 
 
 class Testcases(unittest.TestCase):
-
     def test_init_name(self):
         op = Operation("demooepration")
         self.assertEqual(op.name, "demooepration")
@@ -83,7 +83,7 @@ class Testcases(unittest.TestCase):
         for op in [
             Newdemooepration(**dict(string="1.2.0")),
             Newdemooepration(dict(string="1.2.0")),
-            Newdemooepration(OrderedDict([("string", "1.2.0")]))
+            Newdemooepration(OrderedDict([("string", "1.2.0")])),
         ]:
             self.assertEqual(op.json()["string"], "1.2.0")
             self.assertIn("string", op.json())
@@ -125,7 +125,7 @@ class Testcases(unittest.TestCase):
         for op in [
             Demooepration(**dict(string="1.2.0")),
             Demooepration(dict(string="1.2.0")),
-            Demooepration(OrderedDict([("string","1.2.0")]))
+            Demooepration(OrderedDict([("string", "1.2.0")])),
         ]:
             self.assertEqual(op.json()["string"], "1.2.0")
             self.assertIn("string", op.json())

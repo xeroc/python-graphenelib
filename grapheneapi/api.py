@@ -1,11 +1,9 @@
+# -*- coding: utf-8 -*-
 import logging
 from collections import Counter
 from itertools import cycle
 from time import sleep
-from .exceptions import (
-    RPCError,
-    NumRetriesReached
-)
+from .exceptions import RPCError, NumRetriesReached
 
 from .websocket import Websocket
 from .http import Http
@@ -64,9 +62,9 @@ class Api:
     @property
     def connection(self):
         if self._active_url != self.url:
-            log.debug("Updating connection from {} to {}".format(
-                self._active_url, self.url
-            ))
+            log.debug(
+                "Updating connection from {} to {}".format(self._active_url, self.url)
+            )
             self._active_connection = self.updated_connection()
             self._active_url = self.url
         return self._active_connection
@@ -85,14 +83,12 @@ class Api:
         """
         if int(self.num_retries) < 0:  # pragma: no cover
             self._cnt_retries += 1
-            sleeptime = (
-                self._cnt_retries - 1
-            ) * 2 if self._cnt_retries < 10 else 10
+            sleeptime = (self._cnt_retries - 1) * 2 if self._cnt_retries < 10 else 10
             if sleeptime:
                 log.warning(
                     "Lost connection to node during rpcexec(): %s (%d/%d) "
-                    % (self.url, self._cnt_retries, self.num_retries) +
-                    "Retrying in %d seconds" % sleeptime
+                    % (self.url, self._cnt_retries, self.num_retries)
+                    + "Retrying in %d seconds" % sleeptime
                 )
                 sleep(sleeptime)
             return next(self.urls)
@@ -103,13 +99,13 @@ class Api:
             if (
                 # Only provide URLS if num_retries is bigger equal 0,
                 # i.e. we want to do reconnects at all
-                int(self.num_retries) >= 0 and
+                int(self.num_retries) >= 0
                 # the counter for this host/endpoint should be smaller than
                 # num_retries
-                v <= self.num_retries and
+                and v <= self.num_retries
                 # let's not retry with the same URL *if* we have others
                 # available
-                (k != self.url or len(self._url_counter) == 1)
+                and (k != self.url or len(self._url_counter) == 1)
             )
         ]
         if not len(urls):
@@ -181,8 +177,9 @@ class Api:
                     # the above line should raise. Let's be sure to at least
                     # break
                     break  # pragma: no cover
-                except IOError as e:  # pragma: no cover
+                except IOError:  # pragma: no cover
                     import traceback
+
                     log.debug(traceback.format_exc())
                     log.warning("Connection was closed remotely.")
                     log.warning("Reconnecting ...")
@@ -192,6 +189,7 @@ class Api:
                     """ When something fails talking to the backend
                     """
                     import traceback
+
                     log.debug(traceback.format_exc())
                     log.warning(str(e))
                     log.warning("Reconnecting ...")
@@ -199,4 +197,5 @@ class Api:
                     self.next()
 
             return r
+
         return func

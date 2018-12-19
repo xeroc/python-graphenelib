@@ -1,13 +1,31 @@
+# -*- coding: utf-8 -*-
 import json
 
 from collections import OrderedDict
 from graphenebase.types import (
-    Uint8, Int16, Uint16, Uint32, Uint64,
-    Varint32, Int64, String, Bytes, Void,
-    Array, PointInTime, Signature, Bool,
-    Set, Fixed_array, Optional, Static_variant,
-    Map, Id, VoteId, ObjectId,
-    JsonObj
+    Uint8,
+    Int16,
+    Uint16,
+    Uint32,
+    Uint64,
+    Varint32,
+    Int64,
+    String,
+    Bytes,
+    Void,
+    Array,
+    PointInTime,
+    Signature,
+    Bool,
+    Set,
+    Fixed_array,
+    Optional,
+    Static_variant,
+    Map,
+    Id,
+    VoteId,
+    ObjectId,
+    JsonObj,
 )
 from .chains import known_chains
 from .objecttypes import object_type
@@ -44,8 +62,7 @@ class Operation(list):
             self._loadGrapheneObject(op)
 
         else:
-            raise ValueError(
-                "Unknown format for Operation({})".format(type(op)))
+            raise ValueError("Unknown format for Operation({})".format(type(op)))
 
     @property
     def id(self):
@@ -149,6 +166,7 @@ class GrapheneObject(OrderedDict):
         * ``str(instances)``: dumps json object as string
 
     """
+
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], (dict, OrderedDict)):
             if hasattr(self, "detail"):
@@ -167,7 +185,7 @@ class GrapheneObject(OrderedDict):
         b = b""
         for name, value in self.items():
             if isinstance(value, str):
-                b += bytes(value, 'utf-8')
+                b += bytes(value, "utf-8")
             else:
                 b += bytes(value)
         return b
@@ -211,4 +229,22 @@ class GrapheneObject(OrderedDict):
 
 # Legacy
 def isArgsThisClass(self, args):
-    return (len(args) == 1 and type(args[0]).__name__ == type(self).__name__)
+    return len(args) == 1 and type(args[0]).__name__ == type(self).__name__
+
+
+# Common Objects
+class Asset(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("amount", Int64(kwargs["amount"])),
+                        ("asset_id", ObjectId(kwargs["asset_id"], "asset")),
+                    ]
+                )
+            )

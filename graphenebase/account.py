@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
 import hashlib
@@ -8,18 +9,20 @@ from binascii import hexlify, unhexlify
 from .base58 import ripemd160, Base58, doublesha256
 from .dictionary import words as BrainKeyDictionary
 from .utils import _bytes
+from .prefix import Prefix
 
 import ecdsa
 
 
-class PasswordKey(object):
+class PasswordKey(Prefix):
     """ This class derives a private key given the account name, the
         role and a password. It leverages the technology of Brainkeys
         and allows people to have a secure private key by providing a
         passphrase only.
     """
 
-    def __init__(self, account, password, role="active"):
+    def __init__(self, account, password, role="active", prefix=None):
+        self.set_prefix(prefix)
         self.account = account
         self.role = role
         self.password = password
@@ -30,7 +33,7 @@ class PasswordKey(object):
         """
         a = _bytes(self.account + self.role + self.password)
         s = hashlib.sha256(a).digest()
-        return PrivateKey(hexlify(s).decode('ascii'))
+        return PrivateKey(hexlify(s).decode("ascii"), prefix=self.prefix)
 
     def get_public(self):
         return self.get_private().pubkey
@@ -42,7 +45,7 @@ class PasswordKey(object):
         return self.get_public()
 
 
-class BrainKey(object):
+class BrainKey(Prefix):
     """Brainkey implementation similar to the graphene-ui web-wallet.
 
         :param str brainkey: Brain Key
@@ -62,7 +65,8 @@ class BrainKey(object):
 
     """
 
-    def __init__(self, brainkey=None, sequence=0):
+    def __init__(self, brainkey=None, sequence=0, prefix=None):
+        self.set_prefix(prefix)
         if not brainkey:
             self.brainkey = BrainKey.suggest()
         else:
@@ -97,13 +101,13 @@ class BrainKey(object):
         encoded = "%s %d" % (self.brainkey, self.sequence)
         a = _bytes(encoded)
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
-        return PrivateKey(hexlify(s).decode('ascii'))
+        return PrivateKey(hexlify(s).decode("ascii"), prefix=self.prefix)
 
     def get_blind_private(self):
         """ Derive private key from the brain key (and no sequence number)
         """
         a = _bytes(self.brainkey)
-        return PrivateKey(hashlib.sha256(a).hexdigest())
+        return PrivateKey(hashlib.sha256(a).hexdigest(), prefix=self.prefix)
 
     def get_public(self):
         return self.get_private().pubkey
@@ -121,21 +125,14 @@ class BrainKey(object):
         """
         word_count = 16
         brainkey = [None] * word_count
-        dict_lines = BrainKeyDictionary.split(',')
+        dict_lines = BrainKeyDictionary.split(",")
         assert len(dict_lines) == 49744
         for j in range(0, word_count):
             num = int.from_bytes(os.urandom(2), byteorder="little")
             rndMult = num / 2 ** 16  # returns float between 0..1 (inclusive)
             wIdx = round(len(dict_lines) * rndMult)
             brainkey[j] = dict_lines[wIdx]
-        return (" ".join(brainkey).upper())
-
-
-class Prefix:
-    prefix = "GPH"
-
-    def set_prefix(self, prefix):
-        self.prefix = prefix or Prefix.prefix
+        return " ".join(brainkey).upper()
 
 
 class Address(Prefix):
@@ -152,6 +149,7 @@ class Address(Prefix):
            Address("GPHFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi")
 
     """
+
     def __init__(self, address, prefix=None):
         self.set_prefix(prefix)
         self._address = Base58(address, prefix=self.prefix)
@@ -169,9 +167,9 @@ class Address(Prefix):
         else:
             pubkey_plain = pubkey.uncompressed()
         sha = hashlib.sha256(unhexlify(pubkey_plain)).hexdigest()
-        rep = hexlify(ripemd160(sha)).decode('ascii')
-        s = ('%.2x' % version) + rep
-        result = s + hexlify(doublesha256(s)[:4]).decode('ascii')
+        rep = hexlify(ripemd160(sha)).decode("ascii")
+        s = ("%.2x" % version) + rep
+        result = s + hexlify(doublesha256(s)[:4]).decode("ascii")
         result = hexlify(ripemd160(result)).decode("ascii")
         return cls(result, prefix=pubkey.prefix)
 
@@ -201,6 +199,7 @@ class Address(Prefix):
 class GrapheneAddress(Address):
     """ Graphene Addresses are different. Hence we have a different class
     """
+
     @classmethod
     def from_pubkey(cls, pubkey, compressed=True, version=56, prefix=None):
         # Ensure this is a public key
@@ -212,7 +211,7 @@ class GrapheneAddress(Address):
 
         """ Derive address using ``RIPEMD160(SHA512(x))`` """
         addressbin = ripemd160(hashlib.sha512(unhexlify(pubkey_plain)).hexdigest())
-        result = Base58(hexlify(addressbin).decode('ascii'))
+        result = Base58(hexlify(addressbin).decode("ascii"))
         return cls(result, prefix=pubkey.prefix)
 
 
@@ -233,21 +232,21 @@ class PublicKey(Prefix):
                       PublicKey("xxxxx").unCompressed()
 
     """
+
     def __init__(self, pk, prefix=None):
         self.set_prefix(prefix)
         if isinstance(pk, PublicKey):
             pk = format(pk, self.prefix)
 
-        if str(pk).startswith('04'):
+        if str(pk).startswith("04"):
             # We only ever deal with compressed keys, so let's make it
             # compressed
             order = ecdsa.SECP256k1.order
             p = ecdsa.VerifyingKey.from_string(
-                unhexlify(pk[2:]), curve=ecdsa.SECP256k1).pubkey.point
+                unhexlify(pk[2:]), curve=ecdsa.SECP256k1
+            ).pubkey.point
             x_str = ecdsa.util.number_to_string(p.x(), order)
-            pk = hexlify(
-                chr(2 + (p.y() & 1)).encode('ascii') + x_str
-            ).decode('ascii')
+            pk = hexlify(chr(2 + (p.y() & 1)).encode("ascii") + x_str).decode("ascii")
 
         self._pk = Base58(pk, prefix=self.prefix)
 
@@ -282,14 +281,15 @@ class PublicKey(Prefix):
         assert prefix == "02" or prefix == "03"
         x = int(public_key[2:], 16)
         y = self._derive_y_from_x(x, (prefix == "02"))
-        key = '04' + '%064x' % x + '%064x' % y
+        key = "04" + "%064x" % x + "%064x" % y
         return key
 
     def point(self):
         """ Return the point for the public key """
         string = unhexlify(self.unCompressed())
         return ecdsa.VerifyingKey.from_string(
-            string[1:], curve=ecdsa.SECP256k1).pubkey.point
+            string[1:], curve=ecdsa.SECP256k1
+        ).pubkey.point
 
     def child(self, offset256):
         """ Derive new public key from this key and a sha256 "offset" """
@@ -300,21 +300,25 @@ class PublicKey(Prefix):
     def add(self, digest256):
         """ Derive new public key from this key and a sha256 "digest" """
         from .ecdsa import tweakaddPubkey
+
         return tweakaddPubkey(self, digest256)
 
     @classmethod
     def from_privkey(cls, privkey, prefix=None):
         """ Derive uncompressed public key """
-        privkey = PrivateKey(privkey)
+        privkey = PrivateKey(privkey, prefix=prefix or Prefix.prefix)
         secret = unhexlify(repr(privkey))
         order = ecdsa.SigningKey.from_string(
-            secret, curve=ecdsa.SECP256k1).curve.generator.order()
+            secret, curve=ecdsa.SECP256k1
+        ).curve.generator.order()
         p = ecdsa.SigningKey.from_string(
-            secret, curve=ecdsa.SECP256k1).verifying_key.pubkey.point
+            secret, curve=ecdsa.SECP256k1
+        ).verifying_key.pubkey.point
         x_str = ecdsa.util.number_to_string(p.x(), order)
         # y_str = ecdsa.util.number_to_string(p.y(), order)
-        compressed = hexlify(
-            chr(2 + (p.y() & 1)).encode('ascii') + x_str).decode('ascii')
+        compressed = hexlify(chr(2 + (p.y() & 1)).encode("ascii") + x_str).decode(
+            "ascii"
+        )
         # uncompressed = hexlify(
         #    chr(4).encode('ascii') + x_str + y_str).decode('ascii')
         return cls(compressed, prefix=prefix or Prefix.prefix)
@@ -380,17 +384,19 @@ class PrivateKey(Prefix):
             Instance of ``Address`` using uncompressed key.
 
     """
+
     def __init__(self, wif=None, prefix=None):
+        self.set_prefix(prefix)
         if wif is None:
             import os
-            self._wif = Base58(hexlify(os.urandom(32)).decode('ascii'))
+
+            self._wif = Base58(hexlify(os.urandom(32)).decode("ascii"))
         elif isinstance(wif, PrivateKey):
             self._wif = wif._wif
         elif isinstance(wif, Base58):
             self._wif = wif
         else:
             self._wif = Base58(wif)
-        self.set_prefix(prefix)
 
         # test for valid key by trying to obtain a public key
         assert len(repr(self._wif)) == 64
@@ -425,10 +431,9 @@ class PrivateKey(Prefix):
             sequence number
         """
         encoded = "%s %d" % (str(self), sequence)
-        a = bytes(encoded, 'ascii')
+        a = bytes(encoded, "ascii")
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
-        return PrivateKey(
-            hexlify(s).decode('ascii'), prefix=self.pubkey.prefix)
+        return PrivateKey(hexlify(s).decode("ascii"), prefix=self.pubkey.prefix)
 
     def child(self, offset256):
         """ Derive new private key from this key and a sha256 "offset"
@@ -442,8 +447,8 @@ class PrivateKey(Prefix):
             Here, the key itself serves as a `seed`, and `offset`
             is expected to be a sha256 digest.
         """
-        seed = int(hexlify(bytes(self)).decode('ascii'), 16)
-        z = int(hexlify(offset).decode('ascii'), 16)
+        seed = int(hexlify(bytes(self)).decode("ascii"), 16)
+        z = int(hexlify(offset).decode("ascii"), 16)
         order = ecdsa.SECP256k1.order
         secexp = (seed + z) % order
         secret = "%0x" % secexp
@@ -465,13 +470,12 @@ class PrivateKey(Prefix):
         """
         return format(self._wif, "WIF")
 
-    def __bytes__(self):    # pragma: no cover
+    def __bytes__(self):  # pragma: no cover
         """ Returns the raw private key """
         return bytes(self._wif)
 
 
 class BitcoinAddress(Address):
-
     @classmethod
     def from_pubkey(cls, pubkey, compressed=False, version=56, prefix=None):
         # Ensure this is a public key
@@ -482,9 +486,8 @@ class BitcoinAddress(Address):
             pubkey = pubkey.uncompressed()
 
         """ Derive address using ``RIPEMD160(SHA256(x))`` """
-        addressbin = ripemd160(
-            hexlify(hashlib.sha256(unhexlify(pubkey)).digest()))
-        return cls(hexlify(addressbin).decode('ascii'))
+        addressbin = ripemd160(hexlify(hashlib.sha256(unhexlify(pubkey)).digest()))
+        return cls(hexlify(addressbin).decode("ascii"))
 
     def __str__(self):
         """ Returns the readable Graphene address. This call is equivalent to
