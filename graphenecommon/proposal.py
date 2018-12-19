@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from .blockchainobject import BlockchainObject, ObjectCache
+from .blockchainobject import BlockchainObject, BlockchainObjects
 from .exceptions import ProposalDoesNotExistException
 from .instance import AbstractBlockchainInstanceProvider
 from .utils import parse_time
@@ -18,10 +18,10 @@ class Proposal(BlockchainObject, AbstractBlockchainInstanceProvider):
 
     """
 
-    def __init__(self, account, *args, **kwargs):
+    def __init__(self, data, *args, **kwargs):
         self.define_classes()
         assert self.account_class
-        BlockchainObject.__init__(self, *args, **kwargs)
+        BlockchainObject.__init__(self, data, *args, **kwargs)
 
     def refresh(self):
         proposal = self.blockchain.rpc.get_objects([self.identifier])
@@ -57,30 +57,28 @@ class Proposal(BlockchainObject, AbstractBlockchainInstanceProvider):
         return now > self.review_period
 
 
-class Proposals(list, AbstractBlockchainInstanceProvider):
+class Proposals(BlockchainObjects, AbstractBlockchainInstanceProvider):
     """ Obtain a list of pending proposals for an account
 
         :param str account: Account name
         :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
     """
 
-    cache = ObjectCache()
-
-    def __init__(self, account, **kwargs):
+    def __init__(self, account, *args, **kwargs):
         self.define_classes()
         assert self.account_class
         assert self.proposal_class
 
-        account = self.account_class(account)
-        if account["id"] in Proposals.cache:
-            proposals = Proposals.cache[account["id"]]
-        else:
-            proposals = self.blockchain.rpc.get_proposed_transactions(account["id"])
-            Proposals.cache[account["id"]] = proposals
+        assert isinstance(account, str)
+        self.identifier = account
+        super().__init__(*args, **kwargs)
 
-        super(Proposals, self).__init__(
-            [
-                self.proposal_class(x, blockchain_instance=self.blockchain)
-                for x in proposals
-            ]
-        )
+    def refresh(self, *args, **kwargs):
+        account = self.account_class(self.identifier)
+        proposals = self.blockchain.rpc.get_proposed_transactions(account["id"])
+        data = [
+            self.proposal_class(x, blockchain_instance=self.blockchain)
+            for x in proposals
+        ]
+        self.store(data, account["id"])
+        self.store(data, account["name"])

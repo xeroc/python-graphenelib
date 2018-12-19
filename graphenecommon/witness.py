@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .exceptions import WitnessDoesNotExistsException
-from .blockchainobject import BlockchainObject
+from .blockchainobject import BlockchainObject, BlockchainObjects
 from .instance import AbstractBlockchainInstanceProvider
 
 
@@ -65,7 +65,7 @@ class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
         return self.account["id"] in [x[0] for x in account["active"]["account_auths"]]
 
 
-class Witnesses(list, AbstractBlockchainInstanceProvider):
+class Witnesses(BlockchainObjects, AbstractBlockchainInstanceProvider):
     """ Obtain a list of **active** witnesses and the current schedule
 
         :param bool only_active: (False) Only return witnesses that are
@@ -77,18 +77,22 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
         self.define_classes()
         assert self.account_class
         assert self.witness_class
-        assert self.blockchain_object_class
 
+        self.lazy = lazy
+        self.only_active = only_active
+        super().__init__(*args, **kwargs)
+
+    def refresh(self, *args, **kwargs):
         self.schedule = self.blockchain.rpc.get_object("2.12.0").get(
             "current_shuffled_witnesses", []
         )
 
         witnesses = [
-            self.witness_class(x, lazy=lazy, blockchain_instance=self.blockchain)
+            self.witness_class(x, lazy=self.lazy, blockchain_instance=self.blockchain)
             for x in self.schedule
         ]
 
-        if only_active:
+        if self.only_active:
             account = self.account_class(
                 "witness-account", blockchain_instance=self.blockchain
             )
@@ -97,12 +101,10 @@ class Witnesses(list, AbstractBlockchainInstanceProvider):
                 filter(lambda x: x["witness_account"] in filter_by, witnesses)
             )
 
-        super(Witnesses, self).__init__(witnesses)
+        self.store(witnesses)
 
     def __contains__(self, item):
-        assert self.blockchain_object_class
-
-        if self.blockchain_object_class.objectid_valid(item):
+        if self.witness_class.objectid_valid(item):
             id = item
         elif isinstance(item, self.account_class):
             id = item["id"]
