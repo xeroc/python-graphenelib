@@ -174,7 +174,7 @@ class BlockchainObjects(list, Caching):
         """ This classmethod allows to feed multiple objects into the
             cache is is mostly used for testing
         """
-        return cls._import(cls, data, key)
+        return cls._import(data, key)
 
     @classmethod
     def _import(cls, data, key=None):
@@ -259,7 +259,7 @@ class BlockchainObject(dict, Caching):
         """ This classmethod allows to feed an object into the
             cache is is mostly used for testing
         """
-        return cls._import(cls, data, key)
+        return cls._import(data, key)
 
     @classmethod
     def _import(cls, data, key=None):
