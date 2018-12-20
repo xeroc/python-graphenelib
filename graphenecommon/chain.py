@@ -59,13 +59,13 @@ class AbstractGrapheneChain:
     # RPC
     # -------------------------------------------------------------------------
     def connect(self, node="", rpcuser="", rpcpassword="", **kwargs):
-        """ Connect to BitShares network (internal use only)
+        """ Connect to blockchain network (internal use only)
         """
         if not node:
             if "node" in self.config:
                 node = self.config["node"]
             else:
-                raise ValueError("A BitShares node needs to be provided!")
+                raise ValueError("A Blockchain node needs to be provided!")
 
         if not rpcuser and "rpcuser" in self.config:
             rpcuser = self.config["rpcuser"]
@@ -112,10 +112,10 @@ class AbstractGrapheneChain:
 
     def new_wallet(self, pwd):
         """ Create a new wallet. This method is basically only calls
-            :func:`bitshares.wallet.create`.
+            :func:`wallet.Wallet.create`.
 
             :param str pwd: Password to use for the new wallet
-            :raises bitshares.exceptions.WalletExists: if there is already a
+            :raises exceptions.WalletExists: if there is already a
                 wallet created
         """
         return self.wallet.create(pwd)
@@ -145,12 +145,12 @@ class AbstractGrapheneChain:
             :param string permission: The required permission for
                 signing (active, owner, posting)
             :param object append_to: This allows to provide an instance of
-                ProposalsBuilder (see :func:`bitshares.new_proposal`) or
-                TransactionBuilder (see :func:`bitshares.new_tx()`) to specify
+                ProposalsBuilder (see :func:`new_proposal`) or
+                TransactionBuilder (see :func:`new_tx()`) to specify
                 where to put a specific operation.
 
             ... note:: ``append_to`` is exposed to every method used in the
-                BitShares class
+                this class
 
             ... note::
 
@@ -160,15 +160,15 @@ class AbstractGrapheneChain:
                 posting permission. Neither can you use different
                 accounts for different operations!
 
-            ... note:: This uses ``bitshares.txbuffer`` as instance of
-                :class:`bitshares.transactionbuilder.TransactionBuilder`.
+            ... note:: This uses ``txbuffer`` as instance of
+                :class:`transactionbuilder.TransactionBuilder`.
                 You may want to use your own txbuffer
         """
         if "append_to" in kwargs and kwargs["append_to"]:
             if self.proposer:
                 log.warning(
-                    "You may not use append_to and bitshares.proposer at "
-                    "the same time. Append bitshares.new_proposal(..) instead"
+                    "You may not use append_to and self.proposer at "
+                    "the same time. Append new_proposal(..) instead"
                 )
             # Append to the append_to and return
             append_to = kwargs["append_to"]
@@ -237,7 +237,7 @@ class AbstractGrapheneChain:
         return txbuffer.json()
 
     def broadcast(self, tx=None):
-        """ Broadcast a transaction to the BitShares network
+        """ Broadcast a transaction to the Blockchain
 
             :param tx tx: Signed transaction to broadcast
         """

@@ -44,8 +44,7 @@ class Workers(BlockchainObjects, AbstractBlockchainInstanceProvider):
     """ Obtain a list of workers for an account
 
         :param str account_name/id: Name/id of the account (optional)
-        :param bitshares blockchain_instance: BitShares() instance to use when
-            accesing a RPC
+        :param instance blockchain_instance: instance to use when accesing a RPC
     """
 
     def __init__(self, *args, account_name=None, lazy=False, **kwargs):

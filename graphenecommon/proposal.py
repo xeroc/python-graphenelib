@@ -61,7 +61,7 @@ class Proposals(BlockchainObjects, AbstractBlockchainInstanceProvider):
     """ Obtain a list of pending proposals for an account
 
         :param str account: Account name
-        :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
+        :param instance blockchain_instance: instance to use when accesing a RPC
     """
 
     def __init__(self, account, *args, **kwargs):
