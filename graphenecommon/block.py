@@ -18,7 +18,7 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
 
         .. code-block:: python
 
-            from bitshares.block import Block
+            from block import Block
             block = Block(1)
             print(block)
 

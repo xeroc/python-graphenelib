@@ -22,8 +22,8 @@ class Memo(AbstractBlockchainInstanceProvider):
 
         .. code-block:: python
 
-            from bitshares.memo import Memo
-            m = Memo("bitshareseu", "wallet.xeroc")
+            from .memo import Memo
+            m = Memo("from-account", "to-account")
             m.blockchain.wallet.unlock("secret")
             enc = (m.encrypt("foobar"))
             print(enc)
@@ -35,7 +35,7 @@ class Memo(AbstractBlockchainInstanceProvider):
 
         .. code-block:: python
 
-            from bitshares.memo import Memo
+            from memo import Memo
             m = Memo()
             m.blockchain.wallet.unlock("secret")
             print(memo.decrypt(op_data["memo"]))

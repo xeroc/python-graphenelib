@@ -54,7 +54,7 @@ class Price(dict, AbstractBlockchainInstanceProvider):
 
         .. code-block:: python
 
-            >>> from bitshares.price import Price
+            >>> from price import Price
             >>> Price("0.3314 USD/BTS") * 2
             0.662600000 USD/BTS
 
