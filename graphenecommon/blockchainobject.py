@@ -156,7 +156,7 @@ class BlockchainObjects(list, Caching):
         Caching.__init__(self, *args, **kwargs)
         # Some lists are specific to some key value that is then provided as
         # first argument
-        if len(args) > 0:
+        if len(args) > 0 and isinstance(args[0], str):
             key = self._cache_key(args[0])
         else:
             key = self._cache_key()
