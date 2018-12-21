@@ -91,7 +91,10 @@ class Caching:
 
     def _store_items(self, key=None):
         key = key or self.__class__.__name__
-        self._cache[key] = list(self)
+        if key in self._cache:
+            self._cache[key].extend(list(self))
+        else:
+            self._cache[key] = list(self)
         self._fetched = True
 
     def incached(self, id):
@@ -151,30 +154,32 @@ class BlockchainObjects(list, Caching):
 
     def __init__(self, *args, **kwargs):
         Caching.__init__(self, *args, **kwargs)
-        key = self._cache_key
+        # Some lists are specific to some key value that is then provided as
+        # first argument
+        if len(args) > 0 and isinstance(args[0], str):
+            key = self._cache_key(args[0])
+        else:
+            key = self._cache_key()
         if self.incached(key):
             list.__init__(self, self.getfromcache(key))
         else:
             if kwargs.get("refresh", True):
                 self.refresh(*args, **kwargs)
 
-    @property
-    def _cache_key(self):
-        key = self.__class__.__name__
-        key += self.identifier or ""
-        return key
+    def _cache_key(self, key=""):
+        if key:
+            # We add the key to the index
+            return "{}-{}".format(self.__class__.__name__, key)
+        else:
+            return self.__class__.__name__
 
-    def store(self, data, *args, **kwargs):
+    def store(self, data, *args, key=None, **kwargs):
         """ Cache the list
 
             :param list data: List of objects to cache
         """
         list.__init__(self, data)
-        # We do not allow to provide a separate key as we do for
-        # a BlockchainObject (without s). The reson is that we store
-        # lists and do not need to be able to query for names, ids, or
-        # other objects
-        self._store_items(self._cache_key)
+        self._store_items(self._cache_key(key))
 
     @classmethod
     def cache_objects(cls, data, key=None):
@@ -271,7 +276,7 @@ class BlockchainObject(dict, Caching):
 
     @classmethod
     def _import(cls, data, key=None):
-        c = cls(key, refresh=False)
+        c = cls(data, refresh=False)
         c.store(data, key)
         return c
 
