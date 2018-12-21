@@ -71,7 +71,7 @@ class Proposals(BlockchainObjects, AbstractBlockchainInstanceProvider):
 
         assert isinstance(account, str)
         self.identifier = account
-        super().__init__(*args, **kwargs)
+        BlockchainObjects.__init__(self, account, *args, **kwargs)
 
     def refresh(self, *args, **kwargs):
         account = self.account_class(self.identifier)
