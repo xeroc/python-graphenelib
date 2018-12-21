@@ -18,6 +18,7 @@ class ObjectCache(dict):
         and provides a method to define the default expiration time.
 
     """
+
     def __init__(self, initial_data={}, default_expiration=10, no_overwrite=False):
         dict.__init__(self, initial_data)
 
@@ -77,17 +78,21 @@ class Caching:
     """ This class implements a few common methods that are used to
         either cache lists or dicts
     """
+
+    def __init__(self, *args, **kwargs):
+        self._fetched = False
+
     def _store_item(self, key=None):
         if key is None and dict.__contains__(self, "id"):
             self._cache[self.get("id")] = self
         elif key:
             self._cache[key] = self
-        self._cached = True
+        self._fetched = True
 
     def _store_items(self, key=None):
         key = key or self.__class__.__name__
         self._cache[key] = list(self)
-        self._cached = True
+        self._fetched = True
 
     def incached(self, id):
         """ Is an element cached?
@@ -100,7 +105,7 @@ class Caching:
         return self._cache.get(id, None)
 
     def __getitem__(self, key):
-        if not self._cached:
+        if not self._fetched:
             self.refresh()
         return dict.__getitem__(self, key)
 
@@ -108,12 +113,12 @@ class Caching:
         """ This overwrites items() so that refresh() is called it the
             object is not already fetched
         """
-        if not self._cached:
+        if not self._fetched:
             self.refresh()
         return dict.items(self)
 
     def __contains__(self, key):
-        if not self._cached:
+        if not self._fetched:
             self.refresh()
         return dict.__contains__(self, key)
 
@@ -133,6 +138,7 @@ class BlockchainObjects(list, Caching):
     """ This class is used internally to store **lists** of objects and
         deal with the cache and indexing thereof.
     """
+
     _cache = ObjectCache()
     identifier = None
 
@@ -144,6 +150,7 @@ class BlockchainObjects(list, Caching):
         raise NotImplementedError
 
     def __init__(self, *args, **kwargs):
+        Caching.__init__(self, *args, **kwargs)
         key = self._cache_key
         if self.incached(key):
             list.__init__(self, self.getfromcache(key))
@@ -203,8 +210,9 @@ class BlockchainObject(dict, Caching):
     _cache = ObjectCache()
 
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
+        Caching.__init__(self, *args, **kwargs)
         assert self.type_id or self.type_ids
-        self.cached = False
+        self._fetched = False
 
         if "_cache_expiration" in kwargs:
             self.set_expiration(kwargs["_cache_expiration"])
@@ -226,8 +234,8 @@ class BlockchainObject(dict, Caching):
             self.identifier = data
             if self.incached(str(data)):
                 dict.__init__(self, self.getfromcache(str(data)))
-                self.cached = True
-            if not lazy and not self.cached:
+                self._fetched = True
+            if not lazy and not self._fetched:
                 self.refresh()
             # make sure to store the blocknumber for caching
             self["id"] = str(data)
@@ -240,7 +248,7 @@ class BlockchainObject(dict, Caching):
                 self.testid(self.identifier)
             if self.incached(data):
                 dict.__init__(self, dict(self.getfromcache(data)))
-            elif not lazy and not self.cached:
+            elif not lazy and not self._fetched:
                 self.refresh()
 
         if use_cache and not lazy:
@@ -315,6 +323,7 @@ class Object(BlockchainObject, AbstractBlockchainInstanceProvider):
     """ This class is a basic class that allows to obtain any object
         from the blockchyin by fetching it through the API
     """
+
     def refresh(self):
         """ This is the refresh method that overloads the prototype in
             BlockchainObject.
