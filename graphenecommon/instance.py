@@ -19,7 +19,9 @@ class AbstractBlockchainInstanceProvider:
     """
 
     def __init__(self, *args, **kwargs):
-        pass
+        self._blockchain = None
+        if kwargs.get("blockchain_instance"):
+            self._blockchain = kwargs["blockchain_instance"]
 
     @classmethod
     def inject(slf, cls):
@@ -47,7 +49,10 @@ class AbstractBlockchainInstanceProvider:
 
     @property
     def blockchain(self):
-        return self.shared_blockchain_instance()
+        if hasattr(self, "_blockchain") and self._blockchain:
+            return self._blockchain
+        else:
+            return self.shared_blockchain_instance()
 
     @property
     def chain(self):
