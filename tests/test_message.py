@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import unittest
-import mock
 from .fixtures import fixture_data, Message
 from graphenecommon.exceptions import InvalidMessageSignature
 
