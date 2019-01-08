@@ -131,7 +131,7 @@ class Chain:
             def get_account_history(self, *args, **kwargs):
                 return []
 
-            def lookup_account_names(self, *args, **kwargs):
+            def lookup_account_names(self, name, **kwargs):
                 return [None]
 
             def get_all_workers(self):
