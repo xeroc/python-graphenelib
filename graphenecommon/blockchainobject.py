@@ -137,7 +137,7 @@ class Caching:
     __str__ = __repr__
 
 
-class BlockchainObjects(list, Caching):
+class BlockchainObjects(Caching, list):
     """ This class is used internally to store **lists** of objects and
         deal with the cache and indexing thereof.
     """
@@ -201,7 +201,7 @@ class BlockchainObjects(list, Caching):
         self.store(self, key)
 
 
-class BlockchainObject(dict, Caching):
+class BlockchainObject(Caching, dict):
     """ This class deals with objects from graphene-based blockchains.
         It is used to validate object ids, store entire objects in
         the cache and deal with indexing thereof.
@@ -218,6 +218,7 @@ class BlockchainObject(dict, Caching):
         Caching.__init__(self, *args, **kwargs)
         assert self.type_id or self.type_ids
         self._fetched = False
+        self._lazy = lazy
 
         if "_cache_expiration" in kwargs:
             self.set_expiration(kwargs["_cache_expiration"])
@@ -240,7 +241,7 @@ class BlockchainObject(dict, Caching):
             if self.incached(str(data)):
                 dict.__init__(self, self.getfromcache(str(data)))
                 self._fetched = True
-            if not lazy and not self._fetched:
+            if not self._lazy and not self._fetched:
                 self.refresh()
             # make sure to store the blocknumber for caching
             self["id"] = str(data)
@@ -253,10 +254,10 @@ class BlockchainObject(dict, Caching):
                 self.testid(self.identifier)
             if self.incached(data):
                 dict.__init__(self, dict(self.getfromcache(data)))
-            elif not lazy and not self._fetched:
+            elif not self._lazy and not self._fetched:
                 self.refresh()
 
-        if use_cache and not lazy:
+        if use_cache and not self._lazy:
             self._store_item()
 
     def store(self, data, key="id"):

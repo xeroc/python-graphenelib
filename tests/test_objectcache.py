@@ -26,6 +26,7 @@ class Testcases(unittest.TestCase):
     def test_lazy_loading(self):
         a = Account("unittest", lazy=True)
         self.assertFalse(a._fetched)
+        self.assertTrue(a._lazy)
         with mock.patch.object(Account, "refresh") as mocked_os:
             try:
                 # Should call refresh as we are lazy here and don't have that
