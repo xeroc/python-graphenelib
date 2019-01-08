@@ -42,6 +42,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
         assert self.operation_class
         assert self.operations
         assert self.account_class
+        AbstractBlockchainInstanceProvider.__init__(self, *args, **kwargs)
 
         self.set_expiration(proposal_expiration or 2 * 24 * 60 * 60)
         self.set_review(proposal_review)
@@ -141,6 +142,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         assert self.publickey_class
         assert self.signed_transaction_class
         assert self.amount_class
+        AbstractBlockchainInstanceProvider.__init__(self, **kwargs)
 
         self.clear()
         if tx and isinstance(tx, dict):
