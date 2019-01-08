@@ -123,7 +123,7 @@ class Memo(AbstractBlockchainInstanceProvider):
 
         # We first try to decode assuming we received the memo
         try:
-            memo_wif = self.blockchain.wallet.getPrivateKeyForPublicKey(memo["to"])
+            memo_wif = self.blockchain.wallet.getPrivateKeyForPublicKey(message["to"])
             pubkey = message["from"]
         except KeyNotFound:
             try:
