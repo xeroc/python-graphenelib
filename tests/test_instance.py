@@ -12,9 +12,16 @@ class Testcases(unittest.TestCase):
         c = Chain()
         c.set_shared_instance()
         self.assertEqual(id(c), id(SharedInstance.instance))
+        c2 = Chain()
+        c2.set_shared_instance()
+        self.assertEqual(id(c2), id(SharedInstance.instance))
 
     def test_shared_config(self):
         self.assertFalse(SharedInstance.config)
         c = Chain()
         c.set_shared_config(dict(nobroadcast=True))
         self.assertTrue(SharedInstance.config.get("nobroadcast", False))
+
+        c.set_shared_instance()
+        c.set_shared_config(dict(nobroadcast=False))
+        self.assertFalse(SharedInstance.config.get("nobroadcast", True))

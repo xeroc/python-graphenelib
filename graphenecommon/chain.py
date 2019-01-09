@@ -142,7 +142,7 @@ class AbstractGrapheneChain:
         SharedInstance.config.update(config)
         # if one is already set, delete
         if SharedInstance.instance:
-            self.shared_blockchain_instance().clear_cache()
+            self.clear_cache()
             SharedInstance.instance = None
 
     # -------------------------------------------------------------------------

@@ -71,7 +71,7 @@ from graphenecommon.asset import Asset as GAsset
 from graphenecommon.committee import Committee as GCommittee
 from graphenecommon.block import Block as GBlock, BlockHeader as GBlockHeader
 from graphenecommon.message import Message as GMessage
-from graphenecommon.blockchainobject import ObjectCache
+from graphenecommon.blockchainobject import ObjectCache, BlockchainObject
 from graphenecommon.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
 from graphenecommon.worker import Worker as GWorker, Workers as GWorkers
@@ -88,6 +88,7 @@ class Chain(AbstractGrapheneChain):
 
     def __init__(self, *args, **kwargs):
         self.config = storage.InRamConfigurationStore()
+        self.blockchainobject_class = BlockchainObject
 
     def is_connected(self):
         return True
