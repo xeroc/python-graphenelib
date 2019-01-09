@@ -61,7 +61,10 @@ from graphenestorage.sqlite import SQLiteStore
 
 # Common stuff
 
-from graphenecommon.instance import BlockchainInstance as GBlockchainInstance
+from graphenecommon.instance import (
+    BlockchainInstance as GBlockchainInstance,
+    SharedInstance as GSharedInstance,
+)
 from graphenecommon.amount import Amount as GAmount
 from graphenecommon.account import Account as GAccount, AccountUpdate as GAccountUpdate
 from graphenecommon.asset import Asset as GAsset
@@ -73,9 +76,14 @@ from graphenecommon.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
 from graphenecommon.worker import Worker as GWorker, Workers as GWorkers
 from graphenecommon.witness import Witness as GWitness, Witnesses as GWitnesss
+from graphenecommon.chain import AbstractGrapheneChain
 
 
-class Chain:
+class SharedInstance(GSharedInstance):
+    pass
+
+
+class Chain(AbstractGrapheneChain):
     prefix = "GPH"
 
     def __init__(self, *args, **kwargs):
