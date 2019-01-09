@@ -133,6 +133,21 @@ class AbstractGrapheneChain:
         """
         SharedInstance.instance = self
 
+    def set_shared_config(self, config):
+        """ This allows to set a config that will be used when calling
+            ``shared_blockchain_instance`` and allows to define the configuration
+            without requiring to actually create an instance
+        """
+        assert isinstance(config, dict)
+        SharedInstance.config.update(config)
+        # if one is already set, delete
+        if SharedInstance.instance:
+            self.shared_blockchain_instance().clear_cache()
+            SharedInstance.instance = None
+
+    # -------------------------------------------------------------------------
+    # General transaction/operation stuff
+    # -------------------------------------------------------------------------
     def finalizeOp(self, ops, account, permission, **kwargs):
         """ This method obtains the required private keys if present in
             the wallet, finalizes the transaction, signs it and
