@@ -17,7 +17,7 @@ from .chains import known_chains
 log = logging.getLogger(__name__)
 
 try:
-    import secp256k1
+    import secp256k1prp as secp256k1
 
     USE_SECP256K1 = True
     log.debug("Loaded secp256k1 binding.")

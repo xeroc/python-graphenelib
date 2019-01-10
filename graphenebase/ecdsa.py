@@ -20,7 +20,7 @@ CRYPTOGRAPHY_AVAILABLE = False
 GMPY2_MODULE = False
 if not SECP256K1_MODULE:  # pragma: no branch
     try:
-        import secp256k1
+        import secp256k1prp as seck256k1
 
         SECP256K1_MODULE = "secp256k1"
         SECP256K1_AVAILABLE = True
