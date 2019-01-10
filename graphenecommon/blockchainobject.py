@@ -19,7 +19,7 @@ class ObjectCache(dict):
 
     """
 
-    def __init__(self, initial_data={}, default_expiration=10, no_overwrite=False):
+    def __init__(self, initial_data={}, default_expiration=60, no_overwrite=False):
         dict.__init__(self, initial_data)
 
         # Expiration
