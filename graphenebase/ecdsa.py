@@ -283,6 +283,10 @@ def verify_message(message, signature, hashfn=hashlib.sha256):
         raise AssertionError()
     digest = hashfn(message).digest()
     sig = signature[1:]
+    # TODO: 4 means we use compressed keys.
+    # Grapehen uses compressed keys by default even though it would still allow
+    # uncompressed keys to be used. This library so far expects compressed keys
+    # due to this line:
     recoverParameter = bytearray(signature)[0] - 4 - 27  # recover parameter only
 
     if SECP256K1_MODULE == "secp256k1":
