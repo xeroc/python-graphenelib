@@ -150,6 +150,32 @@ class Bytes:
         return str(self.data)
 
 
+class Hash(Bytes):
+    def json(self):
+        return str(self.data)
+
+    def __bytes__(self):
+        return unhexlify(bytes(self.data, "utf-8"))
+
+
+class Ripemd160(Hash):
+    def __init__(self, a):
+        assert len(a) == 40, "Require 40 char long hex"
+        super().__init__(a)
+
+
+class Sha1(Bytes):
+    def __init__(self, a):
+        assert len(a) == 40, "Require 40 char long hex"
+        super().__init__(a)
+
+
+class Sha256(Bytes):
+    def __init__(self, a):
+        assert len(a) == 64, "Require 64 char long hex"
+        super().__init__(a)
+
+
 class Void:
     def __init__(self):
         pass
