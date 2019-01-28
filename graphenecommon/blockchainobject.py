@@ -209,6 +209,7 @@ class BlockchainObject(Caching, dict):
 
     space_id = 1
     type_id = None
+    perform_id_tests = True
     type_ids = []
     identifier = None
 
@@ -216,7 +217,8 @@ class BlockchainObject(Caching, dict):
 
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
         Caching.__init__(self, *args, **kwargs)
-        assert self.type_id or self.type_ids
+        if self.perform_id_tests:
+            assert self.type_id or self.type_ids, "Need type_id or type_ids"
         self._fetched = False
         self._lazy = lazy
 
@@ -249,9 +251,10 @@ class BlockchainObject(Caching, dict):
             self.identifier = data
         else:
             self.identifier = data
-            if self.test_valid_objectid(self.identifier):
+            if self.perform_id_tests and self.test_valid_objectid(self.identifier):
                 # Here we assume we deal with an id
                 self.testid(self.identifier)
+
             if self.incached(data):
                 dict.__init__(self, dict(self.getfromcache(data)))
             elif not self._lazy and not self._fetched:
