@@ -452,6 +452,8 @@ class PrivateKey(Prefix):
         order = ecdsa.SECP256k1.order
         secexp = (seed + z) % order
         secret = "%0x" % secexp
+        if len(secret) < 64: # left-pad with zeroes
+            secret = ("0" * (64-len(secret))) + secret
         return PrivateKey(secret, prefix=self.pubkey.prefix)
 
     def __format__(self, _format):
