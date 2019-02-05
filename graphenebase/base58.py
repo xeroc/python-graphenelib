@@ -51,7 +51,7 @@ class Base58(Prefix):
         elif data[: len(self.prefix)] == self.prefix:
             self._hex = gphBase58CheckDecode(data[len(self.prefix) :])
         else:
-            raise ValueError("Error loading Base58 object")
+            raise ValueError("Error loading Base58 object: {}".format(data))
 
     def __format__(self, _format):
         """ Format output according to argument _format (wif,...)
