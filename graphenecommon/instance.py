@@ -22,6 +22,8 @@ class AbstractBlockchainInstanceProvider:
         self._blockchain = None
         if kwargs.get("blockchain_instance"):
             self._blockchain = kwargs["blockchain_instance"]
+        else:
+            self._blockchain = self.shared_blockchain_instance()
 
     @classmethod
     def inject(slf, cls):
@@ -50,6 +52,7 @@ class AbstractBlockchainInstanceProvider:
     @property
     def blockchain(self):
         if hasattr(self, "_blockchain") and self._blockchain:
+            # This shouldn't happen except for legacy libraries
             return self._blockchain
         else:
             return self.shared_blockchain_instance()
