@@ -57,18 +57,44 @@ class GenesisBalance(BlockchainObject, AbstractBlockchainInstanceProvider):
         for p in pubkeys:
             pubkey = self.publickey_class(p)
             addresses[
-                str(self.address_class.from_pubkey(pubkey, compressed=False, version=0))
-            ] = pubkey
-            addresses[
-                str(self.address_class.from_pubkey(pubkey, compressed=True, version=0))
-            ] = pubkey
-            addresses[
                 str(
-                    self.address_class.from_pubkey(pubkey, compressed=False, version=56)
+                    self.address_class.from_pubkey(
+                        pubkey,
+                        compressed=False,
+                        version=0,
+                        prefix=self.blockchain.prefix,
+                    )
                 )
             ] = pubkey
             addresses[
-                str(self.address_class.from_pubkey(pubkey, compressed=True, version=56))
+                str(
+                    self.address_class.from_pubkey(
+                        pubkey,
+                        compressed=True,
+                        version=0,
+                        prefix=self.blockchain.prefix,
+                    )
+                )
+            ] = pubkey
+            addresses[
+                str(
+                    self.address_class.from_pubkey(
+                        pubkey,
+                        compressed=False,
+                        version=56,
+                        prefix=self.blockchain.prefix,
+                    )
+                )
+            ] = pubkey
+            addresses[
+                str(
+                    self.address_class.from_pubkey(
+                        pubkey,
+                        compressed=True,
+                        version=56,
+                        prefix=self.blockchain.prefix,
+                    )
+                )
             ] = pubkey
 
         if self["owner"] not in addresses.keys():
@@ -107,18 +133,44 @@ class GenesisBalances(list, AbstractBlockchainInstanceProvider):
         for p in pubkeys:
             pubkey = self.publickey_class(p)
             addresses.append(
-                str(self.address_class.from_pubkey(pubkey, compressed=False, version=0))
-            )
-            addresses.append(
-                str(self.address_class.from_pubkey(pubkey, compressed=True, version=0))
-            )
-            addresses.append(
                 str(
-                    self.address_class.from_pubkey(pubkey, compressed=False, version=56)
+                    self.address_class.from_pubkey(
+                        pubkey,
+                        compressed=False,
+                        version=0,
+                        prefix=self.blockchain.prefix,
+                    )
                 )
             )
             addresses.append(
-                str(self.address_class.from_pubkey(pubkey, compressed=True, version=56))
+                str(
+                    self.address_class.from_pubkey(
+                        pubkey,
+                        compressed=True,
+                        version=0,
+                        prefix=self.blockchain.prefix,
+                    )
+                )
+            )
+            addresses.append(
+                str(
+                    self.address_class.from_pubkey(
+                        pubkey,
+                        compressed=False,
+                        version=56,
+                        prefix=self.blockchain.prefix,
+                    )
+                )
+            )
+            addresses.append(
+                str(
+                    self.address_class.from_pubkey(
+                        pubkey,
+                        compressed=True,
+                        version=56,
+                        prefix=self.blockchain.prefix,
+                    )
+                )
             )
 
         balancess = self.blockchain.rpc.get_balance_objects(addresses)

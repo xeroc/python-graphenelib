@@ -86,7 +86,7 @@ class Wallet(AbstractBlockchainInstanceProvider):
         log.debug("Force setting of private keys. Not using the wallet database!")
         if isinstance(loadkeys, dict):
             loadkeys = list(loadkeys.values())
-        elif not isinstance(loadkeys, list):
+        elif not isinstance(loadkeys, (list, set)):
             loadkeys = [loadkeys]
         for wif in loadkeys:
             pub = self.publickey_from_wif(wif)
