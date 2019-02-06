@@ -452,13 +452,14 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
 
             :param tx tx: Signed transaction to broadcast
         """
-        # Cannot broadcast an empty transaction
-        if "operations" not in self or not self["operations"]:
-            return
-
         # Sign if not signed
         if not self._is_signed():
             self.sign()
+
+        # Cannot broadcast an empty transaction
+        if "operations" not in self or not self["operations"]:
+            log.warning("No operations in transaction! Returning")
+            return
 
         # Obtain JS
         ret = self.json()
