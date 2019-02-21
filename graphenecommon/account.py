@@ -119,7 +119,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
         for b in balances:
             if b["symbol"] == symbol:
                 return b
-        return self.amount_class(0, symbol)
+        return self.amount_class(0, symbol, blockchain_instance=self.blockchain)
 
     def history(self, first=0, last=0, limit=-1, only_ops=[], exclude_ops=[]):
         """ Returns a generator for individual account transactions. The
