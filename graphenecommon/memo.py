@@ -114,7 +114,7 @@ class Memo(AbstractBlockchainInstanceProvider):
     def decrypt(self, message):
         """ Decrypt a message
 
-            :param str message: encrypted memo message
+            :param dict message: encrypted memo message
             :returns: decrypted message
             :rtype: str
         """
