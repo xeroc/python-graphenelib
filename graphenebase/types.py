@@ -164,13 +164,13 @@ class Ripemd160(Hash):
         super().__init__(a)
 
 
-class Sha1(Bytes):
+class Sha1(Hash):
     def __init__(self, a):
         assert len(a) == 40, "Require 40 char long hex"
         super().__init__(a)
 
 
-class Sha256(Bytes):
+class Sha256(Hash):
     def __init__(self, a):
         assert len(a) == 64, "Require 64 char long hex"
         super().__init__(a)
