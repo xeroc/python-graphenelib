@@ -1,14 +1,14 @@
 autobahn>=0.14
 pycrypto==2.6.1
 scrypt>=0.7.1
-secp256k1
-pytest
+secp256k1==0.13.2
+pytest==4.3.0
+coverage==4.5.2
+mock==2.0.0
 nose
-coverage
-mock
 
 # Code style
 
 # black   # not available pre 3.6
-isort
-pre-commit
+isort==4.3.12
+pre-commit==1.14.4
