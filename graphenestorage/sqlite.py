@@ -45,7 +45,7 @@ class SQLiteFile:
         else:
             self.storageDatabase = "{}.sqlite".format(appname)
 
-        self.sqlDataBaseFile = os.path.join(data_dir, self.storageDatabase)
+        self.sqlite_file = os.path.join(data_dir, self.storageDatabase)
 
         """ Ensure that the directory in which the data is stored
             exists
@@ -97,7 +97,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
             ),
             (key,),
         )
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(*query)
         return True if cursor.fetchone() else False
@@ -122,7 +122,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
                 ),
                 (key, value),
             )
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(*query)
         connection.commit()
@@ -138,7 +138,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
             ),
             (key,),
         )
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(*query)
         result = cursor.fetchone()
@@ -157,7 +157,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
 
     def keys(self):
         query = "SELECT {} from {}".format(self.__key__, self.__tablename__)
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(query)
         return [x[0] for x in cursor.fetchall()]
@@ -166,7 +166,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         """ return lenght of store
         """
         query = "SELECT id from {}".format(self.__tablename__)
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(query)
         return len(cursor.fetchall())
@@ -189,7 +189,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         query = "SELECT {}, {} from {}".format(
             self.__key__, self.__value__, self.__tablename__
         )
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(query)
         r = []
@@ -218,7 +218,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
             "DELETE FROM {} WHERE {}=?".format(self.__tablename__, self.__key__),
             (key,),
         )
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(*query)
         connection.commit()
@@ -227,7 +227,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         """ Wipe the store
         """
         query = "DELETE FROM {}".format(self.__tablename__)
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(query)
         connection.commit()
@@ -239,7 +239,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
             "SELECT name FROM sqlite_master " + "WHERE type='table' AND name=?",
             (self.__tablename__,),
         )
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(*query)
         return True if cursor.fetchone() else False
@@ -255,7 +255,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
                 {} STRING(256)
             )"""
         ).format(self.__tablename__, self.__key__, self.__value__)
-        connection = sqlite3.connect(self.sqlDataBaseFile)
+        connection = sqlite3.connect(self.sqlite_file)
         cursor = connection.cursor()
         cursor.execute(query)
         connection.commit()

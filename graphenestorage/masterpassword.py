@@ -2,6 +2,7 @@
 import os
 import hashlib
 import logging
+import warnings
 
 from binascii import hexlify
 
@@ -87,12 +88,12 @@ class MasterPassword(object):
         """
         self.password = password
         if self.config_key in self.config and self.config[self.config_key]:
-            self.decryptEncryptedMaster()
+            self._decrypt_masterpassword()
         else:
-            self.newMaster(password)
-            self.saveEncrytpedMaster()
+            self._new_masterpassword(password)
+            self._save_encrypted_masterpassword()
 
-    def decryptEncryptedMaster(self):
+    def _decrypt_masterpassword(self):
         """ Decrypt the encrypted masterkey
         """
         aes = AESCipher(self.password)
@@ -100,19 +101,19 @@ class MasterPassword(object):
         try:
             decrypted_master = aes.decrypt(encrypted_master)
         except Exception:
-            self.raiseWrongMasterPasswordException()
-        if checksum != self.deriveChecksum(decrypted_master):
-            self.raiseWrongMasterPasswordException()
+            self._raise_wrongmasterpassexception()
+        if checksum != self._derive_checksum(decrypted_master):
+            self._raise_wrongmasterpassexception()
         self.decrypted_master = decrypted_master
 
-    def raiseWrongMasterPasswordException(self):
+    def _raise_wrongmasterpassexception(self):
         self.password = None
         raise WrongMasterPasswordException
 
-    def saveEncrytpedMaster(self):
-        self.config[self.config_key] = self.getEncryptedMaster()
+    def _save_encrypted_masterpassword(self):
+        self.config[self.config_key] = self._get_encrypted_masterpassword()
 
-    def newMaster(self, password):
+    def _new_masterpassword(self, password):
         """ Generate a new random masterkey, encrypt it with the password and
             store it in the store.
 
@@ -126,10 +127,10 @@ class MasterPassword(object):
 
         # Encrypt and save master
         self.password = password
-        self.saveEncrytpedMaster()
+        self._save_encrypted_masterpassword()
         return self.masterkey
 
-    def deriveChecksum(self, s):
+    def _derive_checksum(self, s):
         """ Derive the checksum
 
             :param str s: Random string for which to derive the checksum
@@ -137,7 +138,7 @@ class MasterPassword(object):
         checksum = hashlib.sha256(bytes(s, "ascii")).hexdigest()
         return checksum[:4]
 
-    def getEncryptedMaster(self):
+    def _get_encrypted_masterpassword(self):
         """ Obtain the encrypted masterkey
 
             .. note:: The encrypted masterkey is checksummed, so that we can
@@ -148,16 +149,16 @@ class MasterPassword(object):
             raise WalletLocked
         aes = AESCipher(self.password)
         return "{}${}".format(
-            self.deriveChecksum(self.masterkey), aes.encrypt(self.masterkey)
+            self._derive_checksum(self.masterkey), aes.encrypt(self.masterkey)
         )
 
-    def changePassword(self, newpassword):
+    def change_password(self, newpassword):
         """ Change the password that allows to decrypt the master key
         """
         if not self.unlocked():
             raise WalletLocked
         self.password = newpassword
-        self.saveEncrytpedMaster()
+        self._save_encrypted_masterpassword()
 
     def decrypt(self, wif):
         """ Decrypt the content according to BIP38
@@ -176,3 +177,10 @@ class MasterPassword(object):
         if not self.unlocked():
             raise WalletLocked
         return format(bip38.encrypt(str(wif), self.masterkey), "encwif")
+
+    def changePassword(self, newpassword):
+        warnings.warn(
+            "changePassword will be replaced by change_password in the future",
+            PendingDeprecationWarning,
+        )
+        return self.change_password(newpassword)
