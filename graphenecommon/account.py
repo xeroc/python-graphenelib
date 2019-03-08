@@ -61,7 +61,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
             raise AccountDoesNotExistsException(self.identifier)
         self.store(account, "name")
 
-        if self.full:
+        if self.full:  # pragma: no cover
             accounts = self.blockchain.rpc.get_full_accounts([account["id"]], False)
             if accounts and isinstance(accounts, list):
                 account = accounts[0][1]
@@ -81,12 +81,12 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
         return self["name"]
 
     @property
-    def is_fully_loaded(self):
+    def is_fully_loaded(self):  # pragma: no cover
         """ Is this instance fully loaded / e.g. all data available?
         """
         return self.full and "votes" in self
 
-    def ensure_full(self):
+    def ensure_full(self):  # pragma: no cover
         if not self.is_fully_loaded:
             self.full = True
             self.refresh()
@@ -170,7 +170,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
                 ):
                     cnt += 1
                     yield i
-                    if limit >= 0 and cnt >= limit:
+                    if limit >= 0 and cnt >= limit:  # pragma: no cover
                         return
 
             if not txs:
@@ -181,25 +181,25 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
                 break
             first = int(txs[-1]["id"].split(".")[2])
 
-    def upgrade(self):
+    def upgrade(self):  # pragma: no cover
         """ Upgrade account to life time member
         """
         assert callable(self.blockchain.upgrade_account)
         return self.blockchain.upgrade_account(account=self)
 
-    def whitelist(self, account):
+    def whitelist(self, account):  # pragma: no cover
         """ Add an other account to the whitelist of this account
         """
         assert callable(self.blockchain.account_whitelist)
         return self.blockchain.account_whitelist(account, lists=["white"], account=self)
 
-    def blacklist(self, account):
+    def blacklist(self, account):  # pragma: no cover
         """ Add an other account to the blacklist of this account
         """
         assert callable(self.blockchain.account_whitelist)
         return self.blockchain.account_whitelist(account, lists=["black"], account=self)
 
-    def nolist(self, account):
+    def nolist(self, account):  # pragma: no cover
         """ Remove an other account from any list of this account
         """
         assert callable(self.blockchain.account_whitelist)

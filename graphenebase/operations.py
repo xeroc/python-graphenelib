@@ -15,6 +15,7 @@ from .types import (
 from .objects import GrapheneObject, isArgsThisClass, Asset
 from .account import PublicKey
 from .chains import default_prefix
+from .operationids import getOperationNameForId
 
 
 # Old style of defining an operation

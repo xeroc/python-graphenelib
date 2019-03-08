@@ -2,6 +2,7 @@
 import os
 import mock
 import yaml
+import json
 
 # Graphene API
 from grapheneapi import exceptions
@@ -24,7 +25,6 @@ from graphenebase.base58 import (
 )
 from graphenebase import types, utils
 from graphenebase.transactions import formatTimeFromNow, timeformat
-from graphenebase.operations import Account_create
 from graphenebase.signedtransactions import Signed_Transaction, MissingSignatureForKey
 from graphenebase.account import (
     BrainKey,
@@ -36,8 +36,14 @@ from graphenebase.account import (
     BitcoinAddress,
 )
 from graphenebase.objects import Operation, GrapheneObject
-from graphenebase.operations import Newdemooepration, Newdemooepration2, Demooepration
-from graphenebase.operationids import ops, operations, getOperationNameForId
+from graphenebase.operations import (
+    Newdemooepration,
+    Newdemooepration2,
+    Demooepration,
+    Account_create,
+)
+from graphenebase import operations as operations_module
+from graphenebase.operationids import ops, getOperationNameForId, operations
 
 from graphenebase import bip38
 from graphenebase.bip38 import encrypt, decrypt
@@ -77,6 +83,18 @@ from graphenecommon.wallet import Wallet as GWallet
 from graphenecommon.worker import Worker as GWorker, Workers as GWorkers
 from graphenecommon.witness import Witness as GWitness, Witnesses as GWitnesss
 from graphenecommon.chain import AbstractGrapheneChain
+
+objects_cache = dict()
+
+
+def store_test_object(o):
+    global objects_cache
+    if o.get("id"):
+        objects_cache[o["id"]] = o
+
+
+def get_object(id):
+    return objects_cache.get(id, {})
 
 
 class SharedInstance(GSharedInstance):
@@ -131,14 +149,23 @@ class Chain(AbstractGrapheneChain):
                     d = yaml.safe_load(fid)
                 return d.get(name)
 
-            def get_objects(self, *args, **kwargs):
-                return []
+            def get_objects(self, ids, *args, **kwargs):
+                return [self.get_object(x) for x in ids]
 
-            def get_object(self, *args, **kwargs):
-                return {}
+            def get_object(self, id, *args, **kwargs):
+                return get_object(id)
 
             def get_account_history(self, *args, **kwargs):
-                return []
+                with open(
+                    os.path.join(
+                        os.path.dirname(__file__), "vector_get_account_history.yaml"
+                    )
+                ) as fid:
+                    history = yaml.safe_load(fid)
+                    return history
+
+            def get_account_balances(self, account, *args, **kwargs):
+                return [{"asset_id": "1.3.0", "amount": 132442}]
 
             def lookup_account_names(self, name, **kwargs):
                 return [None]
@@ -190,7 +217,7 @@ class Account(GAccount):
     def define_classes(self):
         self.type_id = 2
         self.amount_class = Amount
-        self.operations = operations
+        self.operations = operations_module
 
 
 @BlockchainInstance.inject
@@ -271,16 +298,22 @@ def fixture_data():
     with open(os.path.join(os.path.dirname(__file__), "fixtures.yaml")) as fid:
         data = yaml.safe_load(fid)
 
+    for o in data.get("objects"):
+        store_test_object(o)
+
     # Feed our objects into the caches!
     for account in data.get("accounts"):
+        store_test_object(account)
         Account._cache[account["id"]] = account
         Account._cache[account["name"]] = account
 
     for asset in data.get("assets"):
+        store_test_object(asset)
         Asset._cache[asset["symbol"]] = asset
         Asset._cache[asset["id"]] = asset
 
     for committee in data.get("committees"):
+        store_test_object(committee)
         Committee._cache[committee["id"]] = committee
 
     for blocknum, block in data.get("blocks").items():
@@ -288,7 +321,9 @@ def fixture_data():
         Block._cache[str(blocknum)] = block
 
     for worker in data.get("workers"):
+        store_test_object(worker)
         Worker._cache[worker["id"]] = worker
 
     for witness in data.get("witnesses"):
+        store_test_object(witness)
         Witness._cache[witness["id"]] = witness
