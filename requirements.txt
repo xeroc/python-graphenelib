@@ -4,5 +4,5 @@ ecdsa==0.13
 requests==2.21.0
 websocket-client==0.55.0
 pylibscrypt==1.7.1
-pycryptodome
+pycryptodome==3.7.3
 appdirs
