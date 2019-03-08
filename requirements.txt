@@ -1,5 +1,5 @@
 pyyaml==3.13
-dateutils
+dateutils==0.6.6
 ecdsa
 requests
 websocket-client
