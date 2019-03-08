@@ -178,7 +178,7 @@ class MasterPassword(object):
             raise WalletLocked
         return format(bip38.encrypt(str(wif), self.masterkey), "encwif")
 
-    def changePassword(self, newpassword):
+    def changePassword(self, newpassword):  # pragma: no cover
         warnings.warn(
             "changePassword will be replaced by change_password in the future",
             PendingDeprecationWarning,

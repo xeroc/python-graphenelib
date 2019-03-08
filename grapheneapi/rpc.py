@@ -40,7 +40,7 @@ class Rpc:
 
     def setup_proxy(self, options):
         proxy_url = options.pop("proxy", None)
-        if proxy_url:
+        if proxy_url:  # pragma: no cover
             url = urllib.parse.urlparse(proxy_url)
             self.proxy_host = url.hostname
             self.proxy_port = url.port
@@ -64,7 +64,7 @@ class Rpc:
             "Using proxy %s:%d %s" % (self.proxy_host, self.proxy_port, self.proxy_type)
         )
 
-    def get_proxy_url(self):
+    def get_proxy_url(self):  # pragma: no cover
         if not self.proxy_host:
             return None
         auth = ""

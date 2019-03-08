@@ -12,7 +12,7 @@ from .types import (
     VoteId,
     ObjectId,
 )
-from .objects import GrapheneObject, isArgsThisClass
+from .objects import GrapheneObject, isArgsThisClass, Asset
 from .account import PublicKey
 from .chains import default_prefix
 
@@ -52,16 +52,6 @@ class Newdemooepration2(GrapheneObject):
                 ("optional", Optional(String(kwargs.get("optional")))),
                 ("string", String(kwargs["string"])),
                 ("extensions", Set([])),
-            ]
-        )
-
-
-class Asset(GrapheneObject):
-    def detail(self, *args, **kwargs):
-        return OrderedDict(
-            [
-                ("amount", Int64(kwargs["amount"])),
-                ("asset_id", ObjectId(kwargs["asset_id"], "asset")),
             ]
         )
 

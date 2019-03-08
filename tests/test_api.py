@@ -20,6 +20,7 @@ class Testcases(unittest.TestCase):
             p.get("chain_id"),
             "4018d7844c78f6a6c41c6a552b898022310fc5dec06da467ee7905a8dad512c8",
         )
+        self.assertIsInstance(api.api_id, dict)
 
     def test_websocket_connection(self):
         api = Api(urls[0])

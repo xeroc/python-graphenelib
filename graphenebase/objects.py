@@ -135,7 +135,7 @@ class Operation(list):
 
     @property
     def ops(self):
-        if callable(self.operations):
+        if callable(self.operations):  # pragma: no cover
             # Legacy support
             return self.operations()
         else:
@@ -180,7 +180,7 @@ class GrapheneObject(OrderedDict):
             super().__init__(self.detail(*args, **kwargs))
 
     def __bytes__(self):
-        if len(self) is 0:
+        if len(self) == 0:
             return bytes()
         b = b""
         for name, value in self.items():
@@ -191,11 +191,11 @@ class GrapheneObject(OrderedDict):
         return b
 
     def __json__(self):
-        if len(self) is 0:
+        if len(self) == 0:
             return {}
         d = {}  # JSON output is *not* ordered
         for name, value in self.items():
-            if isinstance(value, Optional) and value.isempty():
+            if isinstance(value, Optional) and value.isempty():  # pragma: no cover
                 continue
 
             if isinstance(value, String):
@@ -234,17 +234,10 @@ def isArgsThisClass(self, args):
 
 # Common Objects
 class Asset(GrapheneObject):
-    def __init__(self, *args, **kwargs):
-        if isArgsThisClass(self, args):
-            self.data = args[0].data
-        else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-            super().__init__(
-                OrderedDict(
-                    [
-                        ("amount", Int64(kwargs["amount"])),
-                        ("asset_id", ObjectId(kwargs["asset_id"], "asset")),
-                    ]
-                )
-            )
+    def detail(self, *args, **kwargs):
+        return OrderedDict(
+            [
+                ("amount", Int64(kwargs["amount"])),
+                ("asset_id", ObjectId(kwargs["asset_id"], "asset")),
+            ]
+        )

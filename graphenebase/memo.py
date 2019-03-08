@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import hashlib
 import struct
 import sys
@@ -12,9 +13,6 @@ except ImportError:
         from Crypto.Cipher import AES
     except ImportError:
         raise ImportError("Missing dependency: pyCryptodome")
-
-" This class and the methods require python3 "
-assert sys.version_info[0] == 3, "this library requires python3"
 
 
 def get_shared_secret(priv, pub):
@@ -115,12 +113,9 @@ def decode_memo(priv, pub, nonce, message):
     " Checksum "
     checksum = cleartext[0:4]
     message = cleartext[4:]
-    try:
-        message = _unpad(message, 16)
-    except Exception as e:
-        raise ValueError(message)
+    message = _unpad(message, 16)
     " Verify checksum "
     check = hashlib.sha256(message).digest()[0:4]
-    if check != checksum:
+    if check != checksum:  # pragma: no cover
         raise ValueError("checksum verification failure")
     return message.decode("utf8")

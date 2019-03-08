@@ -149,6 +149,12 @@ class Chain(AbstractGrapheneChain):
             def get_workers_by_account(self, name):
                 return [self._load("workers")[0]]
 
+            def get_dynamic_global_properties(self):
+                return {
+                    "head_block_id": "021dcf4a9af758e508364f16e3ab5ac928b7f76c",
+                    "head_block_number": 35508042,
+                }
+
             def __getattr__(self, name):
                 def fun(self, *args, **kwargs):
                     return {}
