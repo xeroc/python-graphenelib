@@ -21,7 +21,7 @@ class Testcases(unittest.TestCase):
         self.assertEqual(store.storageDatabase, "testing.sqlite")
 
         store = MyStore(profile="testing", data_dir="/tmp/temporaryFolder")
-        self.assertEqual(store.sqlDataBaseFile, "/tmp/temporaryFolder/testing.sqlite")
+        self.assertEqual(store.sqlite_file, "/tmp/temporaryFolder/testing.sqlite")
 
     def test_initialdata(self):
         store = MyStore()

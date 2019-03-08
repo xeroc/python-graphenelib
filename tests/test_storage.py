@@ -142,10 +142,10 @@ class Testcases(unittest.TestCase):
                     "6PRViepa2zaXXGEQTYUsoLM1KudLmNBB1t812jtdKx1TEhQtvxvmtEm6Yh"
                 )
             with self.assertRaises(WalletLocked):
-                keys.getEncryptedMaster()
+                keys._get_encrypted_masterpassword()
 
             # set the first MasterPassword here!
-            keys.newMaster(password)
+            keys._new_masterpassword(password)
             keys.lock()
             keys.unlock(password)
             assert keys.unlocked()
@@ -198,24 +198,24 @@ class Testcases(unittest.TestCase):
         config = storage.InRamConfigurationStore()
         keys = storage.InRamEncryptedKeyStore(config=config)
         self.assertFalse(keys.has_masterpassword())
-        master = keys.newMaster(password)
+        master = keys._new_masterpassword(password)
         self.assertEqual(
             len(master),
             len("66eaab244153031e8172e6ffed321" "7288515ddb63646bbefa981a654bdf25b9f"),
         )
         with self.assertRaises(Exception):
-            keys.newMaster(master)
+            keys._new_masterpassword(master)
 
         keys.lock()
 
         with self.assertRaises(Exception):
-            keys.changePassword("foobar")
+            keys.change_password("foobar")
 
         keys.unlock(password)
         self.assertEqual(keys.decrypted_master, master)
 
         new_pass = "new_secret_password"
-        keys.changePassword(new_pass)
+        keys.change_password(new_pass)
         keys.lock()
         keys.unlock(new_pass)
         self.assertEqual(keys.decrypted_master, master)
@@ -223,7 +223,7 @@ class Testcases(unittest.TestCase):
     def test_wrongmastermass(self):
         config = storage.InRamConfigurationStore()
         keys = storage.InRamEncryptedKeyStore(config=config)
-        keys.newMaster("foobar")
+        keys._new_masterpassword("foobar")
         keys.lock()
         with self.assertRaises(WrongMasterPasswordException):
             keys.unlock("foobar2")
@@ -237,14 +237,14 @@ class Testcases(unittest.TestCase):
         keys.unlock("foobar")
         keys.password = "FOoo"
         with self.assertRaises(Exception):
-            keys.decryptEncryptedMaster()
+            keys._decrypt_masterpassword()
         keys.lock()
 
         with self.assertRaises(WrongMasterPasswordException):
             keys.unlock("foobar2")
 
         with self.assertRaises(Exception):
-            keys.getEncryptedMaster()
+            keys._get_encrypted_masterpassword()
 
         self.assertFalse(keys.unlocked())
 
