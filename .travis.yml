@@ -11,8 +11,8 @@ matrix:
       python: 3.5
     - env: TOXENV=py36
       python: 3.6
-    - env: TOXENV=py37
-      python: 3.7
+#    - env: TOXENV=py37
+#      python: 3.7
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
@@ -29,9 +29,3 @@ after_script:
 after_success:
   - codecov
   - coveralls
-
-addons:
-  sonarcloud:
-    organization: graphene
-    token:
-     secure: "KcIUKNAnkaA50M52pfiUhJYT3F4VtXQSlmdedcUO0xVxig6Z5watdDEKSbqmD7jDCX+aZizCx2gPHrm+hPdXPKz4B9/U4MtxOyn35bJ7i58mWRvKicBf8PaPmQSYTWW8iJIuJ1GNv9Ymxq45IbkgjL/A7XQEGXiKmpbgLKe0ADMohG63UufarltGuQr0fXKAXaVCb9mJNBICXHLSY2VeNYqyLtS/gEbOoVpTh7yKgrUT7u3j3Yn+oC+1+1KzRNzZ9/iY5AqWSkpUV20Rt41njBCEulNR2t8b0Ykd127pOy9qxddqoBbJ0Dav5a+gXRwNt4h8t0iioHFnBaE4Nhtdvps0pFHHzON8UDEiAtcTTtttrayqNZZ/g3TRrZsujavE9PxINXEClc0AaX4bJOEhmimcnvzQfaSj5xuGvT7Ci2sA/UXw9dSGthJIpqeMdmGKrc/0CrP29Azoa6D9G+q4ZE6pEF1jmkaaER8AA+EqRZTQBuqlSeDyTH+ro1SMDqvV7X5rTro4eMpCTSCvVsr3/02XNyPQ0FplQ7QafZi2kMjP8h7y45EdQKr8Rq6INk08J2ae6UwcS8yH7EQw3WhHx3sSuuZZSFJ5uiTb5+a10MFqw8ng/seXW9HglcR/rskml3kZToECEk4EWfbLmMCFDWJlYv8LIbUQwOIsxgHX3tw="
