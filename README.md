@@ -12,7 +12,6 @@
 [![codecov](https://codecov.io/gh/xeroc/python-graphenelib/branch/master/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
 [![Maintainability](https://api.codeclimate.com/v1/badges/8dd7a9b3f06a1ef9188a/maintainability)](https://codeclimate.com/github/xeroc/python-graphenelib/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/8dd7a9b3f06a1ef9188a/test_coverage)](https://codeclimate.com/github/xeroc/python-graphenelib/test_coverage)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=graphenelib&metric=alert_status)](https://sonarcloud.io/dashboard?id=graphenelib)
 ![](https://pyup.io/repos/github/xeroc/python-graphenelib/shield.svg)
 ![](https://cla-assistant.io/readme/badge/xeroc/python-graphenelib)
 
