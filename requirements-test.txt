@@ -1,7 +1,7 @@
 autobahn>=0.14
 pycrypto==2.6.1
 scrypt>=0.7.1
-secp256k1
+secp256k1==0.13.2
 pytest
 coverage
 mock
