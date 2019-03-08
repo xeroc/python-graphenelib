@@ -4,20 +4,17 @@
 ![](https://img.shields.io/github/downloads/xeroc/python-graphenelib/total.svg?style=for-the-badge)
 ![](https://img.shields.io/pypi/pyversions/graphenelib.svg?style=for-the-badge)
 ![](https://img.shields.io/pypi/l/graphenelib.svg?style=for-the-badge)
-![](https://cla-assistant.io/readme/badge/xeroc/python-graphenelib)
 
-**Stable**
+### Current build status
 
 [![Travis master](https://travis-ci.org/xeroc/python-graphenelib.png?branch=master)](https://travis-ci.org/xeroc/python-graphenelib)
 [![docs master](https://readthedocs.org/projects/python-graphenelib/badge/?version=latest)](http://python-graphenelib.readthedocs.io/en/latest/)
 [![codecov](https://codecov.io/gh/xeroc/python-graphenelib/branch/master/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
-
-
-**Develop**
-
-[![Travis develop](https://travis-ci.org/xeroc/python-graphenelib.png?branch=develop)](https://travis-ci.org/xeroc/python-graphenelib)
-[![docs develop](https://readthedocs.org/projects/python-graphenelib/badge/?version=develop)](http://python-graphenelib.readthedocs.io/en/develop/)
-[![codecov develop](https://codecov.io/gh/xeroc/python-graphenelib/branch/develop/graph/badge.svg)](https://codecov.io/gh/xeroc/python-graphenelib)
+[![Maintainability](https://api.codeclimate.com/v1/badges/8dd7a9b3f06a1ef9188a/maintainability)](https://codeclimate.com/github/xeroc/python-graphenelib/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/8dd7a9b3f06a1ef9188a/test_coverage)](https://codeclimate.com/github/xeroc/python-graphenelib/test_coverage)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=python-graphene&metric=alert_status)](https://sonarcloud.io/dashboard?id=python-graphene)
+![](https://pyup.io/repos/github/xeroc/python-graphenelib/shield.svg)
+![](https://cla-assistant.io/readme/badge/xeroc/python-graphenelib)
 
 ---
 ## Documentation

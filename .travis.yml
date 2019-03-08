@@ -1,24 +1,34 @@
 dist: trusty
 language: python
 sudo: false
-python:
-  - 3.5
+python: 3.5
+env:
+  global:
+    - CC_TEST_REPORTER_ID=cd0802782ea41e43bb232d303415f475ee6f5087c0d3e4252e3ac4b56509d13d
 matrix:
   include:
     - env: TOXENV=py35
       python: 3.5
     - env: TOXENV=py36
       python: 3.6
-    #- env: TOXENV=py37
-    #  python: 3.7
+    - env: TOXENV=py37
+      python: 3.7
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
 install:
-  - pip install tox-travis codecov
+  - pip install tox-travis codecov coveralls
 script:
   - tox
   - sed -i 's/filename="/filename=".\//g' coverage.xml
   - ( which sonar-scanner && sonar-scanner || true )
+after_script:
+  # Pipe the coverage data to Code Climate
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 after_success:
   - codecov
+  - coveralls
 
 addons:
   sonarcloud:
