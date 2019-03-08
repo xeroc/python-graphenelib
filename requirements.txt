@@ -1,7 +1,7 @@
 pyyaml==3.13
 dateutils==0.6.6
 ecdsa==0.13
-requests
+requests==2.21.0
 websocket-client
 pylibscrypt
 pycryptodome
