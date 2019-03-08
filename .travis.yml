@@ -21,10 +21,7 @@ install:
   - pip install tox-travis codecov coveralls
 script:
   - tox
-  - sed -i 's/filename="/filename=".\//g' coverage.xml
-  - ( which sonar-scanner && sonar-scanner || true )
 after_script:
-  # Pipe the coverage data to Code Climate
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT --prefix $(readlink -f .)
 after_success:
   - codecov
