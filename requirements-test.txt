@@ -9,5 +9,5 @@ mock==2.0.0
 # Code style
 
 # black   # not available pre 3.6
-isort
+isort==4.3.12
 pre-commit
