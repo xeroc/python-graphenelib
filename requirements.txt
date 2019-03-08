@@ -5,4 +5,4 @@ requests==2.21.0
 websocket-client==0.55.0
 pylibscrypt==1.7.1
 pycryptodome==3.7.3
-appdirs
+appdirs==1.4.3
