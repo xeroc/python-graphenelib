@@ -10,4 +10,4 @@ mock==2.0.0
 
 # black   # not available pre 3.6
 isort==4.3.12
-pre-commit
+pre-commit==1.14.4
