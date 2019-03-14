@@ -13,7 +13,7 @@ class Http(Rpc):
     """ RPC Calls
     """
 
-    def proxies(self):
+    def proxies(self):  # pragma: no cover
         proxy_url = self.get_proxy_url()
         if proxy_url is None:
             return None

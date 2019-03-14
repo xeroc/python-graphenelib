@@ -264,7 +264,7 @@ class Optional:
     def isempty(self):
         if self.data is None:
             return True
-        if not bool(str(self.data)):
+        if not bool(str(self.data)):  # pragma: no cover
             return True
         return not bool(bytes(self.data))
 

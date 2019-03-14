@@ -244,3 +244,13 @@ workers:
   worker:
   - 1
   - balance: '1.13.10000'
+
+objects:
+ - id: "2.6.100"
+   lifetime_fees_paid: "44261516129"
+   most_recent_op: "2.9.0"
+   owner: "1.2.100"
+   pending_fees: 0
+   pending_vested_fees: 16310
+   total_core_in_orders: "6788845277634"
+   total_ops: 0

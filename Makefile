@@ -6,7 +6,7 @@ clean-build:
 	rm -fr build/
 	rm -fr dist/
 	rm -fr *.egg-info
-	rm -fr __pycache__/ .eggs/ .cache/ .tox/
+	rm -fr __pycache__/ .eggs/ .cache/ .tox/ .pytest_cache/ .scannerwork/
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
