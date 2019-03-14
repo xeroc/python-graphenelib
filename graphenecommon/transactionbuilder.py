@@ -79,7 +79,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
             parent._set_require_reconstruction()
 
     def list_operations(self):
-        return self.ops
+        return [self.operation_class(o) for o in self.ops]
 
     def broadcast(self):
         assert self.parent, "No parent transaction provided!"
@@ -164,7 +164,15 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         return not (len(self.ops) > 0)
 
     def list_operations(self):
-        return self.ops
+        ret = list()
+        for o in self.ops:
+            if isinstance(o, ProposalBuilder):
+                prop = o.get_raw()
+                if prop:
+                    ret.append(prop)
+            else:
+                ret.append(self.operation_class(o))
+        return ret
 
     def _is_signed(self):
         return "signatures" in self and self["signatures"]
