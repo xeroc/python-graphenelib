@@ -168,6 +168,17 @@ class GrapheneObject(OrderedDict):
     """
 
     def __init__(self, *args, **kwargs):
+
+        if len(args) == 1 and isinstance(args[0], self.__class__):
+            # In this case, there is only one argument which is already an
+            # instance of a class that inherits Graphene Object, hence, we copy
+            # data and are done
+            # This basic allows to do
+            #
+            #    Asset(Asset(amount=1, asset_id="1.3.0"))
+            self.data = args[0].data.copy()
+            return
+
         if len(args) == 1 and isinstance(args[0], (dict, OrderedDict)):
             if hasattr(self, "detail"):
                 super().__init__(self.detail(**args[0]))
