@@ -362,10 +362,10 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             if isinstance(op, ProposalBuilder):
                 # This operation is a proposal an needs to be deal with
                 # differently
-                proposals = op.get_raw()
-                if proposals:
-                    ops.append(proposals)
-            if isinstance(op, self.operation_class):
+                proposal = op.get_raw()
+                if proposal:
+                    ops.append(proposal)
+            elif isinstance(op, self.operation_class):
                 ops.extend([op])
             else:
                 # otherwise, we simply wrap ops into Operations
