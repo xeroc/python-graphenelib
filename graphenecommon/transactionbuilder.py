@@ -92,7 +92,9 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
         return self.parent
 
     def __repr__(self):
-        return "<Proposal ops=%s>" % str(self.ops)
+        return "<Proposal num_ops={}, ops={}>".format(
+            len(self.ops), [op.__class__.__name__ for op in self.ops]
+        )
 
     def json(self):
         """ Return the json formated version of this proposal
@@ -148,7 +150,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         if tx and isinstance(tx, dict):
             dict.__init__(self, tx)
             # Load operations
-            self.ops = tx["operations"]
+            self.ops = [self.operation_class(o) for o in tx["operations"]]
             self._require_reconstruction = False
         else:
             self._require_reconstruction = True
@@ -162,7 +164,15 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         return not (len(self.ops) > 0)
 
     def list_operations(self):
-        return [self.operation_class(o) for o in self.ops]
+        ret = list()
+        for o in self.ops:
+            if isinstance(o, ProposalBuilder):
+                prop = o.get_raw()
+                if prop:
+                    ret.append(prop)
+            else:
+                ret.append(self.operation_class(o))
+        return ret
 
     def _is_signed(self):
         return "signatures" in self and self["signatures"]
@@ -180,7 +190,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         self._require_reconstruction = False
 
     def __repr__(self):
-        return str(self)
+        return "<Transaction num_ops={}, ops={}>".format(
+            len(self.ops), [op.__class__.__name__ for op in self.ops]
+        )
 
     def __str__(self):
         return str(self.json())
@@ -358,9 +370,11 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             if isinstance(op, ProposalBuilder):
                 # This operation is a proposal an needs to be deal with
                 # differently
-                proposals = op.get_raw()
-                if proposals:
-                    ops.append(proposals)
+                proposal = op.get_raw()
+                if proposal:
+                    ops.append(proposal)
+            elif isinstance(op, self.operation_class):
+                ops.extend([op])
             else:
                 # otherwise, we simply wrap ops into Operations
                 ops.extend([self.operation_class(op)])

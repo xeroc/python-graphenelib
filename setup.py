@@ -3,17 +3,7 @@
 
 from setuptools import setup
 
-# Work around mbcs bug in distutils.
-# http://bugs.python.org/issue10945
-import codecs
-
-try:
-    codecs.lookup("mbcs")
-except LookupError:
-    ascii = codecs.lookup("ascii")
-    codecs.register(lambda name, enc=ascii: {True: enc}.get(name == "mbcs"))
-
-VERSION = "1.1.11"
+VERSION = "1.1.12"
 URL = "https://github.com/xeroc/python-graphenelib"
 
 setup(

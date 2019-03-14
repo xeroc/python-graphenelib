@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from functools import update_wrapper
 import types
 
 
@@ -35,6 +34,7 @@ class AbstractBlockchainInstanceProvider:
                 cls.__init__(self, *args, **kwargs)
 
         NewClass.__name__ = cls.__name__
+        NewClass.__qualname__ = cls.__qualname__
         NewClass.__doc__ = cls.__doc__
         NewClass.__module__ = cls.__module__
         return NewClass
