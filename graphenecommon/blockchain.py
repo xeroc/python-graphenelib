@@ -28,6 +28,8 @@ class Blockchain(AbstractBlockchainInstanceProvider):
         assert self.block_class
         assert self.operationids
 
+        self._parameters = None
+
         if mode == "irreversible":
             self.mode = "last_irreversible_block_num"
         elif mode == "head":
@@ -52,7 +54,12 @@ class Blockchain(AbstractBlockchainInstanceProvider):
         """ The blockchain parameters, such as fees, and committee-controlled
             parameters are returned here
         """
-        return self.config()["parameters"]
+        if not self._parameters:
+            self.update_chain_parameters()
+        return self._parameters
+
+    def update_chain_parameters(self):
+        self._parameters = self.config()["parameters"]
 
     def get_network(self):
         """ Identify the network
