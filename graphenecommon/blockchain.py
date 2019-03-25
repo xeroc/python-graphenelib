@@ -191,7 +191,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
         return block
 
     def ops(self, start=None, stop=None, **kwargs):
-        """ Yields all operations (including virtual operations) starting from
+        """ Yields all operations (excluding virtual operations) starting from
             ``start``.
 
             :param int start: Starting block
