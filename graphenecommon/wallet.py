@@ -223,10 +223,9 @@ class Wallet(AbstractBlockchainInstanceProvider):
     def getAccountsFromPublicKey(self, pub):
         """ Obtain all accounts associated with a public key
         """
-        names = self.rpc.get_key_references([str(pub)])
+        names = self.rpc.get_key_references([str(pub)])[0]
         for name in names:
-            for i in name:
-                yield i
+            yield name
 
     def getAccountFromPublicKey(self, pub):
         """ Obtain the first account name from public key
@@ -234,10 +233,8 @@ class Wallet(AbstractBlockchainInstanceProvider):
         # FIXME, this only returns the first associated key.
         # If the key is used by multiple accounts, this
         # will surely lead to undesired behavior
-        names = self.rpc.get_key_references([str(pub)])[0]
-        if not names:
-            return None
-        else:
+        names = list(self.getAccountsFromPublicKey(str(pub)))
+        if names:
             return names[0]
 
     def getAllAccounts(self, pub):
@@ -268,7 +265,7 @@ class Wallet(AbstractBlockchainInstanceProvider):
         for pubkey in pubkeys:
             # Filter those keys not for our network
             if pubkey[: len(self.prefix)] == self.prefix:
-                accounts.extend(self.getAllAccounts(pubkey))
+                accounts.extend(self.getAccountsFromPublicKey(pubkey))
         return accounts
 
     def getPublicKeys(self, current=False):
