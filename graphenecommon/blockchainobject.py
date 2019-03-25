@@ -217,6 +217,7 @@ class BlockchainObject(Caching, dict):
 
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
         Caching.__init__(self, *args, **kwargs)
+        self._use_cache = use_cache
         if self.perform_id_tests:
             assert self.type_id or self.type_ids, "Need type_id or type_ids"
         self._fetched = False
@@ -260,7 +261,7 @@ class BlockchainObject(Caching, dict):
             elif not self._lazy and not self._fetched:
                 self.refresh()
 
-        if use_cache and not self._lazy:
+        if self._use_cache and not self._lazy:
             self._store_item()
 
     def store(self, data, key="id"):
