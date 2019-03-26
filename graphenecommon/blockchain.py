@@ -97,6 +97,11 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             self.get_current_block_num(), blockchain_instance=self.blockchain
         )
 
+    def get_block_interval(self):
+        """ This call returns the block interval
+        """
+        return self.chainParameters().get("block_interval")
+
     def block_time(self, block_num):
         """ Returns a datetime of the block with the given block
             number.
@@ -127,7 +132,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
              confirmed by 2/3 of all block producers and is thus irreversible)
         """
         # Let's find out how often blocks are generated!
-        self.block_interval = self.chainParameters().get("block_interval")
+        self.block_interval = self.get_block_interval()
 
         if not start:
             start = self.get_current_block_num()
