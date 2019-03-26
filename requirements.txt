@@ -2,9 +2,9 @@ pyyaml==5.1
 dateutils==0.6.6
 ecdsa==0.13
 requests==2.21.0
-websocket-client==0.55.0
+websocket-client==0.56.0
 pylibscrypt==1.8.0
-pycryptodome==3.7.3
+pycryptodome==3.8.0
 appdirs==1.4.3
 scrypt==0.8.13
 secp256k1==0.13.2
