@@ -214,7 +214,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             for tx in block["transactions"]:
                 for op in tx["operations"]:
                     # Replace opid by op name
-                    op[0] = self.operationids.getOperationNameForId(op[0])
+                    op[0] = self.operationids.getOperationName(op[0])
                     yield {
                         "block_num": block["block_num"],
                         "op": op,
