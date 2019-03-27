@@ -129,7 +129,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
             raise ValueError
 
         # make sure amount is a float
-        self["amount"] = float(self["amount"])
+        self["amount"] = float(self.get("amount", 0.0))
 
     def copy(self):
         """ Copy the instance and make sure not to use a reference

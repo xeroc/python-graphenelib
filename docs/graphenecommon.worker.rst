@@ -1,5 +1,5 @@
-graphenecommon\.worker module
-=============================
+graphenecommon.worker module
+============================
 
 .. automodule:: graphenecommon.worker
     :members:

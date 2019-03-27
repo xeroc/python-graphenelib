@@ -30,6 +30,13 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
 
     type_id = "n/a"
 
+    def __init__(self, *args, use_cache=False, **kwargs):
+        # We allow to hand over use_cache be default, but here,
+        # we want to change the default to *false* so we don't cache every
+        # block all the time for eternity
+        kwargs["use_cache"] = use_cache
+        BlockchainObject.__init__(self, *args, **kwargs)
+
     def refresh(self):
         """ Even though blocks never change, you freshly obtain its contents
             from an API with this method
@@ -37,7 +44,9 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
         block = self.blockchain.rpc.get_block(self.identifier)
         if not block:
             raise BlockDoesNotExistsException
-        super(Block, self).__init__(block, blockchain_instance=self.blockchain)
+        super(Block, self).__init__(
+            block, blockchain_instance=self.blockchain, use_cache=self._use_cache
+        )
 
     def time(self):
         """ Return a datatime instance for the timestamp of this block
@@ -48,6 +57,13 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
 class BlockHeader(BlockchainObject, AbstractBlockchainInstanceProvider):
     type_id = "n/a"
 
+    def __init__(self, *args, use_cache=False, **kwargs):
+        # We allow to hand over use_cache be default, but here,
+        # we want to change the default to *false* so we don't cache every
+        # block all the time for eternity
+        kwargs["use_cache"] = use_cache
+        BlockchainObject.__init__(self, *args, **kwargs)
+
     def refresh(self):
         """ Even though blocks never change, you freshly obtain its contents
             from an API with this method
@@ -55,7 +71,9 @@ class BlockHeader(BlockchainObject, AbstractBlockchainInstanceProvider):
         block = self.blockchain.rpc.get_block_header(self.identifier)
         if not block:
             raise BlockDoesNotExistsException
-        super(BlockHeader, self).__init__(block, blockchain_instance=self.blockchain)
+        super(BlockHeader, self).__init__(
+            block, blockchain_instance=self.blockchain, use_cache=self._use_cache
+        )
 
     def time(self):
         """ Return a datatime instance for the timestamp of this block

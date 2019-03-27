@@ -1,5 +1,5 @@
-graphenebase\.transactions module
-=================================
+graphenebase.transactions module
+================================
 
 .. automodule:: graphenebase.transactions
     :members:

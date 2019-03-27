@@ -1,5 +1,5 @@
-graphenebase\.dictionary module
-===============================
+graphenebase.dictionary module
+==============================
 
 .. automodule:: graphenebase.dictionary
     :members:

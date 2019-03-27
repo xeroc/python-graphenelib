@@ -1,5 +1,5 @@
-graphenecommon\.proposal module
-===============================
+graphenecommon.proposal module
+==============================
 
 .. automodule:: graphenecommon.proposal
     :members:

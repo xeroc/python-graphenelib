@@ -1,5 +1,5 @@
-graphenecommon\.chain module
-============================
+graphenecommon.chain module
+===========================
 
 .. automodule:: graphenecommon.chain
     :members:

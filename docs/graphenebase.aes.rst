@@ -1,5 +1,5 @@
-graphenebase\.aes module
-========================
+graphenebase.aes module
+=======================
 
 .. automodule:: graphenebase.aes
     :members:

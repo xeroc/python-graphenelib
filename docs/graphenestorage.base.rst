@@ -1,5 +1,5 @@
-graphenestorage\.base module
-============================
+graphenestorage.base module
+===========================
 
 .. automodule:: graphenestorage.base
     :members:

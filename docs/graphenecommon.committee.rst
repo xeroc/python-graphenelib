@@ -1,5 +1,5 @@
-graphenecommon\.committee module
-================================
+graphenecommon.committee module
+===============================
 
 .. automodule:: graphenecommon.committee
     :members:

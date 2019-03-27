@@ -1,5 +1,5 @@
-graphenebase\.operationids module
-=================================
+graphenebase.operationids module
+================================
 
 .. automodule:: graphenebase.operationids
     :members:

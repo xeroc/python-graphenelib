@@ -1,5 +1,5 @@
-graphenecommon\.amount module
-=============================
+graphenecommon.amount module
+============================
 
 .. automodule:: graphenecommon.amount
     :members:

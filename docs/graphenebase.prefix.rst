@@ -1,5 +1,5 @@
-graphenebase\.prefix module
-===========================
+graphenebase.prefix module
+==========================
 
 .. automodule:: graphenebase.prefix
     :members:

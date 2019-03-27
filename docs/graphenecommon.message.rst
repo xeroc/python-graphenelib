@@ -1,5 +1,5 @@
-graphenecommon\.message module
-==============================
+graphenecommon.message module
+=============================
 
 .. automodule:: graphenecommon.message
     :members:

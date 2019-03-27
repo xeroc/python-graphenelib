@@ -1,5 +1,5 @@
-graphenebase\.operations module
-===============================
+graphenebase.operations module
+==============================
 
 .. automodule:: graphenebase.operations
     :members:

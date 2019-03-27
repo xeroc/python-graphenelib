@@ -42,8 +42,13 @@ from graphenebase.operations import (
     Demooepration,
     Account_create,
 )
-from graphenebase import operations as operations_module
-from graphenebase.operationids import ops, getOperationNameForId, operations
+from graphenebase import operations as operations_module, operationids
+from graphenebase.operationids import (
+    ops,
+    getOperationNameForId,
+    getOperationName,
+    operations,
+)
 
 from graphenebase import bip38
 from graphenebase.bip38 import encrypt, decrypt
@@ -76,6 +81,7 @@ from graphenecommon.account import Account as GAccount, AccountUpdate as GAccoun
 from graphenecommon.asset import Asset as GAsset
 from graphenecommon.committee import Committee as GCommittee
 from graphenecommon.block import Block as GBlock, BlockHeader as GBlockHeader
+from graphenecommon.blockchain import Blockchain as GBLockchain
 from graphenecommon.message import Message as GMessage
 from graphenecommon.blockchainobject import ObjectCache, BlockchainObject
 from graphenecommon.price import Price as GPrice
@@ -257,6 +263,13 @@ class Price(GPrice):
     def define_classes(self):
         self.asset_class = Asset
         self.amount_class = Amount
+
+
+@BlockchainInstance.inject
+class Blockchain(GBLockchain):
+    def define_classes(self):
+        self.block_class = Block
+        self.operationids = operationids
 
 
 @BlockchainInstance.inject

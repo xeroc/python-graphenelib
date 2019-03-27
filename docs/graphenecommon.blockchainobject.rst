@@ -1,5 +1,5 @@
-graphenecommon\.blockchainobject module
-=======================================
+graphenecommon.blockchainobject module
+======================================
 
 .. automodule:: graphenecommon.blockchainobject
     :members:

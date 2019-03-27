@@ -134,6 +134,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         operations and signers.
     """
 
+    #: Some graphene chains support more than just owner, active (e.g. steem also has 'posting')
+    permission_types = ["active", "owner"]
+
     def __init__(self, tx={}, proposer=None, **kwargs):
         self.define_classes()
         assert self.account_class
@@ -276,7 +279,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         """ Try to obtain the wif key from the wallet by telling which account
             and permission is supposed to sign the transaction
         """
-        assert permission in ["active", "owner"], "Invalid permission"
+        assert permission in self.permission_types, "Invalid permission"
 
         if self.blockchain.wallet.locked():
             raise WalletLocked()

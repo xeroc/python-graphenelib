@@ -28,6 +28,8 @@ class Blockchain(AbstractBlockchainInstanceProvider):
         assert self.block_class
         assert self.operationids
 
+        self._parameters = None
+
         if mode == "irreversible":
             self.mode = "last_irreversible_block_num"
         elif mode == "head":
@@ -52,7 +54,12 @@ class Blockchain(AbstractBlockchainInstanceProvider):
         """ The blockchain parameters, such as fees, and committee-controlled
             parameters are returned here
         """
-        return self.config()["parameters"]
+        if not self._parameters:
+            self.update_chain_parameters()
+        return self._parameters
+
+    def update_chain_parameters(self):
+        self._parameters = self.config()["parameters"]
 
     def get_network(self):
         """ Identify the network
@@ -90,6 +97,11 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             self.get_current_block_num(), blockchain_instance=self.blockchain
         )
 
+    def get_block_interval(self):
+        """ This call returns the block interval
+        """
+        return self.chainParameters().get("block_interval")
+
     def block_time(self, block_num):
         """ Returns a datetime of the block with the given block
             number.
@@ -120,7 +132,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
              confirmed by 2/3 of all block producers and is thus irreversible)
         """
         # Let's find out how often blocks are generated!
-        self.block_interval = self.chainParameters().get("block_interval")
+        self.block_interval = self.get_block_interval()
 
         if not start:
             start = self.get_current_block_num()
@@ -184,7 +196,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
         return block
 
     def ops(self, start=None, stop=None, **kwargs):
-        """ Yields all operations (including virtual operations) starting from
+        """ Yields all operations (excluding virtual operations) starting from
             ``start``.
 
             :param int start: Starting block
@@ -202,7 +214,7 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             for tx in block["transactions"]:
                 for op in tx["operations"]:
                     # Replace opid by op name
-                    op[0] = self.operationids.getOperationNameForId(op[0])
+                    op[0] = self.operationids.getOperationName(op[0])
                     yield {
                         "block_num": block["block_num"],
                         "op": op,

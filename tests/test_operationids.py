@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
-from .fixtures import ops, operations, getOperationNameForId
+from .fixtures import ops, operations, getOperationNameForId, getOperationName
 
 
 class Testcases(unittest.TestCase):
@@ -17,3 +17,9 @@ class Testcases(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             getOperationNameForId(20)
+
+    def test_operation_type_decode(self):
+        self.assertEqual(getOperationName(0), "demooepration")
+        self.assertEqual(getOperationName("account_create"), "account_create")
+        with self.assertRaises(AssertionError):
+            self.assertEqual(getOperationName("-not-exist-"), "account_create")

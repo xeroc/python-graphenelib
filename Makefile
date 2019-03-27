@@ -43,7 +43,8 @@ docs:
 	sphinx-apidoc -d 6 -e -f -o docs . *.py tests
 	make -C docs clean html
 
-release: clean check dist git
-
 authors:
 	git shortlog -e -s -n > AUTHORS
+
+prerelease: test docs authors
+release: clean check dist git
