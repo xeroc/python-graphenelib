@@ -1,5 +1,5 @@
-grapheneapi\.rpc module
-=======================
+grapheneapi.rpc module
+======================
 
 .. automodule:: grapheneapi.rpc
     :members:

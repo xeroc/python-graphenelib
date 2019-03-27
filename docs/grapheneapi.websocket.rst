@@ -1,5 +1,5 @@
-grapheneapi\.websocket module
-=============================
+grapheneapi.websocket module
+============================
 
 .. automodule:: grapheneapi.websocket
     :members:

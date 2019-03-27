@@ -1,5 +1,5 @@
-graphenestorage\.ram module
-===========================
+graphenestorage.ram module
+==========================
 
 .. automodule:: graphenestorage.ram
     :members:

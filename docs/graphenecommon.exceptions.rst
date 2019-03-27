@@ -1,5 +1,5 @@
-graphenecommon\.exceptions module
-=================================
+graphenecommon.exceptions module
+================================
 
 .. automodule:: graphenecommon.exceptions
     :members:

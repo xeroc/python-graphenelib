@@ -1,5 +1,5 @@
-graphenebase\.chains module
-===========================
+graphenebase.chains module
+==========================
 
 .. automodule:: graphenebase.chains
     :members:

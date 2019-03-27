@@ -1,5 +1,5 @@
-graphenebase\.account module
-============================
+graphenebase.account module
+===========================
 
 .. automodule:: graphenebase.account
     :members:

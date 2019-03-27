@@ -1,5 +1,5 @@
-graphenecommon\.transactionbuilder module
-=========================================
+graphenecommon.transactionbuilder module
+========================================
 
 .. automodule:: graphenecommon.transactionbuilder
     :members:

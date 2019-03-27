@@ -1,5 +1,5 @@
-graphenecommon\.utils module
-============================
+graphenecommon.utils module
+===========================
 
 .. automodule:: graphenecommon.utils
     :members:

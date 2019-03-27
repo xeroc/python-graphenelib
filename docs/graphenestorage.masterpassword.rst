@@ -1,5 +1,5 @@
-graphenestorage\.masterpassword module
-======================================
+graphenestorage.masterpassword module
+=====================================
 
 .. automodule:: graphenestorage.masterpassword
     :members:

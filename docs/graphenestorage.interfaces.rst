@@ -1,5 +1,5 @@
-graphenestorage\.interfaces module
-==================================
+graphenestorage.interfaces module
+=================================
 
 .. automodule:: graphenestorage.interfaces
     :members:

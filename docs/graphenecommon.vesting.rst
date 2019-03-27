@@ -1,5 +1,5 @@
-graphenecommon\.vesting module
-==============================
+graphenecommon.vesting module
+=============================
 
 .. automodule:: graphenecommon.vesting
     :members:

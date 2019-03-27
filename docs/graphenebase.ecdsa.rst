@@ -1,5 +1,5 @@
-graphenebase\.ecdsa module
-==========================
+graphenebase.ecdsa module
+=========================
 
 .. automodule:: graphenebase.ecdsa
     :members:

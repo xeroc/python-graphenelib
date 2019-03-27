@@ -1,5 +1,5 @@
-graphenecommon\.memo module
-===========================
+graphenecommon.memo module
+==========================
 
 .. automodule:: graphenecommon.memo
     :members:

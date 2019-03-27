@@ -1,5 +1,5 @@
-graphenecommon\.block module
-============================
+graphenecommon.block module
+===========================
 
 .. automodule:: graphenecommon.block
     :members:

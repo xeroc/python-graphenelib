@@ -1,5 +1,5 @@
-graphenecommon\.wallet module
-=============================
+graphenecommon.wallet module
+============================
 
 .. automodule:: graphenecommon.wallet
     :members:
