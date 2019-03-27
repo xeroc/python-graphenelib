@@ -1,5 +1,5 @@
-grapheneapi\.exceptions module
-==============================
+grapheneapi.exceptions module
+=============================
 
 .. automodule:: grapheneapi.exceptions
     :members:

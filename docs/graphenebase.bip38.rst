@@ -1,5 +1,5 @@
-graphenebase\.bip38 module
-==========================
+graphenebase.bip38 module
+=========================
 
 .. automodule:: graphenebase.bip38
     :members:

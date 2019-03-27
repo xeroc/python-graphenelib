@@ -1,5 +1,5 @@
-graphenebase\.objecttypes module
-================================
+graphenebase.objecttypes module
+===============================
 
 .. automodule:: graphenebase.objecttypes
     :members:

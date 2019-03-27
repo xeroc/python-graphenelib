@@ -1,5 +1,5 @@
-graphenestorage\.sqlite module
-==============================
+graphenestorage.sqlite module
+=============================
 
 .. automodule:: graphenestorage.sqlite
     :members:

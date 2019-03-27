@@ -1,5 +1,5 @@
-graphenecommon\.asset module
-============================
+graphenecommon.asset module
+===========================
 
 .. automodule:: graphenecommon.asset
     :members:

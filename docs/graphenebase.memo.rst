@@ -1,5 +1,5 @@
-graphenebase\.memo module
-=========================
+graphenebase.memo module
+========================
 
 .. automodule:: graphenebase.memo
     :members:

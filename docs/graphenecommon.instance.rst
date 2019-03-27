@@ -1,5 +1,5 @@
-graphenecommon\.instance module
-===============================
+graphenecommon.instance module
+==============================
 
 .. automodule:: graphenecommon.instance
     :members:

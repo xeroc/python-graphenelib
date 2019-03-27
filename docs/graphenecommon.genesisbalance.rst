@@ -1,5 +1,5 @@
-graphenecommon\.genesisbalance module
-=====================================
+graphenecommon.genesisbalance module
+====================================
 
 .. automodule:: graphenecommon.genesisbalance
     :members:

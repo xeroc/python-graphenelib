@@ -1,5 +1,5 @@
-graphenestorage\.exceptions module
-==================================
+graphenestorage.exceptions module
+=================================
 
 .. automodule:: graphenestorage.exceptions
     :members:

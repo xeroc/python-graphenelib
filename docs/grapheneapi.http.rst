@@ -1,5 +1,5 @@
-grapheneapi\.http module
-========================
+grapheneapi.http module
+=======================
 
 .. automodule:: grapheneapi.http
     :members:

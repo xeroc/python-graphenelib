@@ -1,5 +1,5 @@
-graphenecommon\.witness module
-==============================
+graphenecommon.witness module
+=============================
 
 .. automodule:: graphenecommon.witness
     :members:

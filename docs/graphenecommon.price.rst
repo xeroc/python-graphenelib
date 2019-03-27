@@ -1,5 +1,5 @@
-graphenecommon\.price module
-============================
+graphenecommon.price module
+===========================
 
 .. automodule:: graphenecommon.price
     :members:
