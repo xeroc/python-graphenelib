@@ -57,7 +57,7 @@ class GenesisBalance(BlockchainObject, AbstractBlockchainInstanceProvider):
         for p in pubkeys:
             if p[: len(self.blockchain.prefix)] != self.blockchain.prefix:
                 continue
-            pubkey = self.publickey_class(p)
+            pubkey = self.publickey_class(p, prefix=self.blockchain.prefix)
             addresses[
                 str(
                     self.address_class.from_pubkey(
@@ -135,7 +135,7 @@ class GenesisBalances(list, AbstractBlockchainInstanceProvider):
         for p in pubkeys:
             if p[: len(self.blockchain.prefix)] != self.blockchain.prefix:
                 continue
-            pubkey = self.publickey_class(p)
+            pubkey = self.publickey_class(p, prefix=self.blockchain.prefix)
             addresses.append(
                 str(
                     self.address_class.from_pubkey(
