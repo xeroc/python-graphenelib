@@ -51,7 +51,7 @@ class GenesisBalance(BlockchainObject, AbstractBlockchainInstanceProvider):
                 account = self.blockchain.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = self.account_class(account)
+        account = self.account_class(account, blockchain_instance=self.blockchain)
         pubkeys = self.blockchain.wallet.getPublicKeys()
         addresses = dict()
         for p in pubkeys:
