@@ -51,13 +51,13 @@ class GenesisBalance(BlockchainObject, AbstractBlockchainInstanceProvider):
                 account = self.blockchain.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = self.account_class(account)
+        account = self.account_class(account, blockchain_instance=self.blockchain)
         pubkeys = self.blockchain.wallet.getPublicKeys()
         addresses = dict()
         for p in pubkeys:
             if p[: len(self.blockchain.prefix)] != self.blockchain.prefix:
                 continue
-            pubkey = self.publickey_class(p)
+            pubkey = self.publickey_class(p, prefix=self.blockchain.prefix)
             addresses[
                 str(
                     self.address_class.from_pubkey(
@@ -135,7 +135,7 @@ class GenesisBalances(list, AbstractBlockchainInstanceProvider):
         for p in pubkeys:
             if p[: len(self.blockchain.prefix)] != self.blockchain.prefix:
                 continue
-            pubkey = self.publickey_class(p)
+            pubkey = self.publickey_class(p, prefix=self.blockchain.prefix)
             addresses.append(
                 str(
                     self.address_class.from_pubkey(
