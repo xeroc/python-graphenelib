@@ -254,18 +254,18 @@ class MessageV2(AbstractBlockchainInstanceProvider):
             :returns: True if the message is verified successfully
             :raises InvalidMessageSignature if the signature is not ok
         """
-        assert isinstance(self.message, dict)
+        assert isinstance(self.message, dict), "Message must be dictionary"
 
         payload = self.message.get("payload")
-        assert payload
+        assert payload, "Missing payload"
         payload_dict = {k[0]: k[1] for k in zip(payload[::2], payload[1::2])}
         signature = self.message.get("signature")
 
         account_name = payload_dict.get("from").strip()
         memo_key = payload_dict.get("key").strip()
 
-        assert account_name
-        assert memo_key
+        assert account_name, "Missing account name 'from'"
+        assert memo_key, "missing 'key'"
 
         try:
             self.publickey_class(memo_key, prefix=self.blockchain.prefix)
@@ -294,7 +294,9 @@ class MessageV2(AbstractBlockchainInstanceProvider):
             )
 
         # Ensure payload and signed match
-        assert json.dumps(self.message.get("payload")) == self.message.get("signed")
+        assert json.dumps(
+            self.message.get("payload"), separators=(",", ":")
+        ) == self.message.get("signed"), "payload doesn't match signed message"
 
         # Reformat message
         enc_message = self.message.get("signed")
@@ -332,8 +334,12 @@ class Message(MessageV1, MessageV2):
                 return
             except self.valid_exceptions as e:
                 raise e
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning(
+                    "{}: Couldn't init: {}: {}".format(
+                        _format.__name__, e.__class__.__name__, str(e)
+                    )
+                )
 
     def verify(self, **kwargs):
         for _format in self.supported_formats:
@@ -341,8 +347,13 @@ class Message(MessageV1, MessageV2):
                 return _format.verify(self, **kwargs)
             except self.valid_exceptions as e:
                 raise e
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning(
+                    "{}: Couldn't verify: {}: {}".format(
+                        _format.__name__, e.__class__.__name__, str(e)
+                    )
+                )
+        raise ValueError("No Decoder accepted the message")
 
     def sign(self, account=None, **kwargs):
         for _format in self.supported_formats:
@@ -350,5 +361,10 @@ class Message(MessageV1, MessageV2):
                 return _format.sign(self, account=None, **kwargs)
             except self.valid_exceptions as e:
                 raise e
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning(
+                    "{}: Couldn't sign: {}: {}".format(
+                        _format.__name__, e.__class__.__name__, str(e)
+                    )
+                )
+        raise ValueError("No Decoder accepted the message")
