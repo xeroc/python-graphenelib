@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
-from .fixtures import fixture_data, Message
+from .fixtures import fixture_data, Message, MessageV1, MessageV2
+from pprint import pprint
 from graphenecommon.exceptions import InvalidMessageSignature
 
 
@@ -40,3 +41,20 @@ timestamp=2018-12-12T10:44:15
                 "2034f601e175a25cf9f60a828650301f57c9efab53929b6a82fb413feb8a786fcb3ba4238dd8bece03aee38526ee363324d43944d4a3f9dc624fbe53ef5f0c9a5e\n"
                 "-----END GRAPHENE SIGNED MESSAGE-----"
             ).verify()
+
+    def test_v2_enc(self):
+        m = MessageV2("foobar")
+        c = m.sign(account="init0")
+        v = MessageV2(c)
+        v.verify()
+
+    def test_v2andv1_enc(self):
+        m = MessageV2("foobar")
+        c = m.sign(account="init0")
+        v = Message(c)
+        v.verify()
+
+        m = MessageV1("foobar")
+        c = m.sign(account="init0")
+        v = Message(c)
+        v.verify()
