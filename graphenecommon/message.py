@@ -338,8 +338,7 @@ class Message(MessageV1, MessageV2):
     def verify(self, **kwargs):
         for _format in self.supported_formats:
             try:
-                _format.verify(self, **kwargs)
-                return
+                return _format.verify(self, **kwargs)
             except self.valid_exceptions as e:
                 raise e
             except Exception:
@@ -348,8 +347,7 @@ class Message(MessageV1, MessageV2):
     def sign(self, account=None, **kwargs):
         for _format in self.supported_formats:
             try:
-                _format.sign(self, account=None, **kwargs)
-                return
+                return _format.sign(self, account=None, **kwargs)
             except self.valid_exceptions as e:
                 raise e
             except Exception:
