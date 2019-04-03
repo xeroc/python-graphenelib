@@ -60,9 +60,11 @@ class Rpc:
             self.proxy_user = options.pop("proxy_user", None)
             self.proxy_pass = options.pop("proxy_pass", None)
             self.proxy_rdns = False
-        log.info(
-            "Using proxy %s:%d %s" % (self.proxy_host, self.proxy_port, self.proxy_type)
-        )
+        if self.proxy_host:
+            log.info(
+                "Using proxy %s:%d %s"
+                % (self.proxy_host, self.proxy_port, self.proxy_type)
+            )
 
     def get_proxy_url(self):  # pragma: no cover
         if not self.proxy_host:

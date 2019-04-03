@@ -4,6 +4,7 @@ import logging
 import re
 
 from binascii import hexlify, unhexlify
+from datetime import datetime
 
 from graphenebase.ecdsa import sign_message, verify_message
 
@@ -19,7 +20,7 @@ from .instance import AbstractBlockchainInstanceProvider
 log = logging.getLogger(__name__)
 
 
-class Message(AbstractBlockchainInstanceProvider):
+class MessageV1(AbstractBlockchainInstanceProvider):
     """ Allow to sign and verify Messages that are sigend with a private key
     """
 
@@ -187,3 +188,187 @@ timestamp={meta[timestamp]}
         self.plain_message = message
 
         return True
+
+
+class MessageV2(AbstractBlockchainInstanceProvider):
+    """ Allow to sign and verify Messages that are sigend with a private key
+    """
+
+    def __init__(self, message, *args, **kwargs):
+        self.define_classes()
+        assert self.account_class
+        assert self.publickey_class
+
+        self.message = message
+        self.signed_by_account = None
+        self.signed_by_name = None
+        self.meta = None
+        self.plain_message = None
+
+    def sign(self, account=None, **kwargs):
+        """ Sign a message with an account's memo key
+
+            :param str account: (optional) the account that owns the bet
+                (defaults to ``default_account``)
+            :raises ValueError: If not account for signing is provided
+
+            :returns: the signed message encapsulated in a known format
+        """
+        if not account:
+            if "default_account" in self.blockchain.config:
+                account = self.blockchain.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+
+        # Data for message
+        account = self.account_class(account, blockchain_instance=self.blockchain)
+
+        # wif key
+        wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
+            account["options"]["memo_key"]
+        )
+
+        payload = [
+            "from",
+            account["name"],
+            "key",
+            account["options"]["memo_key"],
+            "time",
+            str(datetime.utcnow()),
+            "text",
+            self.message,
+        ]
+        enc_message = json.dumps(payload, separators=(",", ":"))
+
+        # signature
+        signature = hexlify(sign_message(enc_message, wif)).decode("ascii")
+
+        return dict(signed=enc_message, payload=payload, signature=signature)
+
+    def verify(self, **kwargs):
+        """ Verify a message with an account's memo key
+
+            :param str account: (optional) the account that owns the bet
+                (defaults to ``default_account``)
+
+            :returns: True if the message is verified successfully
+            :raises InvalidMessageSignature if the signature is not ok
+        """
+        assert isinstance(self.message, dict), "Message must be dictionary"
+
+        payload = self.message.get("payload")
+        assert payload, "Missing payload"
+        payload_dict = {k[0]: k[1] for k in zip(payload[::2], payload[1::2])}
+        signature = self.message.get("signature")
+
+        account_name = payload_dict.get("from").strip()
+        memo_key = payload_dict.get("key").strip()
+
+        assert account_name, "Missing account name 'from'"
+        assert memo_key, "missing 'key'"
+
+        try:
+            self.publickey_class(memo_key, prefix=self.blockchain.prefix)
+        except Exception:
+            raise InvalidMemoKeyException("The memo key in the message is invalid")
+
+        # Load account from blockchain
+        try:
+            account = self.account_class(
+                account_name, blockchain_instance=self.blockchain
+            )
+        except AccountDoesNotExistsException:
+            raise AccountDoesNotExistsException(
+                "Could not find account {}. Are you connected to the right chain?".format(
+                    account_name
+                )
+            )
+
+        # Test if memo key is the same as on the blockchain
+        if not account["options"]["memo_key"] == memo_key:
+            raise WrongMemoKey(
+                "Memo Key of account {} on the Blockchain ".format(account["name"])
+                + "differs from memo key in the message: {} != {}".format(
+                    account["options"]["memo_key"], memo_key
+                )
+            )
+
+        # Ensure payload and signed match
+        signed_target = json.dumps(self.message.get("payload"), separators=(",", ":"))
+        signed_actual = self.message.get("signed")
+        assert (
+            signed_target == signed_actual
+        ), "payload doesn't match signed message: \n{}\n{}".format(
+            signed_target, signed_actual
+        )
+
+        # Reformat message
+        enc_message = self.message.get("signed")
+
+        # Verify Signature
+        pubkey = verify_message(enc_message, unhexlify(signature))
+
+        # Verify pubky
+        pk = self.publickey_class(
+            hexlify(pubkey).decode("ascii"), prefix=self.blockchain.prefix
+        )
+        if format(pk, self.blockchain.prefix) != memo_key:
+            raise InvalidMessageSignature("The signature doesn't match the memo key")
+
+        self.signed_by_account = account
+        self.signed_by_name = account["name"]
+        self.plain_message = payload_dict.get("text")
+
+        return True
+
+
+class Message(MessageV1, MessageV2):
+    supported_formats = (MessageV1, MessageV2)
+    valid_exceptions = (
+        AccountDoesNotExistsException,
+        InvalidMessageSignature,
+        WrongMemoKey,
+        InvalidMemoKeyException,
+    )
+
+    def __init__(self, *args, **kwargs):
+        for _format in self.supported_formats:
+            try:
+                _format.__init__(self, *args, **kwargs)
+                return
+            except self.valid_exceptions as e:
+                raise e
+            except Exception as e:
+                log.warning(
+                    "{}: Couldn't init: {}: {}".format(
+                        _format.__name__, e.__class__.__name__, str(e)
+                    )
+                )
+
+    def verify(self, **kwargs):
+        for _format in self.supported_formats:
+            try:
+                return _format.verify(self, **kwargs)
+            except self.valid_exceptions as e:
+                raise e
+            except Exception as e:
+                log.warning(
+                    "{}: Couldn't verify: {}: {}".format(
+                        _format.__name__, e.__class__.__name__, str(e)
+                    )
+                )
+        raise ValueError("No Decoder accepted the message")
+
+    def sign(self, *args, **kwargs):
+        for _format in self.supported_formats:
+            try:
+                return _format.sign(self, *args, **kwargs)
+            except self.valid_exceptions as e:
+                raise e
+            except Exception as e:
+                log.warning(
+                    "{}: Couldn't sign: {}: {}".format(
+                        _format.__name__, e.__class__.__name__, str(e)
+                    )
+                )
+        raise ValueError("No Decoder accepted the message")
