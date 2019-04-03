@@ -238,7 +238,7 @@ class MessageV2(AbstractBlockchainInstanceProvider):
             "text",
             self.message,
         ]
-        enc_message = json.dumps(payload)
+        enc_message = json.dumps(payload, separators=(",", ":"))
 
         # signature
         signature = hexlify(sign_message(enc_message, wif)).decode("ascii")
@@ -294,9 +294,13 @@ class MessageV2(AbstractBlockchainInstanceProvider):
             )
 
         # Ensure payload and signed match
-        assert json.dumps(
-            self.message.get("payload"), separators=(",", ":")
-        ) == self.message.get("signed"), "payload doesn't match signed message"
+        signed_target = json.dumps(self.message.get("payload"), separators=(",", ":"))
+        signed_actual = self.message.get("signed")
+        assert (
+            signed_target == signed_actual
+        ), "payload doesn't match signed message: \n{}\n{}".format(
+            signed_target, signed_actual
+        )
 
         # Reformat message
         enc_message = self.message.get("signed")
@@ -327,10 +331,10 @@ class Message(MessageV1, MessageV2):
         InvalidMemoKeyException,
     )
 
-    def __init__(self, message, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         for _format in self.supported_formats:
             try:
-                _format.__init__(self, message, *args, **kwargs)
+                _format.__init__(self, *args, **kwargs)
                 return
             except self.valid_exceptions as e:
                 raise e
@@ -355,10 +359,10 @@ class Message(MessageV1, MessageV2):
                 )
         raise ValueError("No Decoder accepted the message")
 
-    def sign(self, account=None, **kwargs):
+    def sign(self, *args, **kwargs):
         for _format in self.supported_formats:
             try:
-                return _format.sign(self, account=None, **kwargs)
+                return _format.sign(self, *args, **kwargs)
             except self.valid_exceptions as e:
                 raise e
             except Exception as e:
