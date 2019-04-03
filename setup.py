@@ -18,7 +18,13 @@ setup(
     maintainer_email="Fabian@chainsquad.com",
     url=URL,
     keywords=["graphene", "api", "rpc", "ecdsa", "secp256k1"],
-    packages=["grapheneapi", "graphenebase", "graphenestorage", "graphenecommon"],
+    packages=[
+        "grapheneapi",
+        "graphenebase",
+        "graphenestorage",
+        "graphenecommon",
+        "grapheneasync",
+    ],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
