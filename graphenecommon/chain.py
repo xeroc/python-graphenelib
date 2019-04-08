@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 from graphenestorage import SqliteConfigurationStore
-from .instance import SharedInstance
 
 log = logging.getLogger(__name__)
 
@@ -131,19 +130,13 @@ class AbstractGrapheneChain:
     def set_shared_instance(self):
         """ This method allows to set the current instance as default
         """
-        SharedInstance.instance = self
-
-    def set_shared_config(self, config):
-        """ This allows to set a config that will be used when calling
-            ``shared_blockchain_instance`` and allows to define the configuration
-            without requiring to actually create an instance
-        """
-        assert isinstance(config, dict)
-        SharedInstance.config.update(config)
-        # if one is already set, delete
-        if SharedInstance.instance:
-            self.clear_cache()
-            SharedInstance.instance = None
+        # self._sharedInstance.instance = self
+        log.warning(
+            DeprecationWarning(
+                "set_shared_instance in chaininstance is no longer supported. "
+                "This interface no longer exists, please use .instance.set_shared_instance() instead."
+            )
+        )
 
     # -------------------------------------------------------------------------
     # General transaction/operation stuff

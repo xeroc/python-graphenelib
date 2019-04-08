@@ -17,6 +17,8 @@ class AbstractBlockchainInstanceProvider:
         contains an instance of the main chain instance
     """
 
+    _sharedInstance = SharedInstance
+
     def __init__(self, *args, **kwargs):
         self._blockchain = None
         if kwargs.get("blockchain_instance"):
@@ -68,19 +70,52 @@ class AbstractBlockchainInstanceProvider:
             The purpose of this method is to have offer single default
             instance that can be reused by multiple classes.
         """
-        if not SharedInstance.instance:
+        if not self._sharedInstance.instance:
             klass = self.get_instance_class()
-            SharedInstance.instance = klass(**SharedInstance.config)
-        return SharedInstance.instance
+            self._sharedInstance.instance = klass(**self._sharedInstance.config)
+        return self._sharedInstance.instance
 
-    @staticmethod
-    def set_shared_blockchain_instance(instance):
+    @classmethod
+    def set_shared_blockchain_instance(cls, instance):
         """ This method allows us to override default instance for all
             users of ``SharedInstance.instance``.
 
             :param chaininstance instance: Chain instance
         """
-        SharedInstance.instance = instance
+        cls._sharedInstance.instance = instance
+
+    # -------------------------------------------------------------------------
+    # Shared instance interface
+    # -------------------------------------------------------------------------
+    def set_shared_instance(self):
+        """ This method allows to set the current instance as default
+        """
+        self._sharedInstance.instance = self
+
+    @classmethod
+    def set_shared_config(cls, config):
+        """ This allows to set a config that will be used when calling
+            ``shared_blockchain_instance`` and allows to define the configuration
+            without requiring to actually create an instance
+        """
+        assert isinstance(config, dict)
+        cls._sharedInstance.config.update(config)
+        # if one is already set, delete
+        if cls._sharedInstance.instance:
+            cls._sharedInstance.instance = None
+
+
+def shared_blockchain_instance():
+    return BlockchainInstance().shared_blockchain_instance()
+
+
+def set_shared_blockchain_instance(instance):
+    instance.clear_cache()
+    BlockchainInstance.set_shared_blockchain_instance(instance)
+
+
+def set_shared_config(config):
+    BlockchainInstance.set_shared_config(config)
 
 
 # Legacy alias
