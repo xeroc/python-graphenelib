@@ -82,7 +82,11 @@ from graphenecommon.asset import Asset as GAsset
 from graphenecommon.committee import Committee as GCommittee
 from graphenecommon.block import Block as GBlock, BlockHeader as GBlockHeader
 from graphenecommon.blockchain import Blockchain as GBLockchain
-from graphenecommon.message import Message as GMessage
+from graphenecommon.message import (
+    Message as GMessage,
+    MessageV1 as GMessageV1,
+    MessageV2 as GMessageV2,
+)
 from graphenecommon.blockchainobject import ObjectCache, BlockchainObject
 from graphenecommon.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
@@ -253,6 +257,20 @@ class BlockHeader(GBlockHeader):
 
 @BlockchainInstance.inject
 class Message(GMessage):
+    def define_classes(self):
+        self.account_class = Account
+        self.publickey_class = PublicKey
+
+
+@BlockchainInstance.inject
+class MessageV1(GMessageV1):
+    def define_classes(self):
+        self.account_class = Account
+        self.publickey_class = PublicKey
+
+
+@BlockchainInstance.inject
+class MessageV2(GMessageV2):
     def define_classes(self):
         self.account_class = Account
         self.publickey_class = PublicKey
