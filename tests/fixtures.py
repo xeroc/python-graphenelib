@@ -75,6 +75,9 @@ from graphenestorage.sqlite import SQLiteStore
 from graphenecommon.instance import (
     BlockchainInstance as GBlockchainInstance,
     SharedInstance as GSharedInstance,
+    shared_blockchain_instance,
+    set_shared_blockchain_instance,
+    set_shared_config,
 )
 from graphenecommon.amount import Amount as GAmount
 from graphenecommon.account import Account as GAccount, AccountUpdate as GAccountUpdate
