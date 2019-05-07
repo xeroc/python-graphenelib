@@ -106,7 +106,7 @@ class Memo(AbstractBlockchainInstanceProvider):
 
         return {
             "message": enc,
-            "nonce": nonce,
+            "nonce": str(nonce),
             "from": self.from_account["options"]["memo_key"],
             "to": self.to_account["options"]["memo_key"],
         }
@@ -145,6 +145,6 @@ class Memo(AbstractBlockchainInstanceProvider):
         return memo.decode_memo(
             self.privatekey_class(memo_wif),
             self.publickey_class(pubkey, prefix=self.chain_prefix),
-            message.get("nonce"),
+            int(message.get("nonce")),
             message.get("message"),
         )
