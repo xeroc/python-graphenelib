@@ -384,12 +384,16 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
 
         # We now wrap everything into an actual transaction
         ops = self.add_required_fees(ops, asset_id=self.fee_asset_id)
-        expiration = formatTimeFromNow(
+        expiration = self.get("expiration") or formatTimeFromNow(
             self.expiration
             or self.blockchain.expiration
             or 30  # defaults to 30 seconds
         )
-        ref_block_num, ref_block_prefix = self.get_block_params()
+        if not self.get("ref_block_num"):
+            ref_block_num, ref_block_prefix = self.get_block_params()
+        else:
+            ref_block_num = self["ref_block_num"]
+            ref_block_prefix = self["ref_block_prefix"]
         self.tx = self.signed_transaction_class(
             ref_block_num=ref_block_num,
             ref_block_prefix=ref_block_prefix,
