@@ -187,7 +187,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
     def __add__(self, other):
         a = self.copy()
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             a["amount"] += other["amount"]
         else:
             a["amount"] += float(other)
@@ -196,7 +196,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
     def __sub__(self, other):
         a = self.copy()
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             a["amount"] -= other["amount"]
         else:
             a["amount"] -= float(other)
@@ -205,7 +205,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
     def __mul__(self, other):
         a = self.copy()
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             a["amount"] *= other["amount"]
         else:
             a["amount"] *= other
@@ -253,7 +253,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
 
     def __isub__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             self["amount"] -= other["amount"]
         else:
             self["amount"] -= other
@@ -261,7 +261,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
 
     def __imul__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             self["amount"] *= other["amount"]
         else:
             self["amount"] *= other
@@ -269,7 +269,7 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
 
     def __idiv__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             return self["amount"] / other["amount"]
         else:
             self["amount"] /= other
@@ -295,42 +295,42 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
 
     def __lt__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             return self["amount"] < other["amount"]
         else:
             return self["amount"] < float(other or 0)
 
     def __le__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             return self["amount"] <= other["amount"]
         else:
             return self["amount"] <= float(other or 0)
 
     def __eq__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             return self["amount"] == other["amount"]
         else:
             return self["amount"] == float(other or 0)
 
     def __ne__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             return self["amount"] != other["amount"]
         else:
             return self["amount"] != float(other or 0)
 
     def __ge__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             return self["amount"] >= other["amount"]
         else:
             return self["amount"] >= float(other or 0)
 
     def __gt__(self, other):
         if isinstance(other, Amount):
-            assert other["asset"] == self["asset"]
+            assert other["asset"]["id"] == self["asset"]["id"]
             return self["amount"] > other["amount"]
         else:
             return self["amount"] > float(other or 0)
