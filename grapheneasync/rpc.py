@@ -1,27 +1,22 @@
 # -*- coding: utf-8 -*-
 import json
-import asyncio
-import websockets
+import logging
+
+from grapheneapi.rpc import Rpc as OriginalRpc
+
+log = logging.getLogger(__name__)
 
 
-class Rpc:
+class Rpc(OriginalRpc):
     def __init__(self, url, *args, **kwargs):
-        self.url = url
+        self.api_id = {}
         self._request_id = 0
+        self.url = url
 
     def get_request_id(self):
         self._request_id += 1
         return self._request_id
 
-    async def connect(self):
-        self.websocket = await websockets.connect(self.url)
-
-    async def disconnect(self):
-        pass
-
-    async def rpcexec(self, payload):
-        await self.websocket.send(json.dumps(payload))
-        return await self.websocket.recv()
 
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
@@ -31,7 +26,22 @@ class Rpc:
         """
 
         async def method(*args, **kwargs):
-            api_id = kwargs.get("api_id", kwargs.get("api", 0))
+
+            # Sepcify the api to talk to
+            if "api_id" not in kwargs:  # pragma: no cover
+                if "api" in kwargs:
+                    if kwargs["api"] in self.api_id and self.api_id[kwargs["api"]]:
+                        api_id = self.api_id[kwargs["api"]]
+                    else:
+                        api_id = kwargs["api"]
+                else:
+                    api_id = 0
+            else:  # pragma: no cover
+                api_id = kwargs["api_id"]
+
+            # let's be able to define the num_retries per query
+            self.num_retries = kwargs.get("num_retries", self.num_retries)
+
             query = {
                 "method": "call",
                 "params": [api_id, name, list(args)],
@@ -39,6 +49,9 @@ class Rpc:
                 "id": self.get_request_id(),
             }
             # Need to await here!
-            return await self.rpcexec(query)
+            r = await self.rpcexec(query)
+            message = self.parse_response(r)
+
+            return message
 
         return method
