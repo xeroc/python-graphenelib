@@ -4,6 +4,9 @@ import logging
 
 from grapheneasync.websocket import Websocket
 
+logger = logging.getLogger('grapheneasync')
+logger.setLevel(logging.DEBUG)
+
 logger = logging.getLogger('websockets')
 logger.setLevel(logging.DEBUG)
 
@@ -17,7 +20,7 @@ async def test_loop(event_loop):
 async def test_rpc(event_loop):
     ws = Websocket('wss://eu.nodes.bitshares.ws')
     props = await ws.get_dynamic_global_properties()
-    await ws.disconnect()
     logger.info(props)
+    await ws.disconnect()
     assert isinstance(props, dict)
     assert props['head_block_number'] > 0

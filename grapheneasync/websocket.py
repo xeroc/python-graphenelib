@@ -3,7 +3,8 @@ import websockets
 import logging
 import json
 
-from .rpc import Rpc
+from jsonrpcclient.clients.websockets_client import WebSocketsClient
+from grapheneasync.rpc import Rpc
 
 log = logging.getLogger(__name__)
 
@@ -20,12 +21,18 @@ class Websocket(Rpc):
     async def disconnect(self):
         await self.ws.close()
 
-    async def rpcexec(self, payload):
+    async def rpcexec(self, *args):
+        """ Execute a RPC call
+
+            :param args: args are passed as "params" in json-rpc request:
+                {"jsonrpc": "2.0", "method": "call", "params": "[x, y, z]"}
+        """
         if not self.ws:
             await self.connect()
 
-        log.debug(json.dumps(payload))
+        log.debug(json.dumps(args))
 
-        await self.ws.send(json.dumps(payload))
+        response = await WebSocketsClient(self.ws).request('call', *args)
 
-        return await self.ws.recv()
+        # Return raw response (jsonrpcclient does own parsing)
+        return response.text

@@ -13,11 +13,6 @@ class Rpc(OriginalRpc):
         self._request_id = 0
         self.url = url
 
-    def get_request_id(self):
-        self._request_id += 1
-        return self._request_id
-
-
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
 
@@ -42,14 +37,12 @@ class Rpc(OriginalRpc):
             # let's be able to define the num_retries per query
             self.num_retries = kwargs.get("num_retries", self.num_retries)
 
-            query = {
-                "method": "call",
-                "params": [api_id, name, list(args)],
-                "jsonrpc": "2.0",
-                "id": self.get_request_id(),
-            }
+            # We're passing only "params" instead of forming full json-rpc query to allow jsonrpcclient handle
+            # everything
+            query = [api_id, name, list(args)]
+
             # Need to await here!
-            r = await self.rpcexec(query)
+            r = await self.rpcexec(*query)
             message = self.parse_response(r)
 
             return message
