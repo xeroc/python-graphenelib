@@ -74,5 +74,3 @@ class Api(OriginalApi):
             raise NumRetriesReached
         url = urls[0]
         return url
-
-

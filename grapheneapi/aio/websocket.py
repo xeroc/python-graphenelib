@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import asyncio
 import websockets
 import logging
@@ -34,7 +35,7 @@ class Websocket(Rpc):
 
         log.debug(json.dumps(args))
 
-        response = await self.client.request('call', *args)
+        response = await self.client.request("call", *args)
 
         # Return raw response (jsonrpcclient does own parsing)
         return response.text

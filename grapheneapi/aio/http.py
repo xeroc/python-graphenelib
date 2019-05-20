@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import aiohttp
 import logging
 import json
@@ -12,9 +13,10 @@ log = logging.getLogger(__name__)
 class Http(Rpc):
     """ RPC Calls
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.session = aiohttp.ClientSession(loop=kwargs.get('loop'))
+        self.session = aiohttp.ClientSession(loop=kwargs.get("loop"))
         self.client = AiohttpClient(self.session, self.url)
 
     async def connect(self):
@@ -31,7 +33,7 @@ class Http(Rpc):
         """
         log.debug(json.dumps(args))
 
-        response = await self.client.request('call', *args)
+        response = await self.client.request("call", *args)
 
         # Return raw response (jsonrpcclient does own parsing)
         return response.text
