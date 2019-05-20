@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class Api:
-    def __init__(self, urls, user=None, password=None, **kwargs):
+    def __init__(self, urls, user=None, password=None, connect=True, **kwargs):
 
         # Some internal variables
         self._connections = dict()
@@ -41,7 +41,8 @@ class Api:
         self._cnt_retries = 0
 
         # Connect!
-        self.connect()
+        if connect:
+            self.connect()
 
     # Get chain parameters
     @property
