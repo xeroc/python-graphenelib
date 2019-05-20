@@ -4,7 +4,8 @@ import logging
 import json
 
 from jsonrpcclient.clients.websockets_client import WebSocketsClient
-from grapheneasync.rpc import Rpc
+
+from .rpc import Rpc
 
 log = logging.getLogger(__name__)
 
@@ -13,10 +14,11 @@ class Websocket(Rpc):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ws = None
-        self.loop = kwargs.get('loop')
+        self.client = None
 
     async def connect(self):
         self.ws = await websockets.connect(self.url, ssl=True, loop=self.loop)
+        self.client = WebSocketsClient(self.ws)
 
     async def disconnect(self):
         await self.ws.close()
@@ -32,7 +34,7 @@ class Websocket(Rpc):
 
         log.debug(json.dumps(args))
 
-        response = await WebSocketsClient(self.ws).request('call', *args)
+        response = await self.client.request('call', *args)
 
         # Return raw response (jsonrpcclient does own parsing)
         return response.text

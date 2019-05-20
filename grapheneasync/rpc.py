@@ -12,6 +12,7 @@ class Rpc(OriginalRpc):
         self.api_id = {}
         self._request_id = 0
         self.url = url
+        self.loop = kwargs.get('loop')
 
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
