@@ -2,11 +2,11 @@ import pytest
 import asyncio
 import logging
 
-from grapheneasync.websocket import Websocket
-from grapheneasync.http import Http
-from grapheneasync.api import Api
+from grapheneapi.aio.websocket import Websocket
+from grapheneapi.aio.http import Http
+from grapheneapi.aio.api import Api
 
-logger = logging.getLogger('grapheneasync')
+logger = logging.getLogger('grapheneapi.aio')
 logger.setLevel(logging.DEBUG)
 
 logger = logging.getLogger('websockets')

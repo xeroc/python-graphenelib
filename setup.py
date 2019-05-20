@@ -23,7 +23,7 @@ setup(
         "graphenebase",
         "graphenestorage",
         "graphenecommon",
-        "grapheneasync",
+        "grapheneapi.aio",
     ],
     classifiers=[
         "License :: OSI Approved :: MIT License",
