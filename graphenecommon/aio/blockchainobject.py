@@ -30,8 +30,9 @@ class Caching(SyncCaching):
         return dict.__contains__(self, key)
 
 
+@asyncinit
 class BlockchainObjects(Caching, list):
-    def __init__(self, *args, **kwargs):
+    async def __init__(self, *args, **kwargs):
         Caching.__init__(self, *args, **kwargs)
         # Some lists are specific to some key value that is then provided as
         # first argument
@@ -43,7 +44,7 @@ class BlockchainObjects(Caching, list):
             list.__init__(self, self.getfromcache(key))
         else:
             if kwargs.get("refresh", True):
-                self.refresh(*args, **kwargs)
+                await self.refresh(*args, **kwargs)
 
 
 @asyncinit
