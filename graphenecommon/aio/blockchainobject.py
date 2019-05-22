@@ -10,6 +10,9 @@ from ..blockchainobject import (
 
 class Caching(SyncCaching):
     def __getitem__(self, key):
+        """ This method overwrites synchronous version to avoid calling
+            self.refresh()
+        """
         return dict.__getitem__(self, key)
 
     async def items(self):
@@ -21,8 +24,9 @@ class Caching(SyncCaching):
         return dict.items(self)
 
     def __contains__(self, key):
-        if not self._fetched:
+        """ This method overwrites synchronous version to avoid calling
             self.refresh()
+        """
         return dict.__contains__(self, key)
 
 
