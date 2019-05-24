@@ -22,7 +22,8 @@ class Websocket(Rpc):
         self.client = WebSocketsClient(self.ws)
 
     async def disconnect(self):
-        await self.ws.close()
+        if self.ws:
+            await self.ws.close()
 
     async def rpcexec(self, *args):
         """ Execute a RPC call
