@@ -19,3 +19,7 @@ class AbstractBlockchainInstanceProvider(SyncAbstractBlockchainInstanceProvider)
         NewClass.__doc__ = cls.__doc__
         NewClass.__module__ = cls.__module__
         return NewClass
+
+
+# Legacy alias
+BlockchainInstance = AbstractBlockchainInstanceProvider
