@@ -1,5 +1,5 @@
 ecdsa==0.13.2
-requests==2.21.0
+requests==2.22.0
 websocket-client==0.56.0
 pylibscrypt==1.8.0
 pycryptodome==3.8.1
