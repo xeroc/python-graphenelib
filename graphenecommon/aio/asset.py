@@ -5,6 +5,19 @@ from .blockchainobject import BlockchainObject
 
 
 class Asset(BlockchainObject, SyncAsset):
+    """ Deals with Assets of the network.
+
+        :param str Asset: Symbol name or object id of an asset
+        :param bool full: Also obtain bitasset-data and dynamic asset data
+        :param instance blockchain_instance: instance to use when accesing a RPC
+        :returns: All data of an asset
+        :rtype: dict
+
+        .. note:: This class comes with its own caching function to reduce the
+                  load on the API server. Instances of this class can be
+                  refreshed with ``Asset.refresh()``.
+    """
+
     async def __init__(self, *args, **kwargs):
         self.define_classes()
         assert self.type_id
