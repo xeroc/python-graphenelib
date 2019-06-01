@@ -75,7 +75,10 @@ from graphenestorage.sqlite import SQLiteStore
 from graphenecommon.aio.instance import BlockchainInstance as GBlockchainInstance
 from graphenecommon.instance import SharedInstance as GSharedInstance
 from graphenecommon.aio.amount import Amount as GAmount
-from graphenecommon.account import Account as GAccount, AccountUpdate as GAccountUpdate
+from graphenecommon.aio.account import (
+    Account as GAccount,
+    AccountUpdate as GAccountUpdate,
+)
 from graphenecommon.aio.asset import Asset as GAsset
 from graphenecommon.committee import Committee as GCommittee
 from graphenecommon.aio.block import Block as GBlock, BlockHeader as GBlockHeader
@@ -184,7 +187,7 @@ class Chain(AbstractGrapheneChain):
                     result = [None]
                 return result
 
-            def get_account_history(self, *args, **kwargs):
+            async def get_account_history(self, *args, **kwargs):
                 with open(
                     os.path.join(
                         os.path.dirname(__file__), "vector_get_account_history.yaml"
@@ -193,10 +196,10 @@ class Chain(AbstractGrapheneChain):
                     history = yaml.safe_load(fid)
                     return history
 
-            def get_account_balances(self, account, *args, **kwargs):
+            async def get_account_balances(self, account, *args, **kwargs):
                 return [{"asset_id": "1.3.0", "amount": 132442}]
 
-            def lookup_account_names(self, name, **kwargs):
+            async def lookup_account_names(self, name, **kwargs):
                 return [None]
 
             def get_all_workers(self):
