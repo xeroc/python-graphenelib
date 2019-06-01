@@ -87,7 +87,7 @@ from graphenecommon.message import (
 )
 from graphenecommon.blockchainobject import ObjectCache
 from graphenecommon.aio.blockchainobject import BlockchainObject
-from graphenecommon.price import Price as GPrice
+from graphenecommon.aio.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
 from graphenecommon.worker import Worker as GWorker, Workers as GWorkers
 from graphenecommon.witness import Witness as GWitness, Witnesses as GWitnesss
