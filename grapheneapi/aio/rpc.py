@@ -2,12 +2,12 @@
 import json
 import logging
 
-from grapheneapi.rpc import Rpc as OriginalRpc
+from grapheneapi.rpc import Rpc as SyncRpc
 
 log = logging.getLogger(__name__)
 
 
-class Rpc(OriginalRpc):
+class Rpc(SyncRpc):
     def __init__(self, url, *args, **kwargs):
         self.api_id = {}
         self._request_id = 0

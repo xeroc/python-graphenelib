@@ -3,14 +3,14 @@ import asyncio
 import logging
 from grapheneapi.exceptions import NumRetriesReached
 
-from grapheneapi.api import Api as OriginalApi
+from grapheneapi.api import Api as SyncApi
 from .websocket import Websocket
 from .http import Http
 
 log = logging.getLogger(__name__)
 
 
-class Api(OriginalApi):
+class Api(SyncApi):
     def __init__(self, *args, **kwargs):
         # We cannot call connect() because our connect() is a coroutine, and we can't turn __init__ into coroutine
         super().__init__(connect=False, *args, **kwargs)
