@@ -72,6 +72,7 @@ from graphenestorage.sqlite import SQLiteStore
 
 # Common stuff
 
+from graphenecommon.instance import BlockchainInstance as SyncGBlockchainInstance
 from graphenecommon.aio.instance import BlockchainInstance as GBlockchainInstance
 from graphenecommon.instance import SharedInstance as GSharedInstance
 from graphenecommon.aio.amount import Amount as GAmount
@@ -91,7 +92,7 @@ from graphenecommon.message import (
 from graphenecommon.blockchainobject import ObjectCache
 from graphenecommon.aio.blockchainobject import BlockchainObject
 from graphenecommon.aio.price import Price as GPrice
-from graphenecommon.wallet import Wallet as GWallet
+from graphenecommon.aio.wallet import Wallet as GWallet
 from graphenecommon.aio.worker import Worker as GWorker, Workers as GWorkers
 from graphenecommon.aio.witness import Witness as GWitness, Witnesses as GWitnesss
 from graphenecommon.aio.chain import AbstractGrapheneChain
@@ -231,6 +232,11 @@ class BlockchainInstance(GBlockchainInstance):
         return Chain
 
 
+class SyncBlockchainInstance(SyncGBlockchainInstance):
+    def get_instance_class(self):
+        return Chain
+
+
 @BlockchainInstance.inject
 class Asset(GAsset):
     def define_classes(self):
@@ -312,7 +318,8 @@ class Blockchain(GBLockchain):
         self.operationids = operationids
 
 
-@BlockchainInstance.inject
+# Wallet class should use synchronous instance to initialize
+@SyncBlockchainInstance.inject
 class Wallet(GWallet):
     def define_classes(self):
         self.default_key_store_app_name = "graphene"
