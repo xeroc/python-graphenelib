@@ -92,7 +92,7 @@ from graphenecommon.blockchainobject import ObjectCache
 from graphenecommon.aio.blockchainobject import BlockchainObject
 from graphenecommon.aio.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
-from graphenecommon.worker import Worker as GWorker, Workers as GWorkers
+from graphenecommon.aio.worker import Worker as GWorker, Workers as GWorkers
 from graphenecommon.witness import Witness as GWitness, Witnesses as GWitnesss
 from graphenecommon.aio.chain import AbstractGrapheneChain
 
@@ -202,10 +202,10 @@ class Chain(AbstractGrapheneChain):
             async def lookup_account_names(self, name, **kwargs):
                 return [None]
 
-            def get_all_workers(self):
+            async def get_all_workers(self):
                 return self._load("workers")
 
-            def get_workers_by_account(self, name):
+            async def get_workers_by_account(self, name):
                 return [self._load("workers")[0]]
 
             def get_dynamic_global_properties(self):
