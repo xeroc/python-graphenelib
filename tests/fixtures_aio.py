@@ -93,7 +93,7 @@ from graphenecommon.aio.blockchainobject import BlockchainObject
 from graphenecommon.aio.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
 from graphenecommon.aio.worker import Worker as GWorker, Workers as GWorkers
-from graphenecommon.witness import Witness as GWitness, Witnesses as GWitnesss
+from graphenecommon.aio.witness import Witness as GWitness, Witnesses as GWitnesss
 from graphenecommon.aio.chain import AbstractGrapheneChain
 
 objects_cache = dict()
