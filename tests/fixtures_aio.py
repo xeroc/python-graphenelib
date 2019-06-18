@@ -222,7 +222,7 @@ class Chain(AbstractGrapheneChain):
 
         return RPC()
 
-    def upgrade_account(self, *args, **kwargs):
+    async def upgrade_account(self, *args, **kwargs):
         pass
 
 

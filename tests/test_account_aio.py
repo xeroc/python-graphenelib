@@ -67,7 +67,7 @@ class Testcases(aiounittest.AsyncTestCase):
 
     async def test_account_upgrade(self):
         account = await Account("init0")
-        account.upgrade()
+        await account.upgrade()
 
     async def test_accountupdate(self):
         t = {
