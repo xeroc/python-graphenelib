@@ -84,7 +84,7 @@ from graphenecommon.aio.asset import Asset as GAsset
 from graphenecommon.aio.committee import Committee as GCommittee
 from graphenecommon.aio.block import Block as GBlock, BlockHeader as GBlockHeader
 from graphenecommon.blockchain import Blockchain as GBLockchain
-from graphenecommon.message import (
+from graphenecommon.aio.message import (
     Message as GMessage,
     MessageV1 as GMessageV1,
     MessageV2 as GMessageV2,
@@ -128,7 +128,7 @@ class Chain(AbstractGrapheneChain):
     def wallet(self):
         return Wallet(keys=["5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"])
 
-    def info(self):
+    async def info(self):
         # returns demo data
         return {
             "accounts_registered_this_interval": 18,
@@ -283,21 +283,21 @@ class BlockHeader(GBlockHeader):
         pass
 
 
-@BlockchainInstance.inject
+@SyncBlockchainInstance.inject
 class Message(GMessage):
     def define_classes(self):
         self.account_class = Account
         self.publickey_class = PublicKey
 
 
-@BlockchainInstance.inject
+@SyncBlockchainInstance.inject
 class MessageV1(GMessageV1):
     def define_classes(self):
         self.account_class = Account
         self.publickey_class = PublicKey
 
 
-@BlockchainInstance.inject
+@SyncBlockchainInstance.inject
 class MessageV2(GMessageV2):
     def define_classes(self):
         self.account_class = Account
