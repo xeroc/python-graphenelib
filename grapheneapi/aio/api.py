@@ -23,6 +23,13 @@ class Api(OriginalApi):
         else:
             raise ValueError("Only support http(s) and ws(s) connections!")
 
+    @property
+    async def chain_params(self):
+        return await self.get_network()
+
+    async def get_network(self):
+        return await self.get_chain_properties()
+
     async def connect(self):
         try:
             await self.connection.connect()
