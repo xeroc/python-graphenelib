@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from ..chain import AbstractGrapheneChain
+from ..chain import AbstractGrapheneChain as SyncAbstractGrapheneChain
 
 log = logging.getLogger(__name__)
 
 
-class AbstractGrapheneChain(AbstractGrapheneChain):
+class AbstractGrapheneChain(SyncAbstractGrapheneChain):
     async def info(self):
         """ Returns the global properties
         """
