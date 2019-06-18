@@ -80,7 +80,7 @@ from graphenecommon.aio.account import (
     AccountUpdate as GAccountUpdate,
 )
 from graphenecommon.aio.asset import Asset as GAsset
-from graphenecommon.committee import Committee as GCommittee
+from graphenecommon.aio.committee import Committee as GCommittee
 from graphenecommon.aio.block import Block as GBlock, BlockHeader as GBlockHeader
 from graphenecommon.blockchain import Blockchain as GBLockchain
 from graphenecommon.message import (
