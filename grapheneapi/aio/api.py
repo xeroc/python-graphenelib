@@ -14,6 +14,7 @@ class Api(SyncApi):
     def __init__(self, *args, **kwargs):
         # We cannot call connect() because our connect() is a coroutine, and we can't turn __init__ into coroutine
         super().__init__(connect=False, *args, **kwargs)
+        self._chain_props = None
 
     def updated_connection(self):
         if self.url[:2] == "ws":
@@ -24,11 +25,16 @@ class Api(SyncApi):
             raise ValueError("Only support http(s) and ws(s) connections!")
 
     @property
-    async def chain_params(self):
-        return await self.get_network()
+    def chain_params(self):
+        return self.get_network()
 
-    async def get_network(self):
-        return await self.get_chain_properties()
+    def get_network(self):
+        return self._chain_props
+
+    async def cache_chain_properties(self):
+        """ Cache chain properties to prevent turning lots of methods into async
+        """
+        self._chain_props = await self.get_chain_properties()
 
     async def connect(self):
         try:
@@ -38,6 +44,7 @@ class Api(SyncApi):
             self.error_url()
             await self.next()
         self.register_apis()
+        await self.cache_chain_properties()
 
     async def disconnect(self):
         await self.connection.disconnect()
