@@ -6,7 +6,6 @@ import inspect
 
 from binascii import hexlify, unhexlify
 from datetime import datetime
-from asyncinit import asyncinit
 
 from graphenebase.ecdsa import sign_message, verify_message
 
