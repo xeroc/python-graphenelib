@@ -36,6 +36,9 @@ class Api(SyncApi):
         """
         self._chain_props = await self.get_chain_properties()
 
+    def get_cached_chain_properties(self):
+        return self._chain_props
+
     async def connect(self):
         try:
             await self.connection.connect()
