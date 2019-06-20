@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 class Api(SyncApi):
     def __init__(self, *args, **kwargs):
-        # We cannot call connect() because our connect() is a coroutine, and we can't turn __init__ into coroutine
+        # We're need to keep class init synchronous, so we're skipping connect()
         super().__init__(connect=False, *args, **kwargs)
         self._chain_props = None
 
