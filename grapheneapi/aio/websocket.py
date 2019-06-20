@@ -18,7 +18,8 @@ class Websocket(Rpc):
         self.client = None
 
     async def connect(self):
-        self.ws = await websockets.connect(self.url, ssl=True, loop=self.loop)
+        ssl = True if self.url[:3] == "wss" else None
+        self.ws = await websockets.connect(self.url, ssl=ssl, loop=self.loop)
         self.client = WebSocketsClient(self.ws)
 
     async def disconnect(self):
