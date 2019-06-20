@@ -54,7 +54,7 @@ class Api(SyncApi):
 
     async def next(self):
         await self.connection.disconnect()
-        self.url = self.find_next()
+        self.url = await self.find_next()
         await self.connect()
 
     async def find_next(self):
