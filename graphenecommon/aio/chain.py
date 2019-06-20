@@ -7,6 +7,52 @@ log = logging.getLogger(__name__)
 
 
 class AbstractGrapheneChain(SyncAbstractGrapheneChain):
+    def __init__(self, *args, **kwargs):
+        # Initialize parent without connecting and wallet init to avoid calling async methods
+        super().__init__(skip_wallet_init=True, offline=True, *args, **kwargs)
+
+        # Remember passed node and credentials for later use to not force user to pass these
+        # to conncet() again
+        self._node = kwargs.get("node")
+        self._rpcuser = kwargs.get("rpcuser")
+        self._rpcpassword = kwargs.get("rpcpassword")
+        self._num_retries = kwargs.get("num_retries")
+
+    async def connect(self, node="", rpcuser="", rpcpassword="", **kwargs):
+        """ Connect to blockchain network (internal use only)
+
+            Async version does wallet initialization after connect because
+            wallet depends on prefix which is available after connection only,
+            and we want to keep __init__() synchronous, thus we're not
+            performing connection there.
+        """
+        if not self._node:
+            if "node" in self.config:
+                self._node = self.config["node"]
+            else:
+                raise ValueError("A Blockchain node needs to be provided!")
+
+        if not self._rpcuser and "rpcuser" in self.config:
+            self._rpcuser = self.config["rpcuser"]
+
+        if not self._rpcpassword and "rpcpassword" in self.config:
+            self._rpcpassword = self.config["rpcpassword"]
+
+        num_retries = kwargs.pop("num_retries", self._num_retries)
+
+        self.rpc = self.rpc_class(
+            self._node,
+            self._rpcuser,
+            self._rpcpassword,
+            num_retries=num_retries,
+            **kwargs
+        )
+        await self.rpc.connect()
+
+        self.wallet = kwargs.get(
+            "wallet", self.wallet_class(blockchain_instance=self, **kwargs)
+        )
+
     async def info(self):
         """ Returns the global properties
         """
