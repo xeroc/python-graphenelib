@@ -157,7 +157,7 @@ class AbstractGrapheneChain:
     # -------------------------------------------------------------------------
     # General transaction/operation stuff
     # -------------------------------------------------------------------------
-    def finalizeOp(self, ops, account, permission, **kwargs):
+    def finalizeOp(self, ops, account, permission, return_op=False, **kwargs):
         """ This method obtains the required private keys if present in
             the wallet, finalizes the transaction, signs it and
             broadacasts it
@@ -172,6 +172,8 @@ class AbstractGrapheneChain:
                 ProposalsBuilder (see :func:`new_proposal`) or
                 TransactionBuilder (see :func:`new_tx()`) to specify
                 where to put a specific operation.
+            :param bool return_op: Instead of finalizing transaction, simply
+                return ops as is
 
             ... note:: ``append_to`` is exposed to every method used in the
                 this class
@@ -188,6 +190,9 @@ class AbstractGrapheneChain:
                 :class:`transactionbuilder.TransactionBuilder`.
                 You may want to use your own txbuffer
         """
+        if return_op:
+            return ops
+
         if "append_to" in kwargs and kwargs["append_to"]:
             if self.proposer:
                 log.warning(
