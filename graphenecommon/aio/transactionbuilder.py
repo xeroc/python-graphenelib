@@ -195,19 +195,19 @@ class TransactionBuilder(SyncTransactionBuilder):
         for i, d in enumerate(ops):
             if isinstance(fees[i], list):
                 # Operation is a proposal
-                ops[i].op.data["fee"] = await Asset(
+                ops[i].op.data["fee"] = Asset(
                     amount=fees[i][0]["amount"], asset_id=fees[i][0]["asset_id"]
                 )
                 for j, _ in enumerate(ops[i].op.data["proposed_ops"].data):
                     ops[i].op.data["proposed_ops"].data[j].data["op"].op.data[
                         "fee"
-                    ] = await Asset(
+                    ] = Asset(
                         amount=fees[i][1][j]["amount"],
                         asset_id=fees[i][1][j]["asset_id"],
                     )
             else:
                 # Operation is a regular operation
-                ops[i].op.data["fee"] = await Asset(
+                ops[i].op.data["fee"] = Asset(
                     amount=fees[i]["amount"], asset_id=fees[i]["asset_id"]
                 )
         return ops
@@ -237,7 +237,7 @@ class TransactionBuilder(SyncTransactionBuilder):
             or self.blockchain.expiration
             or 30  # defaults to 30 seconds
         )
-        ref_block_num, ref_block_prefix = self.get_block_params()
+        ref_block_num, ref_block_prefix = await self.get_block_params()
         self.tx = self.signed_transaction_class(
             ref_block_num=ref_block_num,
             ref_block_prefix=ref_block_prefix,
@@ -292,14 +292,14 @@ class TransactionBuilder(SyncTransactionBuilder):
             self.operations.default_prefix = self["blockchain"]["prefix"]
 
         try:
-            signedtx = self.signed_transaction_class(**self.json())
+            signedtx = self.signed_transaction_class(**await self.json())
         except Exception:
             raise ValueError("Invalid TransactionBuilder Format")
 
         if not any(self.wifs):
             raise MissingKeyError
 
-        signedtx.sign(self.wifs, chain=await self.blockchain.rpc.chain_params)
+        signedtx.sign(self.wifs, chain=self.blockchain.rpc.chain_params)
         self["signatures"].extend(signedtx.json().get("signatures"))
         return signedtx
 
@@ -319,7 +319,7 @@ class TransactionBuilder(SyncTransactionBuilder):
         """
         # Sign if not signed
         if not self._is_signed():
-            self.sign()
+            await self.sign()
 
         # Cannot broadcast an empty transaction
         if "operations" not in self or not self["operations"]:
