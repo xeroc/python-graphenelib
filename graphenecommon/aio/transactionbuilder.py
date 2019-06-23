@@ -9,7 +9,6 @@ from ..exceptions import (
     WalletLocked,
 )
 from ..utils import formatTimeFromNow
-from .instance import AbstractBlockchainInstanceProvider
 from graphenebase.objects import Asset
 from ..transactionbuilder import (
     ProposalBuilder as SyncProposalBuilder,
@@ -19,7 +18,7 @@ from ..transactionbuilder import (
 log = logging.getLogger(__name__)
 
 
-class ProposalBuilder(AbstractBlockchainInstanceProvider, SyncProposalBuilder):
+class ProposalBuilder(SyncProposalBuilder):
     """ Proposal Builder allows us to construct an independent Proposal
         that may later be added to an instance ot TransactionBuilder
 
@@ -32,27 +31,6 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider, SyncProposalBuilder):
             your own instance of transaction builder (optional)
         :param instance blockchain_instance: Blockchain instance
     """
-
-    async def __init__(
-        self,
-        proposer,
-        proposal_expiration=None,
-        proposal_review=None,
-        parent=None,
-        *args,
-        **kwargs
-    ):
-        self.define_classes()
-        assert self.operation_class
-        assert self.operations
-        assert self.account_class
-        await AbstractBlockchainInstanceProvider.__init__(self, *args, **kwargs)
-
-        self.set_expiration(proposal_expiration or 2 * 24 * 60 * 60)
-        self.set_review(proposal_review)
-        self.set_parent(parent)
-        self.set_proposer(proposer)
-        self.ops = list()
 
     async def broadcast(self):
         assert self.parent, "No parent transaction provided!"
@@ -92,33 +70,10 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider, SyncProposalBuilder):
         return self.operation_class(ops)
 
 
-class TransactionBuilder(AbstractBlockchainInstanceProvider, SyncTransactionBuilder):
+class TransactionBuilder(SyncTransactionBuilder):
     """ This class simplifies the creation of transactions by adding
         operations and signers.
     """
-
-    async def __init__(self, tx={}, proposer=None, **kwargs):
-        self.define_classes()
-        assert self.account_class
-        assert self.asset_class
-        assert self.operation_class
-        assert self.operations
-        assert self.privatekey_class
-        assert self.publickey_class
-        assert self.signed_transaction_class
-        assert self.amount_class
-        await AbstractBlockchainInstanceProvider.__init__(self, **kwargs)
-
-        self.clear()
-        if tx and isinstance(tx, dict):
-            dict.__init__(self, tx)
-            # Load operations
-            self.ops = [self.operation_class(o) for o in tx["operations"]]
-            self._require_reconstruction = False
-        else:
-            self._require_reconstruction = True
-            self.set_fee_asset(kwargs.get("fee_asset", None))
-        self.set_expiration(kwargs.get("expiration", self.blockchain.expiration)) or 30
 
     async def list_operations(self):
         ret = list()
