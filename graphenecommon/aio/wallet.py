@@ -67,8 +67,7 @@ class Wallet(SyncWallet):
         """
         result = await self.rpc.get_key_references([str(pub)])
         names = result[0]
-        for name in names:
-            yield name
+        return names
 
     async def getAccountFromPublicKey(self, pub):
         """ Obtain the first account name from public key
