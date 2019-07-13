@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from asyncinit import asyncinit
 from ..memo import Memo as SyncMemo
 
 
+@asyncinit
 class Memo(SyncMemo):
     """ Deals with Memos that are attached to a transfer
 
