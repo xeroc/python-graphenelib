@@ -265,6 +265,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                 auth_account = self.account_class(
                     authority[0], blockchain_instance=self.blockchain
                 )
+                required_treshold = auth_account[perm]["weight_threshold"]
                 r.extend(
                     self._fetchkeys(auth_account, perm, level + 1, required_treshold)
                 )
