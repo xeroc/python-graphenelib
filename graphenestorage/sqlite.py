@@ -55,8 +55,57 @@ class SQLiteFile:
         else:  # pragma: no cover
             os.makedirs(data_dir)
 
+class SQLiteCommon(object):
+    """ This class abstracts away common sqlite3 operations.
 
-class SQLiteStore(SQLiteFile, StoreInterface):
+        This class should not be used directly.
+
+        When inheriting from this class, the following instance members must
+        be defined:
+
+            * ``sqlite_file``: Path to the SQLite Database file
+    """
+    def sql_fetchone(self, query):
+        connection = sqlite3.connect(self.sqlite_file)
+        try:
+            cursor = connection.cursor()
+            cursor.execute(*query)
+            result = cursor.fetchone()
+        finally:
+            connection.close()
+        return result
+
+    def sql_fetchall(self, query):
+        connection = sqlite3.connect(self.sqlite_file)
+        try:
+            cursor = connection.cursor()
+            cursor.execute(*query)
+            results = cursor.fetchall()
+        finally:
+            connection.close()
+        return results
+
+    def sql_execute(self, query, lastid=False):
+        connection = sqlite3.connect(self.sqlite_file)
+        try:
+            cursor = connection.cursor()
+            cursor.execute(*query)
+            connection.commit()
+        except:
+            connection.close()
+            raise
+        ret = None
+        try:
+            if lastid:
+                cursor = connection.cursor()
+                cursor.execute("SELECT last_insert_rowid();")
+                ret = cursor.fetchone()[0]
+        finally:
+            connection.close()
+        return ret
+
+
+class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
     """ The SQLiteStore deals with the sqlite3 part of storing data into a
         database file.
 
@@ -93,14 +142,11 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         """
         query = (
             "SELECT {} FROM {} WHERE {}=?".format(
-                self.__value__, self.__tablename__, self.__key__
-            ),
-            (key,),
-        )
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        return True if cursor.fetchone() else False
+                self.__value__,
+                self.__tablename__,
+                self.__key__
+            ), (key,))
+        return True if self.sql_fetchone(query) else False
 
     def __setitem__(self, key, value):
         """ Sets an item in the store
@@ -122,10 +168,7 @@ class SQLiteStore(SQLiteFile, StoreInterface):
                 ),
                 (key, value),
             )
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        connection.commit()
+        self.sql_execute(query)
 
     def __getitem__(self, key):
         """ Gets an item from the store as if it was a dictionary
@@ -134,14 +177,11 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         """
         query = (
             "SELECT {} FROM {} WHERE {}=?".format(
-                self.__value__, self.__tablename__, self.__key__
-            ),
-            (key,),
-        )
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        result = cursor.fetchone()
+                self.__value__,
+                self.__tablename__,
+                self.__key__
+            ), (key,))
+        result = self.sql_fetchone(query)
         if result:
             return result[0]
         else:
@@ -156,20 +196,16 @@ class SQLiteStore(SQLiteFile, StoreInterface):
         return iter(self.keys())
 
     def keys(self):
-        query = "SELECT {} from {}".format(self.__key__, self.__tablename__)
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(query)
-        return [x[0] for x in cursor.fetchall()]
+        query = ("SELECT {} from {}".format(
+            self.__key__,
+            self.__tablename__), )
+        return [x[0] for x in self.sql_fetchall(query)]
 
     def __len__(self):
         """ return lenght of store
         """
-        query = "SELECT id from {}".format(self.__tablename__)
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(query)
-        return len(cursor.fetchall())
+        query = ("SELECT id from {}".format(self.__tablename__), )
+        return len(self.sql_fetchall(query))
 
     def __contains__(self, key):
         """ Tests if a key is contained in the store.
@@ -186,14 +222,12 @@ class SQLiteStore(SQLiteFile, StoreInterface):
     def items(self):
         """ returns all items off the store as tuples
         """
-        query = "SELECT {}, {} from {}".format(
-            self.__key__, self.__value__, self.__tablename__
-        )
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(query)
+        query = ("SELECT {}, {} from {}".format(
+            self.__key__,
+            self.__value__,
+            self.__tablename__), )
         r = []
-        for key, value in cursor.fetchall():
+        for key, value in self.sql_fetchall(query):
             r.append((key, value))
         return r
 
@@ -215,47 +249,39 @@ class SQLiteStore(SQLiteFile, StoreInterface):
             :param str value: Value
         """
         query = (
-            "DELETE FROM {} WHERE {}=?".format(self.__tablename__, self.__key__),
-            (key,),
-        )
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        connection.commit()
+            "DELETE FROM {} WHERE {}=?".format(
+                self.__tablename__,
+                self.__key__
+            ), (key,))
+        self.sql_execute(query)
 
     def wipe(self):
         """ Wipe the store
         """
-        query = "DELETE FROM {}".format(self.__tablename__)
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(query)
-        connection.commit()
+        query = ("DELETE FROM {}".format(self.__tablename__), )
+        self.sql_execute(query)
 
     def exists(self):
         """ Check if the database table exists
         """
-        query = (
-            "SELECT name FROM sqlite_master " + "WHERE type='table' AND name=?",
-            (self.__tablename__,),
-        )
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        return True if cursor.fetchone() else False
+        query = ("SELECT name FROM sqlite_master " +
+                 "WHERE type='table' AND name=?",
+                 (self.__tablename__, ))
+        return True if self.sql_fetchone(query) else False
 
     def create(self):  # pragma: no cover
         """ Create the new table in the SQLite database
         """
-        query = (
+        query = ((
             """
             CREATE TABLE {} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 {} STRING(256),
                 {} STRING(256)
             )"""
-        ).format(self.__tablename__, self.__key__, self.__value__)
-        connection = sqlite3.connect(self.sqlite_file)
-        cursor = connection.cursor()
-        cursor.execute(query)
-        connection.commit()
+        ).format(
+            self.__tablename__,
+            self.__key__,
+            self.__value__
+        ), )
+        self.sql_execute(query)
