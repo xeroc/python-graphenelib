@@ -265,13 +265,15 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                 auth_account = self.account_class(
                     authority[0], blockchain_instance=self.blockchain
                 )
-                r.extend(
-                    self._fetchkeys(auth_account, perm, level + 1, required_treshold)
-                )
+                required_treshold = auth_account[perm]["weight_threshold"]
+                keys = self._fetchkeys(auth_account, perm, level + 1, required_treshold)
 
-                # Test if we reached threshold already and break
-                if sum([x[1] for x in r]) >= required_treshold:
-                    break
+                for key in keys:
+                    r.append(key)
+
+                    # Test if we reached threshold already and break
+                    if sum([x[1] for x in r]) >= required_treshold:
+                        break
 
         return r
 

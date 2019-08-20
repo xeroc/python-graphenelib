@@ -3,15 +3,15 @@
 
 from setuptools import setup
 
-VERSION = "1.1.18"
+__version__ = "1.1.19"
 URL = "https://github.com/xeroc/python-graphenelib"
 
 setup(
     name="graphenelib",
-    version=VERSION,
+    version=__version__,
     description="Python library for graphene-based blockchains",
     long_description=open("README.md").read(),
-    download_url="{}/tarball/{}".format(URL, VERSION),
+    download_url="{}/tarball/{}".format(URL, __version__),
     author="Fabian Schuh",
     author_email="Fabian@chainsquad.com",
     maintainer="Fabian Schuh",
