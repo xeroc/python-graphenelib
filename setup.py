@@ -3,7 +3,7 @@
 
 from setuptools import setup
 
-__version__ = ""
+__version__ = "1.1.19"
 URL = "https://github.com/xeroc/python-graphenelib"
 
 setup(
