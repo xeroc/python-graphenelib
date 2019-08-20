@@ -64,4 +64,4 @@ semver-updates:
 	git flow release finish $(CURRENT_VERSION)
 
 prerelease: test docs authors
-release: semver clean check dist upload git
+release: semver clean build check dist upload git
