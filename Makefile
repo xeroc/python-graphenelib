@@ -1,4 +1,5 @@
 .PHONY: clean-pyc clean-build docs
+CURRENT_VERSION := $(shell semversioner current-version)
 
 clean: clean-build clean-pyc
 
