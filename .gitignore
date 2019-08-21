@@ -65,5 +65,3 @@ target/
 .ropeproject/
 .pytest_cache/
 .scannerwork/
-
-.changes/next-release
