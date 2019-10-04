@@ -1,0 +1,6 @@
+[
+  {
+    "description": "Use the last irreversible block for tapos ref params",
+    "type": "minor"
+  }
+]
