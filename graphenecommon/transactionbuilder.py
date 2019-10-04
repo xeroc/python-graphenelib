@@ -405,17 +405,25 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         dict.update(self, self.tx.json())
         self._unset_require_reconstruction()
 
-    def get_block_params(self):
+    def get_block_params(self, use_head_block=False):
         """ Auxiliary method to obtain ``ref_block_num`` and
             ``ref_block_prefix``. Requires a websocket connection to a
             witness node!
         """
         ws = self.blockchain.rpc
         dynBCParams = ws.get_dynamic_global_properties()
-        ref_block_num = dynBCParams["head_block_number"] & 0xFFFF
-        ref_block_prefix = struct.unpack_from(
-            "<I", unhexlify(dynBCParams["head_block_id"]), 4
-        )[0]
+        if use_head_block:
+            ref_block_num = dynBCParams["head_block_number"] & 0xFFFF
+            ref_block_prefix = struct.unpack_from(
+                "<I", unhexlify(dynBCParams["head_block_id"]), 4
+            )[0]
+        else:
+            # need to get subsequent block because block head doesn't return 'id' - stupid
+            block = ws.get_block_header(int(dynBCParams["last_irreversible_block_num"])+1)
+            ref_block_num = dynBCParams["last_irreversible_block_num"] & 0xFFFF
+            ref_block_prefix = struct.unpack_from(
+                "<I", unhexlify(block["previous"]), 4
+            )[0]
         return ref_block_num, ref_block_prefix
 
     def sign(self):
