@@ -5,6 +5,7 @@ import logging
 import json
 
 from jsonrpcclient.clients.websockets_client import WebSocketsClient
+from jsonrpcclient.exceptions import ReceivedErrorResponseError
 
 from .rpc import Rpc
 
@@ -37,7 +38,12 @@ class Websocket(Rpc):
 
         log.debug(json.dumps(args))
 
-        response = await self.client.request("call", *args)
+        try:
+            response = await self.client.request("call", *args)
+        except ReceivedErrorResponseError as e:
+            # Extract error data from ErrorResponse object
+            response = {"error": e.response.data}
+            return json.dumps(response)
 
         # Return raw response (jsonrpcclient does own parsing)
         return response.text
