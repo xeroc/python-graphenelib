@@ -41,6 +41,11 @@ class Asset(BlockchainObject, SyncAsset):
                 asset["dynamic_asset_data_id"]
             )
 
+    async def ensure_full(self):
+        if not self.is_fully_loaded:
+            self.full = True
+            await self.refresh()
+
     async def update_cer(self, cer, account=None, **kwargs):
         """ Update the Core Exchange Rate (CER) of an asset
         """
