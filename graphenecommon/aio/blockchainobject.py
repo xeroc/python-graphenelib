@@ -46,6 +46,15 @@ class BlockchainObjects(Caching, list):
             if kwargs.get("refresh", True):
                 await self.refresh(*args, **kwargs)
 
+    def __getitem__(self, key):
+        """ Since we've overwriten __getitem__ in cache and inherit from there,
+            we need to make sure we use `list` here instead of `dict`.
+
+            This method overwrites synchronous version to avoid calling
+            self.refresh()
+        """
+        return list.__getitem__(self, key)
+
 
 @asyncinit
 class BlockchainObject(Caching, SyncBlockchainObject):
