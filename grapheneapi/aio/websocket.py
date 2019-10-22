@@ -42,7 +42,13 @@ class Websocket(Rpc):
             response = await self.client.request("call", *args)
         except ReceivedErrorResponseError as e:
             # Extract error data from ErrorResponse object
-            response = {"error": e.response.data}
+            response = {
+                "error": {
+                    "message": e.response.message,
+                    "data": e.response.data,
+                    "code": e.response.code,
+                }
+            }
             return json.dumps(response)
 
         # Return raw response (jsonrpcclient does own parsing)
