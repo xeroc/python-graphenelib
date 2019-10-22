@@ -133,15 +133,17 @@ class TransactionBuilder(SyncTransactionBuilder):
                 auth_account = await self.account_class(
                     authority[0], blockchain_instance=self.blockchain
                 )
-                r.extend(
-                    await self._fetchkeys(
-                        auth_account, perm, level + 1, required_treshold
-                    )
+                required_treshold = auth_account[perm]["weight_threshold"]
+                keys = await self._fetchkeys(
+                    auth_account, perm, level + 1, required_treshold
                 )
 
-                # Test if we reached threshold already and break
-                if sum([x[1] for x in r]) >= required_treshold:
-                    break
+                for key in keys:
+                    r.append(key)
+
+                    # Test if we reached threshold already and break
+                    if sum([x[1] for x in r]) >= required_treshold:
+                        break
 
         return r
 
@@ -232,12 +234,16 @@ class TransactionBuilder(SyncTransactionBuilder):
 
         # We now wrap everything into an actual transaction
         ops = await self.add_required_fees(ops, asset_id=self.fee_asset_id)
-        expiration = formatTimeFromNow(
+        expiration = self.get("expiration") or formatTimeFromNow(
             self.expiration
             or self.blockchain.expiration
             or 30  # defaults to 30 seconds
         )
-        ref_block_num, ref_block_prefix = await self.get_block_params()
+        if not self.get("ref_block_num"):
+            ref_block_num, ref_block_prefix = await self.get_block_params()
+        else:
+            ref_block_num = self["ref_block_num"]
+            ref_block_prefix = self["ref_block_prefix"]
         self.tx = self.signed_transaction_class(
             ref_block_num=ref_block_num,
             ref_block_prefix=ref_block_prefix,
@@ -247,17 +253,27 @@ class TransactionBuilder(SyncTransactionBuilder):
         dict.update(self, self.tx.json())
         self._unset_require_reconstruction()
 
-    async def get_block_params(self):
+    async def get_block_params(self, use_head_block=False):
         """ Auxiliary method to obtain ``ref_block_num`` and
             ``ref_block_prefix``. Requires a websocket connection to a
             witness node!
         """
         ws = self.blockchain.rpc
         dynBCParams = await ws.get_dynamic_global_properties()
-        ref_block_num = dynBCParams["head_block_number"] & 0xFFFF
-        ref_block_prefix = struct.unpack_from(
-            "<I", unhexlify(dynBCParams["head_block_id"]), 4
-        )[0]
+        if use_head_block:
+            ref_block_num = dynBCParams["head_block_number"] & 0xFFFF
+            ref_block_prefix = struct.unpack_from(
+                "<I", unhexlify(dynBCParams["head_block_id"]), 4
+            )[0]
+        else:
+            # need to get subsequent block because block head doesn't return 'id' - stupid
+            block = await ws.get_block_header(
+                int(dynBCParams["last_irreversible_block_num"]) + 1
+            )
+            ref_block_num = dynBCParams["last_irreversible_block_num"] & 0xFFFF
+            ref_block_prefix = struct.unpack_from(
+                "<I", unhexlify(block["previous"]), 4
+            )[0]
         return ref_block_num, ref_block_prefix
 
     async def sign(self):
