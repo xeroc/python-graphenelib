@@ -42,6 +42,7 @@ class Vesting(BlockchainObject, SyncVesting):
                     / float(p["vesting_seconds"])
                 )
                 if float(p["vesting_seconds"]) > 0.0
+                and float(self["balance"]["amount"])
                 else 1
             )
             return (
@@ -49,6 +50,10 @@ class Vesting(BlockchainObject, SyncVesting):
                     self["balance"], blockchain_instance=self.blockchain
                 )
                 * ratio
+            )
+        elif self["policy"][0] == 2:
+            return await self.amount_class(
+                self["balance"], blockchain_instance=self.blockchain
             )
         else:
             raise NotImplementedError("This policy isn't implemented yet")
