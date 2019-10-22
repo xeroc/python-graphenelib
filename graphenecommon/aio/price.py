@@ -287,6 +287,8 @@ class Price(SyncPrice):
         self["base"] = tmp
         if "for_sale" in self and self["for_sale"]:
             self["for_sale"] = await self.amount_class(
-                self["for_sale"]["amount"] * self["price"], self["base"]["symbol"]
+                self["for_sale"]["amount"] * self["price"],
+                self["base"]["symbol"],
+                blockchain_instance=self.blockchain,
             )
         return self
