@@ -103,7 +103,7 @@ class Rpc:
             if "detail" in ret["error"]:
                 raise RPCError(ret["error"]["detail"])
             else:
-                if ret["error"]["message"] == "Execution error":
+                if "data" in ret["error"]:
                     text = ret["error"]["data"]["stack"][0]["format"]
                     data = ret["error"]["data"]["stack"][0]["data"]
                     text = text.replace("${", "{")
