@@ -211,7 +211,11 @@ class MessageV2(SyncMessageV2):
             :returns: True if the message is verified successfully
             :raises InvalidMessageSignature if the signature is not ok
         """
-        assert isinstance(self.message, dict), "Message must be dictionary"
+        if not isinstance(self.message, dict):
+            try:
+                self.message = json.loads(self.message)
+            except Exception:
+                raise ValueError("Message must be valid JSON")
 
         payload = self.message.get("payload")
         assert payload, "Missing payload"

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import aiounittest
 from .fixtures_aio import fixture_data, Message, MessageV1, MessageV2
 from pprint import pprint
@@ -50,6 +51,12 @@ timestamp=2018-12-12T10:44:15
         m = MessageV2("foobar")
         c = await m.sign(account="init0")
         v = MessageV2(c)
+        await v.verify()
+
+    async def test_v2_enc_string(self):
+        m = MessageV2("foobar")
+        c = await m.sign(account="init0")
+        v = MessageV2(json.dumps(c))
         await v.verify()
 
     async def test_v2andv1_enc(self):
