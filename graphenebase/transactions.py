@@ -16,17 +16,15 @@ from .objects import GrapheneObject, isArgsThisClass, Operation
 timeformat = "%Y-%m-%dT%H:%M:%S%Z"
 
 
-def getBlockParams(ws):
+def getBlockParams(ws, use_head_block=False):
     """ Auxiliary method to obtain ``ref_block_num`` and
         ``ref_block_prefix``. Requires a websocket connection to a
         witness node!
     """
-    dynBCParams = ws.get_dynamic_global_properties()
-    ref_block_num = dynBCParams["head_block_number"] & 0xFFFF
-    ref_block_prefix = struct.unpack_from(
-        "<I", unhexlify(dynBCParams["head_block_id"]), 4
-    )[0]
-    return ref_block_num, ref_block_prefix
+    raise DeprecationWarning(
+        "This method shouldn't be called anymore. It is part of "
+        "transactionbuilder now"
+    )
 
 
 def formatTimeFromNow(secs=0):

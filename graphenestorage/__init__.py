@@ -8,7 +8,7 @@ from .base import (
     SqlitePlainKeyStore,
     SqliteEncryptedKeyStore,
 )
-from .sqlite import SQLiteFile
+from .sqlite import SQLiteFile, SQLiteCommon
 
 __all__ = ["interfaces", "masterpassword", "base", "sqlite", "ram"]
 

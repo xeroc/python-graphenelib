@@ -1,16 +1,20 @@
-pyyaml==5.1
+pyyaml==5.1.1
 dateutils==0.6.6
 
 # Unit testing
-pytest==4.3.1
-pytest-mock==1.10.2
+pytest==5.0.1
+pytest-mock==1.10.4
+pytest-benchmark==3.2.2
 pytest-asyncio==0.10.0
 aiounittest==1.1.0
-coverage==4.5.3
-mock==2.0.0
+coverage==4.5.4
+mock==3.0.5
 
 # Code style
-flake8==3.7.7
+flake8==3.7.8
 # black
-isort==4.3.16
-pre-commit==1.14.4
+isort==4.3.21
+pre-commit==1.17.0
+
+# For advanced unittesting
+secp256k1

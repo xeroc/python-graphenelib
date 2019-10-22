@@ -1,5 +1,5 @@
-python-graphenelib
-==================
+python-graphene
+===============
 
 .. toctree::
    :maxdepth: 6

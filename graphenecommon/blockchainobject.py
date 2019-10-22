@@ -200,6 +200,14 @@ class BlockchainObjects(Caching, list):
         """
         self.store(self, key)
 
+    def __getitem__(self, key):
+        """ Since we've overwriten __getitem__ in cache and inherit from there,
+            we need to make sure we use `list` here instead of `dict`.
+        """
+        if not self._fetched:
+            self.refresh()
+        return list.__getitem__(self, key)
+
 
 class BlockchainObject(Caching, dict):
     """ This class deals with objects from graphene-based blockchains.

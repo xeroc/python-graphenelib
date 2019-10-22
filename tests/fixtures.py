@@ -68,6 +68,7 @@ from graphenestorage.interfaces import (
     EncryptedKeyInterface,
 )
 from graphenestorage.sqlite import SQLiteStore
+from graphenecommon.memo import Memo as GrapheneMemo
 
 
 # Common stuff
@@ -75,6 +76,9 @@ from graphenestorage.sqlite import SQLiteStore
 from graphenecommon.instance import (
     BlockchainInstance as GBlockchainInstance,
     SharedInstance as GSharedInstance,
+    shared_blockchain_instance,
+    set_shared_blockchain_instance,
+    set_shared_config,
 )
 from graphenecommon.amount import Amount as GAmount
 from graphenecommon.account import Account as GAccount, AccountUpdate as GAccountUpdate
@@ -323,6 +327,14 @@ class Witnesses(GWitnesss):
     def define_classes(self):
         self.witness_class = Witness
         self.account_class = Account
+
+
+@BlockchainInstance.inject
+class Memo(GrapheneMemo):
+    def define_classes(self):
+        self.account_class = Account
+        self.privatekey_class = PrivateKey
+        self.publickey_class = PublicKey
 
 
 def fixture_data():
