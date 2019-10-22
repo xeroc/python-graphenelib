@@ -264,3 +264,7 @@ class Blockchain(SyncBlockchain):
             lastname = ret[-1][0]
             if len(ret) < steps:
                 raise StopIteration
+
+    @property
+    async def participation_rate(self):
+        return bin(int((await self.info())["recent_slots_filled"])).count("1") / 128
