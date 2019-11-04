@@ -12,7 +12,7 @@ mock==3.0.5
 flake8==3.7.9
 # black
 isort==4.3.21
-pre-commit==1.18.3
+pre-commit==1.20.0
 
 # For advanced unittesting
 secp256k1
