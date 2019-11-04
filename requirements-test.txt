@@ -2,7 +2,7 @@ pyyaml==5.1.2
 dateutils==0.6.6
 
 # Unit testing
-pytest==5.2.1
+pytest==5.2.2
 pytest-mock==1.11.1
 pytest-benchmark==3.2.2
 coverage==4.5.4
