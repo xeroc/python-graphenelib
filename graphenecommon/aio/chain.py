@@ -96,9 +96,9 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
             append_to.appendOps(ops)
             # Add the signer to the buffer so we sign the tx properly
             if isinstance(append_to, self.proposalbuilder_class):
-                parent.appendSigner(append_to.proposer, permission)
+                await parent.appendSigner(append_to.proposer, permission)
             else:
-                parent.appendSigner(account, permission)
+                await parent.appendSigner(account, permission)
             # This returns as we used append_to, it does NOT broadcast, or sign
             return append_to.get_parent()
         elif self.proposer:
