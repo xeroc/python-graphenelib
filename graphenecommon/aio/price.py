@@ -252,7 +252,7 @@ class Price(SyncPrice):
 
     async def copy(self):
         return await self.__class__(
-            base=self["base"].copy(), quote=self["quote"].copy()
+            base=await self["base"].copy(), quote=await self["quote"].copy()
         )
 
     async def as_base(self, base):
@@ -263,7 +263,8 @@ class Price(SyncPrice):
         if base == self["base"]["symbol"]:
             return await self.copy()
         elif base == self["quote"]["symbol"]:
-            return await self.copy().invert()
+            c = await self.copy()
+            return await c.invert()
         else:
             raise InvalidAssetException
 
@@ -275,7 +276,8 @@ class Price(SyncPrice):
         if quote == self["quote"]["symbol"]:
             return await self.copy()
         elif quote == self["base"]["symbol"]:
-            return await self.copy().invert()
+            c = await self.copy()
+            return await c.invert()
         else:
             raise InvalidAssetException
 
