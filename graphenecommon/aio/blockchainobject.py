@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from asyncinit import asyncinit
 
+from .instance import AbstractBlockchainInstanceProvider
 from ..blockchainobject import (
     Caching as SyncCaching,
     BlockchainObjects as SyncBlockchainObjects,
@@ -108,3 +109,19 @@ class BlockchainObject(Caching, SyncBlockchainObject):
 
         if self._use_cache and not self._lazy:
             self._store_item()
+
+
+class Object(BlockchainObject, AbstractBlockchainInstanceProvider):
+    """ This class is a basic class that allows to obtain any object
+        from the blockchyin by fetching it through the API
+    """
+
+    async def refresh(self):
+        """ This is the refresh method that overloads the prototype in
+            BlockchainObject.
+        """
+        dict.__init__(
+            self,
+            await self.blockchain.rpc.get_object(self.identifier),
+            blockchain_instance=self.blockchain,
+        )
