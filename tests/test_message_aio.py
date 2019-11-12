@@ -11,13 +11,13 @@ class Testcases(aiounittest.AsyncTestCase):
         fixture_data()
 
     async def test_sign_message(self):
-        m = Message("message foobar")
+        m = await Message("message foobar")
         p = await m.sign(account="init0")
-        m2 = Message(p)
+        m2 = await Message(p)
         await m2.verify()
 
     async def test_verify_message(self):
-        m = Message(
+        m = await Message(
             """
 -----BEGIN GRAPHENE SIGNED MESSAGE-----
 message foobar
@@ -33,7 +33,7 @@ timestamp=2018-12-12T10:44:15
         await m.verify()
 
         with self.assertRaises(InvalidMessageSignature):
-            m = Message(
+            m = await Message(
                 "-----BEGIN GRAPHENE SIGNED MESSAGE-----"
                 "message foobar\n"
                 "-----BEGIN META-----"
@@ -48,24 +48,24 @@ timestamp=2018-12-12T10:44:15
             await m.verify()
 
     async def test_v2_enc(self):
-        m = MessageV2("foobar")
+        m = await MessageV2("foobar")
         c = await m.sign(account="init0")
-        v = MessageV2(c)
+        v = await MessageV2(c)
         await v.verify()
 
     async def test_v2_enc_string(self):
-        m = MessageV2("foobar")
+        m = await MessageV2("foobar")
         c = await m.sign(account="init0")
-        v = MessageV2(json.dumps(c))
+        v = await MessageV2(json.dumps(c))
         await v.verify()
 
     async def test_v2andv1_enc(self):
-        m = MessageV2("foobar")
+        m = await MessageV2("foobar")
         c = await m.sign(account="init0")
-        v = Message(c)
+        v = await Message(c)
         await v.verify()
 
-        m = MessageV1("foobar")
+        m = await MessageV1("foobar")
         c = await m.sign(account="init0")
-        v = Message(c)
+        v = await Message(c)
         await v.verify()

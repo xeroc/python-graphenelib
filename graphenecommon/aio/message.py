@@ -6,6 +6,7 @@ import inspect
 
 from binascii import hexlify, unhexlify
 from datetime import datetime
+from asyncinit import asyncinit
 
 from graphenebase.ecdsa import sign_message, verify_message
 
@@ -25,9 +26,14 @@ from ..message import (
 log = logging.getLogger(__name__)
 
 
+@asyncinit
 class MessageV1(SyncMessageV1):
     """ Allow to sign and verify Messages that are sigend with a private key
     """
+
+    async def __init__(self, *args, **kwargs):
+        # __init__ should be async because AbstractBlockchainInstanceProvider expects async __init__
+        super().__init__(*args, **kwargs)
 
     async def sign(self, account=None, **kwargs):
         """ Sign a message with an account's memo key
@@ -158,9 +164,14 @@ class MessageV1(SyncMessageV1):
         return True
 
 
+@asyncinit
 class MessageV2(SyncMessageV2):
     """ Allow to sign and verify Messages that are sigend with a private key
     """
+
+    async def __init__(self, *args, **kwargs):
+        # __init__ should be async because AbstractBlockchainInstanceProvider expects async __init__
+        super().__init__(*args, **kwargs)
 
     async def sign(self, account=None, **kwargs):
         """ Sign a message with an account's memo key
@@ -283,6 +294,7 @@ class MessageV2(SyncMessageV2):
         return True
 
 
+@asyncinit
 class Message(SyncMessage, MessageV1, MessageV2):
     supported_formats = (MessageV1, MessageV2)
     valid_exceptions = (
@@ -291,6 +303,20 @@ class Message(SyncMessage, MessageV1, MessageV2):
         WrongMemoKey,
         InvalidMemoKeyException,
     )
+
+    async def __init__(self, *args, **kwargs):
+        for _format in self.supported_formats:
+            try:
+                await _format.__init__(self, *args, **kwargs)
+                return
+            except self.valid_exceptions as e:
+                raise e
+            except Exception as e:
+                log.warning(
+                    "{}: Couldn't init: {}: {}".format(
+                        _format.__name__, e.__class__.__name__, str(e)
+                    )
+                )
 
     async def verify(self, **kwargs):
         for _format in self.supported_formats:

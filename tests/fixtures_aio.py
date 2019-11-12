@@ -283,21 +283,21 @@ class BlockHeader(GBlockHeader):
         pass
 
 
-@SyncBlockchainInstance.inject
+@BlockchainInstance.inject
 class Message(GMessage):
     def define_classes(self):
         self.account_class = Account
         self.publickey_class = PublicKey
 
 
-@SyncBlockchainInstance.inject
+@BlockchainInstance.inject
 class MessageV1(GMessageV1):
     def define_classes(self):
         self.account_class = Account
         self.publickey_class = PublicKey
 
 
-@SyncBlockchainInstance.inject
+@BlockchainInstance.inject
 class MessageV2(GMessageV2):
     def define_classes(self):
         self.account_class = Account
