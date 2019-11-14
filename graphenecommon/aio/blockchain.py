@@ -243,7 +243,7 @@ class Blockchain(SyncBlockchain):
                       transaction contented and thus identifies a transaction
                       uniquely.
         """
-        counter = 10
+        counter = 0
         async for block in self.blocks():
             counter += 1
             for tx in block["transactions"]:
