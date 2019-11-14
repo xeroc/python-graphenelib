@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import asyncio
+from asyncinit import asyncinit
 from ..blockchain import Blockchain as SyncBlockchain
 
 
+@asyncinit
 class Blockchain(SyncBlockchain):
     """ This class allows to access the blockchain and read data
         from it
@@ -15,6 +17,10 @@ class Blockchain(SyncBlockchain):
 
         This class let's you deal with blockchain related data and methods.
     """
+
+    async def __init__(self, *args, **kwargs):
+        # __init__ should be async because AbstractBlockchainInstanceProvider expects async __init__
+        super().__init__(*args, **kwargs)
 
     async def info(self):
         """ This call returns the *dynamic global properties*
@@ -33,13 +39,13 @@ class Blockchain(SyncBlockchain):
         config = await self.config()
         self._parameters = config["parameters"]
 
-    async def get_network(self):
+    def get_network(self):
         """ Identify the network
 
             :returns: Network parameters
             :rtype: dict
         """
-        return await self.blockchain.rpc.get_network()
+        return self.blockchain.rpc.get_network()
 
     async def get_chain_properties(self):
         """ Return chain properties
@@ -73,7 +79,8 @@ class Blockchain(SyncBlockchain):
     async def get_block_interval(self):
         """ This call returns the block interval
         """
-        return await self.chainParameters().get("block_interval")
+        params = await self.chainParameters()
+        return params.get("block_interval")
 
     async def block_time(self, block_num):
         """ Returns a datetime of the block with the given block
