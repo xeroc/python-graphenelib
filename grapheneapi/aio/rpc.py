@@ -49,3 +49,7 @@ class Rpc(SyncRpc):
             return message
 
         return method
+
+    def parse_response(self, *args, **kwargs):
+        # Disable logging in parent method because we're logging via jsonrpcclient
+        return super().parse_response(*args, log_on_debug=False, **kwargs)

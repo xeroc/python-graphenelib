@@ -90,14 +90,16 @@ class Rpc:
     def disconnect(self):
         pass
 
-    def parse_response(self, query):
+    def parse_response(self, query, log_on_debug=True):
         ret = {}
         try:
             ret = json.loads(query, strict=False)
         except ValueError:  # pragma: no cover  pragma: no branch
             raise ValueError("Client returned invalid format. Expected JSON!")
 
-        log.debug(json.dumps(query))
+        # log_on_debug allows to disable logging here even if debug logging is configured
+        if log_on_debug:
+            log.debug(json.dumps(query))
 
         if "error" in ret:  # pragma: no cover
             if "detail" in ret["error"]:

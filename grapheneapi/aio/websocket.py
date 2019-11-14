@@ -21,7 +21,8 @@ class Websocket(Rpc):
     async def connect(self):
         ssl = True if self.url[:3] == "wss" else None
         self.ws = await websockets.connect(self.url, ssl=ssl, loop=self.loop)
-        self.client = WebSocketsClient(self.ws)
+        enable_debug = True if log.getEffectiveLevel() == logging.DEBUG else False
+        self.client = WebSocketsClient(self.ws, basic_logging=enable_debug)
 
     async def disconnect(self):
         if self.ws:
@@ -35,8 +36,6 @@ class Websocket(Rpc):
         """
         if not self.ws:
             await self.connect()
-
-        log.debug(json.dumps(args))
 
         try:
             response = await self.client.request("call", *args)
