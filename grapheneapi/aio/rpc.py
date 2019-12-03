@@ -8,11 +8,11 @@ log = logging.getLogger(__name__)
 
 
 class Rpc(SyncRpc):
-    def __init__(self, url, *args, **kwargs):
+    def __init__(self, url, *args, loop=None, **kwargs):
         self.api_id = {}
         self._request_id = 0
         self.url = url
-        self.loop = kwargs.get("loop")
+        self.loop = loop
 
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
