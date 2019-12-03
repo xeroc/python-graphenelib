@@ -66,6 +66,3 @@ async def test_api_via_http_rpc(event_loop):
     await api.disconnect()
     assert isinstance(props, dict)
     assert props["head_block_number"] > 0
-
-
-# TODO: how to test incrementing of json-rpc ids?

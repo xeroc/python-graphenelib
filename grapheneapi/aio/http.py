@@ -3,8 +3,6 @@ import aiohttp
 import logging
 import json
 
-from jsonrpcclient.clients.aiohttp_client import AiohttpClient
-
 from .rpc import Rpc
 
 log = logging.getLogger(__name__)
@@ -17,8 +15,7 @@ class Http(Rpc):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.session = aiohttp.ClientSession(loop=kwargs.get("loop"))
-        enable_debug = True if log.getEffectiveLevel() == logging.DEBUG else False
-        self.client = AiohttpClient(self.session, self.url, basic_logging=enable_debug)
+        self.notifications = None
 
     async def connect(self):
         pass
@@ -27,12 +24,17 @@ class Http(Rpc):
         await self.session.close()
 
     async def rpcexec(self, *args):
-        """ Execute a call by sending the payload
+        """ Execute a RPC call
 
             :param args: args are passed as "params" in json-rpc request:
-                {"jsonrpc": "2.0", "method": "call", "params": "[x, y, z]"}
+                {"jsonrpc": "2.0", "method": "call", "params": "[x, y, z]", "id": 1}
         """
-        response = await self.client.request("call", *args)
+
+        request_id = self.get_request_id()
+        request = {"jsonrpc": "2.0", "method": "call", "params": args, "id": request_id}
+
+        async with self.session.post(self.url, json=request) as response:
+            response_text = await response.text()
 
         # Return raw response (jsonrpcclient does own parsing)
-        return response.text
+        return response_text

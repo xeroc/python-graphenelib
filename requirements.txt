@@ -6,7 +6,6 @@ pycryptodome==3.8.2
 appdirs==1.4.3
 scrypt==0.8.13
 # secp256k1==0.13.2
-websockets==7.0
+websockets==8.1
 aiohttp==3.5.4
-jsonrpcclient==3.3.1
 asyncinit==0.2.4

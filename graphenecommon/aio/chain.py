@@ -14,6 +14,8 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
         # Remember kwargs to use them to connect()
         self._kwargs = kwargs
 
+        self.notifications = None
+
     async def connect(self):
         """ Connect to blockchain network (internal use only)
 
@@ -44,6 +46,9 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
         self.wallet = self._kwargs.get(
             "wallet", self.wallet_class(blockchain_instance=self, **self._kwargs)
         )
+
+        # Make a shortcut for notifications queue
+        self.notifications = self.rpc.connection.notifications
 
     async def info(self):
         """ Returns the global properties
