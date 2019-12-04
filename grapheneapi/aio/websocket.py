@@ -100,18 +100,17 @@ class Websocket(Rpc):
             response = self._messages.pop(request_id, None)
         return response
 
-    async def rpcexec(self, *args):
+    async def rpcexec(self, payload):
         """ Execute a RPC call
 
-            :param args: args are passed as "params" in json-rpc request:
+            :param dict payload: json-rpc request in format:
                 {"jsonrpc": "2.0", "method": "call", "params": "[x, y, z]", "id": 1}
         """
         if not self.ws:
             await self.connect()
 
-        request_id = self.get_request_id()
-        request = {"jsonrpc": "2.0", "method": "call", "params": args, "id": request_id}
-        request_json = json.dumps(request)
+        request_id = payload["id"]
+        request_json = json.dumps(payload)
 
         await self.ws.send(request_json)
         response = await self.get_response_by_id(request_id)

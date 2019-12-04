@@ -38,12 +38,15 @@ class Rpc(SyncRpc):
             # let's be able to define the num_retries per query
             self.num_retries = kwargs.get("num_retries", self.num_retries)
 
-            # We're passing only "params" instead of forming full json-rpc query to allow jsonrpcclient handle
-            # everything
-            query = [api_id, name, list(args)]
+            query = {
+                "jsonrpc": "2.0",
+                "method": "call",
+                "params": [api_id, name, list(args)],
+                "id": self.get_request_id(),
+            }
 
             # Need to await here!
-            r = await self.rpcexec(*query)
+            r = await self.rpcexec(query)
             message = self.parse_response(r)
 
             return message
@@ -51,5 +54,5 @@ class Rpc(SyncRpc):
         return method
 
     def parse_response(self, *args, **kwargs):
-        # Disable logging in parent method because we're logging via jsonrpcclient
+        # Disable logging in parent method because we're logging via client libraries
         return super().parse_response(*args, log_on_debug=False, **kwargs)

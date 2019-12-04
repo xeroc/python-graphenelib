@@ -23,18 +23,13 @@ class Http(Rpc):
     async def disconnect(self):
         await self.session.close()
 
-    async def rpcexec(self, *args):
+    async def rpcexec(self, payload):
         """ Execute a RPC call
 
-            :param args: args are passed as "params" in json-rpc request:
+            :param dict payload: json-rpc request in format:
                 {"jsonrpc": "2.0", "method": "call", "params": "[x, y, z]", "id": 1}
         """
-
-        request_id = self.get_request_id()
-        request = {"jsonrpc": "2.0", "method": "call", "params": args, "id": request_id}
-
-        async with self.session.post(self.url, json=request) as response:
+        async with self.session.post(self.url, json=payload) as response:
             response_text = await response.text()
 
-        # Return raw response (jsonrpcclient does own parsing)
         return response_text
