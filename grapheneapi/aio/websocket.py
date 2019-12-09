@@ -20,9 +20,6 @@ class Websocket(Rpc):
         self._event = asyncio.Event(loop=self.loop)
 
     async def connect(self):
-        if log.getEffectiveLevel() == logging.DEBUG:
-            logging.getLogger("websockets").setLevel(logging.DEBUG)
-
         ssl = True if self.url[:3] == "wss" else None
         self.ws = await websockets.connect(self.url, ssl=ssl, loop=self.loop)
         task = self.loop.create_task(self.parse_messages())
