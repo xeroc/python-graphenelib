@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import json
 import logging
 
@@ -12,7 +13,7 @@ class Rpc(SyncRpc):
         self.api_id = {}
         self._request_id = 0
         self.url = url
-        self.loop = loop
+        self.loop = kwargs.get(loop, asyncio.get_event_loop())
 
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
