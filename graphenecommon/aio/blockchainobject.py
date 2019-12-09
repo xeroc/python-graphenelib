@@ -11,13 +11,13 @@ from ..blockchainobject import (
 
 class Caching(SyncCaching):
     def __getitem__(self, key):
-        """ This method overwrites synchronous version to avoid calling
+        """ This method overrides synchronous version to avoid calling
             self.refresh()
         """
         return dict.__getitem__(self, key)
 
     async def items(self):
-        """ This overwrites items() so that refresh() is called it the
+        """ This overrides items() so that refresh() is called if the
             object is not already fetched
         """
         if not self._fetched:
@@ -25,7 +25,7 @@ class Caching(SyncCaching):
         return dict.items(self)
 
     def __contains__(self, key):
-        """ This method overwrites synchronous version to avoid calling
+        """ This method overrides synchronous version to avoid calling
             self.refresh()
         """
         return dict.__contains__(self, key)
@@ -51,7 +51,7 @@ class BlockchainObjects(Caching, list):
         """ Since we've overwriten __getitem__ in cache and inherit from there,
             we need to make sure we use `list` here instead of `dict`.
 
-            This method overwrites synchronous version to avoid calling
+            This method overrides synchronous version to avoid calling
             self.refresh()
         """
         return list.__getitem__(self, key)

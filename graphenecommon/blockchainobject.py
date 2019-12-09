@@ -113,7 +113,7 @@ class Caching:
         return dict.__getitem__(self, key)
 
     def items(self):
-        """ This overwrites items() so that refresh() is called it the
+        """ This overwrites items() so that refresh() is called if the
             object is not already fetched
         """
         if not self._fetched:

@@ -31,13 +31,13 @@ class Account(BlockchainObject, SyncAccount):
 
         .. code-block:: python
 
-            from .account import Account
-            account = Account("init0")
+            from aio.account import Account
+            account = await Account("init0")
             print(account)
 
         .. note:: This class comes with its own caching function to reduce the
                   load on the API server. Instances of this class can be
-                  refreshed with ``Account.refresh()``.
+                  refreshed with ``await Account.refresh()``.
 
     """
 

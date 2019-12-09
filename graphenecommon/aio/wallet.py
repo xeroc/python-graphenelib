@@ -16,6 +16,12 @@ class Wallet(SyncWallet):
         :param array,dict,string keys: Predefine the wif keys to shortcut the
                wallet database
 
+        .. note:: Wallet should be instantiated synchroously e.g.
+
+        .. code-block:: python
+
+            w = Wallet()
+
         Three wallet operation modes are possible:
 
         * **Wallet Database**: Here, the library loads the keys from the

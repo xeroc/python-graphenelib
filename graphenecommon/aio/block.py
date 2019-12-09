@@ -18,14 +18,9 @@ class Block(BlockchainObject, SyncBlock):
 
         .. code-block:: python
 
-            from block import Block
+            from aio.block import Block
             block = await Block(1)
             print(block)
-
-        .. note:: This class comes with its own caching function to reduce the
-                  load on the API server. Instances of this class can be
-                  refreshed with ``Account.refresh()``.
-
     """
 
     async def __init__(self, *args, use_cache=False, **kwargs):

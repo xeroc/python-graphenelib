@@ -17,12 +17,11 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
         self.notifications = None
 
     async def connect(self):
-        """ Connect to blockchain network (internal use only)
+        """ Connect to blockchain network
 
             Async version does wallet initialization after connect because
             wallet depends on prefix which is available after connection only,
-            and we want to keep __init__() synchronous, thus we're not
-            performing connection there.
+            and we want to keep __init__() synchronous.
         """
         node = self._kwargs.pop("node", None)
         rpcuser = self._kwargs.pop("rpcuser", None)

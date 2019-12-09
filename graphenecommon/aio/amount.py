@@ -8,7 +8,7 @@ from ..amount import Amount as SyncAmount
 @asyncinit
 class Amount(SyncAmount):
     async def __init__(self, *args, **kwargs):
-        """ Async version of :class:`.asset.Asset`
+        """ Async version of :class:`..amount.Amount`
 
             Limitations: most of arithmetic operations are not supported on async version
         """

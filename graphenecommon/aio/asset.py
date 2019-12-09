@@ -15,7 +15,7 @@ class Asset(BlockchainObject, SyncAsset):
 
         .. note:: This class comes with its own caching function to reduce the
                   load on the API server. Instances of this class can be
-                  refreshed with ``Asset.refresh()``.
+                  refreshed with ``await Asset.refresh()``.
     """
 
     async def __init__(self, *args, **kwargs):
