@@ -4,7 +4,18 @@ from ..instance import (
 )
 
 
+# Async version needs separate cache class because mixing imports from sync and
+# async version may lead to appearing of sync shared instance in async class!
+class SharedInstance:
+
+    instance = None
+    config = {}
+
+
 class AbstractBlockchainInstanceProvider(SyncAbstractBlockchainInstanceProvider):
+
+    _sharedInstance = SharedInstance
+
     @classmethod
     def inject(slf, cls):
         class NewClass(slf, cls):
