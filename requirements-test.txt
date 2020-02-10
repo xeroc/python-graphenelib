@@ -4,7 +4,7 @@ dateutils==0.6.6
 # Unit testing
 pytest==5.3.5
 pytest-mock==2.0.0
-pytest-benchmark==3.2.2
+pytest-benchmark==3.2.3
 coverage==4.5.4
 mock==3.0.5
 
