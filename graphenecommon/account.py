@@ -117,7 +117,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
             symbol = symbol["symbol"]
         balances = self.balances
         for b in balances:
-            if b["symbol"] == symbol:
+            if b["symbol"] == symbol or b["asset"]["id"] == symbol:
                 return b
         return self.amount_class(0, symbol, blockchain_instance=self.blockchain)
 
