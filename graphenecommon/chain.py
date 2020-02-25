@@ -9,7 +9,15 @@ class AbstractGrapheneChain:
     def define_classes(self):
         raise NotImplementedError
 
-    def __init__(self, node="", rpcuser="", rpcpassword="", debug=False, **kwargs):
+    def __init__(
+        self,
+        node="",
+        rpcuser="",
+        rpcpassword="",
+        debug=False,
+        skip_wallet_init=False,
+        **kwargs
+    ):
 
         self.define_classes()
         assert self.rpc_class
@@ -50,9 +58,10 @@ class AbstractGrapheneChain:
         # txbuffers/propbuffer are initialized and cleared
         self.clear()
 
-        self.wallet = kwargs.get(
-            "wallet", self.wallet_class(blockchain_instance=self, **kwargs)
-        )
+        if not skip_wallet_init:
+            self.wallet = kwargs.get(
+                "wallet", self.wallet_class(blockchain_instance=self, **kwargs)
+            )
 
     # -------------------------------------------------------------------------
     # RPC

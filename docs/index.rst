@@ -35,6 +35,7 @@ Python-Graphene Libraries
 
    installation
    classes
+   asyncio
 
 Graphene API
 ------------
