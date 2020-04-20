@@ -1,1 +1,1 @@
-graphenelib==1.2.0
+graphenelib==1.3.1
