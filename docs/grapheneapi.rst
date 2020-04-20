@@ -1,6 +1,13 @@
 grapheneapi package
 ===================
 
+Subpackages
+-----------
+
+.. toctree::
+
+   grapheneapi.aio
+
 Submodules
 ----------
 
@@ -17,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: grapheneapi
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

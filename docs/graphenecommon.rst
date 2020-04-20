@@ -1,6 +1,13 @@
 graphenecommon package
 ======================
 
+Subpackages
+-----------
+
+.. toctree::
+
+   graphenecommon.aio
+
 Submodules
 ----------
 
@@ -32,6 +39,6 @@ Module contents
 ---------------
 
 .. automodule:: graphenecommon
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

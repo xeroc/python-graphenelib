@@ -2,6 +2,6 @@ graphenebase.transactions module
 ================================
 
 .. automodule:: graphenebase.transactions
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -3,7 +3,7 @@
 
 from setuptools import setup
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 URL = "https://github.com/xeroc/python-graphenelib"
 
 setup(
@@ -18,7 +18,13 @@ setup(
     maintainer_email="Fabian@chainsquad.com",
     url=URL,
     keywords=["graphene", "api", "rpc", "ecdsa", "secp256k1"],
-    packages=["grapheneapi", "graphenebase", "graphenestorage", "graphenecommon"],
+    packages=[
+        "grapheneapi",
+        "graphenebase",
+        "graphenestorage",
+        "graphenecommon",
+        "grapheneapi.aio",
+    ],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",

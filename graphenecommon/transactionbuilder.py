@@ -419,7 +419,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             )[0]
         else:
             # need to get subsequent block because block head doesn't return 'id' - stupid
-            block = ws.get_block_header(int(dynBCParams["last_irreversible_block_num"])+1)
+            block = ws.get_block_header(
+                int(dynBCParams["last_irreversible_block_num"]) + 1
+            )
             ref_block_num = dynBCParams["last_irreversible_block_num"] & 0xFFFF
             ref_block_prefix = struct.unpack_from(
                 "<I", unhexlify(block["previous"]), 4
@@ -523,6 +525,8 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         self.ops = []
         self.wifs = set()
         self.signing_accounts = []
+        self.ref_block_num = None
+        self.ref_block_prefix = None
         # This makes sure that _is_constructed will return False afterwards
         self["expiration"] = None
         dict.__init__(self, {})

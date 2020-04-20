@@ -28,6 +28,6 @@ Module contents
 ---------------
 
 .. automodule:: graphenebase
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

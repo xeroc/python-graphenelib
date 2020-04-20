@@ -39,7 +39,9 @@ class Proposal(BlockchainObject, AbstractBlockchainInstanceProvider):
             else returns None
         """
         if "proposer" in self:
-            return self.account_class(self["proposer"])
+            return self.account_class(
+                self["proposer"], blockchain_instance=self.blockchain
+            )
 
     @property
     def expiration(self):

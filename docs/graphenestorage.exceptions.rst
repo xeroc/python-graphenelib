@@ -2,6 +2,6 @@ graphenestorage.exceptions module
 =================================
 
 .. automodule:: graphenestorage.exceptions
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

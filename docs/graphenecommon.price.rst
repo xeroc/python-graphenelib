@@ -2,6 +2,6 @@ graphenecommon.price module
 ===========================
 
 .. automodule:: graphenecommon.price
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
