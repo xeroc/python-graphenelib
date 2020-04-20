@@ -1,0 +1,6 @@
+[
+  {
+    "description": "Release asyncio support",
+    "type": "minor"
+  }
+]
