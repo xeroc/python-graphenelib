@@ -3,7 +3,7 @@
 
 from setuptools import setup
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 URL = "https://github.com/xeroc/python-graphenelib"
 
 setup(
@@ -24,6 +24,7 @@ setup(
         "graphenestorage",
         "graphenecommon",
         "grapheneapi.aio",
+        "graphenecommon.aio",
     ],
     classifiers=[
         "License :: OSI Approved :: MIT License",
