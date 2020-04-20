@@ -2,6 +2,6 @@ grapheneapi.http module
 =======================
 
 .. automodule:: grapheneapi.http
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

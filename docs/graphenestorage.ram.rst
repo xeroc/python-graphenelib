@@ -2,6 +2,6 @@ graphenestorage.ram module
 ==========================
 
 .. automodule:: graphenestorage.ram
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

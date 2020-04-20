@@ -2,6 +2,6 @@ graphenebase.ecdsa module
 =========================
 
 .. automodule:: graphenebase.ecdsa
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

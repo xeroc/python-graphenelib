@@ -2,6 +2,6 @@ graphenecommon.transactionbuilder module
 ========================================
 
 .. automodule:: graphenecommon.transactionbuilder
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
