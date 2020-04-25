@@ -34,6 +34,7 @@ setup(
         "Intended Audience :: Developers",
     ],
     install_requires=open("requirements.txt").readlines(),
+    extras_require={"speedups": ["secp256k1>=0.13.2"]},
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     include_package_data=True,
