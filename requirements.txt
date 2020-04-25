@@ -1,11 +1,11 @@
 ecdsa==0.13.3
-requests==2.22.0
+requests>=2.22.0,<3
 websocket-client==0.56.0
-pylibscrypt==1.8.0
-pycryptodome==3.9.1
-appdirs==1.4.3
+pylibscrypt>=1.8.0,<2
+pycryptodome>=3.9.1,<4
+appdirs>=1.4.3,<2
 scrypt==0.8.13
 # secp256k1==0.13.2
-websockets==8.1
-aiohttp==3.5.4
+websockets>=8.1,<9
+aiohttp>=3.5.4,<4
 asyncinit==0.2.4
