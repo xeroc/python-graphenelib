@@ -2,11 +2,6 @@ version: "{branch}.{build}"
 
 environment:
   matrix:
-    - TOXENV: py35
-      PYTHON: "C:\\Python35-x64"
-      PYTHON_VERSION: "3.5.x"
-      PYTHON_ARCH: "64"
-
     - TOXENV: py36
       PYTHON: "C:\\Python36-x64"
       PYTHON_VERSION: "3.6.x"
@@ -15,6 +10,11 @@ environment:
     - TOXENV: py37
       PYTHON: "C:\\Python37-x64"
       PYTHON_VERSION: "3.7.x"
+      PYTHON_ARCH: "64"
+
+    - TOXENV: py38
+      PYTHON: "C:\\Python38-x64"
+      PYTHON_VERSION: "3.8.x"
       PYTHON_ARCH: "64"
 
 install:
