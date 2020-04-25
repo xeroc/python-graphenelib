@@ -1,17 +1,17 @@
-pyyaml==5.1.2
-dateutils==0.6.6
+pyyaml>=5.1.2,<6
+dateutils>=0.6.6,<0.7
 
 # Unit testing
-pytest==5.2.2
-pytest-mock==1.11.2
-pytest-benchmark==3.2.2
-pytest-asyncio==0.10.0
-aiounittest==1.1.0
-coverage==4.5.4
-mock==3.0.5
+pytest>=5.2.2,<6
+pytest-mock>=1.11.2,<2
+pytest-benchmark>=3.2.2,<4
+pytest-asyncio>=0.10.0,<0.11
+aiounittest>=1.1.0,<2
+coverage>=4.5.4,<5
+mock>=3.0.5,<4
 
 # Code style
-flake8==3.7.9
+flake8>=3.7.9,<4
 # black
-isort==4.3.21
-pre-commit==1.20.0
+isort>=4.3.21,<5
+pre-commit>=1.20.0,<2
