@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import os.path
 import unittest
 
 from .fixtures import SQLiteStore
@@ -20,8 +21,11 @@ class Testcases(unittest.TestCase):
         store = MyStore(profile="testing")
         self.assertEqual(store.storageDatabase, "testing.sqlite")
 
-        store = MyStore(profile="testing", data_dir="/tmp/temporaryFolder")
-        self.assertEqual(store.sqlite_file, "/tmp/temporaryFolder/testing.sqlite")
+        directory = "/tmp/temporaryFolder"
+        expected = os.path.join(directory, "testing.sqlite")
+
+        store = MyStore(profile="testing", data_dir=directory)
+        self.assertEqual(store.sqlite_file, expected)
 
     def test_initialdata(self):
         store = MyStore()

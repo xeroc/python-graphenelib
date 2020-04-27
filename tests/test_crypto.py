@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import ecdsa
+import sys
 import unittest
 import hashlib
 from .fixtures import (
@@ -711,6 +712,7 @@ class Testcases(unittest.TestCase):
         self.assertIsInstance(p2, PrivateKey)
         self.assertEqual(str(p2), "5JQ6AQmjpbEZjJBLnoa3BaWa9y3LDTUBeSDwEGQD2UjYkb1gY2x")
 
+    @unittest.skipIf(sys.platform.startswith("win"), "skipped due to secp256k1")
     def test_child_pub(self):
         p = PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S")
         pub = p.pubkey
@@ -772,14 +774,16 @@ class Testcases(unittest.TestCase):
         )
 
     def test_derive_child(self):
-       # NOTE: this key + offset pair is particularly nasty, as
-       # the resulting derived value is less then 64 bytes long.
-       # Thus, this test also tests for proper padding.
-       p = PrivateKey("5K6hMUtQB2xwjuz3SRR6uM5HNERWgBqcK7gPPZ31XtAyBNoATZd")
-       p2 = p.child(b'\xaf\x8f: \xf6T?V\x0bM\xd8\x16 \xfd\xde\xe9\xb9\xac\x03\r\xba\xb2\x8d\x868-\xc2\x90\x80\xe8\x1b\xce')
-       self.assertEqual(
-           repr(p2), "0c5fae344a513a4cfab312b24c08df2b2d6afa25c0ead0d3d1d0d3e76794109b"
-       )
+        # NOTE: this key + offset pair is particularly nasty, as
+        # the resulting derived value is less then 64 bytes long.
+        # Thus, this test also tests for proper padding.
+        p = PrivateKey("5K6hMUtQB2xwjuz3SRR6uM5HNERWgBqcK7gPPZ31XtAyBNoATZd")
+        p2 = p.child(
+            b"\xaf\x8f: \xf6T?V\x0bM\xd8\x16 \xfd\xde\xe9\xb9\xac\x03\r\xba\xb2\x8d\x868-\xc2\x90\x80\xe8\x1b\xce"
+        )
+        self.assertEqual(
+            repr(p2), "0c5fae344a513a4cfab312b24c08df2b2d6afa25c0ead0d3d1d0d3e76794109b"
+        )
 
     def test_init_wrong_format(self):
         with self.assertRaises(NotImplementedError):
