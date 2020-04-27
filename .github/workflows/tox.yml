@@ -11,6 +11,8 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
 
     steps:
+    - name: Install secp256k1
+      run: sudo apt-get install libsecp256k1-0 libsecp256k1-dev
     - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
