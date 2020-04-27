@@ -177,7 +177,8 @@ class Amount(dict, AbstractBlockchainInstanceProvider):
         return float(self["amount"])
 
     def __int__(self):
-        return int(self["amount"] * 10 ** self["asset"]["precision"])
+        # this needs rounding, e.g. 5.1 * 10 ** 5 == 509999.99999999994
+        return int(round(self["amount"] * 10 ** self["asset"]["precision"]))
 
     def __neg__(self):
         a = self.copy()
