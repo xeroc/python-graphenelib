@@ -53,48 +53,37 @@ class GenesisBalance(BlockchainObject, AbstractBlockchainInstanceProvider):
             raise ValueError("You need to provide an account")
         account = self.account_class(account, blockchain_instance=self.blockchain)
         pubkeys = self.blockchain.wallet.getPublicKeys()
+        prefix = self.blockchain.prefix
         addresses = dict()
         for p in pubkeys:
-            if p[: len(self.blockchain.prefix)] != self.blockchain.prefix:
+            if p[: len(prefix)] != prefix:
                 continue
-            pubkey = self.publickey_class(p, prefix=self.blockchain.prefix)
+            pubkey = self.publickey_class(p, prefix=prefix)
             addresses[
                 str(
                     self.address_class.from_pubkey(
-                        pubkey,
-                        compressed=False,
-                        version=0,
-                        prefix=self.blockchain.prefix,
+                        pubkey, compressed=False, version=0, prefix=prefix
                     )
                 )
             ] = pubkey
             addresses[
                 str(
                     self.address_class.from_pubkey(
-                        pubkey,
-                        compressed=True,
-                        version=0,
-                        prefix=self.blockchain.prefix,
+                        pubkey, compressed=True, version=0, prefix=prefix
                     )
                 )
             ] = pubkey
             addresses[
                 str(
                     self.address_class.from_pubkey(
-                        pubkey,
-                        compressed=False,
-                        version=56,
-                        prefix=self.blockchain.prefix,
+                        pubkey, compressed=False, version=56, prefix=prefix
                     )
                 )
             ] = pubkey
             addresses[
                 str(
                     self.address_class.from_pubkey(
-                        pubkey,
-                        compressed=True,
-                        version=56,
-                        prefix=self.blockchain.prefix,
+                        pubkey, compressed=True, version=56, prefix=prefix
                     )
                 )
             ] = pubkey
@@ -109,7 +98,7 @@ class GenesisBalance(BlockchainObject, AbstractBlockchainInstanceProvider):
                 "balance_to_claim": self["id"],
                 "balance_owner_key": addresses[self["owner"]],
                 "total_claimed": self["balance"],
-                "prefix": self.blockchain.prefix,
+                "prefix": prefix,
             }
         )
         signers = [
@@ -131,48 +120,37 @@ class GenesisBalances(list, AbstractBlockchainInstanceProvider):
         assert self.address_class
 
         pubkeys = self.blockchain.wallet.getPublicKeys()
+        prefix = self.blockchain.prefix
         addresses = list()
         for p in pubkeys:
-            if p[: len(self.blockchain.prefix)] != self.blockchain.prefix:
+            if p[: len(prefix)] != prefix:
                 continue
-            pubkey = self.publickey_class(p, prefix=self.blockchain.prefix)
+            pubkey = self.publickey_class(p, prefix=prefix)
             addresses.append(
                 str(
                     self.address_class.from_pubkey(
-                        pubkey,
-                        compressed=False,
-                        version=0,
-                        prefix=self.blockchain.prefix,
+                        pubkey, compressed=False, version=0, prefix=prefix
                     )
                 )
             )
             addresses.append(
                 str(
                     self.address_class.from_pubkey(
-                        pubkey,
-                        compressed=True,
-                        version=0,
-                        prefix=self.blockchain.prefix,
+                        pubkey, compressed=True, version=0, prefix=prefix
                     )
                 )
             )
             addresses.append(
                 str(
                     self.address_class.from_pubkey(
-                        pubkey,
-                        compressed=False,
-                        version=56,
-                        prefix=self.blockchain.prefix,
+                        pubkey, compressed=False, version=56, prefix=prefix
                     )
                 )
             )
             addresses.append(
                 str(
                     self.address_class.from_pubkey(
-                        pubkey,
-                        compressed=True,
-                        version=56,
-                        prefix=self.blockchain.prefix,
+                        pubkey, compressed=True, version=56, prefix=prefix
                     )
                 )
             )
