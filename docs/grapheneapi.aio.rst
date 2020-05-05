@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 6
 
    grapheneapi.aio.api
    grapheneapi.aio.http
