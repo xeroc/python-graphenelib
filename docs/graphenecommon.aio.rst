@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 6
 
    graphenecommon.aio.account
    graphenecommon.aio.amount
