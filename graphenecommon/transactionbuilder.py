@@ -192,6 +192,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
     def _unset_require_reconstruction(self):
         self._require_reconstruction = False
 
+    def _get_auth_field(self, permission):
+        return permission
+
     def __repr__(self):
         return "<Transaction num_ops={}, ops={}>".format(
             len(self.ops), [op.__class__.__name__ for op in self.ops]
@@ -280,6 +283,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
     def appendSigner(self, accounts, permission):
         """ Try to obtain the wif key from the wallet by telling which account
             and permission is supposed to sign the transaction
+
+            :param str,list,tuple,set accounts: accounts to sign transaction with
+            :param str permission: type of permission, e.g. "active", "owner" etc
         """
         assert permission in self.permission_types, "Invalid permission"
 
@@ -287,6 +293,8 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             raise WalletLocked()
         if not isinstance(accounts, (list, tuple, set)):
             accounts = [accounts]
+
+        auth_field = self._get_auth_field(permission)
 
         for account in accounts:
             # Now let's actually deal with the accounts
@@ -301,7 +309,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                     accountObj = self.account_class(
                         account, blockchain_instance=self.blockchain
                     )
-                    required_treshold = accountObj[permission]["weight_threshold"]
+                    required_treshold = accountObj[auth_field]["weight_threshold"]
                     keys = self._fetchkeys(
                         accountObj, permission, required_treshold=required_treshold
                     )
@@ -545,7 +553,8 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             self["missing_signatures"] = [str(account)]
         else:
             accountObj = self.account_class(account)
-            authority = accountObj[permission]
+            auth_field = self._get_auth_field(permission)
+            authority = accountObj[auth_field]
             # We add a required_authorities to be able to identify
             # how to sign later. This is an array, because we
             # may later want to allow multiple operations per tx
@@ -553,7 +562,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             for account_auth in authority["account_auths"]:
                 account_auth_account = self.account_class(account_auth[0])
                 self["required_authorities"].update(
-                    {account_auth[0]: account_auth_account.get(permission)}
+                    {account_auth[0]: account_auth_account.get(auth_field)}
                 )
 
             # Try to resolve required signatures for offline signing
@@ -562,7 +571,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             for account_auth in authority["account_auths"]:
                 account_auth_account = self.account_class(account_auth[0])
                 self["missing_signatures"].extend(
-                    [x[0] for x in account_auth_account[permission]["key_auths"]]
+                    [x[0] for x in account_auth_account[auth_field]["key_auths"]]
                 )
 
     def appendMissingSignatures(self):
