@@ -23,21 +23,21 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
             wallet depends on prefix which is available after connection only,
             and we want to keep __init__() synchronous.
         """
-        node = self._kwargs.pop("node", None)
-        rpcuser = self._kwargs.pop("rpcuser", None)
-        rpcpassword = self._kwargs.pop("rpcpassword", None)
+        node = self._kwargs.get("node", None)
+        rpcuser = self._kwargs.get("rpcuser", None)
+        rpcpassword = self._kwargs.get("rpcpassword", None)
 
         if not node:
             if "node" in self.config:
-                self._node = self.config["node"]
+                node = self.config["node"]
             else:
                 raise ValueError("A Blockchain node needs to be provided!")
 
-        if rpcuser and "rpcuser" in self.config:
-            self._rpcuser = self.config["rpcuser"]
+        if not rpcuser and "rpcuser" in self.config:
+            rpcuser = self.config["rpcuser"]
 
         if not rpcpassword and "rpcpassword" in self.config:
-            self._rpcpassword = self.config["rpcpassword"]
+            rpcpassword = self.config["rpcpassword"]
 
         self.rpc = self.rpc_class(node, rpcuser, rpcpassword, **self._kwargs)
         await self.rpc.connect()
