@@ -162,9 +162,15 @@ class Api:
         pass
 
     def __getattr__(self, name):
+        """ Proxies RPC calls to actual Websocket or Http instance.
+
+            Connection-related errors catched here and handled.
+        """
+
         def func(*args, **kwargs):
             while True:
                 try:
+                    # RPC method called on actual Websocket or Http class
                     func = self.connection.__getattr__(name)
                     r = func(*args, **kwargs)
                     self.reset_counter()

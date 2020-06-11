@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import logging
-from grapheneapi.exceptions import NumRetriesReached
+from grapheneapi.exceptions import NumRetriesReached, RPCError
 
 from grapheneapi.api import Api as SyncApi
 from .websocket import Websocket
@@ -91,3 +91,43 @@ class Api(SyncApi):
             raise NumRetriesReached
         url = urls[0]
         return url
+
+    def __getattr__(self, name):
+        async def func(*args, **kwargs):
+            while True:
+                try:
+                    func = self.connection.__getattr__(name)
+                    r = await func(*args, **kwargs)
+                    self.reset_counter()
+                    break
+                except KeyboardInterrupt:  # pragma: no cover
+                    raise
+                except RPCError as e:  # pragma: no cover
+                    """ When the backend actual returns an error
+                    """
+                    self.post_process_exception(e)
+                    # the above line should raise. Let's be sure to at least
+                    # break
+                    break  # pragma: no cover
+                except IOError:  # pragma: no cover
+                    import traceback
+
+                    log.debug(traceback.format_exc())
+                    log.warning("Connection was closed remotely.")
+                    log.warning("Reconnecting ...")
+                    self.error_url()
+                    self.next()
+                except Exception as e:  # pragma: no cover
+                    """ When something fails talking to the backend
+                    """
+                    import traceback
+
+                    log.debug(traceback.format_exc())
+                    log.warning(str(e))
+                    log.warning("Reconnecting ...")
+                    self.error_url()
+                    self.next()
+
+            return r
+
+        return func
