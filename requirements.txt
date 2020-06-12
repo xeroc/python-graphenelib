@@ -1,6 +1,6 @@
 ecdsa>=0.13.3,<0.14
 requests>=2.22.0,<3
-websocket-client>=0.56.0,<0.57
+websocket-client>=0.56.0,<1
 pylibscrypt>=1.8.0,<2
 pycryptodome>=3.9.1,<4
 appdirs>=1.4.3,<2
