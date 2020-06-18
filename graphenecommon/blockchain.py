@@ -156,7 +156,6 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             start = head_block + 1
 
             if stop and start > stop:
-                # raise StopIteration
                 return
 
             # Sleep for one block
@@ -285,12 +284,12 @@ class Blockchain(AbstractBlockchainInstanceProvider):
             for account in ret:
                 yield account[0]
                 if account[0] == stop:
-                    raise StopIteration
+                    return
             if lastname == ret[-1][0]:
-                raise StopIteration
+                return
             lastname = ret[-1][0]
             if len(ret) < steps:
-                raise StopIteration
+                return
 
     @property
     def participation_rate(self):
