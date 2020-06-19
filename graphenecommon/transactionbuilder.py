@@ -467,17 +467,12 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         elif "blockchain" in self:
             self.operations.default_prefix = self["blockchain"]["prefix"]
 
-        try:
-            signedtx = self.signed_transaction_class(**self.json())
-        except Exception:
-            raise ValueError("Invalid TransactionBuilder Format")
-
         if not any(self.wifs):
             raise MissingKeyError
 
-        signedtx.sign(self.wifs, chain=self.blockchain.rpc.chain_params)
-        self["signatures"].extend(signedtx.json().get("signatures"))
-        return signedtx
+        self.tx.sign(self.wifs, chain=self.blockchain.rpc.chain_params)
+        self["signatures"].extend(self.tx.json().get("signatures"))
+        return self.tx
 
     def verify_authority(self):
         """ Verify the authority of the signed transaction
