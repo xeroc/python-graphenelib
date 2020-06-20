@@ -35,6 +35,7 @@ class ProposalBuilder(SyncProposalBuilder):
     async def broadcast(self):
         assert self.parent, "No parent transaction provided!"
         self.parent._set_require_reconstruction()
+        await self.parent.sign()
         return await self.parent.broadcast()
 
     async def json(self):
