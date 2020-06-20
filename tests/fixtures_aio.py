@@ -149,9 +149,10 @@ class Chain(AbstractGrapheneChain):
 
     @property
     def rpc(self):
-        """ We are patching rpc similar to a regular RPC
-            connection. However, it will always return
-            an empty object!
+        """
+        We are patching rpc similar to a regular RPC connection.
+
+        However, it will always return an empty object!
         """
 
         class RPC:
@@ -169,8 +170,7 @@ class Chain(AbstractGrapheneChain):
                 return get_object(id)
 
             async def get_asset(self, name, **kwargs):
-                """ Method from python-bitshares
-                """
+                """Method from python-bitshares."""
                 if len(name.split(".")) == 3:
                     result = await self.get_objects([name], **kwargs)
                     return result[0]

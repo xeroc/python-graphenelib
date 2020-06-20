@@ -14,8 +14,10 @@ import base64
 
 class AESCipher(object):
     """
-    A classical AES Cipher. Can use any size of data and any size of password thanks to padding.
-    Also ensure the coherence and the type of the data with a unicode to byte converter.
+    A classical AES Cipher.
+
+    Can use any size of data and any size of password thanks to padding. Also ensure the
+    coherence and the type of the data with a unicode to byte converter.
     """
 
     def __init__(self, key):

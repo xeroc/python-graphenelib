@@ -10,16 +10,16 @@ Examples
 .. code-block:: python
 
      from graphenebase import PrivateKey
-     from graphenebase.bip38 import encrypt 
+     from graphenebase.bip38 import encrypt
 
      format(encrypt(PrivateKey("5HqUkGuo62BfcJU5vNhTXKJRXuUi9QSE6jp8C3uBJ2BVHtB8WSd"),"SecretPassPhrase"), "encwif")
-     
+
      >> "6PRN5mjUTtud6fUXbJXezfn6oABoSr6GSLjMbrGXRZxSUcxThxsUW8epQi",
 
 .. code-block:: python
 
      from graphenebase import PrivateKey
-     from graphenebase.bip38 import decrypt 
+     from graphenebase.bip38 import decrypt
 
      format(decrypt("6PRN5mjUTtud6fUXbJXezfn6oABoSr6GSLjMbrGXRZxSUcxThxsUW8epQi","SecretPassPhrase"),"wif"),
 

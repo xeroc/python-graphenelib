@@ -10,22 +10,21 @@ log = logging.getLogger(__name__)
 
 
 class Rpc:
-    """ This class allows to call API methods synchronously, without
-        callbacks.
+    """
+    This class allows to call API methods synchronously, without callbacks.
 
-        :param str url: A single REST endpoint URL
-        :param int num_retries: Try x times to num_retries to a node on
-               disconnect, -1 for indefinitely
-        :param str proxy: Proxy URL (e.g. socks5://localhost:9050),
-               None by default.
+    :param str url: A single REST endpoint URL
+    :param int num_retries: Try x times to num_retries to a node on
+           disconnect, -1 for indefinitely
+    :param str proxy: Proxy URL (e.g. socks5://localhost:9050),
+           None by default.
 
-        Usage:
+    Usage:
 
-        .. code-block:: python
+    .. code-block:: python
 
-            ws = GrapheneHTTPRPC("https://api.node.com")
-            print(ws.get_account_count())
-
+        ws = GrapheneHTTPRPC("https://api.node.com")
+        print(ws.get_account_count())
     """
 
     def __init__(self, url, **kwargs):
@@ -119,8 +118,7 @@ class Rpc:
             return ret["result"]
 
     def __getattr__(self, name):
-        """ Map all methods to RPC calls and pass through the arguments
-        """
+        """Map all methods to RPC calls and pass through the arguments."""
 
         def method(*args, **kwargs):
 

@@ -6,8 +6,9 @@ from .instance import AbstractBlockchainInstanceProvider
 
 
 class Price(dict, AbstractBlockchainInstanceProvider):
-    """ This class deals with all sorts of prices of any pair of assets to
-        simplify dealing with the tuple::
+    """
+    This class deals with all sorts of prices of any pair of assets to simplify dealing
+    with the tuple::
 
             (quote, base)
 
@@ -57,7 +58,6 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             >>> from price import Price
             >>> Price("0.3314 USD/BTS") * 2
             0.662600000 USD/BTS
-
     """
 
     def __init__(
@@ -228,8 +228,7 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             raise ValueError("Couldn't parse 'Price'.")
 
     def __setitem__(self, key, value):
-        """ Here we set "price" if we change quote or base
-        """
+        """Here we set "price" if we change quote or base."""
         dict.__setitem__(self, key, value)
         if (
             "quote" in self and "base" in self and self["base"] and self["quote"]
@@ -253,9 +252,10 @@ class Price(dict, AbstractBlockchainInstanceProvider):
         return self["base"]["symbol"], self["quote"]["symbol"]
 
     def as_base(self, base):
-        """ Returns the price instance so that the base asset is ``base``.
+        """
+        Returns the price instance so that the base asset is ``base``.
 
-            Note: This makes a copy of the object!
+        Note: This makes a copy of the object!
         """
         if base == self["base"]["symbol"]:
             return self.copy()
@@ -265,9 +265,10 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             raise InvalidAssetException
 
     def as_quote(self, quote):
-        """ Returns the price instance so that the quote asset is ``quote``.
+        """
+        Returns the price instance so that the quote asset is ``quote``.
 
-            Note: This makes a copy of the object!
+        Note: This makes a copy of the object!
         """
         if quote == self["quote"]["symbol"]:
             return self.copy()
@@ -277,8 +278,7 @@ class Price(dict, AbstractBlockchainInstanceProvider):
             raise InvalidAssetException
 
     def invert(self):
-        """ Invert the price (e.g. go from ``USD/BTS`` into ``BTS/USD``)
-        """
+        """Invert the price (e.g. go from ``USD/BTS`` into ``BTS/USD``)"""
         tmp = self["quote"]
         self["quote"] = self["base"]
         self["base"] = tmp

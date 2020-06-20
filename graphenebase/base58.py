@@ -11,7 +11,8 @@ log = logging.getLogger(__name__)
 
 
 class Base58(Prefix):
-    """Base58 base class
+    """
+    Base58 base class.
 
     This class serves as an abstraction layer to deal with base58 encoded
     strings and their corresponding hex and binary representation throughout
@@ -33,7 +34,6 @@ class Base58(Prefix):
         * ``"wif"``: prefixed with ``0x00``. Yields a valid wif key
         * ``"bts"``: prefixed with ``BTS``
         * etc.
-
     """
 
     def __init__(self, data, prefix=None):
@@ -54,12 +54,12 @@ class Base58(Prefix):
             raise ValueError("Error loading Base58 object: {}".format(data))
 
     def __format__(self, _format):
-        """ Format output according to argument _format (wif,...)
+        """
+        Format output according to argument _format (wif,...)
 
-            :param str _format: Format to use
-            :return: formatted data according to _format
-            :rtype: str
-
+        :param str _format: Format to use
+        :return: formatted data according to _format
+        :rtype: str
         """
         if _format.upper() == "WIF":
             return base58CheckEncode(0x80, self._hex)
@@ -71,27 +71,29 @@ class Base58(Prefix):
             return _format.upper() + str(self)
 
     def __repr__(self):
-        """ Returns hex value of object
+        """
+        Returns hex value of object.
 
-            :return: Hex string of instance's data
-            :rtype: hex string
+        :return: Hex string of instance's data
+        :rtype: hex string
         """
         return self._hex
 
     def __str__(self):
-        """ Return graphene-base58CheckEncoded string of data
+        """
+        Return graphene-base58CheckEncoded string of data.
 
-            :return: Base58 encoded data
-            :rtype: str
+        :return: Base58 encoded data
+        :rtype: str
         """
         return gphBase58CheckEncode(self._hex)
 
     def __bytes__(self):
-        """ Return raw bytes
+        """
+        Return raw bytes.
 
-            :return: Raw bytes of instance
-            :rtype: bytes
-
+        :return: Raw bytes of instance
+        :rtype: bytes
         """
         return unhexlify(self._hex)
 

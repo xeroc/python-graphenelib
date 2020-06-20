@@ -5,12 +5,12 @@ from ..committee import Committee as SyncCommittee
 
 
 class Committee(BlockchainObject, SyncCommittee):
-    """ Read data about a Committee Member in the chain
+    """
+    Read data about a Committee Member in the chain.
 
-        :param str member: Name of the Committee Member
-        :param instance blockchain_instance: instance to use when accesing a RPC
-        :param bool lazy: Use lazy loading
-
+    :param str member: Name of the Committee Member
+    :param instance blockchain_instance: instance to use when accesing a RPC
+    :param bool lazy: Use lazy loading
     """
 
     async def __init__(self, *args, **kwargs):

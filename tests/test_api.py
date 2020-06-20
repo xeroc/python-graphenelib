@@ -49,7 +49,7 @@ class Testcases(unittest.TestCase):
         api.connection.disconnect()
         api.connection.disconnect()
 
-    #def test_raise_rpc_error_https(self):
+    # def test_raise_rpc_error_https(self):
     #    api = Api(urls[1], num_retries=1)
     #    with self.assertRaises(exceptions.RPCError):
     #        api.get_SOMETHING(["2.8.0"])

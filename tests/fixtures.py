@@ -150,9 +150,10 @@ class Chain(AbstractGrapheneChain):
 
     @property
     def rpc(self):
-        """ We are patching rpc similar to a regular RPC
-            connection. However, it will always return
-            an empty object!
+        """
+        We are patching rpc similar to a regular RPC connection.
+
+        However, it will always return an empty object!
         """
 
         class RPC:

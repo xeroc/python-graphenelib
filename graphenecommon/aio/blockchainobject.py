@@ -11,23 +11,18 @@ from ..blockchainobject import (
 
 class Caching(SyncCaching):
     def __getitem__(self, key):
-        """ This method overrides synchronous version to avoid calling
-            self.refresh()
-        """
+        """This method overrides synchronous version to avoid calling self.refresh()"""
         return dict.__getitem__(self, key)
 
     async def items(self):
-        """ This overrides items() so that refresh() is called if the
-            object is not already fetched
-        """
+        """This overrides items() so that refresh() is called if the object is not
+        already fetched."""
         if not self._fetched:
             await self.refresh()
         return dict.items(self)
 
     def __contains__(self, key):
-        """ This method overrides synchronous version to avoid calling
-            self.refresh()
-        """
+        """This method overrides synchronous version to avoid calling self.refresh()"""
         return dict.__contains__(self, key)
 
 
@@ -48,11 +43,11 @@ class BlockchainObjects(Caching, list):
                 await self.refresh(*args, **kwargs)
 
     def __getitem__(self, key):
-        """ Since we've overwriten __getitem__ in cache and inherit from there,
-            we need to make sure we use `list` here instead of `dict`.
+        """
+        Since we've overwriten __getitem__ in cache and inherit from there, we need to
+        make sure we use `list` here instead of `dict`.
 
-            This method overrides synchronous version to avoid calling
-            self.refresh()
+        This method overrides synchronous version to avoid calling self.refresh()
         """
         return list.__getitem__(self, key)
 
@@ -112,14 +107,12 @@ class BlockchainObject(Caching, SyncBlockchainObject):
 
 
 class Object(BlockchainObject, AbstractBlockchainInstanceProvider):
-    """ This class is a basic class that allows to obtain any object
-        from the blockchyin by fetching it through the API
-    """
+    """This class is a basic class that allows to obtain any object from the blockchyin
+    by fetching it through the API."""
 
     async def refresh(self):
-        """ This is the refresh method that overloads the prototype in
-            BlockchainObject.
-        """
+        """This is the refresh method that overloads the prototype in
+        BlockchainObject."""
         dict.__init__(
             self,
             await self.blockchain.rpc.get_object(self.identifier),

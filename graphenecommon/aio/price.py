@@ -8,8 +8,9 @@ from ..price import Price as SyncPrice
 
 @asyncinit
 class Price(SyncPrice):
-    """ This class deals with all sorts of prices of any pair of assets to
-        simplify dealing with the tuple::
+    """
+    This class deals with all sorts of prices of any pair of assets to simplify dealing
+    with the tuple::
 
             (quote, base)
 
@@ -59,7 +60,6 @@ class Price(SyncPrice):
             >>> from price import Price
             >>> Price("0.3314 USD/BTS") * 2
             0.662600000 USD/BTS
-
     """
 
     async def __init__(
@@ -256,9 +256,10 @@ class Price(SyncPrice):
         )
 
     async def as_base(self, base):
-        """ Returns the price instance so that the base asset is ``base``.
+        """
+        Returns the price instance so that the base asset is ``base``.
 
-            Note: This makes a copy of the object!
+        Note: This makes a copy of the object!
         """
         if base == self["base"]["symbol"]:
             return await self.copy()
@@ -269,9 +270,10 @@ class Price(SyncPrice):
             raise InvalidAssetException
 
     async def as_quote(self, quote):
-        """ Returns the price instance so that the quote asset is ``quote``.
+        """
+        Returns the price instance so that the quote asset is ``quote``.
 
-            Note: This makes a copy of the object!
+        Note: This makes a copy of the object!
         """
         if quote == self["quote"]["symbol"]:
             return await self.copy()
@@ -282,8 +284,7 @@ class Price(SyncPrice):
             raise InvalidAssetException
 
     async def invert(self):
-        """ Invert the price (e.g. go from ``USD/BTS`` into ``BTS/USD``)
-        """
+        """Invert the price (e.g. go from ``USD/BTS`` into ``BTS/USD``)"""
         tmp = self["quote"]
         self["quote"] = self["base"]
         self["base"] = tmp

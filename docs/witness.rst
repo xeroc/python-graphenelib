@@ -28,25 +28,25 @@ following essential settings:
 .. code-block:: ini
 
     # Endpoint for P2P node to listen on
-    # p2p-endpoint = 
+    # p2p-endpoint =
 
     # P2P nodes to connect to on startup (may specify multiple times)
-    # seed-node = 
+    # seed-node =
 
     # Pairs of [BLOCK_NUM,BLOCK_ID] that should be enforced as checkpoints.
-    # checkpoint = 
+    # checkpoint =
 
     # Endpoint for websocket RPC to listen on
     # rpc-endpoint = 0.0.0.0:8090
 
     # Endpoint for TLS websocket RPC to listen on
-    # rpc-tls-endpoint = 
+    # rpc-tls-endpoint =
 
     # The TLS certificate file for this server
-    # server-pem = 
+    # server-pem =
 
     # Password for this certificate
-    # server-pem-password = 
+    # server-pem-password =
 
     # File to read Genesis State from
     # genesis-json = sep-18-testnet-genesis.json
@@ -64,13 +64,13 @@ following essential settings:
     allow-consecutive = false
 
     # ID of witness controlled by this node (e.g. "1.6.5", quotes are required, may specify multiple times)
-    # witness-id = 
+    # witness-id =
 
     # Tuple of [PublicKey, WIF private key] (may specify multiple times)
     # private-key = ["pubkey","wif-key"]
 
     # Account ID to track history for (may specify multiple times)
-    # track-account = 
+    # track-account =
 
     # Track market history by grouping orders into buckets of equal size measured in seconds specified as a JSON array of numbers
     # bucket-size = [15,60,300,3600,86400]

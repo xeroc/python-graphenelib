@@ -11,8 +11,7 @@ timeformat = "%Y-%m-%dT%H:%M:%S%Z"
 
 
 def varint(n):
-    """ Varint encoding
-    """
+    """Varint encoding."""
     data = b""
     while n >= 0x80:
         data += bytes([(n & 0x7F) | 0x80])
@@ -22,8 +21,7 @@ def varint(n):
 
 
 def varintdecode(data):  # pragma: no cover
-    """ Varint decoding
-    """
+    """Varint decoding."""
     shift = 0
     result = 0
     for b in bytes(data):
@@ -35,14 +33,12 @@ def varintdecode(data):  # pragma: no cover
 
 
 def variable_buffer(s):
-    """ Encode variable length buffer
-    """
+    """Encode variable length buffer."""
     return varint(len(s)) + s
 
 
 def JsonObj(data):
-    """ Returns json object from data
-    """
+    """Returns json object from data."""
     return json.loads(str(data))
 
 

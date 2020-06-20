@@ -18,17 +18,17 @@ PrivateKey Class
 ################
 
 .. autoclass:: graphenebase.account.PrivateKey
-    :members: 
+    :members:
 
 Brainkey
 ########
 
 .. autoclass:: graphenebase.account.BrainKey
-    :members: 
+    :members:
 
 Remarks
 #######
-  
+
 Format vs. Repr
 ***************
 
