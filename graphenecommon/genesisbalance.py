@@ -56,7 +56,7 @@ class GenesisBalance(BlockchainObject, AbstractBlockchainInstanceProvider):
         account = self.account_class(account, blockchain_instance=self.blockchain)
         pubkeys = self.blockchain.wallet.getPublicKeys()
         prefix = self.blockchain.prefix
-        addresses = dict()
+        addresses = {}
         for p in pubkeys:
             if p[: len(prefix)] != prefix:
                 continue
@@ -121,7 +121,7 @@ class GenesisBalances(list, AbstractBlockchainInstanceProvider):
 
         pubkeys = self.blockchain.wallet.getPublicKeys()
         prefix = self.blockchain.prefix
-        addresses = list()
+        addresses = []
         for p in pubkeys:
             if p[: len(prefix)] != prefix:
                 continue

@@ -79,12 +79,12 @@ timestamp={meta[timestamp]}
         # Data for message
         account = self.account_class(account, blockchain_instance=self.blockchain)
         info = self.blockchain.info()
-        meta = dict(
-            timestamp=info["time"],
-            block=info["head_block_number"],
-            memokey=account["options"]["memo_key"],
-            account=account["name"],
-        )
+        meta = {
+            "timestamp": info["time"],
+            "block": info["head_block_number"],
+            "memokey": account["options"]["memo_key"],
+            "account": account["name"],
+        }
 
         # wif key
         wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
@@ -244,7 +244,7 @@ class MessageV2(AbstractBlockchainInstanceProvider):
         # signature
         signature = hexlify(sign_message(enc_message, wif)).decode("ascii")
 
-        return dict(signed=enc_message, payload=payload, signature=signature)
+        return {"signed": enc_message, "payload": payload, "signature": signature}
 
     def verify(self, **kwargs):
         """

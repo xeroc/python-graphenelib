@@ -118,7 +118,7 @@ class Account(BlockchainObject, SyncAccount):
                 return b
         return await self.amount_class(0, symbol, blockchain_instance=self.blockchain)
 
-    async def history(self, first=0, last=0, limit=-1, only_ops=[], exclude_ops=[]):
+    async def history(self, first=0, last=0, limit=-1, only_ops=None, exclude_ops=None):
         """
         Returns a generator for individual account transactions. The latest operation
         will be first. This call can be used in a ``for`` loop.
@@ -140,6 +140,11 @@ class Account(BlockchainObject, SyncAccount):
             operationids.py.
             Example: ['transfer', 'fill_order']
         """
+        if not only_ops:
+            only_ops = []
+        if not exclude_ops:
+            exclude_ops = []
+
         _limit = 100
         cnt = 0
 

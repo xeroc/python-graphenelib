@@ -195,7 +195,7 @@ class GrapheneObject(OrderedDict):
         if len(self) == 0:
             return bytes()
         b = b""
-        for name, value in self.items():
+        for _, value in self.items():
             if isinstance(value, str):
                 b += bytes(value, "utf-8")
             else:

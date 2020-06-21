@@ -136,7 +136,7 @@ class Testcases(unittest.TestCase):
                 "chain_id", tx.getChainParams({"core_symbol": "CORE", "prefix": "GPH"})
             )
         with self.assertRaises(ValueError):
-            self.assertIn("chain_id", tx.getChainParams(list()))
+            self.assertIn("chain_id", tx.getChainParams([]))
 
         tx.sign([wif])
         # Test for duplicates, does not raise!

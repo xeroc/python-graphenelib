@@ -44,7 +44,7 @@ class Api(SyncApi):
         except Exception as e:
             log.warning(str(e))
             self.error_url()
-            await self.next()
+            await self.next()  # noqa: B305
         self.register_apis()
         await self.cache_chain_properties()
 
@@ -113,7 +113,7 @@ class Api(SyncApi):
                     log.warning("Connection was closed remotely.")
                     log.warning("Reconnecting ...")
                     self.error_url()
-                    self.next()
+                    self.next()  # noqa: B305
                 except Exception as e:  # pragma: no cover
                     """When something fails talking to the backend."""
                     import traceback
@@ -122,7 +122,7 @@ class Api(SyncApi):
                     log.warning(str(e))
                     log.warning("Reconnecting ...")
                     self.error_url()
-                    self.next()
+                    self.next()  # noqa: B305
 
             return r
 

@@ -62,7 +62,7 @@ class Witness(BlockchainObject, AbstractBlockchainInstanceProvider):
         account = self.account_class(
             "witness-account", blockchain_instance=self.blockchain
         )
-        return self.account["id"] in [x[0] for x in account["active"]["account_auths"]]
+        return self.account["id"] in (x[0] for x in account["active"]["account_auths"])
 
 
 class Witnesses(BlockchainObjects, AbstractBlockchainInstanceProvider):
@@ -113,6 +113,6 @@ class Witnesses(BlockchainObjects, AbstractBlockchainInstanceProvider):
             account = self.account_class(item, blockchain_instance=self.blockchain)
             id = account["id"]
 
-        return any([id == x["id"] for x in self]) or any(
-            [id == x["witness_account"] for x in self]
+        return any(id == x["id"] for x in self) or any(
+            id == x["witness_account"] for x in self
         )

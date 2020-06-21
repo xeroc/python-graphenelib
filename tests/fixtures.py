@@ -98,7 +98,7 @@ from graphenecommon.worker import Worker as GWorker, Workers as GWorkers
 from graphenecommon.witness import Witness as GWitness, Witnesses as GWitnesss
 from graphenecommon.chain import AbstractGrapheneChain
 
-objects_cache = dict()
+objects_cache = {}
 
 
 def store_test_object(o):
@@ -156,57 +156,54 @@ class Chain(AbstractGrapheneChain):
         However, it will always return an empty object!
         """
 
-        class RPC:
-            def _load(self, name):
-                with open(
-                    os.path.join(os.path.dirname(__file__), "fixtures.yaml")
-                ) as fid:
-                    d = yaml.safe_load(fid)
-                return d.get(name)
-
-            def get_objects(self, ids, *args, **kwargs):
-                return [self.get_object(x) for x in ids]
-
-            def get_object(self, id, *args, **kwargs):
-                return get_object(id)
-
-            def get_account_history(self, *args, **kwargs):
-                with open(
-                    os.path.join(
-                        os.path.dirname(__file__), "vector_get_account_history.yaml"
-                    )
-                ) as fid:
-                    history = yaml.safe_load(fid)
-                    return history
-
-            def get_account_balances(self, account, *args, **kwargs):
-                return [{"asset_id": "1.3.0", "amount": 132442}]
-
-            def lookup_account_names(self, name, **kwargs):
-                return [None]
-
-            def get_all_workers(self):
-                return self._load("workers")
-
-            def get_workers_by_account(self, name):
-                return [self._load("workers")[0]]
-
-            def get_dynamic_global_properties(self):
-                return {
-                    "head_block_id": "021dcf4a9af758e508364f16e3ab5ac928b7f76c",
-                    "head_block_number": 35508042,
-                }
-
-            def __getattr__(self, name):
-                def fun(self, *args, **kwargs):
-                    return {}
-
-                return fun
-
         return RPC()
 
     def upgrade_account(self, *args, **kwargs):
         pass
+
+
+class RPC:
+    def _load(self, name):
+        with open(os.path.join(os.path.dirname(__file__), "fixtures.yaml")) as fid:
+            d = yaml.safe_load(fid)
+        return d.get(name)
+
+    def get_objects(self, ids, *args, **kwargs):
+        return [self.get_object(x) for x in ids]
+
+    def get_object(self, id, *args, **kwargs):
+        return get_object(id)
+
+    def get_account_history(self, *args, **kwargs):
+        with open(
+            os.path.join(os.path.dirname(__file__), "vector_get_account_history.yaml")
+        ) as fid:
+            history = yaml.safe_load(fid)
+            return history
+
+    def get_account_balances(self, account, *args, **kwargs):
+        return [{"asset_id": "1.3.0", "amount": 132442}]
+
+    def lookup_account_names(self, name, **kwargs):
+        return [None]
+
+    def get_all_workers(self):
+        return self._load("workers")
+
+    def get_workers_by_account(self, name):
+        return [self._load("workers")[0]]
+
+    def get_dynamic_global_properties(self):
+        return {
+            "head_block_id": "021dcf4a9af758e508364f16e3ab5ac928b7f76c",
+            "head_block_number": 35508042,
+        }
+
+    def __getattr__(self, name):
+        def fun(self, *args, **kwargs):
+            return {}
+
+        return fun
 
 
 class BlockchainInstance(GBlockchainInstance):

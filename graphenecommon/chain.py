@@ -228,7 +228,7 @@ class AbstractGrapheneChain:
             self.txbuffer.sign()
             return self.txbuffer.broadcast()
 
-    def sign(self, tx=None, wifs=[]):
+    def sign(self, tx=None, wifs=None):
         """
         Sign a provided transaction witht he provided key(s)
 
@@ -238,6 +238,8 @@ class AbstractGrapheneChain:
             from the wallet as defined in "missing_signatures" key
             of the transactions.
         """
+        if not wifs:
+            wifs = []
         if tx:
             txbuffer = self.transactionbuilder_class(tx, blockchain_instance=self)
         else:

@@ -26,9 +26,9 @@ class Testcases(unittest.TestCase):
     def test_shared_config(self):
         self.assertFalse(SharedInstance.config)
         c = Chain()
-        set_shared_config(dict(nobroadcast=True))
+        set_shared_config({"nobroadcast": True})
         self.assertTrue(SharedInstance.config.get("nobroadcast", False))
 
         set_shared_blockchain_instance(c)
-        set_shared_config(dict(nobroadcast=False))
+        set_shared_config({"nobroadcast": False})
         self.assertFalse(SharedInstance.config.get("nobroadcast", True))

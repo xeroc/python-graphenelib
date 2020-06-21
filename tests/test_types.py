@@ -218,7 +218,7 @@ class Testcases(unittest.TestCase):
         self.assertEqual(types.variable_buffer(b"Hello"), b"\x05Hello")
 
     def test_JsonObj(self):
-        j = types.JsonObj(json.dumps(dict(foo="bar")))
+        j = types.JsonObj(json.dumps({"foo": "bar"}))
         self.assertIn("foo", j)
         self.assertEqual(j["foo"], "bar")
 

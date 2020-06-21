@@ -58,7 +58,7 @@ class GenesisBalance(BlockchainObject, SyncGenesisBalance):
             raise ValueError("You need to provide an account")
         account = await self.account_class(account, blockchain_instance=self.blockchain)
         pubkeys = self.blockchain.wallet.getPublicKeys()
-        addresses = dict()
+        addresses = {}
         for p in pubkeys:
             if p[: len(self.blockchain.prefix)] != self.blockchain.prefix:
                 continue
@@ -134,7 +134,7 @@ class GenesisBalances(SyncGenesisBalances):
         assert self.address_class
 
         pubkeys = self.blockchain.wallet.getPublicKeys()
-        addresses = list()
+        addresses = []
         for p in pubkeys:
             if p[: len(self.blockchain.prefix)] != self.blockchain.prefix:
                 continue

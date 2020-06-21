@@ -39,11 +39,11 @@ class Testcases(aiounittest.AsyncTestCase):
         self.assertEqual(float(balance), 1.32442)
         self.assertEqual(str(balance), "1.32442 GPH")
 
-        balance = await account.balance(dict(symbol="GPH"))
+        balance = await account.balance({"symbol": "GPH"})
         self.assertEqual(float(balance), 1.32442)
         self.assertEqual(str(balance), "1.32442 GPH")
 
-        balance = await account.balance(dict(symbol="USD"))
+        balance = await account.balance({"symbol": "USD"})
         self.assertEqual(float(balance), 0)
         self.assertEqual(str(balance), "0.0000 USD")
 

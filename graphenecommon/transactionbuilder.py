@@ -49,7 +49,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
         self.set_review(proposal_review)
         self.set_parent(parent)
         self.set_proposer(proposer)
-        self.ops = list()
+        self.ops = []
 
     def is_empty(self):
         return not (len(self.ops) > 0)
@@ -101,7 +101,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
         """Return the json formated version of this proposal."""
         raw = self.get_raw()
         if not raw:
-            return dict()
+            return {}
         return raw.json()
 
     def __dict__(self):
@@ -135,7 +135,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
     #: Some graphene chains support more than just owner, active (e.g. steem also has 'posting')
     permission_types = ["active", "owner"]
 
-    def __init__(self, tx={}, proposer=None, **kwargs):
+    def __init__(self, tx=None, proposer=None, **kwargs):
         self.define_classes()
         assert self.account_class
         assert self.asset_class
@@ -146,6 +146,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         assert self.signed_transaction_class
         assert self.amount_class
         AbstractBlockchainInstanceProvider.__init__(self, **kwargs)
+
+        if not tx:
+            tx = {}
 
         self.clear()
         if tx and isinstance(tx, dict):
@@ -165,7 +168,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         return not (len(self.ops) > 0)
 
     def list_operations(self):
-        ret = list()
+        ret = []
         for o in self.ops:
             if isinstance(o, ProposalBuilder):
                 prop = o.get_raw()
@@ -252,11 +255,11 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                 self.signing_accounts.append(account)
 
             # Test if we reached threshold already
-            if sum([x[1] for x in r]) >= required_treshold:
+            if sum(x[1] for x in r) >= required_treshold:
                 break
 
         # Let's see if we still need to go through accounts
-        if sum([x[1] for x in r]) < required_treshold:
+        if sum(x[1] for x in r) < required_treshold:
             # go one level deeper
             for authority in account[perm]["account_auths"]:
                 # Let's see if we can find keys for an account in
@@ -272,7 +275,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                     r.append(key)
 
                     # Test if we reached threshold already and break
-                    if sum([x[1] for x in r]) >= required_treshold:
+                    if sum(x[1] for x in r) >= required_treshold:
                         break
 
         return r
@@ -352,7 +355,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
         """
         ws = self.blockchain.rpc
         fees = ws.get_required_fees([i.json() for i in ops], asset_id)
-        for i, d in enumerate(ops):
+        for i, _ in enumerate(ops):
             if isinstance(fees[i], list):
                 # Operation is a proposal
                 ops[i].op.data["fee"] = Asset(
@@ -374,7 +377,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
 
     def constructTx(self):
         """Construct the actual transaction and store it in the class's dict store."""
-        ops = list()
+        ops = []
         for op in self.ops:
             if isinstance(op, ProposalBuilder):
                 # This operation is a proposal an needs to be deal with
@@ -455,7 +458,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
                 self.blockchain.proposer, blockchain_instance=self.blockchain
             )
             self.wifs = set()
-            self.signing_accounts = list()
+            self.signing_accounts = []
             self.appendSigner(proposer["id"], "active")
 
         # We need to set the default prefix, otherwise pubkeys are

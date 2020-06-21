@@ -66,7 +66,7 @@ class Witness(BlockchainObject, SyncWitness):
         account = await self.account_class(
             "witness-account", blockchain_instance=self.blockchain
         )
-        return self.account["id"] in [x[0] for x in account["active"]["account_auths"]]
+        return self.account["id"] in (x[0] for x in account["active"]["account_auths"])
 
 
 class Witnesses(BlockchainObjects, SyncWitnesses):
@@ -119,6 +119,6 @@ class Witnesses(BlockchainObjects, SyncWitnesses):
             # Async version does not support querying by name
             raise NotImplementedError("Please use object id or Account class")
 
-        return any([id == x["id"] for x in self]) or any(
-            [id == x["witness_account"] for x in self]
+        return any(id == x["id"] for x in self) or any(
+            id == x["witness_account"] for x in self
         )

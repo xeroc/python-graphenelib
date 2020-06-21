@@ -45,6 +45,6 @@ class Testcases(unittest.TestCase):
             )
 
     def test_encdec(self):
-        for n in range(1, 16):
+        for _ in range(1, 16):
             name = "".join(random.choice(string.ascii_lowercase) for _ in range(64))
             self.assertEqual(self.aes.decrypt(self.aes.encrypt(name)), name)

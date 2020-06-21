@@ -42,7 +42,7 @@ class ProposalBuilder(SyncProposalBuilder):
         """Return the json formated version of this proposal."""
         raw = await self.get_raw()
         if not raw:
-            return dict()
+            return {}
         return raw.json()
 
     def __dict__(self):
@@ -74,7 +74,7 @@ class TransactionBuilder(SyncTransactionBuilder):
     signers."""
 
     async def list_operations(self):
-        ret = list()
+        ret = []
         for o in self.ops:
             if isinstance(o, ProposalBuilder):
                 prop = await o.get_raw()
@@ -117,11 +117,11 @@ class TransactionBuilder(SyncTransactionBuilder):
                 self.signing_accounts.append(account)
 
             # Test if we reached threshold already
-            if sum([x[1] for x in r]) >= required_treshold:
+            if sum(x[1] for x in r) >= required_treshold:
                 break
 
         # Let's see if we still need to go through accounts
-        if sum([x[1] for x in r]) < required_treshold:
+        if sum(x[1] for x in r) < required_treshold:
             # go one level deeper
             for authority in account[perm]["account_auths"]:
                 # Let's see if we can find keys for an account in
@@ -139,7 +139,7 @@ class TransactionBuilder(SyncTransactionBuilder):
                     r.append(key)
 
                     # Test if we reached threshold already and break
-                    if sum([x[1] for x in r]) >= required_treshold:
+                    if sum(x[1] for x in r) >= required_treshold:
                         break
 
         return r
@@ -192,7 +192,7 @@ class TransactionBuilder(SyncTransactionBuilder):
         """
         ws = self.blockchain.rpc
         fees = await ws.get_required_fees([i.json() for i in ops], asset_id)
-        for i, d in enumerate(ops):
+        for i, _ in enumerate(ops):
             if isinstance(fees[i], list):
                 # Operation is a proposal
                 ops[i].op.data["fee"] = Asset(
@@ -214,7 +214,7 @@ class TransactionBuilder(SyncTransactionBuilder):
 
     async def constructTx(self):
         """Construct the actual transaction and store it in the class's dict store."""
-        ops = list()
+        ops = []
         for op in self.ops:
             if isinstance(op, ProposalBuilder):
                 # This operation is a proposal an needs to be deal with
@@ -295,7 +295,7 @@ class TransactionBuilder(SyncTransactionBuilder):
                 self.blockchain.proposer, blockchain_instance=self.blockchain
             )
             self.wifs = set()
-            self.signing_accounts = list()
+            self.signing_accounts = []
             await self.appendSigner(proposer["id"], "active")
 
         # We need to set the default prefix, otherwise pubkeys are

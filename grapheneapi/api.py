@@ -15,13 +15,13 @@ class Api:
     def __init__(self, urls, user=None, password=None, connect=True, **kwargs):
 
         # Some internal variables
-        self._connections = dict()
+        self._connections = {}
         self._url_counter = Counter()
 
         # Let's store user and password in kwargs as well
         self.user = user
         self.password = password
-        kwargs.update(dict(user=user, password=password))
+        kwargs.update({"user": user, "password": password})
         self._kwargs = kwargs
 
         # How often do we accept retries?
@@ -76,7 +76,7 @@ class Api:
         except Exception as e:
             log.warning(str(e))
             self.error_url()
-            self.next()
+            self.next()  # noqa: B305
         self.register_apis()
 
     def find_next(self):
@@ -190,7 +190,7 @@ class Api:
                     log.warning("Connection was closed remotely.")
                     log.warning("Reconnecting ...")
                     self.error_url()
-                    self.next()
+                    self.next()  # noqa: B305
                 except Exception as e:  # pragma: no cover
                     """When something fails talking to the backend."""
                     import traceback
@@ -199,7 +199,7 @@ class Api:
                     log.warning(str(e))
                     log.warning("Reconnecting ...")
                     self.error_url()
-                    self.next()
+                    self.next()  # noqa: B305
 
             return r
 

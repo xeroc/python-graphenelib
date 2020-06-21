@@ -55,7 +55,7 @@ class Signed_Transaction(GrapheneObject):
 
         ops = kwargs.get("operations", [])
         opklass = self.getOperationKlass()
-        if all([not isinstance(a, opklass) for a in ops]):
+        if all(not isinstance(a, opklass) for a in ops):
             kwargs["operations"] = Array([opklass(a) for a in ops])
         else:
             kwargs["operations"] = Array(ops)
@@ -116,7 +116,7 @@ class Signed_Transaction(GrapheneObject):
             for _id, chain in chains.items():
                 if _id == identifier:
                     return chain
-                for key, value in chain.items():
+                for _, value in chain.items():
                     if value == identifier:
                         return chain
 
@@ -150,7 +150,9 @@ class Signed_Transaction(GrapheneObject):
         # restore signatures
         self.data["signatures"] = sigs
 
-    def verify(self, pubkeys=[], chain=None):
+    def verify(self, pubkeys=None, chain=None):
+        if not pubkeys:
+            pubkeys = []
         if not chain:
             chain = self.get_default_prefix()
 

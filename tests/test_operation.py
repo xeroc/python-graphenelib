@@ -21,7 +21,7 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op.json(), op.toJson())
 
     def test_loadfromGrapheneObject(self):
-        op = Operation(Newdemooepration(dict(string="1.2.0", optional="foobar")))
+        op = Operation(Newdemooepration({"string": "1.2.0", "optional": "foobar"}))
         self.assertIsInstance(op.operation, Newdemooepration)
         self.assertEqual(op.opId, op.id)
         op.__str__()
@@ -42,7 +42,7 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op.json(), op.toJson())
 
     def test_init_data(self):
-        op = Operation([0, dict(string="1.2.0")])
+        op = Operation([0, {"string": "1.2.0"}])
         self.assertEqual(op.name, "demooepration")
         self.assertEqual(op.id, 0)
         self.assertEqual(op.klass_name, "Demooepration")
@@ -81,8 +81,8 @@ class Testcases(unittest.TestCase):
 
     def test_newdemo_op(self):
         for op in [
-            Newdemooepration(**dict(string="1.2.0")),
-            Newdemooepration(dict(string="1.2.0")),
+            Newdemooepration(**{"string": "1.2.0"}),
+            Newdemooepration(**{"string": "1.2.0"}),
             Newdemooepration(OrderedDict([("string", "1.2.0")])),
         ]:
             self.assertEqual(op.json()["string"], "1.2.0")
@@ -93,7 +93,7 @@ class Testcases(unittest.TestCase):
             self.assertEqual(list(op.items())[1][0], "optional")
             self.assertEqual(list(op.items())[2][0], "extensions")
 
-        op = Newdemooepration(dict(string="1.2.0", optional="foobar"))
+        op = Newdemooepration({"string": "1.2.0", "optional": "foobar"})
         self.assertEqual(op.json()["string"], "1.2.0")
         self.assertIn("string", op.json())
         self.assertIn("optional", op.json())
@@ -103,7 +103,7 @@ class Testcases(unittest.TestCase):
         self.assertEqual(list(op.items())[2][0], "extensions")
 
     def test_loadingofGrapheneObject(self):
-        op = Operation(Newdemooepration(dict(string="1.2.0", optional="foobar")))
+        op = Operation(Newdemooepration({"string": "1.2.0", "optional": "foobar"}))
 
         self.assertEqual(op.json()[0], 1)
         self.assertEqual(list(op[1].items())[1][0], "optional")
@@ -123,8 +123,8 @@ class Testcases(unittest.TestCase):
 
     def test_old_init(self):
         for op in [
-            Demooepration(**dict(string="1.2.0")),
-            Demooepration(dict(string="1.2.0")),
+            Demooepration(**{"string": "1.2.0"}),
+            Demooepration({"string": "1.2.0"}),
             Demooepration(OrderedDict([("string", "1.2.0")])),
         ]:
             self.assertEqual(op.json()["string"], "1.2.0")

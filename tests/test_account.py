@@ -18,9 +18,9 @@ class Testcases(unittest.TestCase):
         self.assertEqual(str(account), "<Account init0>")
         account = Account("1.2.100")
         self.assertEqual(str(account), "<Account 1.2.100>")
-        for h in account.history(limit=1, first=-1):
+        for _ in account.history(limit=1, first=-1):
             pass
-        for h in account.history(
+        for _ in account.history(
             limit=1, first=2, exclude_ops=["newdemooepration"], only_ops=["fups"]
         ):
             pass
@@ -39,17 +39,17 @@ class Testcases(unittest.TestCase):
         self.assertEqual(float(balance), 1.32442)
         self.assertEqual(str(balance), "1.32442 GPH")
 
-        balance = account.balance(dict(symbol="GPH"))
+        balance = account.balance({"symbol": "GPH"})
         self.assertEqual(float(balance), 1.32442)
         self.assertEqual(str(balance), "1.32442 GPH")
 
-        balance = account.balance(dict(symbol="USD"))
+        balance = account.balance({"symbol": "USD"})
         self.assertEqual(float(balance), 0)
         self.assertEqual(str(balance), "0.0000 USD")
 
     def test_history(self):
         account = Account("init0", full=True)
-        for h in account.history():
+        for _ in account.history():
             break
 
     def test_account_refresh(self):

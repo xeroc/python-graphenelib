@@ -202,7 +202,7 @@ class Blockchain(SyncBlockchain):
                         "timestamp": block["timestamp"],
                     }
 
-    async def stream(self, opNames=[], *args, **kwargs):
+    async def stream(self, opNames=None, *args, **kwargs):
         """
         Yield specific operations (e.g. comments) only.
 
@@ -219,6 +219,8 @@ class Blockchain(SyncBlockchain):
         block the operation was stored in and the other key depend
         on the actualy operation.
         """
+        if not opNames:
+            opNames = []
         async for op in self.ops(**kwargs):
             if not opNames or op["op"][0] in opNames:
                 r = {

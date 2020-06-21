@@ -19,7 +19,10 @@ class ObjectCache(dict):
     and provides a method to define the default expiration time.
     """
 
-    def __init__(self, initial_data={}, default_expiration=60, no_overwrite=False):
+    def __init__(self, initial_data=None, default_expiration=60, no_overwrite=False):
+        if not initial_data:
+            initial_data = {}
+
         dict.__init__(self, initial_data)
 
         # Expiration
