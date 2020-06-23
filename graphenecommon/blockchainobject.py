@@ -160,7 +160,7 @@ class BlockchainObjects(Caching, list):
             key = self._cache_key(args[0])
         else:
             key = self._cache_key()
-        if self.incached(key):
+        if self.incached(key) and self.getfromcache(key):
             list.__init__(self, self.getfromcache(key))
         else:
             if kwargs.get("refresh", True):
