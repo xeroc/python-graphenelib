@@ -208,7 +208,7 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
             sigder = bytearray(sigder)
             lenR = sigder[3]
             lenS = sigder[5 + lenR]
-            if lenR is 32 and lenS is 32:
+            if lenR == 32 and lenS == 32:
                 # Derive the recovery parameter
                 #
                 i = recoverPubkeyParameter(message, digest, signature, public_key)
@@ -254,7 +254,7 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
             sigder = bytearray(sigder)
             lenR = sigder[3]
             lenS = sigder[5 + lenR]
-            if lenR is 32 and lenS is 32:
+            if lenR == 32 and lenS == 32:
                 # Derive the recovery parameter
                 #
                 i = recoverPubkeyParameter(
