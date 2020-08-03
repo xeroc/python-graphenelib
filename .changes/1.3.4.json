@@ -1,0 +1,6 @@
+[
+  {
+    "description": "Fix an issue with vesting balances raising exceptions",
+    "type": "patch"
+  }
+]

@@ -1,6 +1,14 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 1.3.4
+
+- patch: Fix an issue with vesting balances raising exceptions
+
+## 1.3.3
+
+- patch: Bug fixes
+
 ## 1.3.2
 
 - patch: Bug fixes
