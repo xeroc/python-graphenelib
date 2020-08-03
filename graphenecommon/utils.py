@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import time
 from datetime import datetime, timezone
@@ -18,7 +19,11 @@ def formatTime(t):
 def formatTimeString(t):
     """ Properly Format Time for permlinks
     """
-    return datetime.strptime(t, timeFormat)
+    try:
+        return datetime.strptime(t, timeFormat)
+    except Exception:
+        # Allow deci seconds
+        return datetime.strptime(t, "%Y-%m-%dT%H:%M:%S.%f")
 
 
 def formatTimeFromNow(secs=None):
@@ -37,7 +42,7 @@ def parse_time(block_time):
     """Take a string representation of time from the blockchain, and parse it
        into datetime object.
     """
-    return datetime.strptime(block_time, timeFormat).replace(tzinfo=timezone.utc)
+    return formatTimeString(block_time).replace(tzinfo=timezone.utc)
 
 
 def assets_from_string(text):
