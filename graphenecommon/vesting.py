@@ -51,7 +51,7 @@ class Vesting(BlockchainObject, AbstractBlockchainInstanceProvider):
                 self["balance"], blockchain_instance=self.blockchain
             )
         else:
-            raise NotImplementedError("This policy isn't implemented yet")
+            return self.amount_class(self["balance"])
 
     def claim(self, amount=None):
         assert callable(self.blockchain.vesting_balance_withdraw)
