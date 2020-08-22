@@ -34,6 +34,22 @@ def varintdecode(data):  # pragma: no cover
     return result
 
 
+def varintdecode2(data):
+    """ Varint decoding (with length counting)
+    """
+    nbytes = 0
+    shift = 0
+    result = 0
+    for c in data:
+        b = c # ord(c) not needed, `data` is bytes
+        result |= ((b & 0x7f) << shift)
+        nbytes += 1
+        if not (b & 0x80):
+            break
+        shift += 7
+    return result, nbytes
+
+
 def variable_buffer(s):
     """ Encode variable length buffer
     """
@@ -89,6 +105,11 @@ class Uint32:
     def __str__(self):
         return "%d" % self.data
 
+    @staticmethod
+    def fromBytes(d):
+       val = struct.unpack("<I", d[:4]) [0]
+       return Uint32( val ), d[4:]
+
 
 class Uint64:
     def __init__(self, d):
@@ -122,6 +143,12 @@ class Int64:
     def __str__(self):
         return "%d" % self.data
 
+    @staticmethod
+    def fromBytes(d):
+       val = struct.unpack("<q", d[:8]) [0]
+       d = d[8:]
+       return Int64( val ), d
+
 
 class String:
     def __init__(self, d):
@@ -137,6 +164,12 @@ class String:
     def __str__(self):
         return "%s" % str(self.data)
 
+    @staticmethod
+    def fromBytes(d):
+        vallen, lenlen = varintdecode2(d)
+        d = d[lenlen:]
+        val = d[:vallen]
+        return String(val), d[vallen:]
 
 class Bytes:
     def __init__(self, d):
@@ -148,6 +181,42 @@ class Bytes:
 
     def __str__(self):
         return str(self.data)
+
+    def __json__(self):
+        return str(self)
+
+    @staticmethod
+    def fromBytes(d):
+        vallen, lenlen = varintdecode2(d)
+        d = d[lenlen:]
+        val = d[:vallen]
+        return Bytes(val), d[vallen:]
+
+
+class Fixed_Bytes():
+    def __init__(self, d, length=None):
+        if isinstance(d, str):
+            d = unhexlify(bytes(d, 'utf-8'))
+        self.data = d
+        if length:
+            self.length = length
+        else:
+            self.length = len(self.data)
+
+    def __bytes__(self):
+        # TODO: constrain to self.length
+        return self.data
+
+    def __str__(self):
+        return str(hexlify(self.data), 'utf-8')
+
+    def __json__(self):
+        return str(self)
+
+    @staticmethod
+    def fromBytes(d, vallen):
+        val = d[:vallen]
+        return Fixed_Bytes(val, vallen), d[vallen:]
 
 
 class Hash(Bytes):
@@ -268,6 +337,13 @@ class Optional:
             return True
         return not bool(bytes(self.data))
 
+    @staticmethod
+    def fromBytes(d, stype, **skwargs):
+        b = d[0] #int(unhexlify(d[0:2]))
+        if not b:
+            return Optional(None), d[1:]
+        v, d = stype.fromBytes(d[1:], **skwargs)
+        return Optional(v), d
 
 class Static_variant:
     def __init__(self, d, type_id):
@@ -355,6 +431,11 @@ class ObjectId:
 
     def __str__(self):
         return self.Id
+
+    @staticmethod
+    def fromBytes(d, prefix="1.2."):
+        val, vallen = varintdecode2(d)
+        return ObjectId(prefix + str(val)), d[vallen:]
 
 
 class FullObjectId:

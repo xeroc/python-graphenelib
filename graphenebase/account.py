@@ -343,6 +343,14 @@ class PublicKey(Prefix):
         """ Returns the raw public key (has length 33)"""
         return bytes(self._pk)
 
+    @staticmethod
+    def fromBytes(d, prefix="GPH"):
+        _pk = hexlify(d[:33]).decode('ascii')
+
+        k = PublicKey(_pk)
+
+        return k, d[33:]
+
     def __lt__(self, other):
         """ For sorting of public keys (due to graphene),
             we actually sort according to addresses
