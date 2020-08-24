@@ -41,9 +41,19 @@ def variable_buffer(s):
 
 
 def JsonObj(data):
-    """ Returns json object from data
+    """ Return json object from data
+
+    If data has a __json__() method, use that, else assume it follows the
+    convention that its string representation is interprettable as valid json.
+    (The latter can be problematic if str(data) returns, e.g., "1234". Was
+    this supposed to be the string "1234" or the number 1234? If this
+    ambiguity exists, the data type must implement __json__().)
+
     """
-    return json.loads(str(data))
+    try:
+        return data.__json__()
+    except Exception:
+        return json.loads(str(data))
 
 
 class Uint8:
@@ -139,12 +149,29 @@ class String:
 
 
 class Bytes:
+    """Bytes
+
+    Initializes from and stores internally as a string of hex digits.
+    Byte-serializes as a length-prefixed series of bytes represented
+    by those hex digits.
+
+    Ex: len(str(Bytes("deadbeef")) == 8   # Eight hex chars
+        len(bytes(Bytes("deadbeef")) == 5 # Four data bytes plus varint length
+
+    Implements __json__() method to disambiguate between string and numeric in
+    event where hex digits include only numeric digits and no alpha digits.
+
+    """
+
     def __init__(self, d):
         self.data = d
 
     def __bytes__(self):
         d = unhexlify(bytes(self.data, "utf-8"))
         return varint(len(d)) + d
+
+    def __json__(self):
+        return str(self.data)
 
     def __str__(self):
         return str(self.data)
