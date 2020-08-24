@@ -176,6 +176,12 @@ class Sha256(Hash):
         super().__init__(a)
 
 
+class Hash160(Hash):
+    def __init__(self, a):
+        assert len(a) == 40, "Require 40 char long hex"
+        super().__init__(a)
+
+
 class Void:
     def __init__(self):
         pass
