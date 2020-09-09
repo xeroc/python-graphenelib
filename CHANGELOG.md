@@ -1,6 +1,10 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 1.4.0
+
+- minor: Add Hash160
+
 ## 1.3.4
 
 - patch: Fix an issue with vesting balances raising exceptions
