@@ -22,10 +22,6 @@ class ObjectCacheInterface:
         pass
 
     @abstractmethod
-    def __length__(self):
-        pass
-
-    @abstractmethod
     def set_expiration(self, value):
         pass
 
@@ -34,8 +30,8 @@ class ObjectCacheInterface:
         pass
 
     def __str__(self):
-        return "{}(n={}, default_expiration={})".format(
-            self.__class__.__name__, len(self), self.get_expiration()
+        return "{}(default_expiration={})".format(
+            self.__class__.__name__, self.get_expiration()
         )
 
 
@@ -87,9 +83,6 @@ class ObjectCacheInMemory(ObjectCacheInterface, dict):
                 # Remove from cache
                 dict.pop(self, key, None)
                 return False
-
-    def __length__(self):
-        return len(self.keys())
 
     def set_expiration(self, expiration):
         """ Set new default expiration time in seconds (default: 10s)
