@@ -1,22 +1,47 @@
 # -*- coding: utf-8 -*-
+from abc import ABC, abstractmethod, abstractproperty
 from datetime import datetime, timedelta
 from .instance import AbstractBlockchainInstanceProvider
 
 
-class ObjectCache(dict):
+class ObjectCacheInterface:
+    @abstractmethod
+    def __setitem__(self, key, value):
+        pass
+
+    @abstractmethod
+    def __getitem__(self, key):
+        pass
+
+    @abstractmethod
+    def get(self, key, default_value=None):
+        pass
+
+    @abstractmethod
+    def __contains__(self, key):
+        pass
+
+    @abstractmethod
+    def __length__(self):
+        pass
+
+    @abstractmethod
+    def set_expiration(self, value):
+        pass
+
+    @abstractmethod
+    def get_expiration(self):
+        pass
+
+    def __str__(self):
+        return "{}(n={}, default_expiration={})".format(
+            self.__class__.__name__, len(self), self.get_expiration()
+        )
+
+
+class ObjectCacheInMemory(ObjectCacheInterface, dict):
     """ This class implements an object/dict cache that comes with an
         expiration. Expired items are removed from the cache.
-
-        The class implements/extends:
-
-         * __setitem__()
-         * __getitem__()
-         * __contains__
-         * __str__()
-         * get()
-
-        and provides a method to define the default expiration time.
-
     """
 
     def __init__(self, initial_data={}, default_expiration=60, no_overwrite=False):
@@ -40,18 +65,18 @@ class ObjectCache(dict):
         dict.__setitem__(self, key, data)
 
     def __getitem__(self, key):
-        if key in self:
-            value = dict.__getitem__(self, key)
-            return value["data"]
-
-    def get(self, key, default=None):
         """ Returns an element from the cache if available, else returns
             the value provided as default or None
         """
         if key in self:
+            value = dict.__getitem__(self, key)
+            return value["data"]
+
+    def get(self, key, default_value=None):
+        if key in self:
             return self[key]
         else:
-            return default
+            return default_value
 
     def __contains__(self, key):
         if dict.__contains__(self, key):
@@ -63,15 +88,18 @@ class ObjectCache(dict):
                 dict.pop(self, key, None)
                 return False
 
-    def __str__(self):
-        return "ObjectCache(n={}, default_expiration={})".format(
-            len(self.keys()), self.default_expiration
-        )
+    def __length__(self):
+        return len(self.keys())
 
     def set_expiration(self, expiration):
         """ Set new default expiration time in seconds (default: 10s)
         """
         self.default_expiration = expiration
+
+    def get_expiration(self):
+        """ Return the default expiration
+        """
+        return self.default_expiration
 
 
 class Caching:
@@ -132,7 +160,7 @@ class Caching:
     def clear_cache(cls):
         """ Clear/Reset the entire Cache
         """
-        cls._cache = ObjectCache()
+        cls._cache = ObjectCacheInMemory()
 
     __str__ = __repr__
 
@@ -142,7 +170,7 @@ class BlockchainObjects(Caching, list):
         deal with the cache and indexing thereof.
     """
 
-    _cache = ObjectCache()
+    _cache = ObjectCacheInMemory()
     identifier = None
 
     def refresh(self, *args, **kwargs):
@@ -165,6 +193,7 @@ class BlockchainObjects(Caching, list):
         else:
             if kwargs.get("refresh", True):
                 self.refresh(*args, **kwargs)
+        self.identifier = args[0]
 
     def _cache_key(self, key=""):
         if key:
@@ -221,7 +250,7 @@ class BlockchainObject(Caching, dict):
     type_ids = []
     identifier = None
 
-    _cache = ObjectCache()
+    _cache = ObjectCacheInMemory()
 
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
         Caching.__init__(self, *args, **kwargs)
