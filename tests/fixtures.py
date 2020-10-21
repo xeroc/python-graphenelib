@@ -91,7 +91,7 @@ from graphenecommon.message import (
     MessageV1 as GMessageV1,
     MessageV2 as GMessageV2,
 )
-from graphenecommon.blockchainobject import ObjectCache, BlockchainObject
+from graphenecommon.blockchainobject import ObjectCacheInMemory, BlockchainObject
 from graphenecommon.price import Price as GPrice
 from graphenecommon.wallet import Wallet as GWallet
 from graphenecommon.worker import Worker as GWorker, Workers as GWorkers

@@ -89,7 +89,7 @@ from graphenecommon.aio.message import (
     MessageV1 as GMessageV1,
     MessageV2 as GMessageV2,
 )
-from graphenecommon.blockchainobject import ObjectCache
+from graphenecommon.blockchainobject import ObjectCacheInMemory
 from graphenecommon.aio.blockchainobject import BlockchainObject
 from graphenecommon.aio.price import Price as GPrice
 from graphenecommon.aio.wallet import Wallet as GWallet

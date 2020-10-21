@@ -28,6 +28,7 @@ Submodules
    graphenecommon.instance
    graphenecommon.memo
    graphenecommon.message
+   graphenecommon.objectcache
    graphenecommon.price
    graphenecommon.proposal
    graphenecommon.transactionbuilder
