@@ -1,4 +1,0 @@
-{
-  "type": "patch",
-  "description": "Do not break backwards compatibility on ObjectCache"
-}
