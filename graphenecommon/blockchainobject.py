@@ -10,6 +10,8 @@ class Caching:
         either cache lists or dicts
     """
 
+    _cache = ObjectCacheInMemory()
+
     def __init__(self, *args, **kwargs):
         self._fetched = False
 
@@ -73,7 +75,6 @@ class BlockchainObjects(Caching, list):
         deal with the cache and indexing thereof.
     """
 
-    _cache = ObjectCacheInMemory()
     identifier = None
 
     def refresh(self, *args, **kwargs):
@@ -153,8 +154,6 @@ class BlockchainObject(Caching, dict):
     perform_id_tests = True
     type_ids = []
     identifier = None
-
-    _cache = ObjectCacheInMemory()
 
     def __init__(self, data, klass=None, lazy=False, use_cache=True, *args, **kwargs):
         Caching.__init__(self, *args, **kwargs)
