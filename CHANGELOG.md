@@ -1,6 +1,10 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 1.4.1
+
+- patch: Improve caching and allow to use an external cache
+
 ## 1.4.0
 
 - minor: Add Hash160

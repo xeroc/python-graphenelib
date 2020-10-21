@@ -1,4 +1,0 @@
-{
-  "type": "patch",
-  "description": "Improve caching and allow to use an external cache"
-}
