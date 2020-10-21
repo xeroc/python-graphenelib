@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from .instance import AbstractBlockchainInstanceProvider
 from .objectcache import ObjectCacheInMemory
 
+ObjectCache = ObjectCacheInMemory
+
 
 class Caching:
     """ This class implements a few common methods that are used to
