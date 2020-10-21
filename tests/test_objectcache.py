@@ -24,6 +24,24 @@ class Testcases(unittest.TestCase):
         # Get
         self.assertEqual(cache.get("foo", "New"), "New")
 
+    def test_cache_list(self):
+        cache = ObjectCacheInMemory(default_expiration=1)
+        self.assertEqual(str(cache), "ObjectCacheInMemory(default_expiration=1)")
+
+        # Data
+        cache["foo"] = [1, 2, 3, 4, 5, 6]
+
+        self.assertIn("foo", cache)
+        self.assertEqual(cache["foo"], [1, 2, 3, 4, 5, 6])
+        self.assertEqual(cache.get("foo", "New"), [1, 2, 3, 4, 5, 6])
+
+        # Expiration
+        time.sleep(2)
+        self.assertNotIn("foo", cache)
+
+        # Get
+        self.assertEqual(cache.get("foo", "New"), "New")
+
     def test_lazy_loading(self):
         a = Account("unittest", lazy=True)
         self.assertFalse(a._fetched)

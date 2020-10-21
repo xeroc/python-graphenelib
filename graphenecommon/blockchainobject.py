@@ -10,7 +10,17 @@ class Caching:
         either cache lists or dicts
     """
 
+    __caching_args = set()
+    __caching_kwargs = dict()
+    __caching_klass = ObjectCacheInMemory
     _cache = ObjectCacheInMemory()
+
+    @staticmethod
+    def set_cache_store(klass, *args, **kwargs):
+        Caching.__caching_args = args
+        Caching.__caching_kwargs = kwargs
+        Caching.__caching_klass = klass
+        Caching._cache = klass(*args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         self._fetched = False
