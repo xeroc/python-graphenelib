@@ -81,7 +81,7 @@ class ObjectCacheInMemory(ObjectCacheInterface, dict):
             else:
                 # Remove from cache
                 dict.pop(self, key, None)
-                return False
+        return False
 
     def set_expiration(self, expiration):
         """ Set new default expiration time in seconds (default: 10s)
