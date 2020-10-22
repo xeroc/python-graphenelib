@@ -222,7 +222,7 @@ class BlockchainObject(Caching, dict):
             :param list data: List of objects to cache
         """
         dict.__init__(self, data)
-        self._store_item(data[key])
+        self._store_item(key)
 
     @classmethod
     def cache_object(cls, data, key=None):

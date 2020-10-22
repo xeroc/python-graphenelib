@@ -63,7 +63,8 @@ class Account(BlockchainObject, SyncAccount):
             account = result[0]
         if not account:
             raise AccountDoesNotExistsException(self.identifier)
-        self.store(account, "name")
+        self.store(account, account["name"])
+        self.store(account, account["id"])
 
         if self.full:  # pragma: no cover
             accounts = await self.blockchain.rpc.get_full_accounts(

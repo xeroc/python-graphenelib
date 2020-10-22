@@ -41,6 +41,8 @@ class Asset(BlockchainObject, AbstractBlockchainInstanceProvider):
             self["dynamic_asset_data"] = self.blockchain.rpc.get_object(
                 asset["dynamic_asset_data_id"]
             )
+        self.store(asset, asset["symbol"])
+        self.store(asset, asset["id"])
 
     @property
     def is_fully_loaded(self):
