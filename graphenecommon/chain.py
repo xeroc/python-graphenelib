@@ -228,7 +228,7 @@ class AbstractGrapheneChain:
         elif self.bundle:
             # In case we want to add more ops to the tx (bundle)
             self.txbuffer.appendSigner(account, permission)
-            return self.txbuffer.json()
+            return self.txbuffer
         else:
             # default behavior: sign + broadcast
             self.txbuffer.appendSigner(account, permission)
