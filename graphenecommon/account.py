@@ -60,6 +60,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
         if not account:
             raise AccountDoesNotExistsException(self.identifier)
         self.store(account, "name")
+        self.store(account, "id")
 
         if self.full:  # pragma: no cover
             accounts = self.blockchain.rpc.get_full_accounts([account["id"]], False)
