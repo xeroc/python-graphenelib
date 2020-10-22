@@ -1,0 +1,6 @@
+[
+  {
+    "description": "Make the caching key explicit",
+    "type": "patch"
+  }
+]
