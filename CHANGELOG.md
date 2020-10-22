@@ -1,6 +1,10 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 1.4.3
+
+- patch: Improve caching significantly
+
 ## 1.4.2
 
 - patch: Do not break backwards compatibility on ObjectCache

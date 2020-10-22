@@ -36,7 +36,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
         proposal_review=None,
         parent=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         self.define_classes()
         assert self.operation_class

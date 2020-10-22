@@ -2,7 +2,7 @@
 import unittest
 from .fixtures import Api, Websocket, Http, exceptions
 
-urls = ["wss://node.bitshares.eu", "https://eu.nodes.bitshares.ws"]
+urls = ["wss://eu.nodes.bitshares.ws", "https://eu.nodes.bitshares.ws"]
 
 
 class Testcases(unittest.TestCase):
@@ -49,7 +49,7 @@ class Testcases(unittest.TestCase):
         api.connection.disconnect()
         api.connection.disconnect()
 
-    #def test_raise_rpc_error_https(self):
+    # def test_raise_rpc_error_https(self):
     #    api = Api(urls[1], num_retries=1)
     #    with self.assertRaises(exceptions.RPCError):
     #        api.get_SOMETHING(["2.8.0"])
@@ -59,5 +59,5 @@ class Testcases(unittest.TestCase):
         Api(urls[0], None, None, num_retries=1)
 
     def test_rollover(self):
-        api = Api(["http://error.example.com", "wss://node.bitshares.eu"])
+        api = Api(["http://error.example.com", urls[0]])
         api.get_objects(["2.8.0"])
