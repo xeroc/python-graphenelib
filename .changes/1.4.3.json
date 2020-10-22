@@ -1,0 +1,6 @@
+[
+  {
+    "description": "Improve caching significantly",
+    "type": "patch"
+  }
+]
