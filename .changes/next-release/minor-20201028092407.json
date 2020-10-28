@@ -1,4 +1,0 @@
-{
-  "type": "minor",
-  "description": "Make use of ExpiringDict to limit memory usage in cache"
-}
