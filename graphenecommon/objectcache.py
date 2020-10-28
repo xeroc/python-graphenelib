@@ -42,7 +42,11 @@ class ObjectCacheInMemory(ExpiringDict, ObjectCacheInterface):
     """
 
     def __init__(
-        self, initial_data={}, default_expiration=60, no_overwrite=False, max_length=100
+        self,
+        initial_data={},
+        default_expiration=60,
+        no_overwrite=False,
+        max_length=1000,
     ):
         dict.__init__(self, initial_data)
 
