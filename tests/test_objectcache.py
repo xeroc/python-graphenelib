@@ -24,6 +24,20 @@ class Testcases(unittest.TestCase):
         # Get
         self.assertEqual(cache.get("foo", "New"), "New")
 
+    def test_max_length_cache(self):
+        cache = ObjectCacheInMemory(default_expiration=1, max_length=10)
+        self.assertEqual(str(cache), "ObjectCacheInMemory(default_expiration=1)")
+
+        for num in range(0, 10):
+            cache[str(num)] = "bar"
+
+        self.assertEqual(len(cache), 10)
+
+        for num in range(11, 50):
+            cache[str(num)] = "bar"
+
+        self.assertEqual(len(cache), 10)
+
     def test_cache_list(self):
         cache = ObjectCacheInMemory(default_expiration=1)
         self.assertEqual(str(cache), "ObjectCacheInMemory(default_expiration=1)")

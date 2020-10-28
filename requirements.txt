@@ -8,3 +8,4 @@ scrypt>=0.8.13,<0.9
 websockets>=8.1,<9
 aiohttp>=3.5.4,<4
 asyncinit>=0.2.4,<0.3
+expiringdict

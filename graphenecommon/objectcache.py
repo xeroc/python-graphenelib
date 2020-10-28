@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 from abc import ABC, abstractmethod, abstractproperty
+from expiringdict import ExpiringDict
 
 
 class ObjectCacheInterface:
@@ -34,54 +35,29 @@ class ObjectCacheInterface:
         )
 
 
-class ObjectCacheInMemory(ObjectCacheInterface, dict):
+class ObjectCacheInMemory(ExpiringDict, ObjectCacheInterface):
     """ This class implements an object/dict cache that comes with an
-        expiration. Expired items are removed from the cache.
+        expiration. Expired items are removed from the cache. The cache has a
+        max_length.
     """
 
-    def __init__(self, initial_data={}, default_expiration=60, no_overwrite=False):
+    def __init__(
+        self, initial_data={}, default_expiration=60, no_overwrite=False, max_length=100
+    ):
         dict.__init__(self, initial_data)
 
         # Expiration
-        self.set_expiration(default_expiration)
+        self.default_expiration = default_expiration
 
         # This allows nicer testing
         self.no_overwrite = no_overwrite
 
-    def __setitem__(self, key, value):
-        if key in self and not self.no_overwrite:
-            del self[key]
-        elif key in self and self.no_overwrite:
-            return
-        data = {
-            "expires": datetime.utcnow() + timedelta(seconds=self.default_expiration),
-            "data": value,
-        }
-        dict.__setitem__(self, key, data)
+        # Number of items to store (in total)
+        self._max_items = max_length
 
-    def __getitem__(self, key):
-        """ Returns an element from the cache if available, else returns
-            the value provided as default or None
-        """
-        if key in self:
-            value = dict.__getitem__(self, key)
-            return value["data"]
-
-    def get(self, key, default_value=None):
-        if key in self:
-            return self[key]
-        else:
-            return default_value
-
-    def __contains__(self, key):
-        if dict.__contains__(self, key):
-            value = dict.__getitem__(self, key)
-            if datetime.utcnow() < value["expires"]:
-                return True
-            else:
-                # Remove from cache
-                dict.pop(self, key, None)
-        return False
+        ExpiringDict.__init__(
+            self, max_len=self._max_items, max_age_seconds=self.default_expiration
+        )
 
     def set_expiration(self, expiration):
         """ Set new default expiration time in seconds (default: 10s)
