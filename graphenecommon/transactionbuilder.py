@@ -494,7 +494,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
 
         # Cannot broadcast an empty transaction
         if "operations" not in self or not self["operations"]:
-            log.warning("No operations in transaction! Returning")
+            log.debug("No operations in transaction! Returning")
             return
 
         # Obtain JS
