@@ -35,6 +35,7 @@ class ProposalBuilder(SyncProposalBuilder):
     async def broadcast(self):
         assert self.parent, "No parent transaction provided!"
         self.parent._set_require_reconstruction()
+        await self.parent.sign()
         return await self.parent.broadcast()
 
     async def json(self):
@@ -334,7 +335,7 @@ class TransactionBuilder(SyncTransactionBuilder):
 
         # Cannot broadcast an empty transaction
         if "operations" not in self or not self["operations"]:
-            log.warning("No operations in transaction! Returning")
+            log.debug("No operations in transaction! Returning")
             return
 
         # Obtain JS

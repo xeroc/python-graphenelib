@@ -84,6 +84,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
     def broadcast(self):
         assert self.parent, "No parent transaction provided!"
         self.parent._set_require_reconstruction()
+        self.parent.sign()
         return self.parent.broadcast()
 
     def get_parent(self):
@@ -494,7 +495,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
 
         # Cannot broadcast an empty transaction
         if "operations" not in self or not self["operations"]:
-            log.warning("No operations in transaction! Returning")
+            log.debug("No operations in transaction! Returning")
             return
 
         # Obtain JS
