@@ -1,6 +1,11 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 1.5.1
+
+- patch: Excplicit proposal logging
+- patch: Remove unecessary logging
+
 ## 1.5.0
 
 - minor: Make use of ExpiringDict to limit memory usage in cache

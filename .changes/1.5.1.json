@@ -1,0 +1,10 @@
+[
+  {
+    "description": "Remove unecessary logging",
+    "type": "patch"
+  },
+  {
+    "description": "Excplicit proposal logging",
+    "type": "patch"
+  }
+]
