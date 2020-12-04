@@ -84,6 +84,7 @@ class ProposalBuilder(AbstractBlockchainInstanceProvider):
     def broadcast(self):
         assert self.parent, "No parent transaction provided!"
         self.parent._set_require_reconstruction()
+        self.parent.sign()
         return self.parent.broadcast()
 
     def get_parent(self):
