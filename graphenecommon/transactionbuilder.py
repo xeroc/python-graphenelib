@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 class ProposalBuilder(AbstractBlockchainInstanceProvider):
     """ Proposal Builder allows us to construct an independent Proposal
-        that may later be added to an instance ot TransactionBuilder
+        that may later be added to an instance of TransactionBuilder
 
         :param str proposer: Account name of the proposing user
         :param int proposal_expiration: Number seconds until the proposal is
