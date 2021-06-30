@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import struct
 import logging
+from datetime import datetime, timedelta
 from binascii import unhexlify
 from .exceptions import (
     InsufficientAuthorityError,
@@ -400,8 +401,10 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             or self.blockchain.expiration
             or 30  # defaults to 30 seconds
         )
-        if not self.get("ref_block_num"):
+        now = datetime.now()
+        if not self.get("ref_block_num") or now > self.get("ref_block_time") + datetime.timedelta(days=1) :
             ref_block_num, ref_block_prefix = self.get_block_params()
+            ref_block_time = now
         else:
             ref_block_num = self["ref_block_num"]
             ref_block_prefix = self["ref_block_prefix"]
