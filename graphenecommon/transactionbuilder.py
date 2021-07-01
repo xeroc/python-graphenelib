@@ -402,9 +402,9 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             or 30  # defaults to 30 seconds
         )
         now = datetime.now()
-        if not self.get("ref_block_num") or now > self.get("ref_block_time") + datetime.timedelta(days=1) :
+        if not self.get("ref_block_num") or now > self.get("ref_block_expire") :
             ref_block_num, ref_block_prefix = self.get_block_params()
-            ref_block_time = now
+            ref_block_expire = now + datetime.timedelta(days=1)
         else:
             ref_block_num = self["ref_block_num"]
             ref_block_prefix = self["ref_block_prefix"]
