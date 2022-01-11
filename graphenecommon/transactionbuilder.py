@@ -161,6 +161,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             self._require_reconstruction = True
             self.set_fee_asset(kwargs.get("fee_asset", None))
         self.set_expiration(kwargs.get("expiration", self.blockchain.expiration)) or 30
+        self.ref_block_time = None
 
     def set_expiration(self, p):
         self.expiration = p
@@ -402,9 +403,13 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             or 30  # defaults to 30 seconds
         )
         now = datetime.now()
-        if not self.get("ref_block_num") or now > self.get("ref_block_time") + datetime.timedelta(days=1) :
+        if (
+            not self.get("ref_block_num")
+            or not self.ref_block_time
+            or now > self.ref_block_time + timedelta(days=1)
+        ):
             ref_block_num, ref_block_prefix = self.get_block_params()
-            ref_block_time = now
+            self.ref_block_time = now
         else:
             ref_block_num = self["ref_block_num"]
             ref_block_prefix = self["ref_block_prefix"]
