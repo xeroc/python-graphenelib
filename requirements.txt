@@ -1,4 +1,4 @@
-ecdsa>=0.13.3,<0.14
+ecdsa>0.14
 requests>=2.22.0,<3
 websocket-client>=0.56.0,<1
 pylibscrypt>=1.8.0,<2

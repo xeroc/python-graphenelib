@@ -174,7 +174,12 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
             privkey = secp256k1.PrivateKey(p, raw=True)
             sig = secp256k1.ffi.new("secp256k1_ecdsa_recoverable_signature *")
             signed = secp256k1.lib.secp256k1_ecdsa_sign_recoverable(
-                privkey.ctx, sig, digest, privkey.private_key, secp256k1.ffi.NULL, ndata
+                secp256k1.secp256k1_ctx,
+                sig,
+                digest,
+                privkey.private_key,
+                secp256k1.ffi.NULL,
+                ndata,
             )
             if not signed == 1:  # pragma: no cover
                 raise AssertionError()
@@ -290,12 +295,8 @@ def verify_message(message, signature, hashfn=hashlib.sha256):
     recoverParameter = bytearray(signature)[0] - 4 - 27  # recover parameter only
 
     if SECP256K1_MODULE == "secp256k1":
-        ALL_FLAGS = (
-            secp256k1.lib.SECP256K1_CONTEXT_VERIFY
-            | secp256k1.lib.SECP256K1_CONTEXT_SIGN
-        )
         # Placeholder
-        pub = secp256k1.PublicKey(flags=ALL_FLAGS)
+        pub = secp256k1.PublicKey()
         # Recover raw signature
         sig = pub.ecdsa_recoverable_deserialize(sig, recoverParameter)
         # Recover PublicKey
