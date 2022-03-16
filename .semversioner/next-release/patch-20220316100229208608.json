@@ -1,4 +1,0 @@
-{
-  "type": "patch",
-  "description": "Make lib work with new secp256k1-py"
-}
