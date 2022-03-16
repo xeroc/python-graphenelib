@@ -40,7 +40,7 @@ dist:
 	python3 setup.py bdist_wheel
 
 upload:
-	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+	twine upload -u xeroc --repository-url https://upload.pypi.org/legacy/ dist/*
 
 docs:
 	sphinx-apidoc -d 6 -e -f -o docs . *.py tests
