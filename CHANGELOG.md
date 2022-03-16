@@ -1,6 +1,11 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 1.5.2
+
+- patch: Expire TaPos cache
+- patch: Make lib work with new secp256k1-py
+
 ## 1.5.1
 
 - patch: Excplicit proposal logging
@@ -65,4 +70,3 @@ Note: version releases in the 0.x.y range may introduce breaking changes.
 ## 1.1.18
 
 - patch: Starting version for semversioner
-

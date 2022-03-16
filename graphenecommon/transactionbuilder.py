@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import struct
 import logging
+from datetime import datetime, timedelta
 from binascii import unhexlify
 from .exceptions import (
     InsufficientAuthorityError,
@@ -17,7 +18,7 @@ log = logging.getLogger(__name__)
 
 class ProposalBuilder(AbstractBlockchainInstanceProvider):
     """ Proposal Builder allows us to construct an independent Proposal
-        that may later be added to an instance ot TransactionBuilder
+        that may later be added to an instance of TransactionBuilder
 
         :param str proposer: Account name of the proposing user
         :param int proposal_expiration: Number seconds until the proposal is
@@ -160,6 +161,7 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             self._require_reconstruction = True
             self.set_fee_asset(kwargs.get("fee_asset", None))
         self.set_expiration(kwargs.get("expiration", self.blockchain.expiration)) or 30
+        self.ref_block_time = None
 
     def set_expiration(self, p):
         self.expiration = p
@@ -400,8 +402,14 @@ class TransactionBuilder(dict, AbstractBlockchainInstanceProvider):
             or self.blockchain.expiration
             or 30  # defaults to 30 seconds
         )
-        if not self.get("ref_block_num"):
+        now = datetime.now()
+        if (
+            not self.get("ref_block_num")
+            or not self.ref_block_time
+            or now > self.ref_block_time + timedelta(days=1)
+        ):
             ref_block_num, ref_block_prefix = self.get_block_params()
+            self.ref_block_time = now
         else:
             ref_block_num = self["ref_block_num"]
             ref_block_prefix = self["ref_block_prefix"]
