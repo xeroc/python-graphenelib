@@ -3,6 +3,13 @@ Note: version releases in the 0.x.y range may introduce breaking changes.
 
 <!--next-version-placeholder-->
 
+## v1.5.3 (2022-05-13)
+### Fix
+* Setup.cfg lib should work with >=3.6 too ([`1023aa3`](https://github.com/xeroc/python-graphenelib/commit/1023aa30d07901339e4db6c7c536993e7501c3da))
+* Remove irrelevant unittest ([`4118481`](https://github.com/xeroc/python-graphenelib/commit/41184817a532fc0e7cf5452fd715123e8a311a66))
+* Get rid of appveyor.yml ([`70e2649`](https://github.com/xeroc/python-graphenelib/commit/70e2649fcf9659ebc53e09427c82bc15e4a85b98))
+* Bump websockets dependency ([`a1bcaaf`](https://github.com/xeroc/python-graphenelib/commit/a1bcaaf09c9e612988b31a8de40240c7ed98003c))
+
 ## 1.5.2
 
 - patch: Expire TaPos cache
