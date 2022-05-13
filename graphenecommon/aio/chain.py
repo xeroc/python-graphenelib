@@ -17,11 +17,11 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
         self.notifications = None
 
     async def connect(self):
-        """ Connect to blockchain network
+        """Connect to blockchain network
 
-            Async version does wallet initialization after connect because
-            wallet depends on prefix which is available after connection only,
-            and we want to keep __init__() synchronous.
+        Async version does wallet initialization after connect because
+        wallet depends on prefix which is available after connection only,
+        and we want to keep __init__() synchronous.
         """
         node = self._kwargs.get("node", None)
         rpcuser = self._kwargs.get("rpcuser", None)
@@ -50,40 +50,39 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
         self.notifications = self.rpc.connection.notifications
 
     async def info(self):
-        """ Returns the global properties
-        """
+        """Returns the global properties"""
         return await self.rpc.get_dynamic_global_properties()
 
     async def finalizeOp(self, ops, account, permission, **kwargs):
-        """ This method obtains the required private keys if present in
-            the wallet, finalizes the transaction, signs it and
-            broadacasts it
+        """This method obtains the required private keys if present in
+        the wallet, finalizes the transaction, signs it and
+        broadacasts it
 
-            :param operation ops: The operation (or list of operaions) to
-                broadcast
-            :param operation account: The account that authorizes the
-                operation
-            :param string permission: The required permission for
-                signing (active, owner, posting)
-            :param object append_to: This allows to provide an instance of
-                ProposalsBuilder (see :func:`new_proposal`) or
-                TransactionBuilder (see :func:`new_tx()`) to specify
-                where to put a specific operation.
+        :param operation ops: The operation (or list of operaions) to
+            broadcast
+        :param operation account: The account that authorizes the
+            operation
+        :param string permission: The required permission for
+            signing (active, owner, posting)
+        :param object append_to: This allows to provide an instance of
+            ProposalsBuilder (see :func:`new_proposal`) or
+            TransactionBuilder (see :func:`new_tx()`) to specify
+            where to put a specific operation.
 
-            ... note:: ``append_to`` is exposed to every method used in the
-                this class
+        ... note:: ``append_to`` is exposed to every method used in the
+            this class
 
-            ... note::
+        ... note::
 
-                If ``ops`` is a list of operation, they all need to be
-                signable by the same key! Thus, you cannot combine ops
-                that require active permission with ops that require
-                posting permission. Neither can you use different
-                accounts for different operations!
+            If ``ops`` is a list of operation, they all need to be
+            signable by the same key! Thus, you cannot combine ops
+            that require active permission with ops that require
+            posting permission. Neither can you use different
+            accounts for different operations!
 
-            ... note:: This uses ``txbuffer`` as instance of
-                :class:`transactionbuilder.TransactionBuilder`.
-                You may want to use your own txbuffer
+        ... note:: This uses ``txbuffer`` as instance of
+            :class:`transactionbuilder.TransactionBuilder`.
+            You may want to use your own txbuffer
         """
         if "append_to" in kwargs and kwargs["append_to"]:
             if self.proposer:
@@ -140,13 +139,13 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
             return await self.txbuffer.broadcast()
 
     async def sign(self, tx=None, wifs=[]):
-        """ Sign a provided transaction witht he provided key(s)
+        """Sign a provided transaction witht he provided key(s)
 
-            :param dict tx: The transaction to be signed and returned
-            :param string wifs: One or many wif keys to use for signing
-                a transaction. If not present, the keys will be loaded
-                from the wallet as defined in "missing_signatures" key
-                of the transactions.
+        :param dict tx: The transaction to be signed and returned
+        :param string wifs: One or many wif keys to use for signing
+            a transaction. If not present, the keys will be loaded
+            from the wallet as defined in "missing_signatures" key
+            of the transactions.
         """
         if tx:
             txbuffer = self.transactionbuilder_class(tx, blockchain_instance=self)
@@ -158,9 +157,9 @@ class AbstractGrapheneChain(SyncAbstractGrapheneChain):
         return await txbuffer.json()
 
     async def broadcast(self, tx=None):
-        """ Broadcast a transaction to the Blockchain
+        """Broadcast a transaction to the Blockchain
 
-            :param tx tx: Signed transaction to broadcast
+        :param tx tx: Signed transaction to broadcast
         """
         if tx:
             # If tx is provided, we broadcast the tx

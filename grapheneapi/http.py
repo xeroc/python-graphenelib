@@ -10,8 +10,7 @@ log = logging.getLogger(__name__)
 
 
 class Http(Rpc):
-    """ RPC Calls
-    """
+    """RPC Calls"""
 
     def proxies(self):  # pragma: no cover
         proxy_url = self.get_proxy_url()
@@ -20,13 +19,13 @@ class Http(Rpc):
         return {"http": proxy_url, "https": proxy_url}
 
     def rpcexec(self, payload):
-        """ Execute a call by sending the payload
+        """Execute a call by sending the payload
 
-            :param json payload: Payload data
-            :raises ValueError: if the server does not respond in proper JSON
-                                format
-            :raises HttpInvalidStatusCode: if the server returns a status code
-                that is not 200
+        :param json payload: Payload data
+        :raises ValueError: if the server does not respond in proper JSON
+                            format
+        :raises HttpInvalidStatusCode: if the server returns a status code
+            that is not 200
         """
         log.debug(json.dumps(payload))
         query = requests.post(self.url, json=payload, proxies=self.proxies())

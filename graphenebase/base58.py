@@ -54,11 +54,11 @@ class Base58(Prefix):
             raise ValueError("Error loading Base58 object: {}".format(data))
 
     def __format__(self, _format):
-        """ Format output according to argument _format (wif,...)
+        """Format output according to argument _format (wif,...)
 
-            :param str _format: Format to use
-            :return: formatted data according to _format
-            :rtype: str
+        :param str _format: Format to use
+        :return: formatted data according to _format
+        :rtype: str
 
         """
         if _format.upper() == "WIF":
@@ -71,26 +71,26 @@ class Base58(Prefix):
             return _format.upper() + str(self)
 
     def __repr__(self):
-        """ Returns hex value of object
+        """Returns hex value of object
 
-            :return: Hex string of instance's data
-            :rtype: hex string
+        :return: Hex string of instance's data
+        :rtype: hex string
         """
         return self._hex
 
     def __str__(self):
-        """ Return graphene-base58CheckEncoded string of data
+        """Return graphene-base58CheckEncoded string of data
 
-            :return: Base58 encoded data
-            :rtype: str
+        :return: Base58 encoded data
+        :rtype: str
         """
         return gphBase58CheckEncode(self._hex)
 
     def __bytes__(self):
-        """ Return raw bytes
+        """Return raw bytes
 
-            :return: Raw bytes of instance
-            :rtype: bytes
+        :return: Raw bytes of instance
+        :rtype: bytes
 
         """
         return unhexlify(self._hex)

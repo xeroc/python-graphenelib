@@ -4,14 +4,12 @@ class WalletLocked(Exception):
 
 
 class WrongMasterPasswordException(Exception):
-    """ The password provided could not properly unlock the wallet
-    """
+    """The password provided could not properly unlock the wallet"""
 
     pass
 
 
 class KeyAlreadyInStoreException(Exception):
-    """ The key of a key/value pair is already in the store
-    """
+    """The key of a key/value pair is already in the store"""
 
     pass

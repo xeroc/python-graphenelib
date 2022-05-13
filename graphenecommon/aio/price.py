@@ -8,57 +8,57 @@ from ..price import Price as SyncPrice
 
 @asyncinit
 class Price(SyncPrice):
-    """ This class deals with all sorts of prices of any pair of assets to
-        simplify dealing with the tuple::
+    """This class deals with all sorts of prices of any pair of assets to
+    simplify dealing with the tuple::
 
-            (quote, base)
+        (quote, base)
 
-        each being an instance of :class:`.amount.Amount`. The
-        amount themselves define the price.
+    each being an instance of :class:`.amount.Amount`. The
+    amount themselves define the price.
 
-        .. note::
+    .. note::
 
-            The price (floating) is derived as ``base/quote``
+        The price (floating) is derived as ``base/quote``
 
-        :param list args: Allows to deal with different representations of a price
-        :param asset.Asset base: Base asset
-        :param asset.Asset quote: Quote asset
-        :param instance blockchain_instance: instance to use when accesing a RPC
-        :returns: All data required to represent a price
-        :rtype: dict
+    :param list args: Allows to deal with different representations of a price
+    :param asset.Asset base: Base asset
+    :param asset.Asset quote: Quote asset
+    :param instance blockchain_instance: instance to use when accesing a RPC
+    :returns: All data required to represent a price
+    :rtype: dict
 
-        Way to obtain a proper instance:
+    Way to obtain a proper instance:
 
-            * ``args`` is a str with a price and two assets
-            * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`.asset.Asset`
-            * ``args`` can be a floating number and ``base`` and ``quote`` being instances of ``str``
-            * ``args`` can be dict with keys ``price``, ``base``, and ``quote`` (*graphene balances*)
-            * ``args`` can be dict with keys ``base`` and ``quote``
-            * ``args`` can be dict with key ``receives`` (filled orders)
-            * ``args`` being a list of ``[quote, base]`` both being instances of :class:`.amount.Amount`
-            * ``args`` being a list of ``[quote, base]`` both being instances of ``str`` (``amount symbol``)
-            * ``base`` and ``quote`` being instances of :class:`.asset.Amount`
+        * ``args`` is a str with a price and two assets
+        * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`.asset.Asset`
+        * ``args`` can be a floating number and ``base`` and ``quote`` being instances of ``str``
+        * ``args`` can be dict with keys ``price``, ``base``, and ``quote`` (*graphene balances*)
+        * ``args`` can be dict with keys ``base`` and ``quote``
+        * ``args`` can be dict with key ``receives`` (filled orders)
+        * ``args`` being a list of ``[quote, base]`` both being instances of :class:`.amount.Amount`
+        * ``args`` being a list of ``[quote, base]`` both being instances of ``str`` (``amount symbol``)
+        * ``base`` and ``quote`` being instances of :class:`.asset.Amount`
 
-        This allows instanciations like:
+    This allows instanciations like:
 
-        * ``Price("0.315 USD/BTS")``
-        * ``Price(0.315, base="USD", quote="BTS")``
-        * ``Price(0.315, base=self.asset_class("USD"), quote=self.asset_class("BTS"))``
-        * ``Price({"base": {"amount": 1, "asset_id": "1.3.0"}, "quote": {"amount": 10, "asset_id": "1.3.106"}})``
-        * ``Price({"receives": {"amount": 1, "asset_id": "1.3.0"}, "pays": {"amount": 10, "asset_id": "1.3.106"}}, base_asset=self.asset_class("1.3.0"))``
-        * ``Price(quote="10 GOLD", base="1 USD")``
-        * ``Price("10 GOLD", "1 USD")``
-        * ``Price(self.amount_class("10 GOLD"), self.amount_class("1 USD"))``
-        * ``Price(1.0, "USD/GOLD")``
+    * ``Price("0.315 USD/BTS")``
+    * ``Price(0.315, base="USD", quote="BTS")``
+    * ``Price(0.315, base=self.asset_class("USD"), quote=self.asset_class("BTS"))``
+    * ``Price({"base": {"amount": 1, "asset_id": "1.3.0"}, "quote": {"amount": 10, "asset_id": "1.3.106"}})``
+    * ``Price({"receives": {"amount": 1, "asset_id": "1.3.0"}, "pays": {"amount": 10, "asset_id": "1.3.106"}}, base_asset=self.asset_class("1.3.0"))``
+    * ``Price(quote="10 GOLD", base="1 USD")``
+    * ``Price("10 GOLD", "1 USD")``
+    * ``Price(self.amount_class("10 GOLD"), self.amount_class("1 USD"))``
+    * ``Price(1.0, "USD/GOLD")``
 
-        Instances of this class can be used in regular mathematical expressions
-        (``+-*/%``) such as:
+    Instances of this class can be used in regular mathematical expressions
+    (``+-*/%``) such as:
 
-        .. code-block:: python
+    .. code-block:: python
 
-            >>> from price import Price
-            >>> Price("0.3314 USD/BTS") * 2
-            0.662600000 USD/BTS
+        >>> from price import Price
+        >>> Price("0.3314 USD/BTS") * 2
+        0.662600000 USD/BTS
 
     """
 
@@ -256,9 +256,9 @@ class Price(SyncPrice):
         )
 
     async def as_base(self, base):
-        """ Returns the price instance so that the base asset is ``base``.
+        """Returns the price instance so that the base asset is ``base``.
 
-            Note: This makes a copy of the object!
+        Note: This makes a copy of the object!
         """
         if base == self["base"]["symbol"]:
             return await self.copy()
@@ -269,9 +269,9 @@ class Price(SyncPrice):
             raise InvalidAssetException
 
     async def as_quote(self, quote):
-        """ Returns the price instance so that the quote asset is ``quote``.
+        """Returns the price instance so that the quote asset is ``quote``.
 
-            Note: This makes a copy of the object!
+        Note: This makes a copy of the object!
         """
         if quote == self["quote"]["symbol"]:
             return await self.copy()
@@ -282,8 +282,7 @@ class Price(SyncPrice):
             raise InvalidAssetException
 
     async def invert(self):
-        """ Invert the price (e.g. go from ``USD/BTS`` into ``BTS/USD``)
-        """
+        """Invert the price (e.g. go from ``USD/BTS`` into ``BTS/USD``)"""
         tmp = self["quote"]
         self["quote"] = self["base"]
         self["base"] = tmp

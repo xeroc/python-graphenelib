@@ -8,8 +8,8 @@ ObjectCache = ObjectCacheInMemory
 
 
 class Caching:
-    """ This class implements a few common methods that are used to
-        either cache lists or dicts
+    """This class implements a few common methods that are used to
+    either cache lists or dicts
     """
 
     __caching_args = set()
@@ -43,13 +43,11 @@ class Caching:
         self._fetched = True
 
     def incached(self, id):
-        """ Is an element cached?
-        """
+        """Is an element cached?"""
         return id in self._cache
 
     def getfromcache(self, id):
-        """ Get an element from the cache explicitly
-        """
+        """Get an element from the cache explicitly"""
         return self._cache.get(id, None)
 
     def __getitem__(self, key):
@@ -58,8 +56,8 @@ class Caching:
         return dict.__getitem__(self, key)
 
     def items(self):
-        """ This overwrites items() so that refresh() is called if the
-            object is not already fetched
+        """This overwrites items() so that refresh() is called if the
+        object is not already fetched
         """
         if not self._fetched:
             self.refresh()
@@ -75,24 +73,23 @@ class Caching:
 
     @classmethod
     def clear_cache(cls):
-        """ Clear/Reset the entire Cache
-        """
+        """Clear/Reset the entire Cache"""
         cls._cache = ObjectCacheInMemory()
 
     __str__ = __repr__
 
 
 class BlockchainObjects(Caching, list):
-    """ This class is used internally to store **lists** of objects and
-        deal with the cache and indexing thereof.
+    """This class is used internally to store **lists** of objects and
+    deal with the cache and indexing thereof.
     """
 
     identifier = None
 
     def refresh(self, *args, **kwargs):
-        """ Interface that needs to be implemented. This method is
-            called when an object is requested that has not yet been
-            fetched/stored
+        """Interface that needs to be implemented. This method is
+        called when an object is requested that has not yet been
+        fetched/stored
         """
         raise NotImplementedError
 
@@ -120,17 +117,17 @@ class BlockchainObjects(Caching, list):
             return self.__class__.__name__
 
     def store(self, data, key=None, *args, **kwargs):
-        """ Cache the list
+        """Cache the list
 
-            :param list data: List of objects to cache
+        :param list data: List of objects to cache
         """
         list.__init__(self, data)
         self._store_items(self._cache_key(key))
 
     @classmethod
     def cache_objects(cls, data, key=None):
-        """ This classmethod allows to feed multiple objects into the
-            cache is is mostly used for testing
+        """This classmethod allows to feed multiple objects into the
+        cache is is mostly used for testing
         """
         return cls._import(data, key)
 
@@ -142,13 +139,12 @@ class BlockchainObjects(Caching, list):
 
     # legacy
     def cache(self, key):
-        """ (legacy) store the current object with key ``key``.
-        """
+        """(legacy) store the current object with key ``key``."""
         self.store(self, key)
 
     def __getitem__(self, key):
-        """ Since we've overwriten __getitem__ in cache and inherit from there,
-            we need to make sure we use `list` here instead of `dict`.
+        """Since we've overwriten __getitem__ in cache and inherit from there,
+        we need to make sure we use `list` here instead of `dict`.
         """
         if not self._fetched:
             self.refresh()
@@ -156,9 +152,9 @@ class BlockchainObjects(Caching, list):
 
 
 class BlockchainObject(Caching, dict):
-    """ This class deals with objects from graphene-based blockchains.
-        It is used to validate object ids, store entire objects in
-        the cache and deal with indexing thereof.
+    """This class deals with objects from graphene-based blockchains.
+    It is used to validate object ids, store entire objects in
+    the cache and deal with indexing thereof.
     """
 
     space_id = 1
@@ -217,17 +213,17 @@ class BlockchainObject(Caching, dict):
             self._store_item()
 
     def store(self, data, key="id"):
-        """ Cache the list
+        """Cache the list
 
-            :param list data: List of objects to cache
+        :param list data: List of objects to cache
         """
         dict.__init__(self, data)
         self._store_item(key)
 
     @classmethod
     def cache_object(cls, data, key=None):
-        """ This classmethod allows to feed an object into the
-            cache is is mostly used for testing
+        """This classmethod allows to feed an object into the
+        cache is is mostly used for testing
         """
         return cls._import(data, key)
 
@@ -239,12 +235,12 @@ class BlockchainObject(Caching, dict):
 
     @staticmethod
     def objectid_valid(i):
-        """ Test if a string looks like a regular object id of the
-            form:::
+        """Test if a string looks like a regular object id of the
+        form:::
 
-               xxxx.yyyyy.zzzz
+           xxxx.yyyyy.zzzz
 
-            with those being numbers.
+        with those being numbers.
         """
         if "." not in i:
             return False
@@ -258,13 +254,12 @@ class BlockchainObject(Caching, dict):
             return False
 
     def test_valid_objectid(self, i):
-        """ Alias for objectid_valid
-        """
+        """Alias for objectid_valid"""
         return self.objectid_valid(i)
 
     def testid(self, id):
-        """ In contrast to validity, this method tests if the objectid
-            matches the type_id provided in self.type_id or self.type_ids
+        """In contrast to validity, this method tests if the objectid
+        matches the type_id provided in self.type_id or self.type_ids
         """
         parts = id.split(".")
         if not self.type_id:
@@ -282,13 +277,13 @@ class BlockchainObject(Caching, dict):
 
 
 class Object(BlockchainObject, AbstractBlockchainInstanceProvider):
-    """ This class is a basic class that allows to obtain any object
-        from the blockchyin by fetching it through the API
+    """This class is a basic class that allows to obtain any object
+    from the blockchyin by fetching it through the API
     """
 
     def refresh(self):
-        """ This is the refresh method that overloads the prototype in
-            BlockchainObject.
+        """This is the refresh method that overloads the prototype in
+        BlockchainObject.
         """
         dict.__init__(
             self,

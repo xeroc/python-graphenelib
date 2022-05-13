@@ -21,8 +21,7 @@ log = logging.getLogger(__name__)
 
 
 class MessageV1(AbstractBlockchainInstanceProvider):
-    """ Allow to sign and verify Messages that are sigend with a private key
-    """
+    """Allow to sign and verify Messages that are sigend with a private key"""
 
     MESSAGE_SPLIT = (
         "-----BEGIN GRAPHENE SIGNED MESSAGE-----",
@@ -62,13 +61,13 @@ timestamp={meta[timestamp]}
         self.plain_message = None
 
     def sign(self, account=None, **kwargs):
-        """ Sign a message with an account's memo key
+        """Sign a message with an account's memo key
 
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
-            :raises ValueError: If not account for signing is provided
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
+        :raises ValueError: If not account for signing is provided
 
-            :returns: the signed message encapsulated in a known format
+        :returns: the signed message encapsulated in a known format
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -110,13 +109,13 @@ timestamp={meta[timestamp]}
         )
 
     def verify(self, **kwargs):
-        """ Verify a message with an account's memo key
+        """Verify a message with an account's memo key
 
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
 
-            :returns: True if the message is verified successfully
-            :raises InvalidMessageSignature if the signature is not ok
+        :returns: True if the message is verified successfully
+        :raises InvalidMessageSignature if the signature is not ok
         """
         # Split message into its parts
         parts = re.split("|".join(self.MESSAGE_SPLIT), self.message)
@@ -191,8 +190,7 @@ timestamp={meta[timestamp]}
 
 
 class MessageV2(AbstractBlockchainInstanceProvider):
-    """ Allow to sign and verify Messages that are sigend with a private key
-    """
+    """Allow to sign and verify Messages that are sigend with a private key"""
 
     def __init__(self, message, *args, **kwargs):
         self.define_classes()
@@ -206,13 +204,13 @@ class MessageV2(AbstractBlockchainInstanceProvider):
         self.plain_message = None
 
     def sign(self, account=None, **kwargs):
-        """ Sign a message with an account's memo key
+        """Sign a message with an account's memo key
 
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
-            :raises ValueError: If not account for signing is provided
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
+        :raises ValueError: If not account for signing is provided
 
-            :returns: the signed message encapsulated in a known format
+        :returns: the signed message encapsulated in a known format
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -246,13 +244,13 @@ class MessageV2(AbstractBlockchainInstanceProvider):
         return dict(signed=enc_message, payload=payload, signature=signature)
 
     def verify(self, **kwargs):
-        """ Verify a message with an account's memo key
+        """Verify a message with an account's memo key
 
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
 
-            :returns: True if the message is verified successfully
-            :raises InvalidMessageSignature if the signature is not ok
+        :returns: True if the message is verified successfully
+        :raises InvalidMessageSignature if the signature is not ok
         """
         if not isinstance(self.message, dict):
             try:

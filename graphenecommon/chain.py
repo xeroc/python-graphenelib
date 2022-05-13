@@ -67,8 +67,7 @@ class AbstractGrapheneChain:
     # RPC
     # -------------------------------------------------------------------------
     def connect(self, node="", rpcuser="", rpcpassword="", **kwargs):
-        """ Connect to blockchain network (internal use only)
-        """
+        """Connect to blockchain network (internal use only)"""
         if not node:
             if "node" in self.config:
                 node = self.config["node"]
@@ -91,27 +90,24 @@ class AbstractGrapheneChain:
     # -------------------------------------------------------------------------
     @property
     def prefix(self):
-        """ Contains the prefix of the blockchain
-        """
+        """Contains the prefix of the blockchain"""
         return self.rpc.chain_params["prefix"]
 
     def set_blocking(self, block=True):
-        """ This sets a flag that forces the broadcast to block until the
-            transactions made it into a block
+        """This sets a flag that forces the broadcast to block until the
+        transactions made it into a block
         """
         self.blocking = block
 
     def info(self):
-        """ Returns the global properties
-        """
+        """Returns the global properties"""
         return self.rpc.get_dynamic_global_properties()
 
     # -------------------------------------------------------------------------
     # Wallet
     # -------------------------------------------------------------------------
     def set_default_account(self, account):
-        """ Set the default account to be used
-        """
+        """Set the default account to be used"""
         self.account_class(account)
         self.config["default_account"] = account
 
@@ -119,26 +115,24 @@ class AbstractGrapheneChain:
         return self.new_wallet(pwd)
 
     def new_wallet(self, pwd):
-        """ Create a new wallet. This method is basically only calls
-            :func:`wallet.Wallet.create`.
+        """Create a new wallet. This method is basically only calls
+        :func:`wallet.Wallet.create`.
 
-            :param str pwd: Password to use for the new wallet
-            :raises exceptions.WalletExists: if there is already a
-                wallet created
+        :param str pwd: Password to use for the new wallet
+        :raises exceptions.WalletExists: if there is already a
+            wallet created
         """
         return self.wallet.create(pwd)
 
     def unlock(self, *args, **kwargs):
-        """ Unlock the internal wallet
-        """
+        """Unlock the internal wallet"""
         return self.wallet.unlock(*args, **kwargs)
 
     # -------------------------------------------------------------------------
     # Shared instance interface
     # -------------------------------------------------------------------------
     def set_shared_instance(self):
-        """ This method allows to set the current instance as default
-        """
+        """This method allows to set the current instance as default"""
         # self._sharedInstance.instance = self
         log.warning(
             DeprecationWarning(
@@ -151,35 +145,35 @@ class AbstractGrapheneChain:
     # General transaction/operation stuff
     # -------------------------------------------------------------------------
     def finalizeOp(self, ops, account, permission, **kwargs):
-        """ This method obtains the required private keys if present in
-            the wallet, finalizes the transaction, signs it and
-            broadacasts it
+        """This method obtains the required private keys if present in
+        the wallet, finalizes the transaction, signs it and
+        broadacasts it
 
-            :param operation ops: The operation (or list of operaions) to
-                broadcast
-            :param operation account: The account that authorizes the
-                operation
-            :param string permission: The required permission for
-                signing (active, owner, posting)
-            :param object append_to: This allows to provide an instance of
-                ProposalsBuilder (see :func:`new_proposal`) or
-                TransactionBuilder (see :func:`new_tx()`) to specify
-                where to put a specific operation.
+        :param operation ops: The operation (or list of operaions) to
+            broadcast
+        :param operation account: The account that authorizes the
+            operation
+        :param string permission: The required permission for
+            signing (active, owner, posting)
+        :param object append_to: This allows to provide an instance of
+            ProposalsBuilder (see :func:`new_proposal`) or
+            TransactionBuilder (see :func:`new_tx()`) to specify
+            where to put a specific operation.
 
-            ... note:: ``append_to`` is exposed to every method used in the
-                this class
+        ... note:: ``append_to`` is exposed to every method used in the
+            this class
 
-            ... note::
+        ... note::
 
-                If ``ops`` is a list of operation, they all need to be
-                signable by the same key! Thus, you cannot combine ops
-                that require active permission with ops that require
-                posting permission. Neither can you use different
-                accounts for different operations!
+            If ``ops`` is a list of operation, they all need to be
+            signable by the same key! Thus, you cannot combine ops
+            that require active permission with ops that require
+            posting permission. Neither can you use different
+            accounts for different operations!
 
-            ... note:: This uses ``txbuffer`` as instance of
-                :class:`transactionbuilder.TransactionBuilder`.
-                You may want to use your own txbuffer
+        ... note:: This uses ``txbuffer`` as instance of
+            :class:`transactionbuilder.TransactionBuilder`.
+            You may want to use your own txbuffer
         """
         if "append_to" in kwargs and kwargs["append_to"]:
             if self.proposer:
@@ -236,13 +230,13 @@ class AbstractGrapheneChain:
             return self.txbuffer.broadcast()
 
     def sign(self, tx=None, wifs=[]):
-        """ Sign a provided transaction witht he provided key(s)
+        """Sign a provided transaction witht he provided key(s)
 
-            :param dict tx: The transaction to be signed and returned
-            :param string wifs: One or many wif keys to use for signing
-                a transaction. If not present, the keys will be loaded
-                from the wallet as defined in "missing_signatures" key
-                of the transactions.
+        :param dict tx: The transaction to be signed and returned
+        :param string wifs: One or many wif keys to use for signing
+            a transaction. If not present, the keys will be loaded
+            from the wallet as defined in "missing_signatures" key
+            of the transactions.
         """
         if tx:
             txbuffer = self.transactionbuilder_class(tx, blockchain_instance=self)
@@ -254,9 +248,9 @@ class AbstractGrapheneChain:
         return txbuffer.json()
 
     def broadcast(self, tx=None):
-        """ Broadcast a transaction to the Blockchain
+        """Broadcast a transaction to the Blockchain
 
-            :param tx tx: Signed transaction to broadcast
+        :param tx tx: Signed transaction to broadcast
         """
         if tx:
             # If tx is provided, we broadcast the tx
@@ -271,26 +265,23 @@ class AbstractGrapheneChain:
     # -------------------------------------------------------------------------
     @property
     def txbuffer(self):
-        """ Returns the currently active tx buffer
-        """
+        """Returns the currently active tx buffer"""
         return self.tx()
 
     @property
     def propbuffer(self):
-        """ Return the default proposal buffer
-        """
+        """Return the default proposal buffer"""
         return self.proposal()
 
     def tx(self):
-        """ Returns the default transaction buffer
-        """
+        """Returns the default transaction buffer"""
         return self._txbuffers[0]
 
     def proposal(self, proposer=None, proposal_expiration=None, proposal_review=None):
-        """ Return the default proposal buffer
+        """Return the default proposal buffer
 
-            ... note:: If any parameter is set, the default proposal
-               parameters will be changed!
+        ... note:: If any parameter is set, the default proposal
+           parameters will be changed!
         """
         if not self._propbuffer:
             return self.new_proposal(
@@ -339,9 +330,9 @@ class AbstractGrapheneChain:
         return proposal
 
     def new_tx(self, *args, **kwargs):
-        """ Let's obtain a new txbuffer
+        """Let's obtain a new txbuffer
 
-            :returns int txid: id of the new txbuffer
+        :returns int txid: id of the new txbuffer
         """
         builder = self.transactionbuilder_class(
             *args, blockchain_instance=self, **kwargs
@@ -360,6 +351,5 @@ class AbstractGrapheneChain:
         # self.new_proposal()
 
     def clear_cache(self):
-        """ Clear Caches
-        """
+        """Clear Caches"""
         self.blockchainobject_class.clear_cache()

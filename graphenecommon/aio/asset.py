@@ -5,17 +5,17 @@ from .blockchainobject import BlockchainObject
 
 
 class Asset(BlockchainObject, SyncAsset):
-    """ Deals with Assets of the network.
+    """Deals with Assets of the network.
 
-        :param str Asset: Symbol name or object id of an asset
-        :param bool full: Also obtain bitasset-data and dynamic asset data
-        :param instance blockchain_instance: instance to use when accesing a RPC
-        :returns: All data of an asset
-        :rtype: dict
+    :param str Asset: Symbol name or object id of an asset
+    :param bool full: Also obtain bitasset-data and dynamic asset data
+    :param instance blockchain_instance: instance to use when accesing a RPC
+    :returns: All data of an asset
+    :rtype: dict
 
-        .. note:: This class comes with its own caching function to reduce the
-                  load on the API server. Instances of this class can be
-                  refreshed with ``await Asset.refresh()``.
+    .. note:: This class comes with its own caching function to reduce the
+              load on the API server. Instances of this class can be
+              refreshed with ``await Asset.refresh()``.
     """
 
     async def __init__(self, *args, **kwargs):
@@ -26,8 +26,7 @@ class Asset(BlockchainObject, SyncAsset):
         await BlockchainObject.__init__(self, *args, **kwargs)
 
     async def refresh(self):
-        """ Refresh the data from the API server
-        """
+        """Refresh the data from the API server"""
         asset = await self.blockchain.rpc.get_asset(self.identifier)
         if not asset:
             raise AssetDoesNotExistsException(self.identifier)
@@ -47,8 +46,7 @@ class Asset(BlockchainObject, SyncAsset):
             await self.refresh()
 
     async def update_cer(self, cer, account=None, **kwargs):
-        """ Update the Core Exchange Rate (CER) of an asset
-        """
+        """Update the Core Exchange Rate (CER) of an asset"""
         assert callable(self.blockchain.update_cer)
         return await self.blockchain.update_cer(
             self["symbol"], cer, account=account, **kwargs

@@ -10,10 +10,10 @@ log = logging.getLogger(__name__)
 
 
 class Proposal(BlockchainObject, SyncProposal):
-    """ Read data about a Proposal Balance in the chain
+    """Read data about a Proposal Balance in the chain
 
-        :param str id: Id of the proposal
-        :param instance blockchain_instance: instance to use when accesing a RPC
+    :param str id: Id of the proposal
+    :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
 
@@ -32,8 +32,8 @@ class Proposal(BlockchainObject, SyncProposal):
 
     @property
     async def proposer(self):
-        """ Return the proposer of the proposal if available in the backend,
-            else returns None
+        """Return the proposer of the proposal if available in the backend,
+        else returns None
         """
         if "proposer" in self:
             return await self.account_class(
@@ -42,10 +42,10 @@ class Proposal(BlockchainObject, SyncProposal):
 
 
 class Proposals(BlockchainObjects, SyncProposals):
-    """ Obtain a list of pending proposals for an account
+    """Obtain a list of pending proposals for an account
 
-        :param str account: Account name
-        :param instance blockchain_instance: instance to use when accesing a RPC
+    :param str account: Account name
+    :param instance blockchain_instance: instance to use when accesing a RPC
     """
 
     async def __init__(self, account, *args, **kwargs):

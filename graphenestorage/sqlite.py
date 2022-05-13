@@ -12,27 +12,27 @@ timeformat = "%Y%m%d-%H%M%S"
 
 
 class SQLiteFile:
-    """ This class ensures that the user's data is stored in its OS
-        preotected user directory:
+    """This class ensures that the user's data is stored in its OS
+    preotected user directory:
 
-        **OSX:**
+    **OSX:**
 
-         * `~/Library/Application Support/<AppName>`
+     * `~/Library/Application Support/<AppName>`
 
-        **Windows:**
+    **Windows:**
 
-         * `C:\\Documents and Settings\\<User>\\Application Data\\Local Settings\\<AppAuthor>\\<AppName>`
-         * `C:\\Documents and Settings\\<User>\\Application Data\\<AppAuthor>\\<AppName>`
+     * `C:\\Documents and Settings\\<User>\\Application Data\\Local Settings\\<AppAuthor>\\<AppName>`
+     * `C:\\Documents and Settings\\<User>\\Application Data\\<AppAuthor>\\<AppName>`
 
-        **Linux:**
+    **Linux:**
 
-         * `~/.local/share/<AppName>`
+     * `~/.local/share/<AppName>`
 
-         Furthermore, it offers an interface to generated backups
-         in the `backups/` directory every now and then.
+     Furthermore, it offers an interface to generated backups
+     in the `backups/` directory every now and then.
 
-         .. note:: The file name can be overwritten when providing a keyword
-            argument ``profile``.
+     .. note:: The file name can be overwritten when providing a keyword
+        argument ``profile``.
     """
 
     def __init__(self, *args, **kwargs):
@@ -57,14 +57,14 @@ class SQLiteFile:
 
 
 class SQLiteCommon(object):
-    """ This class abstracts away common sqlite3 operations.
+    """This class abstracts away common sqlite3 operations.
 
-        This class should not be used directly.
+    This class should not be used directly.
 
-        When inheriting from this class, the following instance members must
-        be defined:
+    When inheriting from this class, the following instance members must
+    be defined:
 
-            * ``sqlite_file``: Path to the SQLite Database file
+        * ``sqlite_file``: Path to the SQLite Database file
     """
 
     def sql_fetchone(self, query):
@@ -108,21 +108,21 @@ class SQLiteCommon(object):
 
 
 class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
-    """ The SQLiteStore deals with the sqlite3 part of storing data into a
-        database file.
+    """The SQLiteStore deals with the sqlite3 part of storing data into a
+    database file.
 
-        .. note:: This module is limited to two columns and merely stores
-            key/value pairs into the sqlite database
+    .. note:: This module is limited to two columns and merely stores
+        key/value pairs into the sqlite database
 
-        On first launch, the database file as well as the tables are created
-        automatically.
+    On first launch, the database file as well as the tables are created
+    automatically.
 
-        When inheriting from this class, the following three class members must
-        be defined:
+    When inheriting from this class, the following three class members must
+    be defined:
 
-            * ``__tablename__``: Name of the table
-            * ``__key__``: Name of the key column
-            * ``__value__``: Name of the value column
+        * ``__tablename__``: Name of the table
+        * ``__key__``: Name of the key column
+        * ``__value__``: Name of the value column
     """
 
     #:
@@ -140,8 +140,7 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
             self.create()
 
     def _haveKey(self, key):
-        """ Is the key `key` available?
-        """
+        """Is the key `key` available?"""
         query = (
             "SELECT {} FROM {} WHERE {}=?".format(
                 self.__value__, self.__tablename__, self.__key__
@@ -151,10 +150,10 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
         return True if self.sql_fetchone(query) else False
 
     def __setitem__(self, key, value):
-        """ Sets an item in the store
+        """Sets an item in the store
 
-            :param str key: Key
-            :param str value: Value
+        :param str key: Key
+        :param str value: Value
         """
         if self._haveKey(key):
             query = (
@@ -173,9 +172,9 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
         self.sql_execute(query)
 
     def __getitem__(self, key):
-        """ Gets an item from the store as if it was a dictionary
+        """Gets an item from the store as if it was a dictionary
 
-            :param str value: Value
+        :param str value: Value
         """
         query = (
             "SELECT {} FROM {} WHERE {}=?".format(
@@ -193,8 +192,7 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
                 return None
 
     def __iter__(self):
-        """ Iterates through the store
-        """
+        """Iterates through the store"""
         return iter(self.keys())
 
     def keys(self):
@@ -202,17 +200,16 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
         return [x[0] for x in self.sql_fetchall(query)]
 
     def __len__(self):
-        """ return lenght of store
-        """
+        """return lenght of store"""
         query = ("SELECT id from {}".format(self.__tablename__),)
         return len(self.sql_fetchall(query))
 
     def __contains__(self, key):
-        """ Tests if a key is contained in the store.
+        """Tests if a key is contained in the store.
 
-            May test againsts self.defaults
+        May test againsts self.defaults
 
-            :param str value: Value
+        :param str value: Value
         """
         if self._haveKey(key) or key in self.defaults:
             return True
@@ -220,8 +217,7 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
             return False
 
     def items(self):
-        """ returns all items off the store as tuples
-        """
+        """returns all items off the store as tuples"""
         query = (
             "SELECT {}, {} from {}".format(
                 self.__key__, self.__value__, self.__tablename__
@@ -233,10 +229,10 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
         return r
 
     def get(self, key, default=None):
-        """ Return the key if exists or a default value
+        """Return the key if exists or a default value
 
-            :param str value: Value
-            :param str default: Default value if key not present
+        :param str value: Value
+        :param str default: Default value if key not present
         """
         if key in self:
             return self.__getitem__(key)
@@ -245,9 +241,9 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
 
     # Specific for this library
     def delete(self, key):
-        """ Delete a key from the store
+        """Delete a key from the store
 
-            :param str value: Value
+        :param str value: Value
         """
         query = (
             "DELETE FROM {} WHERE {}=?".format(self.__tablename__, self.__key__),
@@ -256,14 +252,12 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
         self.sql_execute(query)
 
     def wipe(self):
-        """ Wipe the store
-        """
+        """Wipe the store"""
         query = ("DELETE FROM {}".format(self.__tablename__),)
         self.sql_execute(query)
 
     def exists(self):
-        """ Check if the database table exists
-        """
+        """Check if the database table exists"""
         query = (
             "SELECT name FROM sqlite_master " + "WHERE type='table' AND name=?",
             (self.__tablename__,),
@@ -271,8 +265,7 @@ class SQLiteStore(SQLiteFile, SQLiteCommon, StoreInterface):
         return True if self.sql_fetchone(query) else False
 
     def create(self):  # pragma: no cover
-        """ Create the new table in the SQLite database
-        """
+        """Create the new table in the SQLite database"""
         query = (
             (
                 """

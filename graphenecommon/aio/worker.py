@@ -6,10 +6,10 @@ from ..worker import Worker as SyncWorker, Workers as SyncWorkers
 
 
 class Worker(BlockchainObject, SyncWorker):
-    """ Read data about a worker in the chain
+    """Read data about a worker in the chain
 
-        :param str id: id of the worker
-        :param instance blockchain_instance: instance to use when accesing a RPC
+    :param str id: id of the worker
+    :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
 
@@ -35,10 +35,10 @@ class Worker(BlockchainObject, SyncWorker):
 
 
 class Workers(BlockchainObjects, SyncWorkers):
-    """ Obtain a list of workers for an account
+    """Obtain a list of workers for an account
 
-        :param str account_name/id: Name/id of the account (optional)
-        :param instance blockchain_instance: instance to use when accesing a RPC
+    :param str account_name/id: Name/id of the account (optional)
+    :param instance blockchain_instance: instance to use when accesing a RPC
     """
 
     async def __init__(self, *args, account_name=None, lazy=False, **kwargs):

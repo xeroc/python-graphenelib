@@ -12,23 +12,23 @@ log = logging.getLogger(__name__)
 
 # Configuration
 class InRamConfigurationStore(InRamStore, ConfigInterface):
-    """ A simple example that stores configuration in RAM.
+    """A simple example that stores configuration in RAM.
 
-        Internally, this works by simply inheriting
-        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
-        :class:`graphenestorage.interfaces.ConfigInterface`.
+    Internally, this works by simply inheriting
+    :class:`graphenestorage.ram.InRamStore`. The interface is defined in
+    :class:`graphenestorage.interfaces.ConfigInterface`.
     """
 
     pass
 
 
 class SqliteConfigurationStore(SQLiteStore, ConfigInterface):
-    """ This is the configuration storage that stores key/value
-        pairs in the `config` table of the SQLite3 database.
+    """This is the configuration storage that stores key/value
+    pairs in the `config` table of the SQLite3 database.
 
-        Internally, this works by simply inheriting
-        :class:`graphenestorage.sqlite.SQLiteStore`. The interface is defined
-        in :class:`graphenestorage.interfaces.ConfigInterface`.
+    Internally, this works by simply inheriting
+    :class:`graphenestorage.sqlite.SQLiteStore`. The interface is defined
+    in :class:`graphenestorage.interfaces.ConfigInterface`.
     """
 
     #: The table name for the configuration
@@ -41,11 +41,11 @@ class SqliteConfigurationStore(SQLiteStore, ConfigInterface):
 
 # Keys
 class InRamPlainKeyStore(InRamStore, KeyInterface):
-    """ A simple in-RAM Store that stores keys unencrypted in RAM
+    """A simple in-RAM Store that stores keys unencrypted in RAM
 
-        Internally, this works by simply inheriting
-        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
-        :class:`graphenestorage.interfaces.KeyInterface`.
+    Internally, this works by simply inheriting
+    :class:`graphenestorage.ram.InRamStore`. The interface is defined in
+    :class:`graphenestorage.interfaces.KeyInterface`.
     """
 
     def getPublicKeys(self):
@@ -64,13 +64,13 @@ class InRamPlainKeyStore(InRamStore, KeyInterface):
 
 
 class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
-    """ This is the key storage that stores the public key and the
-        **unencrypted** private key in the `keys` table in the SQLite3
-        database.
+    """This is the key storage that stores the public key and the
+    **unencrypted** private key in the `keys` table in the SQLite3
+    database.
 
-        Internally, this works by simply inheriting
-        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
-        :class:`graphenestorage.interfaces.KeyInterface`.
+    Internally, this works by simply inheriting
+    :class:`graphenestorage.ram.InRamStore`. The interface is defined in
+    :class:`graphenestorage.interfaces.KeyInterface`.
     """
 
     #: The table name for the configuration
@@ -95,15 +95,14 @@ class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
         SQLiteStore.delete(self, str(pub))
 
     def is_encrypted(self):
-        """ Returns False, as we are not encrypted here
-        """
+        """Returns False, as we are not encrypted here"""
         return False
 
 
 class KeyEncryption(MasterPassword, EncryptedKeyInterface):
-    """ This is an interface class that provides the methods required for
-        EncryptedKeyInterface and links them to the MasterPassword-provided
-        functionatlity, accordingly.
+    """This is an interface class that provides the methods required for
+    EncryptedKeyInterface and links them to the MasterPassword-provided
+    functionatlity, accordingly.
     """
 
     def __init__(self, *args, **kwargs):
@@ -129,15 +128,15 @@ class KeyEncryption(MasterPassword, EncryptedKeyInterface):
 
 
 class InRamEncryptedKeyStore(InRamStore, KeyEncryption):
-    """ An in-RAM Store that stores keys **encrypted** in RAM.
+    """An in-RAM Store that stores keys **encrypted** in RAM.
 
-        Internally, this works by simply inheriting
-        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
-        :class:`graphenestorage.interfaces.KeyInterface`.
+    Internally, this works by simply inheriting
+    :class:`graphenestorage.ram.InRamStore`. The interface is defined in
+    :class:`graphenestorage.interfaces.KeyInterface`.
 
-        .. note:: This module also inherits
-            :class:`graphenestorage.masterpassword.MasterPassword` which offers
-            additional methods and deals with encrypting the keys.
+    .. note:: This module also inherits
+        :class:`graphenestorage.masterpassword.MasterPassword` which offers
+        additional methods and deals with encrypting the keys.
     """
 
     def __init__(self, *args, **kwargs):
@@ -146,16 +145,16 @@ class InRamEncryptedKeyStore(InRamStore, KeyEncryption):
 
 
 class SqliteEncryptedKeyStore(SQLiteStore, KeyEncryption):
-    """ This is the key storage that stores the public key and the
-        **encrypted** private key in the `keys` table in the SQLite3 database.
+    """This is the key storage that stores the public key and the
+    **encrypted** private key in the `keys` table in the SQLite3 database.
 
-        Internally, this works by simply inheriting
-        :class:`graphenestorage.ram.InRamStore`. The interface is defined in
-        :class:`graphenestorage.interfaces.KeyInterface`.
+    Internally, this works by simply inheriting
+    :class:`graphenestorage.ram.InRamStore`. The interface is defined in
+    :class:`graphenestorage.interfaces.KeyInterface`.
 
-        .. note:: This module also inherits
-            :class:`graphenestorage.masterpassword.MasterPassword` which offers
-            additional methods and deals with encrypting the keys.
+    .. note:: This module also inherits
+        :class:`graphenestorage.masterpassword.MasterPassword` which offers
+        additional methods and deals with encrypting the keys.
     """
 
     __tablename__ = "keys"
