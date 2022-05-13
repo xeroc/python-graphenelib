@@ -1,47 +1,56 @@
 .PHONY: clean-pyc clean-build docs
 
+.PHONY: clean
 clean: clean-build clean-pyc
 
+.PHONY: clean-build
 clean-build:
-	rm -fr build/
-	rm -fr dist/
-	rm -fr *.egg-info
-	rm -fr __pycache__/ .eggs/ .cache/ .tox/ .pytest_cache/ .scannerwork/
+	rm -rf build/
+	rm -rf dist/
+	rm -rf *.egg-info
+	rm -rf __pycache__/ .eggs/ .cache/
+	rm -rf .tox/ .pytest_cache/ .benchmarks/
 
+.PHONY: clean-pyc
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 
+.PHONY: lint
 lint:
 	flake8 grapheneapi/ graphenebase/
 
+.PHONY: test
 test:
 	python3 setup.py test
 
+.PHONY: tox
+tox:
+	tox
+
+.PHONY: build
 build:
 	python3 setup.py build
 
+.PHONY: install
 install: build
 	python3 setup.py install
 
+.PHONY: install-user
 install-user: build
 	python3 setup.py install --user
 
+.PHONY: git
 git:
 	git push --all
 	git push --tags
 
+.PHONY: check
 check:
 	python3 setup.py check
 
-dist:
-	python3 setup.py sdist bdist_wheel
-	python3 setup.py bdist_wheel
-
-upload:
-	twine upload -u xeroc --repository-url https://upload.pypi.org/legacy/ dist/*
-
+.PHONY: docs
 docs:
 	sphinx-apidoc -d 6 -e -f -o docs . *.py tests
 	make -C docs clean html
