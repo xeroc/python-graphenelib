@@ -5,7 +5,7 @@ pylibscrypt>=1.8.0,<2
 pycryptodome>=3.9.1,<4
 appdirs>=1.4.3,<2
 scrypt>=0.8.13,<0.9
-websockets>=8.1,<9
+websockets>=9.1
 aiohttp>=3.5.4,<4
 asyncinit>=0.2.4,<0.3
 expiringdict

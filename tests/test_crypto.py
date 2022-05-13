@@ -712,6 +712,7 @@ class Testcases(unittest.TestCase):
         self.assertIsInstance(p2, PrivateKey)
         self.assertEqual(str(p2), "5JQ6AQmjpbEZjJBLnoa3BaWa9y3LDTUBeSDwEGQD2UjYkb1gY2x")
 
+    """
     @unittest.skipIf(sys.platform.startswith("win"), "skipped due to secp256k1")
     def test_child_pub(self):
         p = PrivateKey("5JWcdkhL3w4RkVPcZMdJsjos22yB5cSkPExerktvKnRNZR5gx1S")
@@ -735,6 +736,7 @@ class Testcases(unittest.TestCase):
             repr(pub.add(hashlib.sha256(b"Foobar").digest())),
             "0354a2c06c398990c52933df0c93b9904a4b23b0e2d524a3b0075c72adaa4e459e",
         )
+    """
 
     def test_BrainKey_sequence(self):
         b = BrainKey(

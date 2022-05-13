@@ -1,6 +1,8 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+<!--next-version-placeholder-->
+
 ## 1.5.2
 
 - patch: Expire TaPos cache
