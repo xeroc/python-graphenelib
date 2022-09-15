@@ -33,6 +33,7 @@ class Websocket(Rpc):
             if self.proxy_user
             else None,
             proxy_type=self.proxy_type,
+            timeout=30
         )
 
         if self.user and self.password:
