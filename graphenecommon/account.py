@@ -153,7 +153,7 @@ class Account(BlockchainObject, AbstractBlockchainInstanceProvider):
                 self["id"],
                 "1.11.{}".format(last),
                 _limit,
-                "1.11.{}".format(first - 1),
+                "1.11.{}".format((first - 1) >= 0 or 0),
                 api="history",
             )
             for i in txs:
