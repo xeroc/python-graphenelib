@@ -38,11 +38,11 @@ class Caching:
         key = key or self.__class__.__name__
         if key in self._cache:
             # check for duplicates. race condition when loading might cause that store_items is called twice with same list
+            toadd = []
             for x in list(self):
-                toadd = []
                 if x not in self._cache[key]:
                     toadd.append(x)
-                self._cache[key].extend(toadd)
+            self._cache[key].extend(toadd)
         else:
             self._cache[key] = list(self)
         self._fetched = True
