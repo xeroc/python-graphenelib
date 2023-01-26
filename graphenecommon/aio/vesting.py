@@ -5,10 +5,10 @@ from ..vesting import Vesting as SyncVesting
 
 
 class Vesting(BlockchainObject, SyncVesting):
-    """ Read data about a Vesting Balance in the chain
+    """Read data about a Vesting Balance in the chain
 
-        :param str id: Id of the vesting balance
-        :param instance blockchain_instance: instance to use when accesing a RPC
+    :param str id: Id of the vesting balance
+    :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
 

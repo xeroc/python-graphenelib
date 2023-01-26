@@ -6,25 +6,25 @@ from .instance import AbstractBlockchainInstanceProvider
 
 
 class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
-    """ Read a single block from the chain
+    """Read a single block from the chain
 
-        :param int block: block number
-        :param instance blockchain_instance: instance to use when accesing a RPC
-        :param bool lazy: Use lazy loading
+    :param int block: block number
+    :param instance blockchain_instance: instance to use when accesing a RPC
+    :param bool lazy: Use lazy loading
 
-        Instances of this class are dictionaries that come with additional
-        methods (see below) that allow dealing with a block and it's
-        corresponding functions.
+    Instances of this class are dictionaries that come with additional
+    methods (see below) that allow dealing with a block and it's
+    corresponding functions.
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from block import Block
-            block = Block(1)
-            print(block)
+        from block import Block
+        block = Block(1)
+        print(block)
 
-        .. note:: This class comes with its own caching function to reduce the
-                  load on the API server. Instances of this class can be
-                  refreshed with ``Account.refresh()``.
+    .. note:: This class comes with its own caching function to reduce the
+              load on the API server. Instances of this class can be
+              refreshed with ``Account.refresh()``.
 
     """
 
@@ -38,8 +38,8 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
         BlockchainObject.__init__(self, *args, **kwargs)
 
     def refresh(self):
-        """ Even though blocks never change, you freshly obtain its contents
-            from an API with this method
+        """Even though blocks never change, you freshly obtain its contents
+        from an API with this method
         """
         identifier = self.identifier
         block = self.blockchain.rpc.get_block(self.identifier)
@@ -52,8 +52,7 @@ class Block(BlockchainObject, AbstractBlockchainInstanceProvider):
         self.identifier = identifier
 
     def time(self):
-        """ Return a datatime instance for the timestamp of this block
-        """
+        """Return a datatime instance for the timestamp of this block"""
         return parse_time(self["timestamp"])
 
 
@@ -68,8 +67,8 @@ class BlockHeader(BlockchainObject, AbstractBlockchainInstanceProvider):
         BlockchainObject.__init__(self, *args, **kwargs)
 
     def refresh(self):
-        """ Even though blocks never change, you freshly obtain its contents
-            from an API with this method
+        """Even though blocks never change, you freshly obtain its contents
+        from an API with this method
         """
         block = self.blockchain.rpc.get_block_header(self.identifier)
         if not block:
@@ -79,6 +78,5 @@ class BlockHeader(BlockchainObject, AbstractBlockchainInstanceProvider):
         )
 
     def time(self):
-        """ Return a datatime instance for the timestamp of this block
-        """
+        """Return a datatime instance for the timestamp of this block"""
         return parse_time(self["timestamp"])

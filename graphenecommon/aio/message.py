@@ -28,21 +28,20 @@ log = logging.getLogger(__name__)
 
 @asyncinit
 class MessageV1(SyncMessageV1):
-    """ Allow to sign and verify Messages that are sigend with a private key
-    """
+    """Allow to sign and verify Messages that are sigend with a private key"""
 
     async def __init__(self, *args, **kwargs):
         # __init__ should be async because AbstractBlockchainInstanceProvider expects async __init__
         super().__init__(*args, **kwargs)
 
     async def sign(self, account=None, **kwargs):
-        """ Sign a message with an account's memo key
+        """Sign a message with an account's memo key
 
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
-            :raises ValueError: If not account for signing is provided
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
+        :raises ValueError: If not account for signing is provided
 
-            :returns: the signed message encapsulated in a known format
+        :returns: the signed message encapsulated in a known format
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -84,13 +83,13 @@ class MessageV1(SyncMessageV1):
         )
 
     async def verify(self, **kwargs):
-        """ Verify a message with an account's memo key
+        """Verify a message with an account's memo key
 
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
 
-            :returns: True if the message is verified successfully
-            :raises InvalidMessageSignature if the signature is not ok
+        :returns: True if the message is verified successfully
+        :raises InvalidMessageSignature if the signature is not ok
         """
         # Split message into its parts
         parts = re.split("|".join(self.MESSAGE_SPLIT), self.message)
@@ -166,21 +165,20 @@ class MessageV1(SyncMessageV1):
 
 @asyncinit
 class MessageV2(SyncMessageV2):
-    """ Allow to sign and verify Messages that are sigend with a private key
-    """
+    """Allow to sign and verify Messages that are sigend with a private key"""
 
     async def __init__(self, *args, **kwargs):
         # __init__ should be async because AbstractBlockchainInstanceProvider expects async __init__
         super().__init__(*args, **kwargs)
 
     async def sign(self, account=None, **kwargs):
-        """ Sign a message with an account's memo key
+        """Sign a message with an account's memo key
 
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
-            :raises ValueError: If not account for signing is provided
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
+        :raises ValueError: If not account for signing is provided
 
-            :returns: the signed message encapsulated in a known format
+        :returns: the signed message encapsulated in a known format
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -214,13 +212,13 @@ class MessageV2(SyncMessageV2):
         return dict(signed=enc_message, payload=payload, signature=signature)
 
     async def verify(self, **kwargs):
-        """ Verify a message with an account's memo key
+        """Verify a message with an account's memo key
 
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
 
-            :returns: True if the message is verified successfully
-            :raises InvalidMessageSignature if the signature is not ok
+        :returns: True if the message is verified successfully
+        :raises InvalidMessageSignature if the signature is not ok
         """
         if not isinstance(self.message, dict):
             try:

@@ -84,8 +84,7 @@ class Api:
         self.register_apis()
 
     def find_next(self):
-        """ Find the next url in the list
-        """
+        """Find the next url in the list"""
         if int(self.num_retries) < 0:  # pragma: no cover
             self._cnt_retries += 1
             sleeptime = (self._cnt_retries - 1) * 2 if self._cnt_retries < 10 else 10
@@ -119,8 +118,7 @@ class Api:
         return url
 
     def reset_counter(self):
-        """ reset the failed connection counters
-        """
+        """reset the failed connection counters"""
         self._cnt_retries = 0
         for i in self._url_counter:
             self._url_counter[i] = 0
@@ -141,34 +139,34 @@ class Api:
 
     @property
     def api_id(self):
-        """ This allows to list api_ids, if they have been registered through
-            api_register() -- LEGACY
+        """This allows to list api_ids, if they have been registered through
+        api_register() -- LEGACY
 
-            In previous API version, one would connect and register to APIs
-            like this
+        In previous API version, one would connect and register to APIs
+        like this
 
-            .. code-block:: python
+        .. code-block:: python
 
-                self.api_id["database"] = self.database(api_id=1)
-                self.api_id["history"] = self.history(api_id=1)
-                self.api_id["network_broadcast"] = self.network_broadcast(
-                    api_id=1)
+            self.api_id["database"] = self.database(api_id=1)
+            self.api_id["history"] = self.history(api_id=1)
+            self.api_id["network_broadcast"] = self.network_broadcast(
+                api_id=1)
 
         """
         return self.connection.api_id
 
     def register_apis(self):  # pragma: no cover
-        """ This method is called right after connection and has previously
-            been used to register to different APIs within the backend that are
-            considered default. The requirement to register to APIs has been
-            removed in some systems.
+        """This method is called right after connection and has previously
+        been used to register to different APIs within the backend that are
+        considered default. The requirement to register to APIs has been
+        removed in some systems.
         """
         pass
 
     def __getattr__(self, name):
-        """ Proxies RPC calls to actual Websocket or Http instance.
+        """Proxies RPC calls to actual Websocket or Http instance.
 
-            Connection-related errors catched here and handled.
+        Connection-related errors catched here and handled.
         """
 
         def func(*args, **kwargs):
@@ -182,8 +180,7 @@ class Api:
                 except KeyboardInterrupt:  # pragma: no cover
                     raise
                 except RPCError as e:  # pragma: no cover
-                    """ When the backend actual returns an error
-                    """
+                    """When the backend actual returns an error"""
                     self.post_process_exception(e)
                     # the above line should raise. Let's be sure to at least
                     # break
@@ -197,8 +194,7 @@ class Api:
                     self.error_url()
                     self.next()
                 except Exception as e:  # pragma: no cover
-                    """ When something fails talking to the backend
-                    """
+                    """When something fails talking to the backend"""
                     import traceback
 
                     log.debug(traceback.format_exc())

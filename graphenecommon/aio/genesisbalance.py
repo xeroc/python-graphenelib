@@ -8,18 +8,18 @@ from ..genesisbalance import (
 
 
 class GenesisBalance(BlockchainObject, SyncGenesisBalance):
-    """ Deals with Assets of the network.
+    """Deals with Assets of the network.
 
-        :param str Asset: Symbol name or object id of an asset
-        :param bool lazy: Lazy loading
-        :param bool full: Also obtain bitasset-data and dynamic asset data
-        :param instance blockchain_instance: instance to use when accesing a RPC
-        :returns: All data of an asset
-        :rtype: dict
+    :param str Asset: Symbol name or object id of an asset
+    :param bool lazy: Lazy loading
+    :param bool full: Also obtain bitasset-data and dynamic asset data
+    :param instance blockchain_instance: instance to use when accesing a RPC
+    :returns: All data of an asset
+    :rtype: dict
 
-        .. note:: This class comes with its own caching function to reduce the
-                  load on the API server. Instances of this class can be
-                  refreshed with ``Asset.refresh()``.
+    .. note:: This class comes with its own caching function to reduce the
+              load on the API server. Instances of this class can be
+              refreshed with ``Asset.refresh()``.
     """
 
     async def __init__(self, *args, **kwargs):
@@ -42,12 +42,12 @@ class GenesisBalance(BlockchainObject, SyncGenesisBalance):
         )
 
     async def claim(self, account=None, **kwargs):
-        """ Claim a balance from the genesis block
+        """Claim a balance from the genesis block
 
-            :param str balance_id: The identifier that identifies the balance
-                to claim (1.15.x)
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
+        :param str balance_id: The identifier that identifies the balance
+            to claim (1.15.x)
+        :param str account: (optional) the account that owns the bet
+            (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -123,8 +123,8 @@ class GenesisBalance(BlockchainObject, SyncGenesisBalance):
 
 
 class GenesisBalances(SyncGenesisBalances):
-    """ List genesis balances that can be claimed from the
-        keys in the wallet
+    """List genesis balances that can be claimed from the
+    keys in the wallet
     """
 
     async def __init__(self, **kwargs):

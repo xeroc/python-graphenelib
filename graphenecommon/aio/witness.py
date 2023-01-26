@@ -5,10 +5,10 @@ from ..witness import Witness as SyncWitness, Witnesses as SyncWitnesses
 
 
 class Witness(BlockchainObject, SyncWitness):
-    """ Read data about a witness in the chain
+    """Read data about a witness in the chain
 
-        :param str account_name: Name of the witness
-        :param instance blockchain_instance: instance to use when accesing a RPC
+    :param str account_name: Name of the witness
+    :param instance blockchain_instance: instance to use when accesing a RPC
 
     """
 
@@ -70,11 +70,11 @@ class Witness(BlockchainObject, SyncWitness):
 
 
 class Witnesses(BlockchainObjects, SyncWitnesses):
-    """ Obtain a list of **active** witnesses and the current schedule
+    """Obtain a list of **active** witnesses and the current schedule
 
-        :param bool only_active: (False) Only return witnesses that are
-            actively producing blocks
-        :param instance blockchain_instance: instance to use when accesing a RPC
+    :param bool only_active: (False) Only return witnesses that are
+        actively producing blocks
+    :param instance blockchain_instance: instance to use when accesing a RPC
     """
 
     async def __init__(self, *args, only_active=False, lazy=False, **kwargs):

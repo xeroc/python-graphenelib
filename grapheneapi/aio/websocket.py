@@ -30,7 +30,7 @@ class Websocket(Rpc):
             await self.ws.close()
 
     async def _parsing_wrapper(self):
-        """ Wraps parse_messages() coroutine to retrieve and handle exceptions
+        """Wraps parse_messages() coroutine to retrieve and handle exceptions
 
         When parse_messages() stopped for any reason, websocket transport should be
         stopped, and get_response_by_id() should be notified about broken parser
@@ -52,12 +52,12 @@ class Websocket(Rpc):
             self._event.set()
 
     async def parse_messages(self):
-        """ Listen websocket for incoming messages in infinity manner
+        """Listen websocket for incoming messages in infinity manner
 
-            Messages which are responses (has id) are stored in dict, while
-            messages which are notifies are stored in asyncio queue and are
-            supposed to be processed later by whom who sets the subscribtion
-            callback
+        Messages which are responses (has id) are stored in dict, while
+        messages which are notifies are stored in asyncio queue and are
+        supposed to be processed later by whom who sets the subscribtion
+        callback
         """
 
         async for message in self.ws:
@@ -97,9 +97,9 @@ class Websocket(Rpc):
                 await self.notifications.put(m)
 
     async def get_response_by_id(self, request_id):
-        """ Pop response from dict containing all query results
+        """Pop response from dict containing all query results
 
-            :param int request_id: request id to get response to
+        :param int request_id: request id to get response to
         """
         response = None
         while not response:
@@ -114,10 +114,10 @@ class Websocket(Rpc):
         return response
 
     async def rpcexec(self, payload):
-        """ Execute a RPC call
+        """Execute a RPC call
 
-            :param dict payload: json-rpc request in format:
-                {"jsonrpc": "2.0", "method": "call", "params": "[x, y, z]", "id": 1}
+        :param dict payload: json-rpc request in format:
+            {"jsonrpc": "2.0", "method": "call", "params": "[x, y, z]", "id": 1}
         """
         if not self.ws:
             await self.connect()

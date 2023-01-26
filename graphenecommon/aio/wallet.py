@@ -9,38 +9,37 @@ log = logging.getLogger(__name__)
 
 
 class Wallet(SyncWallet):
-    """ The wallet is meant to maintain access to private keys for
-        your accounts. It either uses manually provided private keys
-        or uses a SQLite database managed by storage.py.
+    """The wallet is meant to maintain access to private keys for
+    your accounts. It either uses manually provided private keys
+    or uses a SQLite database managed by storage.py.
 
-        :param array,dict,string keys: Predefine the wif keys to shortcut the
-               wallet database
+    :param array,dict,string keys: Predefine the wif keys to shortcut the
+           wallet database
 
-        .. note:: Wallet should be instantiated synchroously e.g.
+    .. note:: Wallet should be instantiated synchroously e.g.
 
-        .. code-block:: python
+    .. code-block:: python
 
-            w = Wallet()
+        w = Wallet()
 
-        Three wallet operation modes are possible:
+    Three wallet operation modes are possible:
 
-        * **Wallet Database**: Here, the library loads the keys from the
-          locally stored wallet SQLite database (see ``storage.py``).
-        * **Providing Keys**: Here, you can provide the keys for
-          your accounts manually. All you need to do is add the wif
-          keys for the accounts you want to use as a simple array
-          using the ``keys`` parameter to your blockchain instance.
-        * **Force keys**: This more is for advanced users and
-          requires that you know what you are doing. Here, the
-          ``keys`` parameter is a dictionary that overwrite the
-          ``active``, ``owner``, ``posting`` or ``memo`` keys for
-          any account. This mode is only used for *foreign*
-          signatures!
+    * **Wallet Database**: Here, the library loads the keys from the
+      locally stored wallet SQLite database (see ``storage.py``).
+    * **Providing Keys**: Here, you can provide the keys for
+      your accounts manually. All you need to do is add the wif
+      keys for the accounts you want to use as a simple array
+      using the ``keys`` parameter to your blockchain instance.
+    * **Force keys**: This more is for advanced users and
+      requires that you know what you are doing. Here, the
+      ``keys`` parameter is a dictionary that overwrite the
+      ``active``, ``owner``, ``posting`` or ``memo`` keys for
+      any account. This mode is only used for *foreign*
+      signatures!
     """
 
     async def getOwnerKeyForAccount(self, name):
-        """ Obtain owner Private Key for an account from the wallet database
-        """
+        """Obtain owner Private Key for an account from the wallet database"""
         account = await self.rpc.get_account(name)
         for authority in account["owner"]["key_auths"]:
             key = self.getPrivateKeyForPublicKey(authority[0])
@@ -49,8 +48,7 @@ class Wallet(SyncWallet):
         raise KeyNotFound
 
     async def getMemoKeyForAccount(self, name):
-        """ Obtain owner Memo Key for an account from the wallet database
-        """
+        """Obtain owner Memo Key for an account from the wallet database"""
         account = await self.rpc.get_account(name)
         key = self.getPrivateKeyForPublicKey(account["options"]["memo_key"])
         if key:
@@ -58,8 +56,7 @@ class Wallet(SyncWallet):
         return False
 
     async def getActiveKeyForAccount(self, name):
-        """ Obtain owner Active Key for an account from the wallet database
-        """
+        """Obtain owner Active Key for an account from the wallet database"""
         account = await self.rpc.get_account(name)
         for authority in account["active"]["key_auths"]:
             try:
@@ -69,15 +66,13 @@ class Wallet(SyncWallet):
         return False
 
     async def getAccountsFromPublicKey(self, pub):
-        """ Obtain all accounts associated with a public key
-        """
+        """Obtain all accounts associated with a public key"""
         result = await self.rpc.get_key_references([str(pub)])
         names = result[0]
         return names
 
     async def getAccountFromPublicKey(self, pub):
-        """ Obtain the first account name from public key
-        """
+        """Obtain the first account name from public key"""
         # FIXME, this only returns the first associated key.
         # If the key is used by multiple accounts, this
         # will surely lead to undesired behavior
@@ -86,8 +81,7 @@ class Wallet(SyncWallet):
             return names[0]
 
     async def getAccounts(self):
-        """ Return all accounts installed in the wallet database
-        """
+        """Return all accounts installed in the wallet database"""
         pubkeys = self.getPublicKeys()
         accounts = []
         for pubkey in pubkeys:

@@ -8,9 +8,9 @@ from ..amount import Amount as SyncAmount
 @asyncinit
 class Amount(SyncAmount):
     async def __init__(self, *args, **kwargs):
-        """ Async version of :class:`..amount.Amount`
+        """Async version of :class:`..amount.Amount`
 
-            Limitations: most of arithmetic operations are not supported on async version
+        Limitations: most of arithmetic operations are not supported on async version
         """
         self.define_classes()
         assert self.asset_class
@@ -92,8 +92,7 @@ class Amount(SyncAmount):
         self["amount"] = float(self.get("amount", 0.0))
 
     async def copy(self):
-        """ Copy the instance and make sure not to use a reference
-        """
+        """Copy the instance and make sure not to use a reference"""
         return await self.__class__(
             amount=self["amount"],
             asset=self["asset"].copy(),
@@ -102,8 +101,7 @@ class Amount(SyncAmount):
 
     @property
     async def asset(self):
-        """ Returns the asset as instance of :class:`.asset.Asset`
-        """
+        """Returns the asset as instance of :class:`.asset.Asset`"""
         if not self["asset"]:
             self["asset"] = await self.asset_class(
                 self["symbol"], blockchain_instance=self.blockchain

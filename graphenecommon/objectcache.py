@@ -36,9 +36,9 @@ class ObjectCacheInterface:
 
 
 class ObjectCacheInMemory(ExpiringDict, ObjectCacheInterface):
-    """ This class implements an object/dict cache that comes with an
-        expiration. Expired items are removed from the cache. The cache has a
-        max_length.
+    """This class implements an object/dict cache that comes with an
+    expiration. Expired items are removed from the cache. The cache has a
+    max_length.
     """
 
     def __init__(
@@ -64,11 +64,9 @@ class ObjectCacheInMemory(ExpiringDict, ObjectCacheInterface):
         )
 
     def set_expiration(self, expiration):
-        """ Set new default expiration time in seconds (default: 10s)
-        """
+        """Set new default expiration time in seconds (default: 10s)"""
         self.default_expiration = expiration
 
     def get_expiration(self):
-        """ Return the default expiration
-        """
+        """Return the default expiration"""
         return self.default_expiration

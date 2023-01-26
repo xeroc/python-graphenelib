@@ -6,41 +6,41 @@ from .instance import AbstractBlockchainInstanceProvider
 
 
 class Memo(AbstractBlockchainInstanceProvider):
-    """ Deals with Memos that are attached to a transfer
+    """Deals with Memos that are attached to a transfer
 
-        :param .account.Account from_account: Account that has sent
-            the memo
-        :param .account.Account to_account: Account that has received
-            the memo
-        :param instance blockchain_instance: instance to use when accesing a RPC
+    :param .account.Account from_account: Account that has sent
+        the memo
+    :param .account.Account to_account: Account that has received
+        the memo
+    :param instance blockchain_instance: instance to use when accesing a RPC
 
-        A memo is encrypted with a shared secret derived from a private key of
-        the sender and a public key of the receiver. Due to the underlying
-        mathematics, the same shared secret can be derived by the private key
-        of the receiver and the public key of the sender. The encrypted message
-        is perturbed by a nonce that is part of the transmitted message.
+    A memo is encrypted with a shared secret derived from a private key of
+    the sender and a public key of the receiver. Due to the underlying
+    mathematics, the same shared secret can be derived by the private key
+    of the receiver and the public key of the sender. The encrypted message
+    is perturbed by a nonce that is part of the transmitted message.
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from .memo import Memo
-            m = Memo("from-account", "to-account")
-            m.blockchain.wallet.unlock("secret")
-            enc = (m.encrypt("foobar"))
-            print(enc)
-            >> {'nonce': '17329630356955254641', 'message': '8563e2bb2976e0217806d642901a2855'}
-            print(m.decrypt(enc))
-            >> foobar
+        from .memo import Memo
+        m = Memo("from-account", "to-account")
+        m.blockchain.wallet.unlock("secret")
+        enc = (m.encrypt("foobar"))
+        print(enc)
+        >> {'nonce': '17329630356955254641', 'message': '8563e2bb2976e0217806d642901a2855'}
+        print(m.decrypt(enc))
+        >> foobar
 
-        To decrypt a memo, simply use
+    To decrypt a memo, simply use
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from memo import Memo
-            m = Memo()
-            m.blockchain.wallet.unlock("secret")
-            print(memo.decrypt(op_data["memo"]))
+        from memo import Memo
+        m = Memo()
+        m.blockchain.wallet.unlock("secret")
+        print(memo.decrypt(op_data["memo"]))
 
-        if ``op_data`` being the payload of a transfer operation.
+    if ``op_data`` being the payload of a transfer operation.
 
     """
 
@@ -60,17 +60,16 @@ class Memo(AbstractBlockchainInstanceProvider):
             )
 
     def unlock_wallet(self, *args, **kwargs):
-        """ Unlock the library internal wallet
-        """
+        """Unlock the library internal wallet"""
         self.blockchain.wallet.unlock(*args, **kwargs)
         return self
 
     def encrypt(self, message):
-        """ Encrypt a memo
+        """Encrypt a memo
 
-            :param str message: clear text memo message
-            :returns: encrypted message
-            :rtype: str
+        :param str message: clear text memo message
+        :returns: encrypted message
+        :rtype: str
         """
         if not message:
             return None
@@ -112,11 +111,11 @@ class Memo(AbstractBlockchainInstanceProvider):
         }
 
     def decrypt(self, message):
-        """ Decrypt a message
+        """Decrypt a message
 
-            :param dict message: encrypted memo message
-            :returns: decrypted message
-            :rtype: str
+        :param dict message: encrypted memo message
+        :returns: decrypted message
+        :rtype: str
         """
         if not message:
             return None

@@ -38,13 +38,13 @@ class SaltException(Exception):
 
 
 def _encrypt_xor(a, b, aes):
-    """ Returns encrypt(a ^ b). """
+    """Returns encrypt(a ^ b)."""
     a = unhexlify("%0.32x" % (int((a), 16) ^ int(hexlify(b), 16)))
     return aes.encrypt(a)
 
 
 def encrypt(privkey, passphrase):
-    """ BIP0038 non-ec-multiply encryption. Returns BIP0038 encrypted privkey.
+    """BIP0038 non-ec-multiply encryption. Returns BIP0038 encrypted privkey.
 
     :param privkey: Private key
     :type privkey: Base58

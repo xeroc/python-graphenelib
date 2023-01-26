@@ -78,8 +78,7 @@ def compressedPubkey(pk):
 
 
 def recover_public_key(digest, signature, i, message=None):
-    """ Recover the public key from the the signature
-    """
+    """Recover the public key from the the signature"""
 
     # See http: //www.secg.org/download/aid-780/sec1-v2.pdf section 4.1.6 primarily
     curve = ecdsa.SECP256k1.curve
@@ -124,8 +123,8 @@ def recover_public_key(digest, signature, i, message=None):
 
 
 def recoverPubkeyParameter(message, digest, signature, pubkey):
-    """ Use to derive a number that allows to easily recover the
-        public key from the signature
+    """Use to derive a number that allows to easily recover the
+    public key from the signature
     """
     if not isinstance(message, bytes):
         message = bytes(message, "utf-8")  # pragma: no cover
@@ -154,9 +153,9 @@ def recoverPubkeyParameter(message, digest, signature, pubkey):
 
 
 def sign_message(message, wif, hashfn=hashlib.sha256):
-    """ Sign a digest with a wif key
+    """Sign a digest with a wif key
 
-        :param str wif: Private key in
+    :param str wif: Private key in
     """
 
     if not isinstance(message, bytes):

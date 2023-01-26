@@ -3,18 +3,17 @@ import types
 
 
 class SharedInstance:
-    """ This class merely offers a singelton for the Blockchain Instance
-    """
+    """This class merely offers a singelton for the Blockchain Instance"""
 
     instance = None
     config = {}
 
 
 class AbstractBlockchainInstanceProvider:
-    """ This is a class that allows compatibility with previous
-        naming conventions. It will extract 'blockchain_instance'
-        from the key word arguments and ensure that self.blockchain
-        contains an instance of the main chain instance
+    """This is a class that allows compatibility with previous
+    naming conventions. It will extract 'blockchain_instance'
+    from the key word arguments and ensure that self.blockchain
+    contains an instance of the main chain instance
     """
 
     _sharedInstance = SharedInstance
@@ -42,13 +41,11 @@ class AbstractBlockchainInstanceProvider:
         return NewClass
 
     def get_instance_class(self):
-        """ Should return the Chain instance class, e.g. `bitshares.BitShares`
-        """
+        """Should return the Chain instance class, e.g. `bitshares.BitShares`"""
         raise NotImplementedError
 
     def define_classes(self):
-        """ Needs to define instance variables that provide classes
-        """
+        """Needs to define instance variables that provide classes"""
         raise NotImplementedError
 
     @property
@@ -61,14 +58,13 @@ class AbstractBlockchainInstanceProvider:
 
     @property
     def chain(self):
-        """ Short form for blockchain (for the lazy)
-        """
+        """Short form for blockchain (for the lazy)"""
         return self.blockchain
 
     def shared_blockchain_instance(self):
-        """ This method will initialize ``SharedInstance.instance`` and return it.
-            The purpose of this method is to have offer single default
-            instance that can be reused by multiple classes.
+        """This method will initialize ``SharedInstance.instance`` and return it.
+        The purpose of this method is to have offer single default
+        instance that can be reused by multiple classes.
         """
         if not self._sharedInstance.instance:
             klass = self.get_instance_class()
@@ -77,10 +73,10 @@ class AbstractBlockchainInstanceProvider:
 
     @classmethod
     def set_shared_blockchain_instance(cls, instance):
-        """ This method allows us to override default instance for all
-            users of ``SharedInstance.instance``.
+        """This method allows us to override default instance for all
+        users of ``SharedInstance.instance``.
 
-            :param chaininstance instance: Chain instance
+        :param chaininstance instance: Chain instance
         """
         cls._sharedInstance.instance = instance
 
@@ -88,15 +84,14 @@ class AbstractBlockchainInstanceProvider:
     # Shared instance interface
     # -------------------------------------------------------------------------
     def set_shared_instance(self):
-        """ This method allows to set the current instance as default
-        """
+        """This method allows to set the current instance as default"""
         self._sharedInstance.instance = self
 
     @classmethod
     def set_shared_config(cls, config):
-        """ This allows to set a config that will be used when calling
-            ``shared_blockchain_instance`` and allows to define the configuration
-            without requiring to actually create an instance
+        """This allows to set a config that will be used when calling
+        ``shared_blockchain_instance`` and allows to define the configuration
+        without requiring to actually create an instance
         """
         assert isinstance(config, dict)
         cls._sharedInstance.config.update(config)

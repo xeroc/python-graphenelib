@@ -10,21 +10,21 @@ log = logging.getLogger(__name__)
 
 
 class Rpc:
-    """ This class allows to call API methods synchronously, without
-        callbacks.
+    """This class allows to call API methods synchronously, without
+    callbacks.
 
-        :param str url: A single REST endpoint URL
-        :param int num_retries: Try x times to num_retries to a node on
-               disconnect, -1 for indefinitely
-        :param str proxy: Proxy URL (e.g. socks5://localhost:9050),
-               None by default.
+    :param str url: A single REST endpoint URL
+    :param int num_retries: Try x times to num_retries to a node on
+           disconnect, -1 for indefinitely
+    :param str proxy: Proxy URL (e.g. socks5://localhost:9050),
+           None by default.
 
-        Usage:
+    Usage:
 
-        .. code-block:: python
+    .. code-block:: python
 
-            ws = GrapheneHTTPRPC("https://api.node.com")
-            print(ws.get_account_count())
+        ws = GrapheneHTTPRPC("https://api.node.com")
+        print(ws.get_account_count())
 
     """
 
@@ -118,9 +118,11 @@ class Rpc:
         else:
             return ret["result"]
 
+    def rpcexec(*args, **kwargs):
+        raise Exception("Do not use RPC class directly, but Http or Websocket")
+
     def __getattr__(self, name):
-        """ Map all methods to RPC calls and pass through the arguments
-        """
+        """Map all methods to RPC calls and pass through the arguments"""
 
         def method(*args, **kwargs):
 
@@ -145,8 +147,10 @@ class Rpc:
                 "jsonrpc": "2.0",
                 "id": self.get_request_id(),
             }
-            r = self.rpcexec(query)
-            message = self.parse_response(r)
+            log.debug(json.dumps(query))
+            response = self.rpcexec(query)
+            log.debug(json.dumps(response))
+            message = self.parse_response(response)
             return message
 
         return method

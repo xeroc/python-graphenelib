@@ -16,10 +16,10 @@ class Rpc(SyncRpc):
         self.loop = kwargs.get(loop, asyncio.get_event_loop())
 
     def __getattr__(self, name):
-        """ Map all methods to RPC calls and pass through the arguments
+        """Map all methods to RPC calls and pass through the arguments
 
-            This method is actually defined in RPC class, but we need to
-            overwrite this here so that we can use async/await.
+        This method is actually defined in RPC class, but we need to
+        overwrite this here so that we can use async/await.
         """
 
         async def method(*args, **kwargs):

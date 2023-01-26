@@ -11,8 +11,7 @@ timeformat = "%Y-%m-%dT%H:%M:%S%Z"
 
 
 def varint(n):
-    """ Varint encoding
-    """
+    """Varint encoding"""
     data = b""
     while n >= 0x80:
         data += bytes([(n & 0x7F) | 0x80])
@@ -22,8 +21,7 @@ def varint(n):
 
 
 def varintdecode(data):  # pragma: no cover
-    """ Varint decoding
-    """
+    """Varint decoding"""
     shift = 0
     result = 0
     for b in bytes(data):
@@ -35,13 +33,12 @@ def varintdecode(data):  # pragma: no cover
 
 
 def variable_buffer(s):
-    """ Encode variable length buffer
-    """
+    """Encode variable length buffer"""
     return varint(len(s)) + s
 
 
 def JsonObj(data):
-    """ Return json object from data
+    """Return json object from data
 
     If data has a __json__() method, use that, else assume it follows the
     convention that its string representation is interprettable as valid json.
@@ -359,8 +356,7 @@ class VoteId:
 
 
 class ObjectId:
-    """ Encodes protocol ids - serializes to the *instance* only!
-    """
+    """Encodes protocol ids - serializes to the *instance* only!"""
 
     object_types = object_type
 
@@ -391,8 +387,7 @@ class ObjectId:
 
 
 class FullObjectId:
-    """ Encodes object ids - serializes to a full object id
-    """
+    """Encodes object ids - serializes to a full object id"""
 
     def __init__(self, object_str):
         if len(object_str.split(".")) == 3:

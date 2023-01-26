@@ -32,8 +32,7 @@ class Api(SyncApi):
         return self._chain_props
 
     async def cache_chain_properties(self):
-        """ Cache chain properties to prevent turning lots of methods into async
-        """
+        """Cache chain properties to prevent turning lots of methods into async"""
         self._chain_props = await self.get_chain_properties()
 
     def get_cached_chain_properties(self):
@@ -58,8 +57,7 @@ class Api(SyncApi):
         await self.connect()
 
     async def find_next(self):
-        """ Find the next url in the list
-        """
+        """Find the next url in the list"""
         if int(self.num_retries) < 0:  # pragma: no cover
             self._cnt_retries += 1
             sleeptime = (self._cnt_retries - 1) * 2 if self._cnt_retries < 10 else 10
@@ -103,8 +101,7 @@ class Api(SyncApi):
                 except KeyboardInterrupt:  # pragma: no cover
                     raise
                 except RPCError as e:  # pragma: no cover
-                    """ When the backend actual returns an error
-                    """
+                    """When the backend actual returns an error"""
                     self.post_process_exception(e)
                     # the above line should raise. Let's be sure to at least
                     # break
@@ -118,8 +115,7 @@ class Api(SyncApi):
                     self.error_url()
                     self.next()
                 except Exception as e:  # pragma: no cover
-                    """ When something fails talking to the backend
-                    """
+                    """When something fails talking to the backend"""
                     import traceback
 
                     log.debug(traceback.format_exc())

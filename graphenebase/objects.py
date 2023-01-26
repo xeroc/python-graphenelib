@@ -35,9 +35,9 @@ from .operationids import operations
 
 
 class Operation(list):
-    """ The superclass for an operation. This class i used to instanciate an
-        operation, identify the operationid/name and serialize the operation
-        into bytes.
+    """The superclass for an operation. This class i used to instanciate an
+    operation, identify the operationid/name and serialize the operation
+    into bytes.
     """
 
     module = "graphenebase.operations"
@@ -145,8 +145,7 @@ class Operation(list):
         return self.ops[name]
 
     def getOperationNameForId(self, i):
-        """ Convert an operation id into the corresponding string
-        """
+        """Convert an operation id into the corresponding string"""
         for key in self.ops:
             if int(self.ops[key]) is int(i):
                 return key
@@ -157,13 +156,13 @@ class Operation(list):
 
 
 class GrapheneObject(OrderedDict):
-    """ Core abstraction class
+    """Core abstraction class
 
-        This class is used for any JSON reflected object in Graphene.
+    This class is used for any JSON reflected object in Graphene.
 
-        * ``instance.__json__()``: encodes data into json format
-        * ``bytes(instance)``: encodes data into wire format
-        * ``str(instances)``: dumps json object as string
+    * ``instance.__json__()``: encodes data into json format
+    * ``bytes(instance)``: encodes data into wire format
+    * ``str(instances)``: dumps json object as string
 
     """
 
@@ -224,14 +223,12 @@ class GrapheneObject(OrderedDict):
     # Legacy support
     @property
     def data(self):  # pragma: no cover
-        """ Read data explicitly (backwards compatibility)
-        """
+        """Read data explicitly (backwards compatibility)"""
         return self
 
     @data.setter
     def data(self, data):  # pragma: no cover
-        """ Set data through a setter (backwards compatibility)
-        """
+        """Set data through a setter (backwards compatibility)"""
         self.update(data)
 
     toJson = __json__

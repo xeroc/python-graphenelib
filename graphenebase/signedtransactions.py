@@ -31,14 +31,14 @@ class MissingSignatureForKey(Exception):
 
 
 class Signed_Transaction(GrapheneObject):
-    """ Create a signed transaction and offer method to create the
-        signature
+    """Create a signed transaction and offer method to create the
+    signature
 
-        :param num refNum: parameter ref_block_num (see ``getBlockParams``)
-        :param num refPrefix: parameter ref_block_prefix (see
-            ``getBlockParams``)
-        :param str expiration: expiration date
-        :param Array operations:  array of operations
+    :param num refNum: parameter ref_block_num (see ``getBlockParams``)
+    :param num refPrefix: parameter ref_block_prefix (see
+        ``getBlockParams``)
+    :param str expiration: expiration date
+    :param Array operations:  array of operations
     """
 
     known_chains = known_chains
@@ -82,8 +82,7 @@ class Signed_Transaction(GrapheneObject):
 
     @property
     def id(self):
-        """ The transaction id of this transaction
-        """
+        """The transaction id of this transaction"""
         # Store signatures temporarily since they are not part of
         # transaction id
         sigs = self.data["signatures"]
@@ -177,10 +176,10 @@ class Signed_Transaction(GrapheneObject):
         return pubKeysFound
 
     def sign(self, wifkeys, chain=None):
-        """ Sign the transaction with the provided private keys.
+        """Sign the transaction with the provided private keys.
 
-            :param array wifkeys: Array of wif keys
-            :param str chain: identifier for the chain
+        :param array wifkeys: Array of wif keys
+        :param str chain: identifier for the chain
 
         """
         if not chain:

@@ -5,22 +5,22 @@ from ..exceptions import BlockDoesNotExistsException
 
 
 class Block(BlockchainObject, SyncBlock):
-    """ Read a single block from the chain
+    """Read a single block from the chain
 
-        :param int block: block number
-        :param instance blockchain_instance: instance to use when accesing a RPC
-        :param bool lazy: Use lazy loading
-        :param loop: asyncio event loop
+    :param int block: block number
+    :param instance blockchain_instance: instance to use when accesing a RPC
+    :param bool lazy: Use lazy loading
+    :param loop: asyncio event loop
 
-        Instances of this class are dictionaries that come with additional
-        methods (see below) that allow dealing with a block and it's
-        corresponding functions.
+    Instances of this class are dictionaries that come with additional
+    methods (see below) that allow dealing with a block and it's
+    corresponding functions.
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from aio.block import Block
-            block = await Block(1)
-            print(block)
+        from aio.block import Block
+        block = await Block(1)
+        print(block)
     """
 
     async def __init__(self, *args, use_cache=False, **kwargs):
@@ -31,8 +31,8 @@ class Block(BlockchainObject, SyncBlock):
         await BlockchainObject.__init__(self, *args, **kwargs)
 
     async def refresh(self):
-        """ Even though blocks never change, you freshly obtain its contents
-            from an API with this method
+        """Even though blocks never change, you freshly obtain its contents
+        from an API with this method
         """
         block = await self.blockchain.rpc.get_block(self.identifier)
         if not block:
@@ -51,8 +51,8 @@ class BlockHeader(BlockchainObject, SyncBlockHeader):
         await BlockchainObject.__init__(self, *args, **kwargs)
 
     async def refresh(self):
-        """ Even though blocks never change, you freshly obtain its contents
-            from an API with this method
+        """Even though blocks never change, you freshly obtain its contents
+        from an API with this method
         """
         block = await self.blockchain.rpc.get_block_header(self.identifier)
         if not block:

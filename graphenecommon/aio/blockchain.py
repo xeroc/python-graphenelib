@@ -6,16 +6,16 @@ from ..blockchain import Blockchain as SyncBlockchain
 
 @asyncinit
 class Blockchain(SyncBlockchain):
-    """ This class allows to access the blockchain and read data
-        from it
+    """This class allows to access the blockchain and read data
+    from it
 
-        :param instance blockchain_instance: instance to use when accesing a RPC
-        :param str mode: (default) Irreversible block (``irreversible``) or
-                 actual head block (``head``)
-        :param int max_block_wait_repetition: (default) 3 maximum wait time for
-            next block ismax_block_wait_repetition * block_interval
+    :param instance blockchain_instance: instance to use when accesing a RPC
+    :param str mode: (default) Irreversible block (``irreversible``) or
+             actual head block (``head``)
+    :param int max_block_wait_repetition: (default) 3 maximum wait time for
+        next block ismax_block_wait_repetition * block_interval
 
-        This class let's you deal with blockchain related data and methods.
+    This class let's you deal with blockchain related data and methods.
     """
 
     async def __init__(self, *args, **kwargs):
@@ -23,13 +23,12 @@ class Blockchain(SyncBlockchain):
         super().__init__(*args, **kwargs)
 
     async def info(self):
-        """ This call returns the *dynamic global properties*
-        """
+        """This call returns the *dynamic global properties*"""
         return await self.blockchain.rpc.get_dynamic_global_properties()
 
     async def chainParameters(self):
-        """ The blockchain parameters, such as fees, and committee-controlled
-            parameters are returned here
+        """The blockchain parameters, such as fees, and committee-controlled
+        parameters are returned here
         """
         if not self._parameters:
             await self.update_chain_parameters()
@@ -40,74 +39,71 @@ class Blockchain(SyncBlockchain):
         self._parameters = config["parameters"]
 
     def get_network(self):
-        """ Identify the network
+        """Identify the network
 
-            :returns: Network parameters
-            :rtype: dict
+        :returns: Network parameters
+        :rtype: dict
         """
         return self.blockchain.rpc.get_network()
 
     async def get_chain_properties(self):
-        """ Return chain properties
-        """
+        """Return chain properties"""
         return await self.blockchain.rpc.get_chain_properties()
 
     async def config(self):
-        """ Returns object 2.0.0
-        """
+        """Returns object 2.0.0"""
         return await self.blockchain.rpc.get_object("2.0.0")
 
     async def get_current_block_num(self):
-        """ This call returns the current block
+        """This call returns the current block
 
-            .. note:: The block number returned depends on the ``mode`` used
-                      when instanciating from this class.
+        .. note:: The block number returned depends on the ``mode`` used
+                  when instanciating from this class.
         """
         result = await self.info()
         return result.get(self.mode)
 
     async def get_current_block(self):
-        """ This call returns the current block
+        """This call returns the current block
 
-            .. note:: The block number returned depends on the ``mode`` used
-                      when instanciating from this class.
+        .. note:: The block number returned depends on the ``mode`` used
+                  when instanciating from this class.
         """
         return await self.block_class(
             await self.get_current_block_num(), blockchain_instance=self.blockchain
         )
 
     async def get_block_interval(self):
-        """ This call returns the block interval
-        """
+        """This call returns the block interval"""
         params = await self.chainParameters()
         return params.get("block_interval")
 
     async def block_time(self, block_num):
-        """ Returns a datetime of the block with the given block
-            number.
+        """Returns a datetime of the block with the given block
+        number.
 
-            :param int block_num: Block number
+        :param int block_num: Block number
         """
         result = await self.block_class(block_num, blockchain_instance=self.blockchain)
         return result.time()
 
     async def block_timestamp(self, block_num):
-        """ Returns the timestamp of the block with the given block
-            number.
+        """Returns the timestamp of the block with the given block
+        number.
 
-            :param int block_num: Block number
+        :param int block_num: Block number
         """
         result = await self.block_class(block_num, blockchain_instance=self.blockchain)
         return int(result.time().timestamp())
 
     async def blocks(self, start=None, stop=None):
-        """ Yields blocks starting from ``start``.
+        """Yields blocks starting from ``start``.
 
-            :param int start: Starting block
-            :param int stop: Stop at this block
-            :param str mode: We here have the choice between
-             "head" (the last block) and "irreversible" (the block that is
-             confirmed by 2/3 of all block producers and is thus irreversible)
+        :param int start: Starting block
+        :param int stop: Stop at this block
+        :param str mode: We here have the choice between
+         "head" (the last block) and "irreversible" (the block that is
+         confirmed by 2/3 of all block producers and is thus irreversible)
         """
         # Let's find out how often blocks are generated!
         self.block_interval = await self.get_block_interval()
@@ -140,15 +136,15 @@ class Blockchain(SyncBlockchain):
             await asyncio.sleep(self.block_interval)
 
     async def wait_for_and_get_block(self, block_number, blocks_waiting_for=None):
-        """ Get the desired block from the chain, if the current head block is
-            smaller (for both head and irreversible) then we wait, but a
-            maxmimum of blocks_waiting_for * max_block_wait_repetition time
-            before failure.
+        """Get the desired block from the chain, if the current head block is
+        smaller (for both head and irreversible) then we wait, but a
+        maxmimum of blocks_waiting_for * max_block_wait_repetition time
+        before failure.
 
-            :param int block_number: desired block number
-            :param int blocks_waiting_for: (default) difference between
-                block_number and current head how many blocks we are willing to
-                wait, positive int
+        :param int block_number: desired block number
+        :param int blocks_waiting_for: (default) difference between
+            block_number and current head how many blocks we are willing to
+            wait, positive int
         """
         if not blocks_waiting_for:
             blocks_waiting_for = max(
@@ -175,18 +171,18 @@ class Blockchain(SyncBlockchain):
         return block
 
     async def ops(self, start=None, stop=None, **kwargs):
-        """ Yields all operations (excluding virtual operations) starting from
-            ``start``.
+        """Yields all operations (excluding virtual operations) starting from
+        ``start``.
 
-            :param int start: Starting block
-            :param int stop: Stop at this block
-            :param str mode: We here have the choice between
-             "head" (the last block) and "irreversible" (the block that is
-             confirmed by 2/3 of all block producers and is thus irreversible)
-            :param bool only_virtual_ops: Only yield virtual operations
+        :param int start: Starting block
+        :param int stop: Stop at this block
+        :param str mode: We here have the choice between
+         "head" (the last block) and "irreversible" (the block that is
+         confirmed by 2/3 of all block producers and is thus irreversible)
+        :param bool only_virtual_ops: Only yield virtual operations
 
-            This call returns a list that only carries one operation and
-            its type!
+        This call returns a list that only carries one operation and
+        its type!
         """
 
         async for block in self.blocks(start=start, stop=stop, **kwargs):
@@ -201,20 +197,20 @@ class Blockchain(SyncBlockchain):
                     }
 
     async def stream(self, opNames=[], *args, **kwargs):
-        """ Yield specific operations (e.g. comments) only
+        """Yield specific operations (e.g. comments) only
 
-            :param array opNames: List of operations to filter for
-            :param int start: Start at this block
-            :param int stop: Stop at this block
-            :param str mode: We here have the choice between
-                 * "head": the last block
-                 * "irreversible": the block that is confirmed by 2/3 of all
-                    block producers and is thus irreversible!
+        :param array opNames: List of operations to filter for
+        :param int start: Start at this block
+        :param int stop: Stop at this block
+        :param str mode: We here have the choice between
+             * "head": the last block
+             * "irreversible": the block that is confirmed by 2/3 of all
+                block producers and is thus irreversible!
 
-            The dict output is formated such that ``type`` caries the
-            operation type, timestamp and block_num are taken from the
-            block the operation was stored in and the other key depend
-            on the actualy operation.
+        The dict output is formated such that ``type`` caries the
+        operation type, timestamp and block_num are taken from the
+        block the operation was stored in and the other key depend
+        on the actualy operation.
         """
         async for op in self.ops(**kwargs):
             if not opNames or op["op"][0] in opNames:
@@ -227,20 +223,20 @@ class Blockchain(SyncBlockchain):
                 yield r
 
     async def awaitTxConfirmation(self, transaction, limit=10):
-        """ Returns the transaction as seen by the blockchain after being
-            included into a block
+        """Returns the transaction as seen by the blockchain after being
+        included into a block
 
-            .. note:: If you want instant confirmation, you need to instantiate
-                      class:`.blockchain.Blockchain` with
-                      ``mode="head"``, otherwise, the call will wait until
-                      confirmed in an irreversible block.
+        .. note:: If you want instant confirmation, you need to instantiate
+                  class:`.blockchain.Blockchain` with
+                  ``mode="head"``, otherwise, the call will wait until
+                  confirmed in an irreversible block.
 
-            .. note:: This method returns once the blockchain has included a
-                      transaction with the **same signature**. Even though the
-                      signature is not usually used to identify a transaction,
-                      it still cannot be forfeited and is derived from the
-                      transaction contented and thus identifies a transaction
-                      uniquely.
+        .. note:: This method returns once the blockchain has included a
+                  transaction with the **same signature**. Even though the
+                  signature is not usually used to identify a transaction,
+                  it still cannot be forfeited and is derived from the
+                  transaction contented and thus identifies a transaction
+                  uniquely.
         """
         counter = 0
         async for block in self.blocks():
@@ -252,11 +248,11 @@ class Blockchain(SyncBlockchain):
                 raise Exception("The operation has not been added after 10 blocks!")
 
     async def get_all_accounts(self, start="", stop="", steps=1e3, **kwargs):
-        """ Yields account names between start and stop.
+        """Yields account names between start and stop.
 
-            :param str start: Start at this account name
-            :param str stop: Stop at this account name
-            :param int steps: Obtain ``steps`` ret with a single call from RPC
+        :param str start: Start at this account name
+        :param str stop: Stop at this account name
+        :param int steps: Obtain ``steps`` ret with a single call from RPC
         """
         lastname = start
         while True:
