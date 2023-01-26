@@ -137,9 +137,17 @@ def base58encode(hexstring):
 
 
 def ripemd160(s):
-    ripemd160 = hashlib.new("ripemd160")
-    ripemd160.update(unhexlify(s))
-    return ripemd160.digest()
+    try:
+        ripemd160 = hashlib.new("ripemd160")
+        ripemd160.update(unhexlify(s))
+        return ripemd160.digest()
+    except ValueError:
+        # ripemd160 is not guaranteed to be available in hashlib on all platforms.
+        # See for reference https://github.com/bitcoin/bitcoin/issues/23710
+        # We bundle a pure python implementation as fallback that gets used now:
+        from .ripemd160 import ripemd160
+
+        return ripemd160(unhexlify(s))
 
 
 def doublesha256(s):
