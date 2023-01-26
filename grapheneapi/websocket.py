@@ -33,7 +33,7 @@ class Websocket(Rpc):
             if self.proxy_user
             else None,
             proxy_type=self.proxy_type,
-            timeout=30
+            timeout=30,
         )
 
         if self.user and self.password:
@@ -59,8 +59,6 @@ class Websocket(Rpc):
         """
         if not self.ws:  # pragma: no cover
             self.connect()
-
-        log.debug(json.dumps(payload))
 
         # Mutex/Lock
         # We need to lock because we need to wait for websocket

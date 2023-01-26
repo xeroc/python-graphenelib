@@ -31,7 +31,7 @@ class Http(Rpc):
 
         return self.__request_session
 
-    def rpcexec(self, payload):
+    def rpcexec(self, payload, retry=None):
         """Execute a call by sending the payload
 
         :param json payload: Payload data
@@ -40,12 +40,13 @@ class Http(Rpc):
         :raises HttpInvalidStatusCode: if the server returns a status code
             that is not 200
         """
-        log.debug(json.dumps(payload))
         try:
             query = self.get_request_session().post(self.url, json=payload)
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
+            if not retry:
+                raise e
             self.__request_session = None
-            return self.rpcexec(payload)
+            return self.rpcexec(payload, retry=False)
         if query.status_code != 200:  # pragma: no cover
             raise HttpInvalidStatusCode(
                 "Status code returned: {}".format(query.status_code)
