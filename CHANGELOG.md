@@ -3,6 +3,23 @@ Note: version releases in the 0.x.y range may introduce breaking changes.
 
 <!--next-version-placeholder-->
 
+## v1.6.0 (2023-01-26)
+### Feature
+* **py3.6:** Remove python3.6. support ([`d2210b6`](https://github.com/xeroc/python-graphenelib/commit/d2210b602c9ec8ed574515914d84915d22694933))
+
+### Fix
+* Add fallback for ripemd160 failing in openssl ([`27ba578`](https://github.com/xeroc/python-graphenelib/commit/27ba5789aa402588f2cf0ca6abca5b2cce746812))
+* Remove python3.7 from tests ([`48b4131`](https://github.com/xeroc/python-graphenelib/commit/48b41317716be93fe2a282bcd2c5a63c23c18e77))
+* Resolve infinite loop ([`647fe0e`](https://github.com/xeroc/python-graphenelib/commit/647fe0e615987959d52472150b01a2040bc25188))
+* Only change cache once ([`8475157`](https://github.com/xeroc/python-graphenelib/commit/84751577d41648b2f81cd534a2bd8b6e9c6d83d9))
+* Store items duplicate check ([`8042015`](https://github.com/xeroc/python-graphenelib/commit/80420159a4bd75dfe54f1ca8c691d1319b1d15e7))
+* **http:** Make use of http-keep alive ([`0b9131c`](https://github.com/xeroc/python-graphenelib/commit/0b9131c26a3a4c5a6d5c4ccabfb002088043dc70))
+* Do not use negative instance numbers ([`7ff7452`](https://github.com/xeroc/python-graphenelib/commit/7ff745258f26681cdd872f3eb1ba7b2d0f80d6fc))
+
+### Documentation
+* Update docs ([`cb608fc`](https://github.com/xeroc/python-graphenelib/commit/cb608fcdcb18e8a93a6461994b325f34a9e9d3b6))
+* Linting ([`2d26fe8`](https://github.com/xeroc/python-graphenelib/commit/2d26fe89834a79b801ee5219c75936e74b34cda1))
+
 ## v1.5.4 (2022-05-13)
 ### Fix
 * Empty commit to trigger release ([`e3498fd`](https://github.com/xeroc/python-graphenelib/commit/e3498fd01c2b1e315bc44911a71375afcae9601e))
