@@ -20,6 +20,7 @@ Submodules
    graphenebase.operationids
    graphenebase.operations
    graphenebase.prefix
+   graphenebase.ripemd160
    graphenebase.signedtransactions
    graphenebase.transactions
    graphenebase.types
