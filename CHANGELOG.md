@@ -3,6 +3,13 @@ Note: version releases in the 0.x.y range may introduce breaking changes.
 
 <!--next-version-placeholder-->
 
+## v1.5.4 (2022-05-13)
+### Fix
+* Empty commit to trigger release ([`e3498fd`](https://github.com/xeroc/python-graphenelib/commit/e3498fd01c2b1e315bc44911a71375afcae9601e))
+
+### Documentation
+* Release flow and conventional commits ([`a75a1f6`](https://github.com/xeroc/python-graphenelib/commit/a75a1f69ce3d55f4804c969f366b1c429693bee1))
+
 ## v1.5.3 (2022-05-13)
 ### Fix
 * Setup.cfg lib should work with >=3.6 too ([`1023aa3`](https://github.com/xeroc/python-graphenelib/commit/1023aa30d07901339e4db6c7c536993e7501c3da))
