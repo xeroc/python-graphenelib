@@ -325,7 +325,7 @@ class Map:
     def __str__(self):
         r = []
         for e in self.data:
-            r.append([str(e[0]), str(e[1])])
+            r.append([JsonObj(e[0]), JsonObj(e[1])])
         return json.dumps(r)
 
 
