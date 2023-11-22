@@ -63,6 +63,9 @@ class Uint8:
     def __str__(self):
         return "%d" % self.data
 
+    def __json__(self):
+        return self.data
+
 
 class Int16:
     def __init__(self, d):
@@ -73,6 +76,9 @@ class Int16:
 
     def __str__(self):
         return "%d" % self.data
+
+    def __json__(self):
+        return self.data
 
 
 class Uint16:
@@ -85,6 +91,9 @@ class Uint16:
     def __str__(self):
         return "%d" % self.data
 
+    def __json__(self):
+        return self.data
+
 
 class Uint32:
     def __init__(self, d):
@@ -95,6 +104,9 @@ class Uint32:
 
     def __str__(self):
         return "%d" % self.data
+
+    def __json__(self):
+        return self.data
 
 
 class Uint64:
@@ -107,6 +119,9 @@ class Uint64:
     def __str__(self):
         return "%d" % self.data
 
+    def __json__(self):
+        return self.data
+
 
 class Varint32:
     def __init__(self, d):
@@ -118,6 +133,9 @@ class Varint32:
     def __str__(self):
         return "%d" % self.data
 
+    def __json__(self):
+        return self.data
+
 
 class Int64:
     def __init__(self, d):
@@ -128,6 +146,9 @@ class Int64:
 
     def __str__(self):
         return "%d" % self.data
+
+    def __json__(self):
+        return self.data
 
 
 class String:
@@ -263,6 +284,9 @@ class Bool(Uint8):  # Bool = Uint8
 
     def __str__(self):
         return json.dumps(True) if self.data else json.dumps(False)
+
+    def __json__(self):
+        return True if self.data else False
 
 
 class Set(Array):  # Set = Array
