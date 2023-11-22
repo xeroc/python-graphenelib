@@ -336,9 +336,15 @@ class Testcases(unittest.TestCase):
         self.assertEqual(str(u), '[10, "Foobar"]')
 
     def test_Map(self):
+        class Tmp(types.Uint16):
+            def json(self):
+                return {"foo": super().data}
         u = types.Map([[types.Uint16(10), types.Uint16(11)]])
         self.assertEqual(bytes(u), b"\x01\n\x00\x0b\x00")
-        self.assertEqual(str(u), '[["10", "11"]]')
+        self.assertEqual(str(u), '[[10, 11]]')
+        v = types.Map([[types.Uint16(10), Tmp(11)]])
+        self.assertEqual(bytes(u), b"\x01\n\x00\x0b\x00")
+        self.assertEqual(str(u),'[[10, {"foo": 11}]]')
 
     def test_voteid(self):
         u = types.VoteId("0:30")
