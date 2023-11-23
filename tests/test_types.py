@@ -228,35 +228,35 @@ class Testcases(unittest.TestCase):
         self.assertEqual(str(u), "10")
 
     def test_uint16(self):
-        u = types.Uint16(2 ** 16 - 1)
+        u = types.Uint16(2**16 - 1)
         self.assertEqual(bytes(u), b"\xff\xff")
-        self.assertEqual(str(u), str(2 ** 16 - 1))
+        self.assertEqual(str(u), str(2**16 - 1))
 
     def test_uint32(self):
-        u = types.Uint32(2 ** 32 - 1)
+        u = types.Uint32(2**32 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff")
-        self.assertEqual(str(u), str(2 ** 32 - 1))
+        self.assertEqual(str(u), str(2**32 - 1))
 
     def test_uint64(self):
-        u = types.Uint64(2 ** 64 - 1)
+        u = types.Uint64(2**64 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff\xff\xff\xff\xff")
-        self.assertEqual(str(u), str(2 ** 64 - 1))
+        self.assertEqual(str(u), str(2**64 - 1))
 
     def test_int64(self):
-        u = types.Int64(2 ** 63 - 1)
+        u = types.Int64(2**63 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff\xff\xff\xff\x7f")
         self.assertEqual(str(u), str(9223372036854775807))
 
     def test_int16(self):
-        u = types.Int16(2 ** 15 - 1)
+        u = types.Int16(2**15 - 1)
         self.assertEqual(bytes(u), b"\xff\x7f")
-        self.assertEqual(str(u), str(2 ** 15 - 1))
+        self.assertEqual(str(u), str(2**15 - 1))
 
     def test_varint32(self):
-        u = types.Varint32(2 ** 32 - 1)
+        u = types.Varint32(2**32 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff\x0f")
         self.assertEqual(str(u), str(4294967295))
-        u = types.Id(2 ** 32 - 1)
+        u = types.Id(2**32 - 1)
         self.assertEqual(bytes(u), b"\xff\xff\xff\xff\x0f")
         self.assertEqual(str(u), str(4294967295))
 
@@ -338,7 +338,7 @@ class Testcases(unittest.TestCase):
     def test_Map(self):
         u = types.Map([[types.Uint16(10), types.Uint16(11)]])
         self.assertEqual(bytes(u), b"\x01\n\x00\x0b\x00")
-        self.assertEqual(str(u), '[["10", "11"]]')
+        self.assertEqual(str(u), '[["10", 11]]')
 
     def test_voteid(self):
         u = types.VoteId("0:30")
